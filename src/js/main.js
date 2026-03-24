@@ -87,7 +87,13 @@ function handleDown(e) {
 function handleUp() {
   if(state.activeScene===1){
     state.isPressed=false;
-    if(state.isIgnited&&!state.hasFinishedGallery&&!state.isSwapping){ state.isIgnited=false; state.isSwapping=true; }
+    if(state.isIgnited&&!state.hasFinishedGallery&&!state.isSwapping){
+      state.isIgnited=false;
+      state.isSwapping=true;
+      // iOS: prime next video src HERE in the gesture handler so iOS allows play()
+      // RAF-based _swapToNextCharacter() runs later and is outside gesture context
+      visual.primeNextVideo();
+    }
   }
 }
 

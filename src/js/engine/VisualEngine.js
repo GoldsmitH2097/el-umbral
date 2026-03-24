@@ -117,6 +117,20 @@ export class VisualEngine {
   }
   enterScene2() { this._fireflies.push(new FireflyParticle(this._currentX,this._currentY)); }
   clearFlame() { this._flameParticles=[];this._smokeParticles=[];state.isIgnited=false; }
+
+  /**
+   * Called from touchend/mouseup gesture handler in main.js.
+   * Primes the NEXT character's video src in gesture context so iOS allows play().
+   * RAF-based _swapToNextCharacter() then just updates text and calls play() again.
+   */
+  primeNextVideo() {
+    const nextIndex = state.currentCharIndex + 1;
+    if (nextIndex < CHARACTERS.length) {
+      this._videoEl.src = CHARACTERS[nextIndex].src;
+      this._videoEl.load();
+      this._videoEl.play().catch(()=>{});
+    }
+  }
   _loadCharacterVideo(index) {
     if(index>=CHARACTERS.length) return;
     const c=CHARACTERS[index];
@@ -125,8 +139,16 @@ export class VisualEngine {
   }
   _swapToNextCharacter() {
     state.currentCharIndex++;
-    if(state.currentCharIndex<CHARACTERS.length){ this._loadCharacterVideo(state.currentCharIndex); state.isSwapping=false; }
-    else { state.hasFinishedGallery=true; state.isSwapping=false; setTimeout(()=>{const b=document.getElementById('umbral-btn');b.style.opacity='1';b.style.pointerEvents='auto';},500); }
+    if(state.currentCharIndex<CHARACTERS.length){
+      // src already primed by primeNextVideo() in gesture context — just update text and ensure playing
+      this._titleEl.innerText = CHARACTERS[state.currentCharIndex].title;
+      this._descEl.innerText = CHARACTERS[state.currentCharIndex].desc;
+      this._videoEl.play().catch(()=>{});
+      state.isSwapping=false;
+    } else {
+      state.hasFinishedGallery=true; state.isSwapping=false;
+      setTimeout(()=>{const b=document.getElementById('umbral-btn');b.style.opacity='1';b.style.pointerEvents='auto';},500);
+    }
   }
   _resizeCanvas() { this._canvas.width=window.innerWidth; this._canvas.height=window.innerHeight; }
   start() { this._tick(); }

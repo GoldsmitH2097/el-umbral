@@ -20,6 +20,9 @@ export class AudioEngine {
     try {
       this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       this._buildGraph(); this._scheduleDroplet(); this._scheduleWhisperBreath();
+      // iOS Safari: AudioContext starts in 'suspended' even inside a gesture handler.
+      // Must call resume() synchronously here — this IS the gesture context.
+      if (this.audioCtx.state === 'suspended') this.audioCtx.resume();
       this.initialized = true;
     } catch(e) { console.warn('[AudioEngine] blocked', e); }
   }
