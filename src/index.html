@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>El Umbral — Crónicas de la Oscuridad</title>
+  <meta name="description" content="El Umbral: una experiencia cinematográfica e interactiva de fantasía oscura. Descubre las crónicas de La Reina Sin Corona, El Caballero Sin Nombre, La Sortílega Sin Sombra y El Arlequín Sin Flores." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://www.umbral.com/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://www.umbral.com/" />
+  <meta property="og:title" content="El Umbral — Crónicas de la Oscuridad" />
+  <meta property="og:description" content="Una experiencia cinematográfica interactiva. Has cruzado la línea." />
+  <meta property="og:image" content="https://www.umbral.com/og-image.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="El Umbral — Crónicas de la Oscuridad" />
+  <meta name="twitter:image" content="https://www.umbral.com/og-image.jpg" />
+  <link rel="stylesheet" href="/css/global.css" />
+  <link rel="stylesheet" href="/css/canvas.css" />
+  <link rel="stylesheet" href="/css/archive.css" />
+  <link rel="stylesheet" href="/css/typography.css" />
+</head>
+<body>
+
+<!-- GHOST DOM: invisible to users, fully indexed by Googlebot -->
+<div id="ghost-dom" aria-hidden="true">
+  <header><h1>El Umbral — Las Crónicas de la Oscuridad</h1></header>
+  <main>
+    <article data-slug="reina">
+      <h2>La Reina Sin Corona</h2>
+      <p>Ella no gobierna desde un trono de oro, sino desde las ruinas de las certezas de quienes la rodean. Su mera presencia altera la presión del aire en la sala.</p>
+      <p>Las leyendas afirman que su corona fue forjada, pero ella misma la fundió para construir las cadenas de sus enemigos.</p>
+    </article>
+    <article data-slug="caballero">
+      <h2>El Caballero Sin Nombre</h2>
+      <p>Nadie sabe bajo qué bandera lucha, porque no ha dejado sobrevivientes para que cuenten el emblema de su escudo.</p>
+      <p>Dicen que dentro de la armadura ya no hay un hombre, sino un concepto físico: el fin inminente.</p>
+    </article>
+    <article data-slug="sortilega">
+      <h2>La Sortílega Sin Sombra</h2>
+      <p>Nunca la miras directamente. Solo la percibes en la visión periférica, como una distorsión térmica sobre el asfalto caliente.</p>
+      <p>Si alguna vez notas que el fuego de una vela vacila sin que haya viento, ella está escuchando.</p>
+    </article>
+    <article data-slug="arlequin">
+      <h2>El Arlequín Sin Flores</h2>
+      <p>La comedia murió hace siglos, y él es el forense encargado de la autopsia.</p>
+      <p>Cuando el Arlequín entra en la sala, la cordura sale por la ventana.</p>
+    </article>
+  </main>
+</div>
+
+<!-- SCENE 1: THE TOMB -->
+<div id="gallery-container">
+  <video id="char-video" loop muted playsinline autoplay preload="auto"></video>
+  <div id="char-text"><h3 id="char-title">Cargando...</h3><p id="char-desc">Cargando...</p></div>
+</div>
+<div id="ambient-light"></div>
+<div id="ui"><div id="instruccion">Toca y mantén pulsado<br>para encender la llama</div></div>
+<button id="umbral-btn" aria-label="Cruzar El Umbral">EL UMBRAL<span class="cruzar-txt">CRUZAR</span></button>
+
+<!-- SCENE 2: VOCES DEL UMBRAL -->
+<div id="scene-2">
+  <h2 id="voces-title">Voces del Umbral</h2>
+  <div class="whisper" data-index="0" data-found="false" style="top:20%;left:15%;">La piedra recuerda</div>
+  <div class="whisper" data-index="1" data-found="false" style="top:75%;left:25%;">El frío no perdona</div>
+  <div class="whisper" data-index="2" data-found="false" style="top:30%;left:70%;">Lo que la carne olvida</div>
+  <div class="whisper" data-index="3" data-found="false" style="top:80%;left:65%;">Ya cruzaste la línea</div>
+</div>
+<div id="scene-2-light"></div>
+
+<!-- SCENE 3: THE AWAKENING -->
+<div id="scene-3">
+  <h1>EL UMBRAL</h1>
+  <button id="final-btn">ADENTRARSE</button>
+</div>
+
+<!-- SCENE 4: THE ARCHIVE -->
+<div id="main-site">
+  <div id="grid-view">
+    <nav class="site-nav">
+      <div class="logo">EL UMBRAL</div>
+      <div class="links">
+        <span role="button" tabindex="0" data-action="scroll-top">LOS TOMOS</span>
+        <span role="button" tabindex="0" data-action="open-pacto">EL PACTO</span>
+      </div>
+    </nav>
+    <header class="site-hero">
+      <h2>Las Crónicas</h2>
+      <p>Has cruzado la línea. La historia se escribe con sangre, sombras y ecos en la oscuridad. Selecciona tu camino.</p>
+    </header>
+    <section class="pillar-grid"></section>
+    <footer class="site-footer"><p>El Umbral &copy; MMXCIV. Nada es lo que parece.</p></footer>
+  </div>
+</div>
+
+<!-- SCENE 5: READING VIEW -->
+<div id="reading-view">
+  <button id="btn-volver">&#8592; Volver</button>
+  <video id="reading-bg-video" loop muted playsinline preload="none"></video>
+  <div class="reading-content">
+    <h1 id="read-title"></h1>
+    <div class="read-body" id="read-body-content"></div>
+  </div>
+</div>
+
+<!-- PACTO MODAL -->
+<div id="pacto-modal">
+  <h2>El Pacto</h2>
+  <p>Al cruzar este umbral, aceptas que las historias aquí contenidas no están diseñadas para consolarte. Eres un espectador en la oscuridad. No hay devoluciones, no hay garantías, y la verdad es una carga que deberás soportar solo.</p>
+  <button id="btn-cerrar-pacto">Acepto</button>
+</div>
+
+<canvas id="vfx-canvas" aria-hidden="true"></canvas>
+<script type="module" src="/js/main.js"></script>
+</body>
+</html>

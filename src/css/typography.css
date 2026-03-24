@@ -1,0 +1,11 @@
+#read-title {
+  font-size: 36px; font-weight: normal; letter-spacing: 10px; margin: 0 0 40px 0;
+  text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding-bottom: 30px; text-align: center; color: #e8ecef;
+}
+.read-body { font-size: 18px; line-height: 2.2; color: #d0d0d0; text-align: justify; }
+.read-body p { margin-bottom: 30px; }
+.read-body p:first-child::first-letter {
+  font-size: 60px; float: left; padding-right: 15px; color: #fff;
+  line-height: 1; font-family: 'Times New Roman', serif;
+}
