@@ -19,11 +19,31 @@ export class AudioEngine {
     if (this.initialized) return;
     try {
       this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      this._buildGraph(); this._scheduleDroplet(); this._scheduleWhisperBreath();
-      // iOS Safari: AudioContext starts in 'suspended' even inside a gesture handler.
-      // Must call resume() synchronously here — this IS the gesture context.
-      if (this.audioCtx.state === 'suspended') this.audioCtx.resume();
-      this.initialized = true;
+
+      // iOS WebKit audio unlock:
+      // 1. Play a 1-sample silent buffer — forces WebKit to fully initialise the audio graph.
+      // 2. Then resume() the context.
+      // 3. Only build the real graph after resume resolves — ensures looping BufferSourceNodes
+      //    start in a running context rather than a suspended one (which causes them to be
+      //    silently dropped on some iOS versions).
+      const unlock = this.audioCtx.createBuffer(1, 1, 22050);
+      const unlockSrc = this.audioCtx.createBufferSource();
+      unlockSrc.buffer = unlock;
+      unlockSrc.connect(this.audioCtx.destination);
+      unlockSrc.start(0);
+
+      const startEngine = () => {
+        this._buildGraph();
+        this._scheduleDroplet();
+        this._scheduleWhisperBreath();
+        this.initialized = true;
+      };
+
+      if (this.audioCtx.state === 'suspended') {
+        this.audioCtx.resume().then(startEngine).catch(() => startEngine());
+      } else {
+        startEngine();
+      }
     } catch(e) { console.warn('[AudioEngine] blocked', e); }
   }
 
@@ -164,7 +184,12 @@ export class AudioEngine {
   }
 
   setAwakening(v) { this._awakeningActive = v; }
-  /** iOS Safari requires explicit resume() on every touch event */
-  resumeIfSuspended() { if (this.audioCtx && this.audioCtx.state === 'suspended') this.audioCtx.resume(); }
+  /** iOS Safari: call on every touch event to keep context running */
+  resumeIfSuspended() {
+    if (this.audioCtx && this.audioCtx.state === 'suspended') {
+      return this.audioCtx.resume();
+    }
+    return Promise.resolve();
+  }
   get isReady() { return this.initialized; }
 }

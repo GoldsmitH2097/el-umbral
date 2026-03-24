@@ -101,7 +101,9 @@ export class VisualEngine {
     this._canvas=document.getElementById('vfx-canvas');
     this._ctx=this._canvas.getContext('2d');
     this._videoEl=document.getElementById('char-video');
-    this._preloadEl=document.getElementById('char-video-preload'); // Hidden preload buffer
+    this._preloadEl=document.getElementById('char-video-preload');
+    // Track which element is currently "live" vs "preloading"
+    this._liveEl=this._videoEl;
     this._titleEl=document.getElementById('char-title');
     this._descEl=document.getElementById('char-desc');
     this._instEl=document.getElementById('instruccion');
@@ -131,32 +133,39 @@ export class VisualEngine {
    */
   primeNextVideo() {
     const nextIndex = state.currentCharIndex + 1;
-    if (nextIndex < CHARACTERS.length && this._preloadEl) {
-      this._preloadEl.src = CHARACTERS[nextIndex].src;
-      this._preloadEl.load();
-      this._preloadEl.play().catch(()=>{});
-    }
+    if (nextIndex >= CHARACTERS.length) return;
+    // Load into whichever element is currently hidden — keep the live element untouched.
+    // This stays in gesture context so iOS grants play() permission.
+    const hiddenEl = this._liveEl === this._videoEl ? this._preloadEl : this._videoEl;
+    hiddenEl.src = CHARACTERS[nextIndex].src;
+    hiddenEl.load();
+    hiddenEl.play().catch(()=>{});
   }
   _loadCharacterVideo(index) {
     if(index>=CHARACTERS.length) return;
     const c=CHARACTERS[index];
-    this._videoEl.src=c.src; this._videoEl.load(); this._videoEl.play().catch(()=>{});
+    this._liveEl.src=c.src; this._liveEl.load(); this._liveEl.play().catch(()=>{});
     this._titleEl.innerText=c.title; this._descEl.innerText=c.desc;
   }
   _swapToNextCharacter() {
     state.currentCharIndex++;
     if(state.currentCharIndex<CHARACTERS.length){
       const char = CHARACTERS[state.currentCharIndex];
-      // Transfer from hidden preload element — screen is dark now, safe to swap
-      if(this._preloadEl && this._preloadEl.src && this._preloadEl.src !== window.location.href) {
-        this._videoEl.src = this._preloadEl.src;
-        this._videoEl.load();
-      } else {
-        // Fallback: load directly (desktop path where primeNextVideo used preload)
-        this._videoEl.src = char.src;
-        this._videoEl.load();
-      }
-      this._videoEl.play().catch(()=>{});
+      // Swap visibility — don't touch src. The next video is already playing in the
+      // hidden element from gesture context. Showing it avoids a new autoplay trigger.
+      const nextEl = this._liveEl === this._videoEl ? this._preloadEl : this._videoEl;
+      const prevEl = this._liveEl;
+      // Show next, hide previous
+      nextEl.style.display = '';
+      nextEl.style.opacity = '0.8';
+      nextEl.style.position = 'absolute';
+      nextEl.style.top = '0'; nextEl.style.left = '0';
+      nextEl.style.width = '100vw'; nextEl.style.height = '100vh';
+      nextEl.style.objectFit = 'contain'; nextEl.style.transform = 'scale(1.05)';
+      prevEl.style.display = 'none';
+      nextEl.play().catch(()=>{});
+      this._liveEl = nextEl;
+      // Update text
       this._titleEl.innerText = char.title;
       this._descEl.innerText = char.desc;
       state.isSwapping=false;
@@ -215,17 +224,20 @@ export class VisualEngine {
       // Recompute oxygenScale here — the value computed at the top of this function
       // was 0 if isIgnited was just set true this frame. Recomputing avoids a dark flash.
       const oxygenScale = Math.max(0.05, 1-speed*0.025);
-      const fl=Math.random()*5-2.5;
-      root.style.setProperty('--radio-interior',Math.max(30,(80+fl)*oxygenScale)+'px');
-      root.style.setProperty('--radio-exterior',Math.max(100,(300+fl*2)*oxygenScale)+'px');
+      // Base radii match the ramp-up PEAK values (progress=150 → interior=120, exterior=375)
+      // so there is zero visual jump at the ignition threshold.
+      // Flicker is smoothed: ±1.5px instead of ±2.5px to reduce frame noise.
+      const fl=Math.random()*3-1.5;
+      root.style.setProperty('--radio-interior',Math.max(30,(120+fl)*oxygenScale)+'px');
+      root.style.setProperty('--radio-exterior',Math.max(100,(375+fl*2)*oxygenScale)+'px');
       root.style.setProperty('--intensidad',0.85*oxygenScale);
       const pts=speed>10?1:Math.floor(Math.random()*3+4);
       for(let i=0;i<pts;i++) this._flameParticles.push(new FlameParticle(this._currentX,this._currentY,wx,wy,oxygenScale));
       if(speed>3&&this._frameCount%2===0) this._smokeParticles.push(new SmokeParticle(this._currentX,this._currentY-20,vx,vy));
       else if(this._frameCount%6===0) this._smokeParticles.push(new SmokeParticle(this._currentX+(Math.random()-0.5)*5,this._currentY-50,0,0));
       const ox=(this._currentX-this._canvas.width/2)*0.02, oy=(this._currentY-this._canvas.height/2)*0.02;
-      this._videoEl.style.transform=`scale(1.05) translate(${ox}px,${oy}px)`;
-    } else { this._videoEl.style.transform='scale(1.05) translate(0px,0px)'; }
+      this._liveEl.style.transform=`scale(1.05) translate(${ox}px,${oy}px)`;
+    } else { this._liveEl.style.transform='scale(1.05) translate(0px,0px)'; }
     ctx.globalCompositeOperation='source-over';
     for(let i=this._smokeParticles.length-1;i>=0;i--){const p=this._smokeParticles[i];p.update();p.draw(ctx);if(p.life<=0)this._smokeParticles.splice(i,1);}
     ctx.globalCompositeOperation='lighter';
