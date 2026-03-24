@@ -16,35 +16,40 @@ export class AudioEngine {
   }
 
   init() {
-    if (this.initialized) return;
+    if (this.initialized || this._initializing) return;
+    this._initializing = true;
     try {
       this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-      // iOS WebKit audio unlock:
-      // 1. Play a 1-sample silent buffer — forces WebKit to fully initialise the audio graph.
-      // 2. Then resume() the context.
-      // 3. Only build the real graph after resume resolves — ensures looping BufferSourceNodes
-      //    start in a running context rather than a suspended one (which causes them to be
-      //    silently dropped on some iOS versions).
+      // iOS WebKit audio unlock — must all happen synchronously in the gesture handler.
+      //
+      // Step 1: Play a silent buffer. This activates the iOS audio session immediately.
+      // It must happen synchronously before any other audio work.
       const unlock = this.audioCtx.createBuffer(1, 1, 22050);
       const unlockSrc = this.audioCtx.createBufferSource();
       unlockSrc.buffer = unlock;
       unlockSrc.connect(this.audioCtx.destination);
       unlockSrc.start(0);
 
-      const startEngine = () => {
-        this._buildGraph();
-        this._scheduleDroplet();
-        this._scheduleWhisperBreath();
-        this.initialized = true;
-      };
+      // Step 2: Build graph and start looping sources SYNCHRONOUSLY.
+      // BufferSourceNodes started while context is 'suspended' queue up correctly
+      // and play the moment resume() resolves. They must NOT be started in a Promise
+      // callback — that runs outside the gesture window and iOS silently drops them.
+      this._buildGraph();
+      this._scheduleDroplet();
+      this._scheduleWhisperBreath();
+      this.initialized = true;
+      this._initializing = false;
 
-      if (this.audioCtx.state === 'suspended') {
-        this.audioCtx.resume().then(startEngine).catch(() => startEngine());
-      } else {
-        startEngine();
+      // Step 3: Resume — kick off asynchronously. Queued sources play when it resolves.
+      if (this.audioCtx.state !== 'running') {
+        this.audioCtx.resume().catch(() => {});
       }
-    } catch(e) { console.warn('[AudioEngine] blocked', e); }
+
+    } catch(e) {
+      console.warn('[AudioEngine] blocked', e);
+      this._initializing = false;
+    }
   }
 
   _buildGraph() {
@@ -184,10 +189,10 @@ export class AudioEngine {
   }
 
   setAwakening(v) { this._awakeningActive = v; }
-  /** iOS Safari: call on every touch event to keep context running */
+  /** iOS Safari: call on every touch. Catches 'suspended' AND 'interrupted' states. */
   resumeIfSuspended() {
-    if (this.audioCtx && this.audioCtx.state === 'suspended') {
-      return this.audioCtx.resume();
+    if (this.audioCtx && this.audioCtx.state !== 'running') {
+      return this.audioCtx.resume().catch(() => {});
     }
     return Promise.resolve();
   }
