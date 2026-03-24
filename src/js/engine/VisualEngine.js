@@ -44,19 +44,22 @@ class DustParticle {
     if(this.x>cW+40) this.x=-40;
     if(this.x<-40) this.x=cW+40;
   }
-  draw(ctx) {
+  draw(ctx, fade=1) {
+    if(fade<=0) return; // Already invisible — skip draw entirely
     ctx.beginPath(); ctx.arc(this.x,this.y,this.size,0,Math.PI*2);
+    const op = this.opacity * fade; // Apply awakening fade multiplier
     if(this.isMacro){
       ctx.shadowBlur=this.blur;
-      ctx.shadowColor=this.isLit?`rgba(255,160,50,${this.opacity*2})`:`rgba(180,200,255,${this.opacity})`;
+      ctx.shadowColor=this.isLit?`rgba(255,160,50,${op*2})`:`rgba(180,200,255,${op})`;
       const gr=ctx.createRadialGradient(this.x,this.y,0,this.x,this.y,this.size);
-      if(this.isLit){gr.addColorStop(0,`rgba(255,200,100,${this.opacity*0.8})`);gr.addColorStop(0.5,`rgba(255,150,50,${this.opacity*0.4})`);gr.addColorStop(1,`rgba(255,100,0,0)`);}
-      else{gr.addColorStop(0,`rgba(220,240,255,${this.opacity*0.6})`);gr.addColorStop(0.5,`rgba(180,200,255,${this.opacity*0.2})`);gr.addColorStop(1,`rgba(150,180,255,0)`);}
+      if(this.isLit){gr.addColorStop(0,`rgba(255,200,100,${op*0.8})`);gr.addColorStop(0.5,`rgba(255,150,50,${op*0.4})`);gr.addColorStop(1,`rgba(255,100,0,0)`);}
+      else{gr.addColorStop(0,`rgba(220,240,255,${op*0.6})`);gr.addColorStop(0.5,`rgba(180,200,255,${op*0.2})`);gr.addColorStop(1,`rgba(150,180,255,0)`);}
       ctx.fillStyle=gr;
     } else {
-      if(this.blur>0){ctx.shadowBlur=this.blur;ctx.shadowColor=this.isLit?`rgba(255,180,80,${this.opacity})`:`rgba(200,210,230,${this.opacity})`;}
+      if(this.blur>0){ctx.shadowBlur=this.blur;ctx.shadowColor=this.isLit?`rgba(255,180,80,${op})`:`rgba(200,210,230,${op})`;}
       else ctx.shadowBlur=0;
-      ctx.fillStyle=state.isAwakening?`rgba(255,255,255,${this.opacity*2})`:this.isLit?`rgba(255,180,80,${this.opacity*2.5})`:`rgba(200,210,230,${this.opacity})`;
+      // During awakening: fade toward invisible (no white boost — that was making them pop)
+      ctx.fillStyle=this.isLit?`rgba(255,180,80,${op*2.5})`:`rgba(200,210,230,${op})`;
     }
     ctx.fill(); ctx.shadowBlur=0;
   }
@@ -107,6 +110,7 @@ export class VisualEngine {
     this._currentX=this._targetX; this._currentY=this._targetY;
     this._lastX=this._targetX; this._lastY=this._targetY;
     this._flameParticles=[]; this._smokeParticles=[]; this._dustParticles=[]; this._fireflies=[]; this._frameCount=0;
+    this._awakeningFrames=0; // Increments during awakening — used to fade dust out progressively
     this._resizeCanvas(); window.addEventListener('resize',()=>this._resizeCanvas());
     for(let i=0;i<100;i++) this._dustParticles.push(new DustParticle(this._canvas.width,this._canvas.height));
     this._loadCharacterVideo(0);
@@ -173,12 +177,14 @@ export class VisualEngine {
     this._currentX+=(this._targetX-this._currentX)*lf; this._currentY+=(this._targetY-this._currentY)*lf;
     const vx=this._currentX-this._lastX, vy=this._currentY-this._lastY, speed=Math.sqrt(vx*vx+vy*vy);
     this._lastX=this._currentX; this._lastY=this._currentY;
-    if(!state.isAwakening){ root.style.setProperty('--x',this._currentX+'px'); root.style.setProperty('--y',this._currentY+'px'); }
-    else { const le=parseFloat(root.style.getPropertyValue('--radio-exterior')||350); root.style.setProperty('--radio-exterior',le+10+'px'); }
+    if(!state.isAwakening){ root.style.setProperty('--x',this._currentX+'px'); root.style.setProperty('--y',this._currentY+'px'); this._awakeningFrames=0; }
+    else { const le=parseFloat(root.style.getPropertyValue('--radio-exterior')||350); root.style.setProperty('--radio-exterior',le+10+'px'); this._awakeningFrames++; }
     ctx.globalCompositeOperation='lighter';
+    // Dust fades out during awakening — fully invisible by frame 120 (~2 seconds at 60fps)
+    const dustFade = state.isAwakening ? Math.max(0, 1 - this._awakeningFrames/120) : 1;
     for(let i=0;i<this._dustParticles.length;i++){
       this._dustParticles[i].update(this._currentX,this._currentY,vx,vy,state.isIgnited,this._frameCount,this._canvas.width,this._canvas.height);
-      this._dustParticles[i].draw(ctx);
+      this._dustParticles[i].draw(ctx, dustFade);
     }
     if(state.activeScene===1) this._updateScene1(ctx,vx,vy,speed);
     if(state.activeScene===2||state.activeScene===3) this._updateScene2(ctx);
@@ -206,6 +212,9 @@ export class VisualEngine {
       root.style.setProperty('--intensidad',0.8*sc);
     }
     if(state.isIgnited){
+      // Recompute oxygenScale here — the value computed at the top of this function
+      // was 0 if isIgnited was just set true this frame. Recomputing avoids a dark flash.
+      const oxygenScale = Math.max(0.05, 1-speed*0.025);
       const fl=Math.random()*5-2.5;
       root.style.setProperty('--radio-interior',Math.max(30,(80+fl)*oxygenScale)+'px');
       root.style.setProperty('--radio-exterior',Math.max(100,(300+fl*2)*oxygenScale)+'px');
