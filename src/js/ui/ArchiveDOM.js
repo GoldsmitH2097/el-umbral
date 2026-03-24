@@ -21,7 +21,7 @@ export class ArchiveDOM {
       video.loop=true; video.muted=true; video.playsInline=true; video.preload='none';
       video.dataset.src=char.src;
       const content=document.createElement('div'); content.className='pillar-content';
-      content.innerHTML=`<h4>${['I','II','III','IV'][i]}. ${char.title}</h4><p>${char.desc.split('.')[0]}.</p>`;
+      content.innerHTML=`<h4>${['I','II','III','IV'][i]}. ${char.label}</h4><p>${char.desc.split('.')[0]}.</p>`;
       pillar.appendChild(video); pillar.appendChild(content); grid.appendChild(pillar);
       let loaded=false;
       const loadAndPlay=()=>{
@@ -40,6 +40,8 @@ export class ArchiveDOM {
     if(skipIntro) this._mainSite.style.transition='none';
     this._mainSite.style.opacity='1'; this._mainSite.style.pointerEvents='auto';
     if(skipIntro) requestAnimationFrame(()=>{this._mainSite.style.transition='opacity 3s ease';});
+    // Trigger text reveal animations — small delay lets the opacity transition start first
+    setTimeout(()=>{ this._gridView.classList.add('archive-visible'); }, 200);
   }
   openReading(index) {
     const char=CHARACTERS[index]; if(!char) return;

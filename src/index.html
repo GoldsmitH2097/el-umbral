@@ -74,6 +74,11 @@
 <!-- SCENE 1: THE TOMB -->
 <div id="gallery-container">
   <video id="char-video" loop muted playsinline autoplay preload="auto"></video>
+  <!--
+    Preload-only video: invisible, never shown. Used by primeNextVideo() to load
+    next character in iOS gesture context without flashing it on screen prematurely.
+  -->
+  <video id="char-video-preload" muted playsinline preload="auto" style="display:none"></video>
   <div id="char-text"><h3 id="char-title">Cargando...</h3><p id="char-desc">Cargando...</p></div>
 </div>
 <div id="ambient-light"></div>

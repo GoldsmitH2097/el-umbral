@@ -98,6 +98,7 @@ export class VisualEngine {
     this._canvas=document.getElementById('vfx-canvas');
     this._ctx=this._canvas.getContext('2d');
     this._videoEl=document.getElementById('char-video');
+    this._preloadEl=document.getElementById('char-video-preload'); // Hidden preload buffer
     this._titleEl=document.getElementById('char-title');
     this._descEl=document.getElementById('char-desc');
     this._instEl=document.getElementById('instruccion');
@@ -119,16 +120,17 @@ export class VisualEngine {
   clearFlame() { this._flameParticles=[];this._smokeParticles=[];state.isIgnited=false; }
 
   /**
-   * Called from touchend/mouseup gesture handler in main.js.
-   * Primes the NEXT character's video src in gesture context so iOS allows play().
-   * RAF-based _swapToNextCharacter() then just updates text and calls play() again.
+   * Called from touchend/mouseup gesture handler in main.js — inside gesture context.
+   * Loads next video into the HIDDEN preload element so iOS unlocks play() permission,
+   * without changing the visible video (which would flash the new character early).
+   * _swapToNextCharacter() transfers it to the visible element once screen is dark.
    */
   primeNextVideo() {
     const nextIndex = state.currentCharIndex + 1;
-    if (nextIndex < CHARACTERS.length) {
-      this._videoEl.src = CHARACTERS[nextIndex].src;
-      this._videoEl.load();
-      this._videoEl.play().catch(()=>{});
+    if (nextIndex < CHARACTERS.length && this._preloadEl) {
+      this._preloadEl.src = CHARACTERS[nextIndex].src;
+      this._preloadEl.load();
+      this._preloadEl.play().catch(()=>{});
     }
   }
   _loadCharacterVideo(index) {
@@ -140,10 +142,19 @@ export class VisualEngine {
   _swapToNextCharacter() {
     state.currentCharIndex++;
     if(state.currentCharIndex<CHARACTERS.length){
-      // src already primed by primeNextVideo() in gesture context — just update text and ensure playing
-      this._titleEl.innerText = CHARACTERS[state.currentCharIndex].title;
-      this._descEl.innerText = CHARACTERS[state.currentCharIndex].desc;
+      const char = CHARACTERS[state.currentCharIndex];
+      // Transfer from hidden preload element — screen is dark now, safe to swap
+      if(this._preloadEl && this._preloadEl.src && this._preloadEl.src !== window.location.href) {
+        this._videoEl.src = this._preloadEl.src;
+        this._videoEl.load();
+      } else {
+        // Fallback: load directly (desktop path where primeNextVideo used preload)
+        this._videoEl.src = char.src;
+        this._videoEl.load();
+      }
       this._videoEl.play().catch(()=>{});
+      this._titleEl.innerText = char.title;
+      this._descEl.innerText = char.desc;
       state.isSwapping=false;
     } else {
       state.hasFinishedGallery=true; state.isSwapping=false;

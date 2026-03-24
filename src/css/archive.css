@@ -14,8 +14,27 @@
 .site-nav .links span { font-size: 12px; letter-spacing: 4px; margin-left: 40px; color: #888; transition: color 0.3s; cursor: pointer !important; }
 .site-nav .links span:hover { color: #fff; }
 .site-hero { padding: 10vh 5vw; text-align: center; }
-.site-hero h2 { font-size: 4vw; font-weight: normal; letter-spacing: 15px; margin: 0 0 20px 0; text-transform: uppercase; }
-.site-hero p { font-size: 16px; color: #666; letter-spacing: 2px; font-style: italic; max-width: 600px; margin: 0 auto; line-height: 1.8; }
+/* Start invisible — animations trigger via .archive-visible class added by ArchiveDOM.showArchive() */
+.site-hero h2 { font-size: 4vw; font-weight: normal; letter-spacing: 15px; margin: 0 0 20px 0; text-transform: uppercase; opacity: 0; }
+.site-hero p { font-size: 16px; color: #666; letter-spacing: 2px; font-style: italic; max-width: 600px; margin: 0 auto; line-height: 1.8; opacity: 0; }
+
+@keyframes heroTitleReveal {
+  from { opacity: 0; transform: translateY(16px); letter-spacing: 22px; }
+  to   { opacity: 1; transform: translateY(0);   letter-spacing: 15px; }
+}
+@keyframes heroSubReveal {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.archive-visible .site-hero h2 {
+  animation: heroTitleReveal 2.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: 0.4s;
+}
+.archive-visible .site-hero p {
+  animation: heroSubReveal 2s ease forwards;
+  animation-delay: 1.6s;
+}
 .pillar-grid { display: flex; width: 100%; flex: 1; min-height: 50vh; background: #080808; border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); }
 .pillar { flex: 1; position: relative; background: #050505; display: flex; flex-direction: column; justify-content: flex-end; padding: 40px 20px; overflow: hidden; cursor: pointer !important; transition: flex 0.6s cubic-bezier(0.25,1,0.5,1), background 0.5s ease; border-right: 1px solid rgba(255,255,255,0.05); }
 .pillar:last-child { border-right: none; }
@@ -25,7 +44,7 @@
 .pillar:hover video { opacity: 0.2; transform: scale(1.05); }
 .pillar-content { position: relative; z-index: 2; transition: transform 0.5s ease; transform: translateY(20px); text-align: center; }
 .pillar:hover .pillar-content { transform: translateY(0); }
-.pillar-content h4 { font-size: 16px; letter-spacing: 6px; margin: 0 0 15px 0; text-transform: uppercase; }
+.pillar-content h4 { font-size: 14px; letter-spacing: 4px; margin: 0 0 15px 0; text-transform: uppercase; line-height: 1.5; }
 .pillar-content p { font-size: 12px; color: #888; line-height: 1.6; margin: 0 auto; max-width: 250px; opacity: 0; transition: opacity 0.5s ease; }
 .pillar:hover .pillar-content p { opacity: 1; }
 .site-footer { text-align: center; padding: 5vh 5vw; font-size: 10px; color: #444; letter-spacing: 4px; text-transform: uppercase; }
