@@ -4,17 +4,27 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>El Umbral — Crónicas de la Oscuridad</title>
-  <meta name="description" content="El Umbral: una experiencia cinematográfica e interactiva de fantasía oscura. Descubre las crónicas de La Reina Sin Corona, El Caballero Sin Nombre, La Sortílega Sin Sombra y El Arlequín Sin Flores." />
+
+  <meta name="description" content="Has cruzado la línea. La historia se escribe con sangre, sombras y ecos en la oscuridad. Explora las crónicas de El Umbral." />
   <meta name="robots" content="index, follow" />
-  <link rel="canonical" href="https://www.umbral.com/" />
+  <link rel="canonical" href="https://el-umbral.netlify.app/" />
+
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://www.umbral.com/" />
-  <meta property="og:title" content="El Umbral — Crónicas de la Oscuridad" />
-  <meta property="og:description" content="Una experiencia cinematográfica interactiva. Has cruzado la línea." />
-  <meta property="og:image" content="https://www.umbral.com/og-image.jpg" />
+  <meta property="og:url" content="https://el-umbral.netlify.app/" />
+  <meta property="og:title" content="El Umbral — Las Crónicas de la Oscuridad" />
+  <meta property="og:description" content="La historia se escribe con sangre, sombras y ecos en la oscuridad. Selecciona tu camino." />
+  <meta property="og:image" content="https://el-umbral.netlify.app/og-image.jpg" />
+  <meta property="og:image:alt" content="El Umbral — Oscuridad y Misterio" />
+
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="El Umbral — Crónicas de la Oscuridad" />
-  <meta name="twitter:image" content="https://www.umbral.com/og-image.jpg" />
+  <meta name="twitter:url" content="https://el-umbral.netlify.app/" />
+  <meta name="twitter:title" content="El Umbral — Las Crónicas de la Oscuridad" />
+  <meta name="twitter:description" content="Has cruzado la línea. La historia se escribe con sangre, sombras y ecos en la oscuridad." />
+  <meta name="twitter:image" content="https://el-umbral.netlify.app/og-image.jpg" />
+
+  <!-- SVG candle favicon — no external dependency -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🕯️</text></svg>">
+
   <link rel="stylesheet" href="/css/global.css" />
   <link rel="stylesheet" href="/css/canvas.css" />
   <link rel="stylesheet" href="/css/archive.css" />
@@ -22,31 +32,43 @@
 </head>
 <body>
 
-<!-- GHOST DOM: invisible to users, fully indexed by Googlebot -->
-<div id="ghost-dom" aria-hidden="true">
-  <header><h1>El Umbral — Las Crónicas de la Oscuridad</h1></header>
-  <main>
-    <article data-slug="reina">
-      <h2>La Reina Sin Corona</h2>
-      <p>Ella no gobierna desde un trono de oro, sino desde las ruinas de las certezas de quienes la rodean. Su mera presencia altera la presión del aire en la sala.</p>
-      <p>Las leyendas afirman que su corona fue forjada, pero ella misma la fundió para construir las cadenas de sus enemigos.</p>
-    </article>
-    <article data-slug="caballero">
-      <h2>El Caballero Sin Nombre</h2>
-      <p>Nadie sabe bajo qué bandera lucha, porque no ha dejado sobrevivientes para que cuenten el emblema de su escudo.</p>
-      <p>Dicen que dentro de la armadura ya no hay un hombre, sino un concepto físico: el fin inminente.</p>
-    </article>
-    <article data-slug="sortilega">
-      <h2>La Sortílega Sin Sombra</h2>
-      <p>Nunca la miras directamente. Solo la percibes en la visión periférica, como una distorsión térmica sobre el asfalto caliente.</p>
-      <p>Si alguna vez notas que el fuego de una vela vacila sin que haya viento, ella está escuchando.</p>
-    </article>
-    <article data-slug="arlequin">
-      <h2>El Arlequín Sin Flores</h2>
-      <p>La comedia murió hace siglos, y él es el forense encargado de la autopsia.</p>
-      <p>Cuando el Arlequín entra en la sala, la cordura sale por la ventana.</p>
-    </article>
-  </main>
+<!-- ═══════════════════════════════════════════════════════════════
+     GHOST DOM — .sr-only: invisible to eyes, fully readable by
+     Googlebot and screen readers. Includes <a> links so Google
+     discovers and crawls all deep-link character URLs.
+═══════════════════════════════════════════════════════════════ -->
+<div class="sr-only">
+  <h1>El Umbral — Las Crónicas de la Oscuridad</h1>
+  <nav>
+    <a href="/reina">La Reina Sin Corona</a>
+    <a href="/caballero">El Caballero Sin Nombre</a>
+    <a href="/sortilega">La Sortílega Sin Sombra</a>
+    <a href="/arlequin">El Arlequín Sin Flores</a>
+  </nav>
+  <article>
+    <h2><a href="/reina">La Reina Sin Corona</a></h2>
+    <p>Silencio. El poder no necesita adornos para aplastar. Las cicatrices de la piedra cuentan historias que el papel no soporta.</p>
+    <p>Ella no gobierna desde un trono de oro, sino desde las ruinas de las certezas de quienes la rodean. Su mera presencia altera la presión del aire en la sala. Los historiadores han intentado clasificar su reinado, pero sus libros suelen convertirse en ceniza antes de la imprenta.</p>
+    <p>Las leyendas afirman que su corona fue forjada, pero ella misma la fundió para construir las cadenas de sus enemigos.</p>
+  </article>
+  <article>
+    <h2><a href="/caballero">El Caballero Sin Nombre</a></h2>
+    <p>Acero oscuro, óxido, firmeza absoluta. No hay honor, solo inminencia. Un golpe seco y la realidad se fractura en mil pedazos.</p>
+    <p>Nadie sabe bajo qué bandera lucha, porque no ha dejado sobrevivientes para que cuenten el emblema de su escudo. Su armadura está picada por el óxido y la sangre seca de mil batallas olvidadas.</p>
+    <p>Dicen que dentro de la armadura ya no hay un hombre, sino un concepto físico: el fin inminente.</p>
+  </article>
+  <article>
+    <h2><a href="/sortilega">La Sortílega Sin Sombra</a></h2>
+    <p>Humo, alteración, luz temblorosa. Lo que crees ver está siempre un paso detrás de la verdad.</p>
+    <p>Nunca la miras directamente. Solo la percibes en la visión periférica, como una distorsión térmica sobre el asfalto caliente. Es la arquitecta de la duda, la tejedora de las medias verdades que arruinan vidas enteras.</p>
+    <p>Si alguna vez notas que el fuego de una vela vacila sin que haya viento, ella está escuchando.</p>
+  </article>
+  <article>
+    <h2><a href="/arlequin">El Arlequín Sin Flores</a></h2>
+    <p>Una risa seca en una cámara vacía. La disrupción pura. Te asomas al borde esperando una historia, y encuentras un espejo roto.</p>
+    <p>La comedia murió hace siglos, y él es el forense encargado de la autopsia. Su función no es hacer reír, sino descolocar violentamente la expectativa de su audiencia.</p>
+    <p>Cuando el Arlequín entra en la sala, la cordura sale por la ventana.</p>
+  </article>
 </div>
 
 <!-- SCENE 1: THE TOMB -->

@@ -2,12 +2,17 @@
 
 body, html {
   margin: 0; padding: 0; background-color: #020202; height: 100vh; overflow: hidden;
-  font-family: 'Times New Roman', serif; user-select: none; touch-action: none;
+  font-family: 'Times New Roman', serif; user-select: none;
+  /* touch-action: none removed — was blocking mobile archive scroll */
 }
 
-#ghost-dom {
-  position: absolute; z-index: -1; opacity: 0; pointer-events: none;
-  top: -9999px; left: -9999px; width: 1px; height: 1px; overflow: hidden;
+/* Apply touch-action strictly to intro layers only */
+#gallery-container, #scene-2, #scene-3, #vfx-canvas { touch-action: none; }
+
+/* Screen-reader-only: invisible to eyes, readable by Googlebot + screen readers */
+.sr-only {
+  clip: rect(0 0 0 0); clip-path: inset(50%);
+  height: 1px; overflow: hidden; position: absolute; white-space: nowrap; width: 1px;
 }
 
 #scene-2 {

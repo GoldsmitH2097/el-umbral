@@ -68,13 +68,18 @@ function triggerAwakening() {
 
 function enterMainSite() {
   const s3=document.getElementById('scene-3'); s3.style.opacity='0'; s3.style.pointerEvents='none';
+  // DOM cleanup: remove invisible layers that can block events in Scene 4
+  document.getElementById('scene-2').style.display='none';
+  s3.style.display='none';
   archive.showArchive(); audio.playTransitionEcho(); audio.stopAwakening();
   audio.setAwakening(false); state.isAwakening=false; transitionTo(4);
 }
 
 function handleDown(e) {
   if(state.isSwapping||state.isAwakening) return;
-  audio.init(); inst.style.opacity='0';
+  audio.init();
+  audio.resumeIfSuspended(); // iOS Safari: must resume on every touch event
+  inst.style.opacity='0';
   const btn=document.getElementById('umbral-btn');
   if(state.activeScene===1&&e.target!==btn&&!state.hasFinishedGallery) state.isPressed=true;
 }
@@ -92,4 +97,8 @@ document.addEventListener('mouseup',handleUp);
 document.addEventListener('touchstart',e=>{ visual.updateTarget(e.touches[0].clientX,e.touches[0].clientY); handleDown(e); },{passive:false});
 document.addEventListener('touchmove',e=>{ if(state.activeScene<4) e.preventDefault(); visual.updateTarget(e.touches[0].clientX,e.touches[0].clientY); },{passive:false});
 document.addEventListener('touchend',handleUp);
-document.getElementById('umbral-btn').addEventListener('click',e=>{ e.stopPropagation(); enterScene2(); });
+document.getElementById('umbral-btn').addEventListener('click',e=>{
+  e.stopPropagation();
+  audio.resumeIfSuspended(); // iOS Safari audio unlock on button click
+  enterScene2();
+});

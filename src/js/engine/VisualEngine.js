@@ -195,12 +195,14 @@ export class VisualEngine {
     this._fireflies.forEach(f=>{f.update(this._currentX,this._currentY,this._frameCount);f.draw(ctx);});
     if(this._frameCount%2===0&&this._fireflies.length>0&&!state.isAwakening){
       const f=this._fireflies[0];
+      // Wider detection on mobile so touch users don't need surgical precision
+      const detectionRadius = window.innerWidth < 768 ? 300 : 220;
       this._whispers.forEach(w=>{
         const rect=w.getBoundingClientRect(), wx=rect.left+rect.width/2, wy=rect.top+rect.height/2;
         const dc=Math.hypot(wx-this._currentX,wy-this._currentY), df=Math.hypot(wx-f.x,wy-f.y);
         const cl=dc<df?{x:this._currentX,y:this._currentY,dist:dc}:{x:f.x,y:f.y,dist:df};
-        if(cl.dist<220){
-          const intensity=1-cl.dist/220;
+        if(cl.dist<detectionRadius){
+          const intensity=1-cl.dist/detectionRadius;
           w.style.color=`rgba(220,240,255,${intensity*0.9})`;
           const sx=(wx-cl.x)*0.08, sy=(wy-cl.y)*0.08;
           w.style.textShadow=`${sx}px ${sy}px 6px rgba(0,0,0,0.9),0 0 15px rgba(150,200,255,${intensity*0.5})`;

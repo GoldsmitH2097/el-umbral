@@ -1,3 +1,5 @@
+import { state } from '../core/StateManager.js';
+
 const CHAR_FREQUENCIES = [130.81, 155.56, 196.00, 233.08];
 
 export class AudioEngine {
@@ -6,6 +8,7 @@ export class AudioEngine {
     this.windFilter = null; this.masterDelay = null; this.masterFeedback = null;
     this.awakeningLFO = null; this.awakeningOscillators = []; this.initialized = false;
     this._awakeningActive = false;
+    this._windInterval = null; // Captured for clean teardown on scene 4
     document.addEventListener('visibilitychange', () => {
       if (!this.audioCtx) return;
       document.hidden ? this.audioCtx.suspend() : this.audioCtx.resume();
@@ -38,7 +41,7 @@ export class AudioEngine {
     const windSrc = ctx.createBufferSource(); windSrc.buffer = noise; windSrc.loop = true;
     windSrc.connect(this.windFilter); this.windFilter.connect(this.windGain);
     this.windGain.connect(ctx.destination); this.windGain.connect(this.masterDelay); windSrc.start();
-    setInterval(() => { if (this.windGain.gain.value > 0 && !this._awakeningActive) this.windFilter.frequency.setTargetAtTime(80 + Math.random()*200, ctx.currentTime, 4); }, 3000);
+    this._windInterval = setInterval(() => { if (this.windGain.gain.value > 0 && !this._awakeningActive) this.windFilter.frequency.setTargetAtTime(80 + Math.random()*200, ctx.currentTime, 4); }, 3000);
   }
 
   _createPinkNoise(ctx) {
@@ -49,7 +52,7 @@ export class AudioEngine {
   }
 
   _scheduleDroplet() {
-    if (this.audioCtx && !this._awakeningActive) {
+    if (this.audioCtx && !this._awakeningActive && state.activeScene < 4) {
       try {
         const osc = this.audioCtx.createOscillator(), g = this.audioCtx.createGain(), now = this.audioCtx.currentTime;
         osc.type = 'sine'; osc.frequency.setValueAtTime(400+Math.random()*200, now); osc.frequency.exponentialRampToValueAtTime(100, now+0.08);
@@ -74,7 +77,7 @@ export class AudioEngine {
   }
 
   _scheduleWhisperBreath() {
-    if (this.audioCtx && !this._awakeningActive) {
+    if (this.audioCtx && !this._awakeningActive && state.activeScene < 4) {
       try {
         const ctx = this.audioCtx, size = ctx.sampleRate*2, buf = ctx.createBuffer(1, size, ctx.sampleRate);
         const d = buf.getChannelData(0); for (let i=0;i<size;i++) d[i]=Math.random()*2-1;
@@ -154,8 +157,11 @@ export class AudioEngine {
     this.awakeningOscillators = [];
     if (this.awakeningLFO) setTimeout(()=>{try{this.awakeningLFO.stop();}catch(_){}},2000);
     if (this.windGain&&this.windFilter) { this.windFilter.frequency.setValueAtTime(60,now); this.windGain.gain.setTargetAtTime(0.005,now,2); }
+    if (this._windInterval) { clearInterval(this._windInterval); this._windInterval = null; }
   }
 
   setAwakening(v) { this._awakeningActive = v; }
+  /** iOS Safari requires explicit resume() on every touch event */
+  resumeIfSuspended() { if (this.audioCtx && this.audioCtx.state === 'suspended') this.audioCtx.resume(); }
   get isReady() { return this.initialized; }
 }
