@@ -3,7 +3,7 @@ export const CHARACTERS = [
     slug: 'emperatriz',
     label: 'La Emperatriz',
     title: 'La Emperatriz Sin Reino',
-    status: 'missing',
+    status: 'active',
     desc: 'No cayó. Fue separada. Su herida no se exhibe. Se reconoce.',
     src: '/reina-sin-corona.mp4',
     social: [],

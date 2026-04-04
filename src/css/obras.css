@@ -24,11 +24,9 @@
   display: block; font-size: 10px; letter-spacing: 3px; color: #555;
   text-transform: uppercase; margin-bottom: 10px; font-style: italic;
 }
-.pillar--missing { cursor: default !important; }
-.pillar--missing .pillar-content { transform: translateY(0) !important; }
 
 /* Cross-highlight: pillar expands when obra-column is hovered — same transition */
-.pillar--highlighted { flex: 1.5 !important; background: #111 !important; }
+.pillar--highlighted { flex: 1.5 !important; background: #020202 !important; }
 .pillar--highlighted video { opacity: 0.3 !important; transform: scale(1.05) !important; }
 
 /* ── Obras grid — 4 archetype-columns matching pillar-grid above ─────────── */
@@ -47,7 +45,7 @@
 }
 .obra-column:last-child { box-shadow: none; }
 .obra-column:hover, .obra-column--highlighted {
-  flex: 1.5; background: #080808;
+  flex: 1.5; background: #020202;
 }
 
 /* Empty archetype column — Emperatriz */
