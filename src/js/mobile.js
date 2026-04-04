@@ -64,6 +64,13 @@ export function initMobileScene2(onAllFound) {
 export function initMobileArchive() {
   if (!isMobile()) return;
 
+  // Autoplay all pillar videos on mobile — loop at low opacity for ambient effect
+  setTimeout(() => {
+    document.querySelectorAll('.pillar video').forEach(v => {
+      v.play().catch(() => {});
+    });
+  }, 600);
+
   const detail = document.getElementById('mobile-char-detail');
   const detailTitle = document.getElementById('mobile-detail-title');
   const detailLore = document.getElementById('mobile-detail-lore');

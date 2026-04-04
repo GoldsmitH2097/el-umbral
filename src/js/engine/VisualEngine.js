@@ -246,7 +246,8 @@ export class VisualEngine {
       const sc=state.ignitionProgress/150;
       root.style.setProperty('--radio-interior',state.ignitionProgress*0.8+'px');
       root.style.setProperty('--radio-exterior',state.ignitionProgress*2.5+'px');
-      root.style.setProperty('--intensidad',0.8*sc);
+      // Suppress glow during auto-advance ramp-down — no glow between characters
+      root.style.setProperty('--intensidad', this._autoAdvanceMode ? '0' : 0.8*sc);
     }
     if(state.isIgnited){
       const oxygenScale = Math.max(0.05, 1-speed*0.025);

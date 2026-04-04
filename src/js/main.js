@@ -53,7 +53,7 @@ function _autoAdvanceNext() {
     if(!state.isIgnited) { state.isPressed = false; visual.setAutoAdvanceMode(false); _isAutoAdvancing = false; return; }
     state.isPressed = false; // stop building, isIgnited stays true — character stays revealed
 
-    // Hold character visible for 6s, then release
+    // Hold character visible for 3.5s, then release
     setTimeout(() => {
       state.isIgnited = false;   // triggers ramp-down in RAF loop
       state.isSwapping = true;
@@ -66,7 +66,7 @@ function _autoAdvanceNext() {
           _autoTimer = setTimeout(_autoAdvanceNext, 500); // short dark gap between characters
         }
       }, 800); // ramp-down duration
-    }, 6000); // show character for 6 seconds
+    }, 3500); // show character for 3.5 seconds
   }, 900); // ignition build-up
 }
 

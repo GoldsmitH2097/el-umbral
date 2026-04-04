@@ -70,19 +70,20 @@
   .mobile-detail-lore { font-size: 16px; line-height: 2; color: #c0c0c0; }
   .mobile-detail-lore p { margin-bottom: 20px; }
 
-  /* Mobile pillar: compact card, tap to expand */
+  /* Mobile pillar: taller card, description always visible */
   .pillar-grid { min-height: auto; }
   .pillar {
-    min-height: 70px !important; padding: 20px 5vw !important;
-    justify-content: center !important;
+    min-height: 160px !important; padding: 24px 5vw !important;
+    justify-content: flex-end !important;
     border-bottom: 1px solid rgba(255,255,255,0.05);
     border-right: none !important;
   }
-  .pillar video { opacity: 0.08 !important; }
-  .pillar:hover video, .pillar--highlighted video { opacity: 0.15 !important; }
+  .pillar video { opacity: 0.18 !important; } /* always slightly visible */
+  .pillar:hover video, .pillar--highlighted video { opacity: 0.3 !important; }
   .pillar-content { transform: none !important; text-align: left !important; }
-  .pillar-content h4 { margin: 0 !important; font-size: 13px; }
-  .pillar-content p { opacity: 1 !important; font-size: 11px; margin: 6px 0 0; max-width: none; }
+  .pillar-content h4 { margin: 0 0 8px !important; font-size: 13px; }
+  /* Description always visible on mobile — no hover needed */
+  .pillar-content p { opacity: 1 !important; font-size: 11px; margin: 0; max-width: none; }
   .pillar-social { display: none !important; } /* shown in detail overlay instead */
 
   /* Obras section: stacked, compact on mobile */
