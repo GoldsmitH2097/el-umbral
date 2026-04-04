@@ -27,6 +27,49 @@ archive._router = router;
 const inst = document.getElementById('instruccion');
 setTimeout(()=>{ if(!state.isPressed&&!state.hasFinishedGallery) inst.style.opacity='0.6'; }, 2500);
 
+// Skip button — visible after 3s, hidden once archive is reached
+const skipBtn = document.getElementById('skip-btn');
+setTimeout(()=>{ if(state.activeScene < 4) skipBtn.classList.add('visible'); }, 3000);
+skipBtn?.addEventListener('click', ()=>{
+  skipBtn.classList.remove('visible');
+  skipIntroAndEnterArchive();
+});
+
+// Auto-advance — if user does nothing for 8s, progress to next scene
+let _autoTimer = null;
+function _scheduleAutoAdvance(ms, fn) {
+  clearTimeout(_autoTimer);
+  _autoTimer = setTimeout(fn, ms);
+}
+// Start auto-advance for scene 1 on load
+_scheduleAutoAdvance(8000, () => {
+  if(state.activeScene === 1 && !state.hasFinishedGallery && !state.isPressed) {
+    // Simulate a quick ignition cycle to advance character
+    state.isSwapping = true;
+    visual.primeNextVideo();
+    _scheduleAutoAdvance(8000, () => {
+      if(state.activeScene === 1 && !state.hasFinishedGallery && !state.isPressed) {
+        state.isSwapping = true;
+        visual.primeNextVideo();
+        _scheduleAutoAdvance(8000, () => {
+          if(state.activeScene === 1 && !state.hasFinishedGallery && !state.isPressed) {
+            state.isSwapping = true;
+            visual.primeNextVideo();
+            _scheduleAutoAdvance(8000, () => {
+              if(state.activeScene === 1 && !state.hasFinishedGallery && !state.isPressed) {
+                // All 4 done — show the button
+                state.hasFinishedGallery = true;
+                const btn = document.getElementById('umbral-btn');
+                btn.style.opacity = '1'; btn.style.pointerEvents = 'auto';
+              }
+            });
+          }
+        });
+      }
+    });
+  }
+});
+
 // Check for deep link on boot; if clean URL, start normal intro
 const isDeepLink = router.init();
 if (!isDeepLink) visual.start();
@@ -71,6 +114,7 @@ function enterMainSite() {
   // DOM cleanup: remove invisible layers that can block events in Scene 4
   document.getElementById('scene-2').style.display='none';
   s3.style.display='none';
+  document.getElementById('skip-btn')?.classList.remove('visible');
   archive.showArchive(); audio.playTransitionEcho(); audio.stopAwakening();
   audio.setAwakening(false); state.isAwakening=false; transitionTo(4);
 }

@@ -3,24 +3,24 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>El Umbral — Crónicas de la Oscuridad</title>
+  <title>Soulware — Crónicas de la Oscuridad</title>
 
   <meta name="description" content="Has cruzado la línea. La historia se escribe con sangre, sombras y ecos en la oscuridad. Explora las crónicas de El Umbral." />
   <meta name="robots" content="index, follow" />
-  <link rel="canonical" href="https://el-umbral.netlify.app/" />
+  <link rel="canonical" href="https://soulware.live/" />
 
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://el-umbral.netlify.app/" />
-  <meta property="og:title" content="El Umbral — Las Crónicas de la Oscuridad" />
+  <meta property="og:url" content="https://soulware.live/" />
+  <meta property="og:title" content="Soulware — Las Crónicas de la Oscuridad" />
   <meta property="og:description" content="La historia se escribe con sangre, sombras y ecos en la oscuridad. Selecciona tu camino." />
-  <meta property="og:image" content="https://el-umbral.netlify.app/og-image.jpg" />
+  <meta property="og:image" content="https://soulware.live/og-image.jpg" />
   <meta property="og:image:alt" content="El Umbral — Oscuridad y Misterio" />
 
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:url" content="https://el-umbral.netlify.app/" />
-  <meta name="twitter:title" content="El Umbral — Las Crónicas de la Oscuridad" />
+  <meta name="twitter:url" content="https://soulware.live/" />
+  <meta name="twitter:title" content="Soulware — Las Crónicas de la Oscuridad" />
   <meta name="twitter:description" content="Has cruzado la línea. La historia se escribe con sangre, sombras y ecos en la oscuridad." />
-  <meta name="twitter:image" content="https://el-umbral.netlify.app/og-image.jpg" />
+  <meta name="twitter:image" content="https://soulware.live/og-image.jpg" />
 
   <!-- SVG candle favicon — no external dependency -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🕯️</text></svg>">
@@ -28,6 +28,7 @@
   <link rel="stylesheet" href="/css/global.css" />
   <link rel="stylesheet" href="/css/canvas.css" />
   <link rel="stylesheet" href="/css/archive.css" />
+  <link rel="stylesheet" href="/css/obras.css" />
   <link rel="stylesheet" href="/css/typography.css" />
 </head>
 <body>
@@ -38,15 +39,15 @@
      discovers and crawls all deep-link character URLs.
 ═══════════════════════════════════════════════════════════════ -->
 <div class="sr-only">
-  <h1>El Umbral — Las Crónicas de la Oscuridad</h1>
+  <h1>Soulware — Las Crónicas de la Oscuridad</h1>
   <nav>
-    <a href="/reina">La Reina Sin Corona</a>
+    <a href="/emperatriz">La Emperatriz Sin Reino</a>
     <a href="/caballero">El Caballero Sin Nombre</a>
     <a href="/sortilega">La Sortílega Sin Sombra</a>
     <a href="/arlequin">El Arlequín Sin Flores</a>
   </nav>
   <article>
-    <h2><a href="/reina">La Reina Sin Corona</a></h2>
+    <h2><a href="/emperatriz">La Emperatriz Sin Reino</a></h2>
     <p>Silencio. El poder no necesita adornos para aplastar. Las cicatrices de la piedra cuentan historias que el papel no soporta.</p>
     <p>Ella no gobierna desde un trono de oro, sino desde las ruinas de las certezas de quienes la rodean. Su mera presencia altera la presión del aire en la sala. Los historiadores han intentado clasificar su reinado, pero sus libros suelen convertirse en ceniza antes de la imprenta.</p>
     <p>Las leyendas afirman que su corona fue forjada, pero ella misma la fundió para construir las cadenas de sus enemigos.</p>
@@ -70,6 +71,9 @@
     <p>Cuando el Arlequín entra en la sala, la cordura sale por la ventana.</p>
   </article>
 </div>
+
+<!-- SKIP BUTTON — always visible, subtle, for returning users -->
+<button id="skip-btn" aria-label="Ir directamente al archivo">Entrar →</button>
 
 <!-- SCENE 1: THE TOMB -->
 <div id="gallery-container">
@@ -105,9 +109,9 @@
 <div id="main-site">
   <div id="grid-view">
     <nav class="site-nav">
-      <div class="logo">EL UMBRAL</div>
+      <div class="logo">SOULWARE</div>
       <div class="links">
-        <span role="button" tabindex="0" data-action="scroll-top">LOS TOMOS</span>
+        <span role="button" tabindex="0" data-action="scroll-obras">LAS OBRAS</span>
         <span role="button" tabindex="0" data-action="open-pacto">EL PACTO</span>
       </div>
     </nav>
@@ -116,7 +120,9 @@
       <p>Has cruzado la línea. La historia se escribe con sangre, sombras y ecos en la oscuridad. Selecciona tu camino.</p>
     </header>
     <section class="pillar-grid"></section>
-    <footer class="site-footer"><p>El Umbral &copy; MMXCIV. Nada es lo que parece.</p></footer>
+    <section class="obras-grid" id="obras-section"></section>
+    <section class="contact-section" id="contact-section"></section>
+    <footer class="site-footer"><p>Soulware &copy; MMXXVI. Nada es lo que parece.</p></footer>
   </div>
 </div>
 

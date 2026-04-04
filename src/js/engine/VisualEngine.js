@@ -122,7 +122,29 @@ export class VisualEngine {
     if(state.isAwakening){this._targetX=window.innerWidth/2;this._targetY=window.innerHeight/2;}
     else{this._targetX=x;this._targetY=y;}
   }
-  enterScene2() { this._fireflies.push(new FireflyParticle(this._currentX,this._currentY)); }
+  enterScene2() {
+    this._fireflies.push(new FireflyParticle(this._currentX,this._currentY));
+    // Start autonomous hint sweep after 5s — drifts near each whisper in sequence
+    this._startWhisperHint();
+  }
+
+  _startWhisperHint() {
+    const whispers = Array.from(document.querySelectorAll('.whisper'));
+    let idx = 0;
+    const visitNext = () => {
+      if(state.activeScene !== 2 || state.whispersFound >= whispers.length) return;
+      const unfound = whispers.filter(w => w.dataset.found !== 'true');
+      if(unfound.length === 0) return;
+      // Pick next unfound whisper
+      const target = unfound[idx % unfound.length]; idx++;
+      const rect = target.getBoundingClientRect();
+      // Nudge the cursor target toward the whisper to illuminate it briefly
+      const cx = rect.left + rect.width/2, cy = rect.top + rect.height/2;
+      this._hintTarget = { x: cx, y: cy, until: Date.now() + 2000 };
+      setTimeout(visitNext, 6000 + Math.random() * 4000);
+    };
+    setTimeout(visitNext, 5000);
+  }
   clearFlame() { this._flameParticles=[];this._smokeParticles=[];state.isIgnited=false; }
 
   /**
@@ -249,12 +271,15 @@ export class VisualEngine {
     this._fireflies.forEach(f=>{f.update(this._currentX,this._currentY,this._frameCount);f.draw(ctx);});
     if(this._frameCount%2===0&&this._fireflies.length>0&&!state.isAwakening){
       const f=this._fireflies[0];
-      // Wider detection on mobile so touch users don't need surgical precision
       const detectionRadius = window.innerWidth < 768 ? 300 : 220;
+      // Use hint target position if active (autonomous sweep) — falls back to cursor
+      const hintActive = this._hintTarget && Date.now() < this._hintTarget.until;
+      const lightX = hintActive ? this._hintTarget.x : this._currentX;
+      const lightY = hintActive ? this._hintTarget.y : this._currentY;
       this._whispers.forEach(w=>{
         const rect=w.getBoundingClientRect(), wx=rect.left+rect.width/2, wy=rect.top+rect.height/2;
-        const dc=Math.hypot(wx-this._currentX,wy-this._currentY), df=Math.hypot(wx-f.x,wy-f.y);
-        const cl=dc<df?{x:this._currentX,y:this._currentY,dist:dc}:{x:f.x,y:f.y,dist:df};
+        const dc=Math.hypot(wx-lightX,wy-lightY), df=Math.hypot(wx-f.x,wy-f.y);
+        const cl=dc<df?{x:lightX,y:lightY,dist:dc}:{x:f.x,y:f.y,dist:df};
         if(cl.dist<detectionRadius){
           const intensity=1-cl.dist/detectionRadius;
           w.style.color=`rgba(220,240,255,${intensity*0.9})`;
