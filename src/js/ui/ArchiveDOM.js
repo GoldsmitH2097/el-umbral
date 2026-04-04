@@ -196,29 +196,27 @@ export class ArchiveDOM {
   openReading(index) {
     const char=CHARACTERS[index]; if(!char) return;
     this._readTitle.innerText=char.title;
-
-    // Build lore + social links at the bottom
     const socialHtml = char.social.length > 0
-      ? `<div class="reading-social">
-          ${char.social.map(s =>
-            `<a href="${s.url}" target="_blank" rel="noopener" class="reading-social-link">
-              ${ICONS[s.platform]} <span>${s.handle}</span>
-            </a>`
-          ).join('')}
-        </div>`
+      ? `<div class="reading-social">${char.social.map(s =>
+          `<a href="${s.url}" target="_blank" rel="noopener" class="reading-social-link">
+            ${ICONS[s.platform]} <span>${s.handle}</span>
+          </a>`).join('')}</div>`
       : '';
-
     this._readBody.innerHTML = char.lore + socialHtml;
     this._readingBgVideo.src=char.src; this._readingBgVideo.load(); this._readingBgVideo.play().catch(()=>{});
     this._gridView.style.transform='scale(0.95)'; this._gridView.style.opacity='0';
+    const btnVolver = document.getElementById('btn-volver');
     setTimeout(()=>{
       this._readingView.style.opacity='1'; this._readingView.style.pointerEvents='auto';
       this._readingView.scrollTo(0,0); this._onSceneChange(5);
+      if(btnVolver){ btnVolver.style.opacity='1'; btnVolver.style.pointerEvents='auto'; }
     },500);
     if(this._router) this._router.navigateTo(index);
   }
 
   closeReading() {
+    const btnVolver = document.getElementById('btn-volver');
+    if(btnVolver){ btnVolver.style.opacity='0'; btnVolver.style.pointerEvents='none'; }
     this._readingView.style.opacity='0'; this._readingView.style.pointerEvents='none';
     setTimeout(()=>{
       this._gridView.style.transform='scale(1)'; this._gridView.style.opacity='1';

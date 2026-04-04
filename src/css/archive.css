@@ -60,7 +60,8 @@
 #reading-view { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #020202; z-index: 30; opacity: 0; pointer-events: none; transition: opacity 1s ease; overflow-y: auto; overflow-x: hidden; }
 #reading-bg-video { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover; opacity: 0.15; filter: grayscale(100%) blur(20px); z-index: 1; pointer-events: none; }
 .reading-content { position: relative; z-index: 2; max-width: 650px; margin: 0 auto; padding: 15vh 5vw 20vh 5vw; }
-#btn-volver { position: fixed; top: 40px; left: 5vw; z-index: 40; color: #888; font-size: 12px; letter-spacing: 4px; text-transform: uppercase; background: transparent; border: none; cursor: pointer !important; transition: color 0.3s; font-family: 'Times New Roman', serif; }
+#btn-volver { position: fixed; top: 40px; left: 5vw; z-index: 40; color: #888; font-size: 12px; letter-spacing: 4px; text-transform: uppercase; background: transparent; border: none; cursor: pointer !important; transition: color 0.3s, opacity 0.3s; font-family: 'Times New Roman', serif; opacity: 0; pointer-events: none; }
+#btn-volver:hover { color: #fff; }
 #btn-volver:hover { color: #fff; }
 #pacto-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.98); z-index: 50; opacity: 0; pointer-events: none; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.8s ease; text-align: center; padding: 0 5vw; }
 #pacto-modal h2 { font-size: 30px; letter-spacing: 15px; text-transform: uppercase; margin-bottom: 30px; color: #fff; }
