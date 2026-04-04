@@ -232,8 +232,13 @@ export class VisualEngine {
       state.ignitionProgress+=4.0; const sc=state.ignitionProgress/150;
       root.style.setProperty('--radio-interior',state.ignitionProgress*0.8+'px');
       root.style.setProperty('--radio-exterior',state.ignitionProgress*2.5+'px');
-      root.style.setProperty('--intensidad',0.8*sc);
-      if(Math.random()<sc*0.5) this._flameParticles.push(new FlameParticle(this._currentX,this._currentY,wx,wy,sc));
+      // In auto-advance mode: expand the mask but suppress flame particles and glow
+      if(!this._autoAdvanceMode) {
+        root.style.setProperty('--intensidad',0.8*sc);
+        if(Math.random()<sc*0.5) this._flameParticles.push(new FlameParticle(this._currentX,this._currentY,wx,wy,sc));
+      } else {
+        root.style.setProperty('--intensidad','0');
+      }
       if(state.ignitionProgress>=150){ state.isIgnited=true; this._instEl.style.opacity='0'; this._audio.playCharacterSignature(state.currentCharIndex); }
     } else if(!state.isPressed&&!state.isIgnited&&state.ignitionProgress>0){
       state.ignitionProgress-=4.0;

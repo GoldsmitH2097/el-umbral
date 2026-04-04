@@ -128,9 +128,12 @@ function enterMainSite() {
 
 function handleDown(e) {
   if(state.isSwapping||state.isAwakening) return;
-  // Cancel auto-advance when user takes control
   if(_autoTimer) { clearTimeout(_autoTimer); _autoTimer = null; }
-  if(_isAutoAdvancing) { _isAutoAdvancing = false; state.isPressed = false; }
+  if(_isAutoAdvancing) {
+    _isAutoAdvancing = false;
+    visual.setAutoAdvanceMode(false);
+    state.isPressed = false;
+  }
   audio.init();
   audio.resumeIfSuspended();
   inst.style.opacity='0';
@@ -147,6 +150,15 @@ function handleUp() {
       // iOS: prime next video src HERE in the gesture handler so iOS allows play()
       // RAF-based _swapToNextCharacter() runs later and is outside gesture context
       visual.primeNextVideo();
+    }
+    // Resume auto-advance 3s after user stops — keeps experience on rails
+    if(!state.hasFinishedGallery && !_isAutoAdvancing) {
+      if(_autoTimer) clearTimeout(_autoTimer);
+      _autoTimer = setTimeout(() => {
+        if(state.activeScene===1 && !state.hasFinishedGallery && !state.isPressed) {
+          _autoAdvanceNext();
+        }
+      }, 3000);
     }
   }
 }
