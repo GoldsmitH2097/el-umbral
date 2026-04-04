@@ -174,7 +174,7 @@ export class ArchiveDOM {
           <button type="submit" class="obra-btn obra-btn--buy">Enviar</button>
         </form>
         <div class="contact-footer">
-          <p class="contact-email">editorial@soulware.live</p>
+          <p class="contact-email"><a href="mailto:editorial@soulware.live">editorial@soulware.live</a></p>
           <a href="https://www.instagram.com/core.soulware" target="_blank" rel="noopener" class="contact-social-link">
             ${ICONS.instagram} <span>@core.soulware</span>
           </a>

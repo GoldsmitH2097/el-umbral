@@ -3,6 +3,7 @@ import { Router } from './core/Router.js';
 import { AudioEngine } from './engine/AudioEngine.js';
 import { VisualEngine } from './engine/VisualEngine.js';
 import { ArchiveDOM } from './ui/ArchiveDOM.js';
+import { initMobileScene2, initMobileArchive } from './mobile.js';
 
 const audio = new AudioEngine();
 
@@ -97,6 +98,8 @@ function enterScene2() {
   setTimeout(()=>{
     transitionTo(2); document.getElementById('scene-2').style.opacity='1';
     audio.setWindVolume(0.04); visual.enterScene2();
+    // Mobile: sequential tap mechanic instead of cursor-based discovery
+    initMobileScene2(() => triggerAwakening());
     setTimeout(()=>{ document.getElementById('scene-2-light').style.opacity='1'; },2000);
   },2000);
 }
@@ -124,6 +127,7 @@ function enterMainSite() {
   document.getElementById('skip-btn')?.classList.remove('visible');
   archive.showArchive(); audio.playTransitionEcho(); audio.stopAwakening();
   audio.setAwakening(false); state.isAwakening=false; transitionTo(4);
+  initMobileArchive();
 }
 
 function handleDown(e) {
