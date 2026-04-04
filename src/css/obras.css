@@ -95,18 +95,22 @@
 }
 .obra-desc {
   font-size: 11px; color: #444; line-height: 1.7; font-style: italic; margin: 4px 0 0;
-  opacity: 0; max-height: 0; overflow: hidden;
-  transition: opacity 0.4s ease, max-height 0.4s ease;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  transition-delay: 0s;
 }
 .obra-column:hover .obra-desc,
-.obra-column--highlighted .obra-desc { opacity: 1; max-height: 100px; }
+.obra-column--highlighted .obra-desc {
+  opacity: 1;
+  transition-delay: 0.55s; /* wait for column expansion (0.6s) to finish before fading in */
+}
 
 /* ── Obra buttons ─────────────────────────────────────────────────────────── */
 .obra-btn {
   display: inline-block; font-size: 9px; letter-spacing: 3px; text-transform: uppercase;
   padding: 9px 16px; margin-top: 8px; font-family: 'Times New Roman', serif;
   text-decoration: none; transition: all 0.3s ease; cursor: pointer;
-  border: none; background: transparent; align-self: flex-start;
+  border: none; background: transparent; align-self: center;
 }
 .obra-btn--buy { border: 1px solid rgba(255,255,255,0.2); color: #e8ecef; }
 .obra-btn--buy:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.5); }
@@ -117,6 +121,7 @@
 .countdown-timer { display: flex; gap: 10px; align-items: baseline; justify-content: center; flex-wrap: wrap; }
 .countdown-timer span { font-size: 28px; letter-spacing: 1px; color: #aaa; font-weight: 300; }
 .countdown-timer em { font-size: 8px; letter-spacing: 2px; color: #555; text-transform: uppercase; font-style: normal; margin-left: 2px; }
+.obra-countdown .obra-btn { align-self: center; }
 
 /* ── Contact section ──────────────────────────────────────────────────────── */
 .contact-section { border-top: 1px solid rgba(255,255,255,0.05); padding: 10vh 5vw; }

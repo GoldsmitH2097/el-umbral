@@ -35,37 +35,41 @@ skipBtn?.addEventListener('click', ()=>{
   skipIntroAndEnterArchive();
 });
 
-// Auto-advance — simulates the actual ignition cycle so users see each character
-// even without interaction. Starts 8s after load, 3s between characters.
+// Auto-advance — simulates the ignition cycle so characters reveal without user interaction.
+// Starts after 5s. Holds for ~1s to ignite, then releases to swap to next character.
 let _autoTimer = null;
 let _isAutoAdvancing = false;
 
 function _autoAdvanceNext() {
   if(state.activeScene !== 1 || state.hasFinishedGallery || state.isPressed) return;
   _isAutoAdvancing = true;
-  // Simulate hold — builds ignitionProgress to 150 in ~625ms at 60fps
+  // Set cursor to screen center so flame/glow appears centered, not at edge
+  visual.updateTarget(window.innerWidth / 2, window.innerHeight * 0.55);
   state.isPressed = true;
+
   setTimeout(() => {
     if(!state.isIgnited) { state.isPressed = false; _isAutoAdvancing = false; return; }
-    // Ignited — release and advance to next character
+    // Mirror the exact handleUp() release sequence so the RAF loop triggers the swap
     state.isPressed = false;
+    state.isIgnited = false;   // ← KEY FIX: enables ramp-down in RAF loop
     state.isSwapping = true;
     visual.primeNextVideo();
+
     setTimeout(() => {
       _isAutoAdvancing = false;
       if(!state.hasFinishedGallery && !state.isPressed && state.activeScene === 1) {
-        _autoTimer = setTimeout(_autoAdvanceNext, 3000);
+        _autoTimer = setTimeout(_autoAdvanceNext, 2500);
       }
-    }, 1200); // Wait for ignitionProgress to reach 0 and swap to complete
-  }, 900); // Hold long enough to ignite (150/4 frames × ~16ms ≈ 625ms + buffer)
+    }, 1000);
+  }, 900);
 }
 
-// Start first auto-advance after 8s if no interaction
+// Start after 5s if no interaction
 _autoTimer = setTimeout(() => {
   if(state.activeScene === 1 && !state.hasFinishedGallery && !state.isPressed) {
     _autoAdvanceNext();
   }
-}, 8000);
+}, 5000);
 
 // Check for deep link on boot; if clean URL, start normal intro
 const isDeepLink = router.init();

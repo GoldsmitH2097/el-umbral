@@ -34,8 +34,9 @@ export class ArchiveDOM {
       pillar.setAttribute('role','button'); pillar.setAttribute('tabindex','0');
 
       const video=document.createElement('video');
-      video.loop=true; video.muted=true; video.playsInline=true; video.preload='none';
-      video.dataset.src=char.src;
+      video.loop=true; video.muted=true; video.playsInline=true; video.preload='metadata';
+      // Load src immediately so first frame shows as static — plays on hover
+      video.src=char.src; video.load();
 
       const content=document.createElement('div'); content.className='pillar-content';
       const socialHtml = char.social.length > 0
@@ -53,15 +54,9 @@ export class ArchiveDOM {
 
       pillar.appendChild(video); pillar.appendChild(content); grid.appendChild(pillar);
 
-      // Load video on hover for ALL characters (even missing — just no click)
-      let loaded=false;
-      const loadAndPlay=()=>{
-        if(!loaded){video.src=video.dataset.src;video.load();loaded=true;}
-        video.play().catch(()=>{});
-      };
-      pillar.addEventListener('mouseenter',loadAndPlay);
-      pillar.addEventListener('mouseleave',()=>video.pause());
-      pillar.addEventListener('touchstart',loadAndPlay,{passive:true});
+      pillar.addEventListener('mouseenter', () => video.play().catch(()=>{}));
+      pillar.addEventListener('mouseleave', () => video.pause());
+      pillar.addEventListener('touchstart', () => video.play().catch(()=>{}), {passive:true});
 
       // Only active characters open reading view
       if(char.status !== 'missing') {
