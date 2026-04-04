@@ -58,9 +58,12 @@ export class ArchiveDOM {
       pillar.addEventListener('mouseleave', () => video.pause());
       pillar.addEventListener('touchstart', () => video.play().catch(()=>{}), {passive:true});
 
-      // Only active characters open reading view
+      // Desktop only — mobile uses its own tap-to-detail overlay in mobile.js
       if(char.status !== 'missing') {
-        pillar.addEventListener('click',()=>this.openReading(i));
+        pillar.addEventListener('click', (e) => {
+          if(window.innerWidth <= 768) return;
+          this.openReading(i);
+        });
         pillar.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')this.openReading(i);});
       }
     });
@@ -167,7 +170,7 @@ export class ArchiveDOM {
       <div class="contact-inner">
         <h2 class="contact-title">Contacto</h2>
         <p class="contact-sub">Prensa, colaboraciones y preguntas sobre el universo Soulware.</p>
-        <form class="contact-form" id="contact-form" action="https://formspree.io/f/editorial@soulware.live" method="POST">
+        <form class="contact-form" id="contact-form" action="https://formspree.io/editorial@soulware.live" method="POST">
           <input type="text" name="name" placeholder="Nombre" required autocomplete="name" />
           <input type="email" name="email" placeholder="Email" required autocomplete="email" />
           <textarea name="message" placeholder="Mensaje" rows="4" required></textarea>

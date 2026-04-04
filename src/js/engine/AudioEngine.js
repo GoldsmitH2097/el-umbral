@@ -48,15 +48,33 @@ export class AudioEngine {
       this.initialized = true;
       this._initializing = false;
 
-      // Step 3: Resume — kick off asynchronously. Queued sources play when it resolves.
+      // Step 3: Resume — then restart looping sources if iOS dropped them
       if (this.audioCtx.state !== 'running') {
-        this.audioCtx.resume().catch(() => {});
+        this.audioCtx.resume().then(() => {
+          // iOS sometimes silently drops looping BufferSourceNodes started while suspended.
+          // Restart them after context is confirmed running.
+          this._restartNoiseSources();
+        }).catch(() => {});
       }
 
     } catch(e) {
       console.warn('[AudioEngine] blocked', e);
       this._initializing = false;
     }
+  }
+
+  // Restart looping noise sources — called after iOS resume() in case they were dropped
+  _restartNoiseSources() {
+    try {
+      const ctx = this.audioCtx;
+      if (!ctx || ctx.state !== 'running' || !this.fireGain || !this.windFilter) return;
+      const noise = this._createPinkNoise(ctx);
+      const fireFilter = ctx.createBiquadFilter(); fireFilter.type = 'lowpass'; fireFilter.frequency.value = 250;
+      const fireSrc = ctx.createBufferSource(); fireSrc.buffer = noise; fireSrc.loop = true;
+      fireSrc.connect(fireFilter); fireFilter.connect(this.fireGain); fireSrc.start();
+      const windSrc = ctx.createBufferSource(); windSrc.buffer = noise; windSrc.loop = true;
+      windSrc.connect(this.windFilter); windSrc.start();
+    } catch(_) {}
   }
 
   _buildGraph() {
