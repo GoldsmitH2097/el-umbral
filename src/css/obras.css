@@ -15,10 +15,9 @@
   display: flex; gap: 12px; justify-content: center; margin-top: 14px;
   opacity: 0; transition: opacity 0.5s ease;
 }
-.pillar:hover .pillar-social { opacity: 1; }
+.pillar:hover .pillar-social, .pillar--highlighted .pillar-social { opacity: 1; }
 .pillar-social-link {
-  color: rgba(255,255,255,0.4); transition: color 0.3s;
-  display: flex; align-items: center;
+  color: rgba(255,255,255,0.4); transition: color 0.3s; display: flex; align-items: center;
 }
 .pillar-social-link:hover { color: rgba(255,255,255,0.9); }
 .pillar-status {
@@ -28,144 +27,119 @@
 .pillar--missing { cursor: default !important; }
 .pillar--missing .pillar-content { transform: translateY(0) !important; }
 
-/* Cross-highlight: pillar lights up when obra is hovered */
-.pillar--highlighted { background: #111 !important; flex: 1.3 !important; }
-.pillar--highlighted video { opacity: 0.2 !important; }
+/* Cross-highlight: pillar expands when obra-column is hovered — same transition */
+.pillar--highlighted { flex: 1.5 !important; background: #111 !important; }
+.pillar--highlighted video { opacity: 0.3 !important; transform: scale(1.05) !important; }
 
-/* ── Las Obras grid ───────────────────────────────────────────────────────── */
-/* Flex layout mirrors pillar-grid so columns align perfectly above/below */
+/* ── Obras grid — 4 archetype-columns matching pillar-grid above ─────────── */
 .obras-grid {
   display: flex; width: 100%;
   border-top: 1px solid rgba(255,255,255,0.04);
+  min-height: 300px;
 }
 
-.obra-card {
-  flex: 1; position: relative;
-  display: flex; flex-direction: column;
-  padding: 0; overflow: hidden;
+/* Each column expands with the same timing as its pillar above */
+.obra-column {
+  flex: 1; display: flex; flex-direction: column; padding: 30px 20px;
   box-shadow: 1px 0 0 0 rgba(255,255,255,0.04);
   transition: flex 0.6s cubic-bezier(0.25,1,0.5,1), background 0.4s ease;
-  background: #030303; cursor: default;
+  background: #020202; gap: 30px;
 }
-.obra-card:last-child { box-shadow: none; }
-.obra-card--available { cursor: pointer; }
-.obra-card--available:hover,
-.obra-card--highlighted { flex: 1.5 !important; background: #080808 !important; }
+.obra-column:last-child { box-shadow: none; }
+.obra-column:hover, .obra-column--highlighted {
+  flex: 1.5; background: #080808;
+}
 
-/* Cover image — full width, fixed height, object-fit cover */
+/* Empty archetype column — Emperatriz */
+.obra-empty {
+  display: flex; align-items: center; justify-content: center;
+  height: 100%; color: #2a2a2a; font-size: 20px; letter-spacing: 4px;
+}
+
+/* Individual book within a column — stacked vertically */
+.obra-book {
+  display: flex; flex-direction: column; gap: 12px;
+  cursor: default;
+}
+.obra-book--available { cursor: pointer; }
+
+/* Cover — fixed small height, not full column width */
 .obra-cover {
-  width: 100%; aspect-ratio: 3/4; overflow: hidden; position: relative;
-  background: #060606;
+  width: 100%; max-width: 140px; aspect-ratio: 2/3; overflow: hidden;
+  position: relative; background: #060606; align-self: flex-start;
 }
 .obra-cover img {
   width: 100%; height: 100%; object-fit: cover;
-  filter: grayscale(20%) brightness(0.85);
-  transition: filter 0.6s ease, transform 0.6s ease;
+  filter: grayscale(15%) brightness(0.8);
+  transition: filter 0.5s ease, transform 0.5s ease;
   transform: scale(1.02);
 }
-.obra-card--available:hover .obra-cover img,
-.obra-card--highlighted .obra-cover img {
-  filter: grayscale(0%) brightness(1);
-  transform: scale(1.06);
+.obra-book--available:hover .obra-cover img,
+.obra-column--highlighted .obra-book--available .obra-cover img {
+  filter: grayscale(0%) brightness(1); transform: scale(1.06);
 }
-.obra-card--coming-soon .obra-cover img,
-.obra-card--countdown .obra-cover img {
-  filter: grayscale(100%) brightness(0.5);
+.obra-book--coming-soon .obra-cover img,
+.obra-book--countdown .obra-cover img {
+  filter: grayscale(100%) brightness(0.4);
 }
 
-/* Text content below the cover */
-.obra-meta {
-  padding: 24px 20px 30px;
-  display: flex; flex-direction: column; gap: 8px; flex: 1;
-}
-.obra-archetype {
-  font-size: 9px; letter-spacing: 4px; color: #555;
-  text-transform: uppercase;
-}
+/* ── Book metadata ────────────────────────────────────────────────────────── */
+.obra-meta { display: flex; flex-direction: column; gap: 6px; }
 .obra-title {
-  font-size: 15px; font-weight: normal; letter-spacing: 3px;
-  text-transform: uppercase; margin: 0; color: #e8ecef; line-height: 1.4;
+  font-size: 13px; font-weight: normal; letter-spacing: 3px;
+  text-transform: uppercase; margin: 0; color: #ccc; line-height: 1.4;
 }
 .obra-subtitle {
-  font-size: 10px; letter-spacing: 2px; color: #555;
+  font-size: 9px; letter-spacing: 2px; color: #555;
   text-transform: uppercase; margin: 0;
 }
 .obra-desc {
-  font-size: 12px; color: #555; line-height: 1.8;
-  font-style: italic; margin: 8px 0 0 0;
+  font-size: 11px; color: #444; line-height: 1.7; font-style: italic; margin: 4px 0 0;
   opacity: 0; max-height: 0; overflow: hidden;
   transition: opacity 0.4s ease, max-height 0.4s ease;
 }
-.obra-card--available:hover .obra-desc,
-.obra-card--highlighted .obra-desc { opacity: 1; max-height: 120px; }
+.obra-column:hover .obra-desc,
+.obra-column--highlighted .obra-desc { opacity: 1; max-height: 100px; }
 
 /* ── Obra buttons ─────────────────────────────────────────────────────────── */
 .obra-btn {
-  display: inline-block; font-size: 10px; letter-spacing: 4px;
-  text-transform: uppercase; padding: 11px 20px; margin-top: 12px;
-  font-family: 'Times New Roman', serif; text-decoration: none;
-  transition: all 0.3s ease; cursor: pointer; border: none; background: transparent;
-  align-self: flex-start;
+  display: inline-block; font-size: 9px; letter-spacing: 3px; text-transform: uppercase;
+  padding: 9px 16px; margin-top: 8px; font-family: 'Times New Roman', serif;
+  text-decoration: none; transition: all 0.3s ease; cursor: pointer;
+  border: none; background: transparent; align-self: flex-start;
 }
-.obra-btn--buy {
-  border: 1px solid rgba(255,255,255,0.2); color: #e8ecef;
-}
-.obra-btn--buy:hover {
-  background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.5);
-}
-.obra-btn--locked, .obra-btn--soon {
-  border: 1px solid rgba(255,255,255,0.07); color: #444; cursor: default;
-}
+.obra-btn--buy { border: 1px solid rgba(255,255,255,0.2); color: #e8ecef; }
+.obra-btn--buy:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.5); }
+.obra-btn--locked, .obra-btn--soon { border: 1px solid rgba(255,255,255,0.06); color: #3a3a3a; cursor: default; }
 
 /* ── Countdown ────────────────────────────────────────────────────────────── */
-.obra-countdown { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
-.countdown-timer { display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
-.countdown-timer span { font-size: 18px; letter-spacing: 1px; color: #777; }
-.countdown-timer em {
-  font-size: 8px; letter-spacing: 2px; color: #444;
-  text-transform: uppercase; font-style: normal; margin-left: 1px;
-}
+.obra-countdown { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.countdown-timer { display: flex; gap: 5px; align-items: baseline; flex-wrap: wrap; }
+.countdown-timer span { font-size: 16px; letter-spacing: 1px; color: #666; }
+.countdown-timer em { font-size: 7px; letter-spacing: 2px; color: #444; text-transform: uppercase; font-style: normal; margin-left: 1px; }
 
 /* ── Contact section ──────────────────────────────────────────────────────── */
-.contact-section {
-  border-top: 1px solid rgba(255,255,255,0.05);
-  padding: 10vh 5vw;
-}
+.contact-section { border-top: 1px solid rgba(255,255,255,0.05); padding: 10vh 5vw; }
 .contact-inner { max-width: 560px; margin: 0 auto; text-align: center; }
-.contact-title {
-  font-size: 16px; letter-spacing: 10px; text-transform: uppercase;
-  font-weight: normal; margin: 0 0 14px 0; color: #e8ecef;
-}
-.contact-sub {
-  font-size: 13px; color: #555; font-style: italic; line-height: 1.8;
-  margin: 0 0 36px 0; letter-spacing: 1px;
-}
-.contact-form { display: flex; flex-direction: column; gap: 12px; margin-bottom: 36px; }
-.contact-form input,
-.contact-form textarea {
+.contact-title { font-size: 16px; letter-spacing: 10px; text-transform: uppercase; font-weight: normal; margin: 0 0 14px; color: #e8ecef; }
+.contact-sub { font-size: 13px; color: #555; font-style: italic; line-height: 1.8; margin: 0 0 36px; letter-spacing: 1px; }
+.contact-form { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+.contact-form input, .contact-form textarea {
   background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07);
-  color: #e8ecef; font-family: 'Times New Roman', serif;
-  font-size: 14px; padding: 13px 15px; outline: none;
-  transition: border-color 0.3s; letter-spacing: 1px; resize: none;
+  color: #e8ecef; font-family: 'Times New Roman', serif; font-size: 14px;
+  padding: 13px 15px; outline: none; transition: border-color 0.3s; letter-spacing: 1px; resize: none;
 }
-.contact-form input:focus,
-.contact-form textarea:focus { border-color: rgba(255,255,255,0.25); }
-.contact-form input::placeholder,
-.contact-form textarea::placeholder { color: #3a3a3a; }
+.contact-form input:focus, .contact-form textarea:focus { border-color: rgba(255,255,255,0.25); }
+.contact-form input::placeholder, .contact-form textarea::placeholder { color: #3a3a3a; }
 
-/* ── Mobile overrides ─────────────────────────────────────────────────────── */
+/* ── Mobile ───────────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .obras-grid { flex-direction: column; }
-  .obra-card {
-    flex-direction: row; min-height: 140px; box-shadow: none;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
-  }
-  .obra-card:last-child { border-bottom: none; }
-  .obra-card--available:hover, .obra-card--highlighted { flex: 1 !important; }
-  .obra-cover { width: 100px; min-width: 100px; aspect-ratio: auto; height: 140px; }
-  .obra-cover img { object-position: center top; }
-  .obra-meta { padding: 16px 16px 20px; }
-  .obra-title { font-size: 13px; letter-spacing: 2px; }
-  .obra-desc { opacity: 1; max-height: none; font-size: 11px; }
+  .obra-column { flex: none; padding: 20px 16px; gap: 20px; }
+  .obra-column:hover, .obra-column--highlighted { flex: none; background: #080808; }
+  .obra-book { flex-direction: row; align-items: flex-start; gap: 14px; }
+  .obra-cover { max-width: 70px; }
+  .obra-title { font-size: 12px; }
+  .obra-desc { opacity: 1; max-height: none; }
   #skip-btn { bottom: 20px; right: 20px; font-size: 10px; padding: 8px 14px; }
 }

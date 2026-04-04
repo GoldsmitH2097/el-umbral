@@ -35,16 +35,37 @@ skipBtn?.addEventListener('click', ()=>{
   skipIntroAndEnterArchive();
 });
 
-// Auto-advance fallback — if user hasn't interacted after 15s, surface EL UMBRAL button directly.
-// Don't cycle characters — just unblock the path forward.
-setTimeout(() => {
+// Auto-advance — simulates the actual ignition cycle so users see each character
+// even without interaction. Starts 8s after load, 3s between characters.
+let _autoTimer = null;
+let _isAutoAdvancing = false;
+
+function _autoAdvanceNext() {
+  if(state.activeScene !== 1 || state.hasFinishedGallery || state.isPressed) return;
+  _isAutoAdvancing = true;
+  // Simulate hold — builds ignitionProgress to 150 in ~625ms at 60fps
+  state.isPressed = true;
+  setTimeout(() => {
+    if(!state.isIgnited) { state.isPressed = false; _isAutoAdvancing = false; return; }
+    // Ignited — release and advance to next character
+    state.isPressed = false;
+    state.isSwapping = true;
+    visual.primeNextVideo();
+    setTimeout(() => {
+      _isAutoAdvancing = false;
+      if(!state.hasFinishedGallery && !state.isPressed && state.activeScene === 1) {
+        _autoTimer = setTimeout(_autoAdvanceNext, 3000);
+      }
+    }, 1200); // Wait for ignitionProgress to reach 0 and swap to complete
+  }, 900); // Hold long enough to ignite (150/4 frames × ~16ms ≈ 625ms + buffer)
+}
+
+// Start first auto-advance after 8s if no interaction
+_autoTimer = setTimeout(() => {
   if(state.activeScene === 1 && !state.hasFinishedGallery && !state.isPressed) {
-    state.hasFinishedGallery = true;
-    const btn = document.getElementById('umbral-btn');
-    btn.style.opacity = '1';
-    btn.style.pointerEvents = 'auto';
+    _autoAdvanceNext();
   }
-}, 15000);
+}, 8000);
 
 // Check for deep link on boot; if clean URL, start normal intro
 const isDeepLink = router.init();
@@ -97,8 +118,11 @@ function enterMainSite() {
 
 function handleDown(e) {
   if(state.isSwapping||state.isAwakening) return;
+  // Cancel auto-advance when user takes control
+  if(_autoTimer) { clearTimeout(_autoTimer); _autoTimer = null; }
+  if(_isAutoAdvancing) { _isAutoAdvancing = false; state.isPressed = false; }
   audio.init();
-  audio.resumeIfSuspended(); // iOS Safari: must resume on every touch event
+  audio.resumeIfSuspended();
   inst.style.opacity='0';
   const btn=document.getElementById('umbral-btn');
   if(state.activeScene===1&&e.target!==btn&&!state.hasFinishedGallery) state.isPressed=true;

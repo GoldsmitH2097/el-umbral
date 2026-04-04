@@ -30,6 +30,7 @@ export class ArchiveDOM {
     CHARACTERS.forEach((char,i)=>{
       const pillar=document.createElement('div');
       pillar.className='pillar' + (char.status==='missing' ? ' pillar--missing' : '');
+      pillar.dataset.index = i;
       pillar.setAttribute('role','button'); pillar.setAttribute('tabindex','0');
 
       const video=document.createElement('video');
@@ -37,38 +38,33 @@ export class ArchiveDOM {
       video.dataset.src=char.src;
 
       const content=document.createElement('div'); content.className='pillar-content';
-
-      // Social links
       const socialHtml = char.social.length > 0
         ? `<div class="pillar-social">${char.social.map(s =>
             `<a href="${s.url}" target="_blank" rel="noopener" class="pillar-social-link" aria-label="${s.handle} on ${s.platform}">${ICONS[s.platform]}</a>`
           ).join('')}</div>`
         : '';
-
       const statusBadge = char.status === 'missing'
-        ? `<span class="pillar-status">En paradero desconocido</span>`
-        : '';
+        ? `<span class="pillar-status">En paradero desconocido</span>` : '';
 
       content.innerHTML=`
         <h4>${['I','II','III','IV'][i]}. ${char.label}</h4>
-        ${statusBadge}
-        <p>${char.desc}</p>
-        ${socialHtml}
+        ${statusBadge}<p>${char.desc}</p>${socialHtml}
       `;
 
       pillar.appendChild(video); pillar.appendChild(content); grid.appendChild(pillar);
 
-      // Video lazy load
+      // Load video on hover for ALL characters (even missing — just no click)
       let loaded=false;
       const loadAndPlay=()=>{
-        if(char.status==='missing') return;
         if(!loaded){video.src=video.dataset.src;video.load();loaded=true;}
         video.play().catch(()=>{});
       };
+      pillar.addEventListener('mouseenter',loadAndPlay);
+      pillar.addEventListener('mouseleave',()=>video.pause());
+      pillar.addEventListener('touchstart',loadAndPlay,{passive:true});
+
+      // Only active characters open reading view
       if(char.status !== 'missing') {
-        pillar.addEventListener('mouseenter',loadAndPlay);
-        pillar.addEventListener('mouseleave',()=>video.pause());
-        pillar.addEventListener('touchstart',loadAndPlay,{passive:true});
         pillar.addEventListener('click',()=>this.openReading(i));
         pillar.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')this.openReading(i);});
       }
@@ -79,60 +75,74 @@ export class ArchiveDOM {
     const section = document.getElementById('obras-section');
     if (!section) return;
 
-    CATALOGUE.forEach((item, i) => {
-      const char = CHARACTERS.find(c => c.slug === item.archetype);
-      const card = document.createElement('div');
-      card.className = `obra-card obra-card--${item.status}`;
-      card.dataset.archetype = item.archetype;
-      // Match the same column index as the pillar above
-      card.dataset.index = i;
+    // Build one column per archetype, matching pillar positions
+    CHARACTERS.forEach((char, i) => {
+      const col = document.createElement('div');
+      col.className = 'obra-column';
+      col.dataset.index = i;
+      col.dataset.archetype = char.slug;
 
-      const archetypeLabel = char ? `<span class="obra-archetype">${char.label}</span>` : '';
-      const subtitleHtml = item.subtitle ? `<p class="obra-subtitle">${item.subtitle}</p>` : '';
-      const coverHtml = item.img
-        ? `<div class="obra-cover"><img src="${item.img}" alt="${item.title}" loading="lazy" /></div>`
-        : '';
+      // Get books for this archetype
+      const books = CATALOGUE.filter(item => item.archetype === char.slug);
 
-      let ctaHtml = '';
-      if (item.status === 'available' && item.buyUrl) {
-        ctaHtml = `<a href="${item.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy">${item.buyLabel}</a>`;
-      } else if (item.status === 'countdown') {
-        ctaHtml = `<div class="obra-countdown">
-          <span class="obra-btn obra-btn--locked">${item.buyLabel}</span>
-          <div class="countdown-timer" data-release="${item.releaseDate}"></div>
-        </div>`;
+      if (books.length === 0) {
+        // Empty column — Emperatriz or future archetype with no books yet
+        col.innerHTML = `<div class="obra-empty"><span>—</span></div>`;
       } else {
-        ctaHtml = `<span class="obra-btn obra-btn--soon">Próximamente</span>`;
+        books.forEach(item => {
+          const card = document.createElement('div');
+          card.className = `obra-book obra-book--${item.status}`;
+
+          const coverHtml = item.img
+            ? `<div class="obra-cover"><img src="${item.img}" alt="${item.title}" loading="lazy" /></div>`
+            : '';
+
+          let ctaHtml = '';
+          if (item.status === 'available' && item.buyUrl) {
+            ctaHtml = `<a href="${item.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy">${item.buyLabel}</a>`;
+          } else if (item.status === 'countdown') {
+            ctaHtml = `<div class="obra-countdown">
+              <span class="obra-btn obra-btn--locked">${item.buyLabel}</span>
+              <div class="countdown-timer" data-release="${item.releaseDate}"></div>
+            </div>`;
+          } else {
+            ctaHtml = `<span class="obra-btn obra-btn--soon">Próximamente</span>`;
+          }
+
+          const subtitleHtml = item.subtitle ? `<p class="obra-subtitle">${item.subtitle}</p>` : '';
+
+          card.innerHTML = `
+            ${coverHtml}
+            <div class="obra-meta">
+              <h3 class="obra-title">${item.title}</h3>
+              ${subtitleHtml}
+              <p class="obra-desc">${item.desc}</p>
+              ${ctaHtml}
+            </div>
+          `;
+          col.appendChild(card);
+        });
       }
 
-      card.innerHTML = `
-        ${coverHtml}
-        <div class="obra-meta">
-          ${archetypeLabel}
-          <h3 class="obra-title">${item.title}</h3>
-          ${subtitleHtml}
-          <p class="obra-desc">${item.desc}</p>
-          ${ctaHtml}
-        </div>
-      `;
-      section.appendChild(card);
+      section.appendChild(col);
     });
 
     this._initCountdowns();
-    this._bindPillarObrasHover();
+    this._bindColumnHover();
   }
 
-  // Make pillars and their corresponding obra card animate together
-  _bindPillarObrasHover() {
+  // Pillars and obra-columns animate together as one block
+  _bindColumnHover() {
     const pillars = document.querySelectorAll('.pillar');
-    const obras = document.querySelectorAll('.obra-card');
+    const cols = document.querySelectorAll('.obra-column');
+
     pillars.forEach((pillar, i) => {
-      const obra = obras[i];
-      if (!obra) return;
-      pillar.addEventListener('mouseenter', () => obra.classList.add('obra-card--highlighted'));
-      pillar.addEventListener('mouseleave', () => obra.classList.remove('obra-card--highlighted'));
-      obra.addEventListener('mouseenter', () => pillar.classList.add('pillar--highlighted'));
-      obra.addEventListener('mouseleave', () => pillar.classList.remove('pillar--highlighted'));
+      const col = cols[i];
+      if (!col) return;
+      pillar.addEventListener('mouseenter', () => col.classList.add('obra-column--highlighted'));
+      pillar.addEventListener('mouseleave', () => col.classList.remove('obra-column--highlighted'));
+      col.addEventListener('mouseenter', () => pillar.classList.add('pillar--highlighted'));
+      col.addEventListener('mouseleave', () => pillar.classList.remove('pillar--highlighted'));
     });
   }
 
