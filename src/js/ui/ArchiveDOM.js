@@ -241,11 +241,31 @@ export class ArchiveDOM {
         if(el.dataset.action==='open-pacto') this.openPacto();
       });
     });
-    // Contact form
-    document.getElementById('contact-form')?.addEventListener('submit', e => {
+    // Contact form — fetch submit to Formspree, show feedback without navigating away
+    document.getElementById('contact-form')?.addEventListener('submit', async e => {
       e.preventDefault();
       const btn = e.target.querySelector('button[type="submit"]');
-      btn.textContent = 'Enviado'; btn.disabled = true;
+      const original = btn.textContent;
+      btn.textContent = 'Enviando...'; btn.disabled = true;
+      try {
+        const res = await fetch(e.target.action, {
+          method: 'POST',
+          body: new FormData(e.target),
+          headers: { 'Accept': 'application/json' }
+        });
+        if (res.ok) {
+          btn.textContent = 'Enviado ✓';
+          e.target.reset();
+        } else {
+          btn.textContent = 'Error — inténtalo de nuevo';
+          btn.disabled = false;
+          setTimeout(() => { btn.textContent = original; }, 3000);
+        }
+      } catch {
+        btn.textContent = 'Error — inténtalo de nuevo';
+        btn.disabled = false;
+        setTimeout(() => { btn.textContent = original; }, 3000);
+      }
     });
   }
 }

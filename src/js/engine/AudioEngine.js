@@ -11,7 +11,13 @@ export class AudioEngine {
     this._windInterval = null; // Captured for clean teardown on scene 4
     document.addEventListener('visibilitychange', () => {
       if (!this.audioCtx) return;
-      document.hidden ? this.audioCtx.suspend() : this.audioCtx.resume();
+      if (document.hidden) {
+        this.audioCtx.suspend();
+      } else {
+        // After tab becomes visible again, resume AND restart looping sources
+        // iOS drops looping BufferSourceNodes during suspend
+        this.audioCtx.resume().then(() => this._restartNoiseSources()).catch(() => {});
+      }
     });
   }
 
@@ -214,10 +220,12 @@ export class AudioEngine {
   }
 
   setAwakening(v) { this._awakeningActive = v; }
-  /** iOS Safari: call on every touch. Catches 'suspended' AND 'interrupted' states. */
+  /** iOS Safari: call on every touch. Restarts noise sources after any suspension. */
   resumeIfSuspended() {
     if (this.audioCtx && this.audioCtx.state !== 'running') {
-      return this.audioCtx.resume().catch(() => {});
+      return this.audioCtx.resume().then(() => {
+        this._restartNoiseSources();
+      }).catch(() => {});
     }
     return Promise.resolve();
   }
