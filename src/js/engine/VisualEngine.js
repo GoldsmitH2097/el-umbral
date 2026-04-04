@@ -198,6 +198,7 @@ export class VisualEngine {
   }
   _resizeCanvas() { this._canvas.width=window.innerWidth; this._canvas.height=window.innerHeight; }
   start() { this._tick(); }
+  setAutoAdvanceMode(v) { this._autoAdvanceMode = v; }
   _tick() {
     this._frameCount++;
     const ctx=this._ctx;
@@ -243,20 +244,20 @@ export class VisualEngine {
       root.style.setProperty('--intensidad',0.8*sc);
     }
     if(state.isIgnited){
-      // Recompute oxygenScale here — the value computed at the top of this function
-      // was 0 if isIgnited was just set true this frame. Recomputing avoids a dark flash.
       const oxygenScale = Math.max(0.05, 1-speed*0.025);
-      // Base radii match the ramp-up PEAK values (progress=150 → interior=120, exterior=375)
-      // so there is zero visual jump at the ignition threshold.
-      // Flicker is smoothed: ±1.5px instead of ±2.5px to reduce frame noise.
       const fl=Math.random()*3-1.5;
       root.style.setProperty('--radio-interior',Math.max(30,(120+fl)*oxygenScale)+'px');
       root.style.setProperty('--radio-exterior',Math.max(100,(375+fl*2)*oxygenScale)+'px');
-      root.style.setProperty('--intensidad',0.85*oxygenScale);
-      const pts=speed>10?1:Math.floor(Math.random()*3+4);
-      for(let i=0;i<pts;i++) this._flameParticles.push(new FlameParticle(this._currentX,this._currentY,wx,wy,oxygenScale));
-      if(speed>3&&this._frameCount%2===0) this._smokeParticles.push(new SmokeParticle(this._currentX,this._currentY-20,vx,vy));
-      else if(this._frameCount%6===0) this._smokeParticles.push(new SmokeParticle(this._currentX+(Math.random()-0.5)*5,this._currentY-50,0,0));
+      // Suppress flame, smoke, and ambient glow during auto-advance — character reveals through mask only
+      if(!this._autoAdvanceMode) {
+        root.style.setProperty('--intensidad',0.85*oxygenScale);
+        const pts=speed>10?1:Math.floor(Math.random()*3+4);
+        for(let i=0;i<pts;i++) this._flameParticles.push(new FlameParticle(this._currentX,this._currentY,wx,wy,oxygenScale));
+        if(speed>3&&this._frameCount%2===0) this._smokeParticles.push(new SmokeParticle(this._currentX,this._currentY-20,vx,vy));
+        else if(this._frameCount%6===0) this._smokeParticles.push(new SmokeParticle(this._currentX+(Math.random()-0.5)*5,this._currentY-50,0,0));
+      } else {
+        root.style.setProperty('--intensidad','0');
+      }
       const ox=(this._currentX-this._canvas.width/2)*0.02, oy=(this._currentY-this._canvas.height/2)*0.02;
       this._liveEl.style.transform=`scale(1.05) translate(${ox}px,${oy}px)`;
     } else { this._liveEl.style.transform='scale(1.05) translate(0px,0px)'; }

@@ -43,25 +43,29 @@ let _isAutoAdvancing = false;
 function _autoAdvanceNext() {
   if(state.activeScene !== 1 || state.hasFinishedGallery || state.isPressed) return;
   _isAutoAdvancing = true;
-  // Set cursor to screen center so flame/glow appears centered, not at edge
+  visual.setAutoAdvanceMode(true); // suppress flame + glow — reveal only through mask
   visual.updateTarget(window.innerWidth / 2, window.innerHeight * 0.55);
-  state.isPressed = true;
+  state.isPressed = true; // build ignitionProgress to 150
 
   setTimeout(() => {
-    if(!state.isIgnited) { state.isPressed = false; _isAutoAdvancing = false; return; }
-    // Mirror the exact handleUp() release sequence so the RAF loop triggers the swap
-    state.isPressed = false;
-    state.isIgnited = false;   // ← KEY FIX: enables ramp-down in RAF loop
-    state.isSwapping = true;
-    visual.primeNextVideo();
+    if(!state.isIgnited) { state.isPressed = false; visual.setAutoAdvanceMode(false); _isAutoAdvancing = false; return; }
+    state.isPressed = false; // stop building, isIgnited stays true — character stays revealed
 
+    // Hold character visible for 6s, then release
     setTimeout(() => {
-      _isAutoAdvancing = false;
-      if(!state.hasFinishedGallery && !state.isPressed && state.activeScene === 1) {
-        _autoTimer = setTimeout(_autoAdvanceNext, 2500);
-      }
-    }, 1000);
-  }, 900);
+      state.isIgnited = false;   // triggers ramp-down in RAF loop
+      state.isSwapping = true;
+      visual.primeNextVideo();
+
+      setTimeout(() => {
+        visual.setAutoAdvanceMode(false);
+        _isAutoAdvancing = false;
+        if(!state.hasFinishedGallery && !state.isPressed && state.activeScene === 1) {
+          _autoTimer = setTimeout(_autoAdvanceNext, 500); // short dark gap between characters
+        }
+      }, 800); // ramp-down duration
+    }, 6000); // show character for 6 seconds
+  }, 900); // ignition build-up
 }
 
 // Start after 5s if no interaction
@@ -107,6 +111,8 @@ function triggerAwakening() {
     const s3=document.getElementById('scene-3'); s3.style.opacity='1'; s3.style.pointerEvents='auto';
     document.body.style.cursor='auto';
     document.querySelectorAll('*').forEach(el=>el.style.setProperty('cursor','auto','important'));
+    // Auto-advance to archive after 4s if user hasn't clicked ADENTRARSE
+    setTimeout(()=>{ if(state.activeScene===3) enterMainSite(); }, 4000);
   },3000);
 }
 
