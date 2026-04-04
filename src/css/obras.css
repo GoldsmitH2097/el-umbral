@@ -42,6 +42,7 @@
   box-shadow: 1px 0 0 0 rgba(255,255,255,0.04);
   transition: flex 0.6s cubic-bezier(0.25,1,0.5,1), background 0.4s ease;
   background: #020202; gap: 30px;
+  align-items: center; /* center books within each column */
 }
 .obra-column:last-child { box-shadow: none; }
 .obra-column:hover, .obra-column--highlighted {
@@ -54,35 +55,36 @@
   height: 100%; color: #2a2a2a; font-size: 20px; letter-spacing: 4px;
 }
 
-/* Individual book within a column — stacked vertically */
+/* Individual book within a column — stacked vertically, centered */
 .obra-book {
   display: flex; flex-direction: column; gap: 12px;
-  cursor: default;
+  cursor: default; align-items: center; width: 100%;
 }
 .obra-book--available { cursor: pointer; }
 
-/* Cover — fixed small height, not full column width */
+/* Cover — centered, fixed small size */
 .obra-cover {
-  width: 100%; max-width: 140px; aspect-ratio: 2/3; overflow: hidden;
-  position: relative; background: #060606; align-self: flex-start;
+  width: 100%; max-width: 130px; aspect-ratio: 2/3; overflow: hidden;
+  position: relative; background: #060606;
 }
 .obra-cover img {
   width: 100%; height: 100%; object-fit: cover;
-  filter: grayscale(15%) brightness(0.8);
+  filter: brightness(0.85);
   transition: filter 0.5s ease, transform 0.5s ease;
   transform: scale(1.02);
 }
 .obra-book--available:hover .obra-cover img,
 .obra-column--highlighted .obra-book--available .obra-cover img {
-  filter: grayscale(0%) brightness(1); transform: scale(1.06);
+  filter: brightness(1); transform: scale(1.06);
 }
+/* Coming-soon/countdown: full color, slightly dimmed — no grayscale */
 .obra-book--coming-soon .obra-cover img,
 .obra-book--countdown .obra-cover img {
-  filter: grayscale(100%) brightness(0.4);
+  filter: brightness(0.7);
 }
 
-/* ── Book metadata ────────────────────────────────────────────────────────── */
-.obra-meta { display: flex; flex-direction: column; gap: 6px; }
+/* ── Book metadata — centered ─────────────────────────────────────────────── */
+.obra-meta { display: flex; flex-direction: column; gap: 6px; align-items: center; text-align: center; width: 100%; }
 .obra-title {
   font-size: 13px; font-weight: normal; letter-spacing: 3px;
   text-transform: uppercase; margin: 0; color: #ccc; line-height: 1.4;
@@ -110,11 +112,11 @@
 .obra-btn--buy:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.5); }
 .obra-btn--locked, .obra-btn--soon { border: 1px solid rgba(255,255,255,0.06); color: #3a3a3a; cursor: default; }
 
-/* ── Countdown ────────────────────────────────────────────────────────────── */
-.obra-countdown { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
-.countdown-timer { display: flex; gap: 5px; align-items: baseline; flex-wrap: wrap; }
-.countdown-timer span { font-size: 16px; letter-spacing: 1px; color: #666; }
-.countdown-timer em { font-size: 7px; letter-spacing: 2px; color: #444; text-transform: uppercase; font-style: normal; margin-left: 1px; }
+/* ── Countdown — large, centered, timer above date label ─────────────────── */
+.obra-countdown { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 12px; width: 100%; }
+.countdown-timer { display: flex; gap: 10px; align-items: baseline; justify-content: center; flex-wrap: wrap; }
+.countdown-timer span { font-size: 28px; letter-spacing: 1px; color: #aaa; font-weight: 300; }
+.countdown-timer em { font-size: 8px; letter-spacing: 2px; color: #555; text-transform: uppercase; font-style: normal; margin-left: 2px; }
 
 /* ── Contact section ──────────────────────────────────────────────────────── */
 .contact-section { border-top: 1px solid rgba(255,255,255,0.05); padding: 10vh 5vw; }

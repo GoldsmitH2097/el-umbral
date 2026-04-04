@@ -48,7 +48,7 @@ export class ArchiveDOM {
 
       content.innerHTML=`
         <h4>${['I','II','III','IV'][i]}. ${char.label}</h4>
-        ${statusBadge}<p>${char.desc}</p>${socialHtml}
+        <p>${char.desc}</p>
       `;
 
       pillar.appendChild(video); pillar.appendChild(content); grid.appendChild(pillar);
@@ -102,8 +102,8 @@ export class ArchiveDOM {
             ctaHtml = `<a href="${item.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy">${item.buyLabel}</a>`;
           } else if (item.status === 'countdown') {
             ctaHtml = `<div class="obra-countdown">
-              <span class="obra-btn obra-btn--locked">${item.buyLabel}</span>
               <div class="countdown-timer" data-release="${item.releaseDate}"></div>
+              <span class="obra-btn obra-btn--locked">${item.buyLabel}</span>
             </div>`;
           } else {
             ctaHtml = `<span class="obra-btn obra-btn--soon">Próximamente</span>`;
@@ -191,8 +191,21 @@ export class ArchiveDOM {
   }
 
   openReading(index) {
-    const char=CHARACTERS[index]; if(!char||char.status==='missing') return;
-    this._readTitle.innerText=char.title; this._readBody.innerHTML=char.lore;
+    const char=CHARACTERS[index]; if(!char) return;
+    this._readTitle.innerText=char.title;
+
+    // Build lore + social links at the bottom
+    const socialHtml = char.social.length > 0
+      ? `<div class="reading-social">
+          ${char.social.map(s =>
+            `<a href="${s.url}" target="_blank" rel="noopener" class="reading-social-link">
+              ${ICONS[s.platform]} <span>${s.handle}</span>
+            </a>`
+          ).join('')}
+        </div>`
+      : '';
+
+    this._readBody.innerHTML = char.lore + socialHtml;
     this._readingBgVideo.src=char.src; this._readingBgVideo.load(); this._readingBgVideo.play().catch(()=>{});
     this._gridView.style.transform='scale(0.95)'; this._gridView.style.opacity='0';
     setTimeout(()=>{

@@ -9,3 +9,19 @@
   font-size: 60px; float: left; padding-right: 15px; color: #fff;
   line-height: 1; font-family: 'Times New Roman', serif;
 }
+
+/* ── Reading social links — appear after lore text ────────────────────────── */
+.reading-social {
+  display: flex; gap: 24px; justify-content: center; align-items: center;
+  margin-top: 60px; padding-top: 40px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  flex-wrap: wrap;
+}
+.reading-social-link {
+  display: flex; align-items: center; gap: 10px;
+  color: rgba(255,255,255,0.4); text-decoration: none;
+  font-size: 12px; letter-spacing: 3px; text-transform: uppercase;
+  transition: color 0.3s ease;
+}
+.reading-social-link:hover { color: rgba(255,255,255,0.9); }
+.reading-social-link svg { flex-shrink: 0; }

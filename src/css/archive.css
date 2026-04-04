@@ -11,8 +11,9 @@
 #grid-view { transition: opacity 0.8s ease, transform 0.8s ease; display: flex; flex-direction: column; min-height: 100vh; }
 .site-nav { display: flex; justify-content: space-between; align-items: center; padding: 40px 5vw; border-bottom: 1px solid rgba(255,255,255,0.05); }
 .site-nav .logo { font-size: 18px; letter-spacing: 8px; font-weight: bold; }
-.site-nav .links span { font-size: 12px; letter-spacing: 4px; margin-left: 40px; color: #888; transition: color 0.3s; cursor: pointer !important; }
+.site-nav .links span { font-size: 12px; letter-spacing: 4px; margin-left: 40px; color: #888; transition: color 0.3s; cursor: pointer !important; outline: none; }
 .site-nav .links span:hover { color: #fff; }
+.site-nav .links span:focus-visible { color: #fff; }
 .site-hero { padding: 10vh 5vw; text-align: center; }
 /* Start invisible — animations trigger via .archive-visible class added by ArchiveDOM.showArchive() */
 .site-hero h2 { font-size: 4vw; font-weight: normal; letter-spacing: 15px; margin: 0 0 20px 0; text-transform: uppercase; opacity: 0; }
