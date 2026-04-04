@@ -44,6 +44,7 @@ let _isAutoAdvancing = false;
 function _autoAdvanceNext() {
   if(state.activeScene !== 1 || state.hasFinishedGallery || state.isPressed) return;
   _isAutoAdvancing = true;
+  inst.style.opacity = '0'; // hide "press and hold" before first character appears
   visual.setAutoAdvanceMode(true); // suppress flame + glow — reveal only through mask
   visual.updateTarget(window.innerWidth / 2, window.innerHeight * 0.55);
   state.isPressed = true; // build ignitionProgress to 150
