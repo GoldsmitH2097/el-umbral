@@ -35,40 +35,16 @@ skipBtn?.addEventListener('click', ()=>{
   skipIntroAndEnterArchive();
 });
 
-// Auto-advance — if user does nothing for 8s, progress to next scene
-let _autoTimer = null;
-function _scheduleAutoAdvance(ms, fn) {
-  clearTimeout(_autoTimer);
-  _autoTimer = setTimeout(fn, ms);
-}
-// Start auto-advance for scene 1 on load
-_scheduleAutoAdvance(8000, () => {
+// Auto-advance fallback — if user hasn't interacted after 15s, surface EL UMBRAL button directly.
+// Don't cycle characters — just unblock the path forward.
+setTimeout(() => {
   if(state.activeScene === 1 && !state.hasFinishedGallery && !state.isPressed) {
-    // Simulate a quick ignition cycle to advance character
-    state.isSwapping = true;
-    visual.primeNextVideo();
-    _scheduleAutoAdvance(8000, () => {
-      if(state.activeScene === 1 && !state.hasFinishedGallery && !state.isPressed) {
-        state.isSwapping = true;
-        visual.primeNextVideo();
-        _scheduleAutoAdvance(8000, () => {
-          if(state.activeScene === 1 && !state.hasFinishedGallery && !state.isPressed) {
-            state.isSwapping = true;
-            visual.primeNextVideo();
-            _scheduleAutoAdvance(8000, () => {
-              if(state.activeScene === 1 && !state.hasFinishedGallery && !state.isPressed) {
-                // All 4 done — show the button
-                state.hasFinishedGallery = true;
-                const btn = document.getElementById('umbral-btn');
-                btn.style.opacity = '1'; btn.style.pointerEvents = 'auto';
-              }
-            });
-          }
-        });
-      }
-    });
+    state.hasFinishedGallery = true;
+    const btn = document.getElementById('umbral-btn');
+    btn.style.opacity = '1';
+    btn.style.pointerEvents = 'auto';
   }
-});
+}, 15000);
 
 // Check for deep link on boot; if clean URL, start normal intro
 const isDeepLink = router.init();

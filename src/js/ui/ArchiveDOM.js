@@ -79,19 +79,25 @@ export class ArchiveDOM {
     const section = document.getElementById('obras-section');
     if (!section) return;
 
-    CATALOGUE.forEach(item => {
+    CATALOGUE.forEach((item, i) => {
       const char = CHARACTERS.find(c => c.slug === item.archetype);
       const card = document.createElement('div');
       card.className = `obra-card obra-card--${item.status}`;
       card.dataset.archetype = item.archetype;
+      // Match the same column index as the pillar above
+      card.dataset.index = i;
 
       const archetypeLabel = char ? `<span class="obra-archetype">${char.label}</span>` : '';
+      const subtitleHtml = item.subtitle ? `<p class="obra-subtitle">${item.subtitle}</p>` : '';
+      const coverHtml = item.img
+        ? `<div class="obra-cover"><img src="${item.img}" alt="${item.title}" loading="lazy" /></div>`
+        : '';
 
       let ctaHtml = '';
       if (item.status === 'available' && item.buyUrl) {
         ctaHtml = `<a href="${item.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy">${item.buyLabel}</a>`;
       } else if (item.status === 'countdown') {
-        ctaHtml = `<div class="obra-countdown" data-release="${item.releaseDate}">
+        ctaHtml = `<div class="obra-countdown">
           <span class="obra-btn obra-btn--locked">${item.buyLabel}</span>
           <div class="countdown-timer" data-release="${item.releaseDate}"></div>
         </div>`;
@@ -99,20 +105,35 @@ export class ArchiveDOM {
         ctaHtml = `<span class="obra-btn obra-btn--soon">Próximamente</span>`;
       }
 
-      const subtitleHtml = item.subtitle ? `<p class="obra-subtitle">${item.subtitle}</p>` : '';
-
       card.innerHTML = `
-        ${archetypeLabel}
-        <h3 class="obra-title">${item.title}</h3>
-        ${subtitleHtml}
-        <p class="obra-desc">${item.desc}</p>
-        ${ctaHtml}
+        ${coverHtml}
+        <div class="obra-meta">
+          ${archetypeLabel}
+          <h3 class="obra-title">${item.title}</h3>
+          ${subtitleHtml}
+          <p class="obra-desc">${item.desc}</p>
+          ${ctaHtml}
+        </div>
       `;
       section.appendChild(card);
     });
 
-    // Start countdown timers
     this._initCountdowns();
+    this._bindPillarObrasHover();
+  }
+
+  // Make pillars and their corresponding obra card animate together
+  _bindPillarObrasHover() {
+    const pillars = document.querySelectorAll('.pillar');
+    const obras = document.querySelectorAll('.obra-card');
+    pillars.forEach((pillar, i) => {
+      const obra = obras[i];
+      if (!obra) return;
+      pillar.addEventListener('mouseenter', () => obra.classList.add('obra-card--highlighted'));
+      pillar.addEventListener('mouseleave', () => obra.classList.remove('obra-card--highlighted'));
+      obra.addEventListener('mouseenter', () => pillar.classList.add('pillar--highlighted'));
+      obra.addEventListener('mouseleave', () => pillar.classList.remove('pillar--highlighted'));
+    });
   }
 
   _initCountdowns() {
@@ -137,22 +158,17 @@ export class ArchiveDOM {
   _buildContact() {
     const section = document.getElementById('contact-section');
     if (!section) return;
-    // Contact form + social links placeholder for Tizno
     section.innerHTML = `
       <div class="contact-inner">
         <h2 class="contact-title">Contacto</h2>
-        <p class="contact-sub">Para prensa, colaboraciones o preguntas sobre el universo Soulware.</p>
+        <p class="contact-sub">Prensa, colaboraciones y preguntas sobre el universo Soulware.</p>
         <form class="contact-form" id="contact-form" action="https://formspree.io/f/placeholder" method="POST">
           <input type="text" name="name" placeholder="Nombre" required autocomplete="name" />
           <input type="email" name="email" placeholder="Email" required autocomplete="email" />
           <textarea name="message" placeholder="Mensaje" rows="4" required></textarea>
           <button type="submit" class="obra-btn obra-btn--buy">Enviar</button>
         </form>
-        <div class="contact-social">
-          <a href="https://www.instagram.com/core.soulware" target="_blank" rel="noopener" class="contact-social-link">
-            ${ICONS.instagram} @core.soulware
-          </a>
-        </div>
+        <p style="font-size:11px;color:#444;letter-spacing:2px;text-transform:uppercase;">editorial@soulware.live</p>
       </div>
     `;
   }
