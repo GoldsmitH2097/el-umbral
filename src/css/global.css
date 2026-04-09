@@ -59,3 +59,6 @@ body, html {
 #final-btn:hover { background: #0a0a0a; color: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
 
 #vfx-canvas { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 3; pointer-events: none; }
+
+/* Mobile-only overlays — hidden by default, shown by mobile.css on ≤768px */
+#mobile-char-detail { display: none; }

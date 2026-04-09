@@ -159,6 +159,7 @@ function enterMainSite() {
   // DOM cleanup: remove invisible layers that can block events in Scene 4
   document.getElementById('scene-2').style.display='none';
   s3.style.display='none';
+  document.getElementById('editorial-watermark').style.display='none';
   document.getElementById('skip-btn')?.classList.remove('visible');
   archive.showArchive(); audio.playTransitionEcho(); audio.stopAwakening();
   audio.setAwakening(false); state.isAwakening=false; transitionTo(4);

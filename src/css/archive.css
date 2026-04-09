@@ -19,9 +19,14 @@
 /* Start invisible — animations trigger via .archive-visible class added by ArchiveDOM.showArchive() */
 .site-hero h2 { font-size: 4vw; font-weight: normal; letter-spacing: 15px; margin: 0 0 20px 0; text-transform: uppercase; opacity: 0; }
 .site-hero p { font-size: 16px; color: #666; letter-spacing: 2px; font-style: italic; max-width: 600px; margin: 0 auto; line-height: 1.8; opacity: 0; }
-.site-hero-sub { color: #777; }
+.site-hero-sub { color: #777; max-width: 900px; white-space: nowrap; }
 .site-hero-editorial { font-size: 10px; color: #444; letter-spacing: 3px; text-transform: uppercase; margin: 8px auto 0; max-width: 600px; }
-#editorial-watermark { font-size: 9px; letter-spacing: 4px; text-transform: uppercase; color: rgba(255,255,255,0.15); margin-top: 20px; pointer-events: none; }
+#editorial-watermark {
+  position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+  font-size: 9px; letter-spacing: 5px; text-transform: uppercase;
+  color: rgba(255,255,255,0.12); pointer-events: none; z-index: 3;
+  white-space: nowrap;
+}
 
 @keyframes heroTitleReveal {
   from { opacity: 0; transform: translateY(16px); letter-spacing: 22px; }
@@ -56,7 +61,8 @@
 .pillar:hover .pillar-content { transform: translateY(0); }
 .pillar-content h4 { font-size: 14px; letter-spacing: 4px; margin: 0 0 15px 0; text-transform: uppercase; line-height: 1.5; }
 .pillar-content p { font-size: 12px; color: #888; line-height: 1.6; margin: 0 auto; max-width: 250px; opacity: 0; transition: opacity 0.5s ease; }
-.pillar:hover .pillar-content p { opacity: 1; }
+.pillar:hover .pillar-content p,
+.pillar--highlighted .pillar-content p { opacity: 1; }
 .site-footer { text-align: center; padding: 5vh 5vw 4vh; font-size: 10px; color: #444; letter-spacing: 4px; text-transform: uppercase; }
 .site-footer p { margin: 0 0 16px; }
 .footer-legal { display: flex; gap: 30px; justify-content: center; flex-wrap: wrap; }

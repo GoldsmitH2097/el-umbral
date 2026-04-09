@@ -129,21 +129,10 @@ export class VisualEngine {
   }
 
   _startWhisperHint() {
-    const whispers = Array.from(document.querySelectorAll('.whisper'));
-    let idx = 0;
-    const visitNext = () => {
-      if(state.activeScene !== 2 || state.whispersFound >= whispers.length) return;
-      const unfound = whispers.filter(w => w.dataset.found !== 'true');
-      if(unfound.length === 0) return;
-      // Pick next unfound whisper
-      const target = unfound[idx % unfound.length]; idx++;
-      const rect = target.getBoundingClientRect();
-      // Nudge the cursor target toward the whisper to illuminate it briefly
-      const cx = rect.left + rect.width/2, cy = rect.top + rect.height/2;
-      this._hintTarget = { x: cx, y: cy, until: Date.now() + 2000 };
-      setTimeout(visitNext, 6000 + Math.random() * 4000);
-    };
-    setTimeout(visitNext, 5000);
+    // Only show the TEXT hint — do NOT move the light cursor toward whispers.
+    // Moving the light toward whispers revealed them automatically (user reported it).
+    // The text hint in canvas.css handles the nudge: "Busca las voces en la oscuridad".
+    // This method now does nothing beyond what main.js already handles via the CSS hint.
   }
   clearFlame() { this._flameParticles=[];this._smokeParticles=[];state.isIgnited=false; }
 
