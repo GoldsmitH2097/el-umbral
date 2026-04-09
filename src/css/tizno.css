@@ -29,6 +29,13 @@
   box-shadow: 0 -4px 20px rgba(200,146,42,0.1), 0 0 0 1px rgba(200,146,42,0.1);
 }
 
+/* Eyes container — centered within the silhouette */
+.tizno-eyes {
+  position: absolute; bottom: 7px; left: 0; right: 0;
+  display: flex; justify-content: center; gap: 14px;
+  pointer-events: none;
+}
+
 /* Eyes — wiggle independently inside the silhouette */
 .tizno-eye {
   width: 7px; height: 9px;
