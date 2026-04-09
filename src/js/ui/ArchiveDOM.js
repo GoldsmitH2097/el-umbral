@@ -252,6 +252,7 @@ export class ArchiveDOM {
     this._readingBgVideo.src=char.src; this._readingBgVideo.load(); this._readingBgVideo.play().catch(()=>{});
     this._gridView.style.transform='scale(0.95)'; this._gridView.style.opacity='0';
     setTimeout(()=>{
+      this._readingView.style.display='block';
       this._readingView.style.opacity='1'; this._readingView.style.pointerEvents='auto';
       this._readingView.scrollTo(0,0); this._onSceneChange(5);
       // Create the Volver button only when reading view is open — injecting prevents ghost rendering
@@ -271,6 +272,7 @@ export class ArchiveDOM {
     document.getElementById('btn-volver')?.remove();
     this._readingView.style.opacity='0'; this._readingView.style.pointerEvents='none';
     setTimeout(()=>{
+      this._readingView.style.display='none';
       this._gridView.style.transform='scale(1)'; this._gridView.style.opacity='1';
       this._readingBgVideo.pause(); this._readingBgVideo.src=''; this._onSceneChange(4);
     },500);

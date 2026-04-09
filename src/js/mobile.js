@@ -140,12 +140,14 @@ export function initMobileArchive() {
 
     // Background video
     detailVideo.src = char.src; detailVideo.load(); detailVideo.play().catch(()=>{});
+    detail.style.display = 'block';
     detail.classList.add('open');
     mainSite.style.overflow = 'hidden'; // prevent background scroll
   };
 
   const closeDetail = () => {
     detail.classList.remove('open');
+    detail.style.display = 'none';
     detailVideo.pause(); detailVideo.src = '';
     mainSite.style.overflow = 'auto';
   };
