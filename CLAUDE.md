@@ -82,10 +82,10 @@ src/
 
 | Index | Slug | Title | Status | Video |
 |-------|------|-------|--------|-------|
-| 0 | emperatriz | La Emperatriz Sin Reino | active | /reina-sin-corona.mp4 |
-| 1 | caballero | El Caballero Sin Nombre | active | /caballero-sin-nombre.mp4 |
-| 2 | sortilega | La Sortílega Sin Sombra | active | /sortilega-sin-sombra.mp4 |
-| 3 | arlequin | El Arlequín Sin Flores | active | /arlequin-sin-flores.mp4 |
+| 0 | emperatriz | La Emperatriz Sin Reino | active | /reina-sin-corona.mp4 | Alicia Sarel | @aliciasarel (IG) |
+| 1 | caballero | El Caballero Sin Nombre | active | /caballero-sin-nombre.mp4 | WW. & Eidon | @wwyeid0n (IG+Threads) |
+| 2 | sortilega | La Sortílega Sin Sombra | active | /sortilega-sin-sombra.mp4 | Irina M. | @irina_mlk_ (IG+Threads) |
+| 3 | arlequin | El Arlequín Sin Flores | active | /arlequin-sin-flores.mp4 | Germán Ferri | @germyto (Threads) |
 
 La Emperatriz is "en paradero desconocido" — this is narrative, not a code flag.
 She has full video, lore, and pillar. No social links. No books. No click-block.

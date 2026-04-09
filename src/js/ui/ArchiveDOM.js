@@ -251,17 +251,24 @@ export class ArchiveDOM {
     this._readBody.innerHTML = char.lore + socialHtml;
     this._readingBgVideo.src=char.src; this._readingBgVideo.load(); this._readingBgVideo.play().catch(()=>{});
     this._gridView.style.transform='scale(0.95)'; this._gridView.style.opacity='0';
-    const btnVolver = document.getElementById('btn-volver');
     setTimeout(()=>{
       this._readingView.style.opacity='1'; this._readingView.style.pointerEvents='auto';
       this._readingView.scrollTo(0,0); this._onSceneChange(5);
-      btnVolver?.classList.add('visible');
+      // Create the Volver button only when reading view is open — injecting prevents ghost rendering
+      if (!document.getElementById('btn-volver')) {
+        const btn = document.createElement('button');
+        btn.id = 'btn-volver';
+        btn.textContent = '← Volver';
+        btn.addEventListener('click', () => this.closeReading());
+        document.body.appendChild(btn);
+      }
     },500);
     if(this._router) this._router.navigateTo(index);
   }
 
   closeReading() {
-    document.getElementById('btn-volver')?.classList.remove('visible');
+    // Remove button from DOM entirely — no CSS hiding, no ghost rendering
+    document.getElementById('btn-volver')?.remove();
     this._readingView.style.opacity='0'; this._readingView.style.pointerEvents='none';
     setTimeout(()=>{
       this._gridView.style.transform='scale(1)'; this._gridView.style.opacity='1';
@@ -354,7 +361,6 @@ export class ArchiveDOM {
 
   _bindEvents() {
     document.getElementById('final-btn')?.addEventListener('click',()=>this._onSceneChange('enterMainSite'));
-    document.getElementById('btn-volver')?.addEventListener('click',()=>this.closeReading());
     document.getElementById('btn-cerrar-pacto')?.addEventListener('click',()=>this.closePacto());
     document.querySelectorAll('[data-action]').forEach(el=>{
       el.addEventListener('click',()=>{

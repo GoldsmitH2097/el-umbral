@@ -67,11 +67,9 @@
   position: fixed; top: 40px; left: 5vw; z-index: 40; 
   color: #888; font-size: 12px; letter-spacing: 4px; text-transform: uppercase; 
   background: transparent; border: none; cursor: pointer !important; 
-  transition: color 0.3s, opacity 0.4s; 
-  font-family: 'Times New Roman', serif; 
-  display: none; opacity: 0; pointer-events: none;
+  transition: color 0.3s; 
+  font-family: 'Times New Roman', serif;
 }
-#btn-volver.visible { display: block; opacity: 1; pointer-events: auto; }
 #btn-volver:hover { color: #fff; }
 #pacto-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.98); z-index: 50; opacity: 0; pointer-events: none; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.8s ease; text-align: center; padding: 0 5vw; }
 #pacto-modal h2 { font-size: 30px; letter-spacing: 15px; text-transform: uppercase; margin-bottom: 30px; color: #fff; }
