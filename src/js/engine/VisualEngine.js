@@ -197,13 +197,11 @@ export class VisualEngine {
     }
   }
   _resizeCanvas() {
-    // Cap DPR at 1.5 — 4K Macs at 3x draw exponentially more pixels with zero visual gain
-    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-    this._canvas.width = window.innerWidth * dpr;
-    this._canvas.height = window.innerHeight * dpr;
-    this._canvas.style.width = window.innerWidth + 'px';
-    this._canvas.style.height = window.innerHeight + 'px';
-    this._ctx.scale(dpr, dpr);
+    // Keep canvas at 1:1 CSS pixels — the original code was already optimal.
+    // DPR scaling would draw MORE pixels on retina/mobile, increasing TBT.
+    // Atmospheric smoke/fire at 1:1 looks fine. Sharp text/shapes would need DPR scaling; fire does not.
+    this._canvas.width = window.innerWidth;
+    this._canvas.height = window.innerHeight;
   }
   start() { this._tick(); }
   setAutoAdvanceMode(v) { this._autoAdvanceMode = v; }
