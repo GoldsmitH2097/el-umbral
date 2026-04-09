@@ -99,6 +99,35 @@ export class ArchiveDOM {
       } else {
         books.forEach(item => {
           const card = document.createElement('div');
+
+          // Anthology (La Corte) gets distinct visual treatment
+          if (item.type === 'anthology') {
+            card.className = `obra-book obra-book--anthology obra-book--${item.status}`;
+            const relatosHtml = item.relatos && item.relatos.length > 0
+              ? `<ul class="obra-relatos-list">${item.relatos.map(r =>
+                  `<li class="obra-relato-item">
+                    <span class="obra-relato-title">${r.title}</span>
+                    <span class="obra-relato-author">${r.author}</span>
+                  </li>`).join('')}</ul>`
+              : '';
+            card.innerHTML = `
+              <div class="obra-anthology-header">
+                <span class="obra-anthology-tag">Antología</span>
+                <h3 class="obra-title">${item.title}</h3>
+                ${item.subtitle ? `<p class="obra-subtitle">${item.subtitle}</p>` : ''}
+              </div>
+              <div class="obra-meta">
+                <p class="obra-series-info">${item.seriesInfo || ''}</p>
+                <p class="obra-desc">${item.desc}</p>
+                ${relatosHtml}
+                <span class="obra-btn obra-btn--soon">${item.buyLabel}</span>
+              </div>
+            `;
+            col.appendChild(card);
+            return; // skip standard card logic
+          }
+
+          // Standard obra card
           card.className = `obra-book obra-book--${item.status}`;
 
           const coverHtml = item.img
@@ -274,10 +303,18 @@ export class ArchiveDOM {
     const coverEl = document.getElementById('obra-modal-cover');
     coverEl.innerHTML = item.img
       ? `<img src="${item.img}" alt="${item.title}" />`
-      : `<div class="obra-modal-no-cover">Sin portada</div>`;
+      : `<div class="obra-modal-no-cover">${item.type === 'anthology' ? 'Antología' : 'Sin portada'}</div>`;
 
     let ctaHtml = '';
-    if (item.status === 'available' && item.buyUrl) {
+    if (item.type === 'anthology') {
+      // Anthology modal — show relatos list if any
+      const relatosHtml = item.relatos && item.relatos.length > 0
+        ? `<ul class="obra-modal-relatos">${item.relatos.map(r =>
+            `<li><span class="obra-relato-title">${r.title}</span> <span class="obra-relato-author">${r.author}</span></li>`
+          ).join('')}</ul>`
+        : `<p style="font-size:12px;color:#444;letter-spacing:2px;font-style:italic;">Relatos en preparación.</p>`;
+      ctaHtml = relatosHtml;
+    } else if (item.status === 'available' && item.buyUrl) {
       ctaHtml = `<a href="${item.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy">${item.buyLabel}</a>`;
     } else if (item.status === 'countdown') {
       ctaHtml = `<div class="obra-countdown">

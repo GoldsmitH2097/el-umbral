@@ -60,6 +60,7 @@ export const CATALOGUE = [
     title: 'Título por confirmar',
     subtitle: 'Tragedia lírica',
     archetype: 'emperatriz',
+    type: 'obra',                    // single novel
     author: 'Alicia Sarel',
     seriesInfo: 'Obra principal del arquetipo',
     format: 'Novela',
@@ -68,6 +69,26 @@ export const CATALOGUE = [
     desc: 'Una tragedia lírica personal. El reino cayó. La voz, no. Más detalles próximamente.',
     buyUrl: null,
     buyLabel: 'Próximamente',
+  },
+  {
+    id: 'la-corte',
+    title: 'La Corte',
+    subtitle: null,          // series title TBD — "Antología de la Historia de España" to confirm
+    archetype: 'emperatriz',
+    type: 'anthology',       // signals different rendering in ArchiveDOM and obra modal
+    author: 'Varios autores',
+    seriesInfo: 'Relatos breves e intensos de la Historia de España',
+    format: 'Antología',
+    status: 'coming-soon',
+    img: null,
+    desc: 'Bajo el arquetipo de La Emperatriz, voces distintas. Un mismo umbral. Relatos breves e intensos sobre el poder, la traición y el tiempo.',
+    buyUrl: null,
+    buyLabel: 'Próximamente',
+    // ── Relatos — add entries here as they are ready to publish ──────────────
+    // Each relato: { id, title, author, status: 'available'|'coming-soon', excerpt, buyUrl }
+    relatos: [
+      // { id: 'corte-001', title: 'Título del relato', author: 'Nombre Autor', status: 'coming-soon' },
+    ],
   },
   {
     id: 'pulso-blanda',

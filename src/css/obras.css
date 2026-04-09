@@ -253,3 +253,46 @@
 
 /* Archetype header — hidden on desktop (pillar alignment provides context), shown on mobile */
 .obra-archetype-header { display: none; }
+
+/* ── Anthology card (La Corte) ────────────────────────────────────────────── */
+.obra-book--anthology {
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding-top: 20px; margin-top: 8px;
+}
+.obra-anthology-header {
+  display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px;
+}
+.obra-anthology-tag {
+  font-size: 8px; letter-spacing: 4px; text-transform: uppercase;
+  color: #555; border: 1px solid rgba(255,255,255,0.08);
+  padding: 3px 8px; align-self: flex-start;
+}
+.obra-series-info {
+  font-size: 10px; color: #555; letter-spacing: 2px;
+  text-transform: uppercase; margin: 0;
+  font-style: normal;
+}
+
+/* Relatos list inside anthology card */
+.obra-relatos-list {
+  list-style: none; padding: 0; margin: 12px 0 0;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.obra-relato-item {
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.obra-relato-item:last-child { border-bottom: none; }
+.obra-relato-title { font-size: 12px; color: #ccc; letter-spacing: 1px; }
+.obra-relato-author { font-size: 10px; color: #555; font-style: italic; }
+
+/* Modal relatos list */
+.obra-modal-relatos {
+  list-style: none; padding: 0; margin: 0;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.obra-modal-relatos li {
+  display: flex; flex-direction: column; gap: 2px;
+  padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.obra-modal-relatos li:last-child { border-bottom: none; }
