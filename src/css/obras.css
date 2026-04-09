@@ -1,3 +1,21 @@
+/* ── 3D tilt on book covers ───────────────────────────────────────────────── */
+.obra-cover--clickable {
+  transform-style: preserve-3d;
+  will-change: transform;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.obra-cover--clickable:hover {
+  box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+}
+/* Glare overlay — injected by JS, follows cursor via CSS custom props */
+.obra-cover-glare {
+  position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  background: radial-gradient(circle at var(--gx,50%) var(--gy,50%), rgba(255,255,255,0.12) 0%, transparent 65%);
+  opacity: 0; transition: opacity 0.3s ease;
+  border-radius: inherit;
+}
+.obra-cover--clickable:hover .obra-cover-glare { opacity: 1; }
+
 /* ── Skip Button ──────────────────────────────────────────────────────────── */
 #skip-btn {
   position: fixed; bottom: 30px; right: 30px; z-index: 7;

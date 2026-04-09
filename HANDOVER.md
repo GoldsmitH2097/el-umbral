@@ -2,6 +2,97 @@
 ## Actualizar al final de cada sesión. Es la primera lectura de cada nueva conversación.
 
 **Última sesión:** 9 de abril 2026
+**Commit más reciente:** `d1ea4d7` — feat(ux): el pacto obligatorio al cruzar umbral, contacto en nav
+
+---
+
+## Estado del sitio
+
+**soulware.live está live, indexado y funcionando.**
+
+- Google Search Console registrado ✅ (Javier lo hizo el 8 abr)
+- Página indexada, crawleada por smartphone bot ✅
+- Sitemap pendiente de submit manual (ir a Sitemaps en Search Console)
+- Scores Lighthouse: Mobile 98 / Desktop 60 (TBT problema pendiente)
+
+---
+
+## Qué se ha construido (sesiones de hoy — 9 abr)
+
+### Narrativa / UX
+- **El Pacto** movido de nav a gate obligatorio al cruzar El Umbral (Scene 1 → 2)
+  - `openPacto(callback)` — ejecuta callback al aceptar
+  - umbral-btn ahora muestra El Pacto primero; `enterScene2()` se ejecuta tras "Acepto"
+  - El skip button bypasea el Pacto (va directo a Scene 4) — correcto
+- Nav: "EL PACTO" reemplazado por "CONTACTO" (scroll a `#contact-section`)
+
+### Accesibilidad (WCAG)
+- Skip button movido al primer elemento del DOM (WCAG 2.4.1) + copy "Romper el trance"
+- Focus management completo:
+  - Scene 4 load → focus en h2 "Las Crónicas"
+  - Reading view open → focus en h1 del personaje; close → return focus al pillar
+  - Obra modal open → focus en botón cerrar; close → return focus al cover
+  - El Pacto modal → focus en "Acepto" al abrirse
+- `tabindex="-1"` en h2 archive y h1 read-title (para focus programático)
+
+### Persistencia de arquetipo
+- Scene 1 → Scene 4: personaje activo al entrar al archivo recibe `pillar--highlighted` + `obra-column--highlighted`
+
+### Mobile / iOS
+- `-webkit-touch-callout: none` en `#gallery-container` (suprime menú "guardar imagen" en press-and-hold)
+
+---
+
+## Pendiente inmediato (código — próxima sesión)
+
+En orden de prioridad:
+
+1. **Nuevo Lighthouse** — ver si TBT mejoró con 30fps sim. Si sigue alto → OffscreenCanvas.
+2. **3D tilt en portadas** — cursor tracking + rotateX/Y + gradient glare
+3. **Dual-layer book modal** — "La Visión" / "El Manuscrito" tabs (copy de "La Visión" por arquetipo: escrito por Claude, aprueba Ruben)
+4. **Audio muffling** — BiquadFilterNode lowpass cuando modal abre
+5. **Scene 3 auto-advance** — ya implementado (4s), confirmar que funciona bien
+6. **Video CDN** — cuando Javier tenga URLs de Bunny.net, actualizar paths en StateManager (10 min)
+
+---
+
+## Pendiente — Ruben/Javier (no código)
+
+| Item | Owner | Urgencia |
+|------|-------|---------|
+| Submit sitemap en Search Console | Javier | HOY |
+| Video CDN (Bunny.net) | Javier | Antes de marketing push |
+| Goodreads + Amazon author pages | Javier | Esta semana |
+| Directorios editoriales | Ruben | Este mes |
+| @soulware.editorial social | Ruben | Este mes |
+| La Emperatriz obra título definitivo | Ruben | Cuando esté listo |
+| La Corte: autores + títulos de relatos | Ruben/Javier | Cuando estén listos |
+
+---
+
+## Decisiones pendientes de Ruben
+
+1. **Tizno visual** — ¿cómo aparece? ¿qué lo activa? (ver TIZNO.md)
+2. **Dual-layer modal copy** — "La Visión" tab: Claude redacta, Ruben aprueba (próxima sesión)
+3. **Awwwards/FWA submission** — esperar a que TBT esté bajo 300ms
+4. **Newsletter** — ¿implementar "El Pacto" newsletter (Mailchimp/Resend)?
+5. **Boutique** — ¿cuándo empieza la conversación sobre arquitectura de comercio?
+
+---
+
+## Cómo usar este archivo
+
+### Para arrancar una nueva conversación (El Umbral / bugs / site):
+> "Lee CLAUDE.md y HANDOVER.md y dime en qué estamos."
+
+### Para arrancar Tizno:
+> "Lee CLAUDE.md y TIZNO.md. Vamos a construir Tizno."
+
+### Para arrancar Anatomía del Vacío:
+> "Lee CLAUDE.md y ANATOMIA.md. Vamos a construir Anatomía del Vacío."
+## Actualizar al final de cada sesión. Es la primera lectura de cada nueva conversación.
+
+**Última sesión:** 9 de abril 2026
 **Commit más reciente:** `753891c` — fix: mobile-char-detail bleeding onto desktop
 
 ---

@@ -194,6 +194,10 @@ export class ArchiveDOM {
 
     this._initCountdowns();
     this._bindColumnHover();
+    // 3D tilt only on pointer devices — no-op on touch
+    if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+      this._initCoverTilt();
+    }
   }
 
   // Pillars and obra-columns animate together as one block
@@ -208,6 +212,37 @@ export class ArchiveDOM {
       pillar.addEventListener('mouseleave', () => col.classList.remove('obra-column--highlighted'));
       col.addEventListener('mouseenter', () => pillar.classList.add('pillar--highlighted'));
       col.addEventListener('mouseleave', () => pillar.classList.remove('pillar--highlighted'));
+    });
+  }
+
+  _initCoverTilt() {
+    document.querySelectorAll('.obra-cover--clickable').forEach(cover => {
+      // Inject glare div — one per cover, reused on every move
+      const glare = document.createElement('div');
+      glare.className = 'obra-cover-glare';
+      cover.appendChild(glare);
+
+      cover.addEventListener('mousemove', (e) => {
+        const rect = cover.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width;   // 0–1 left to right
+        const y = (e.clientY - rect.top)  / rect.height;  // 0–1 top to bottom
+        const rotY =  (x - 0.5) * 22;   // –11° to +11° horizontal
+        const rotX = -(y - 0.5) * 22;   // –11° to +11° vertical (inverted)
+        cover.style.transform =
+          `perspective(550px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.05)`;
+        glare.style.setProperty('--gx', `${(x * 100).toFixed(1)}%`);
+        glare.style.setProperty('--gy', `${(y * 100).toFixed(1)}%`);
+      });
+
+      cover.addEventListener('mouseleave', () => {
+        // Smooth spring back — override transition only for reset
+        cover.style.transition = 'transform 0.4s cubic-bezier(0.25,1,0.5,1), box-shadow 0.4s ease';
+        cover.style.transform = '';
+        // Restore snappy transition after spring finishes
+        setTimeout(() => {
+          cover.style.transition = '';
+        }, 400);
+      });
     });
   }
 
