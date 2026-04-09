@@ -8,9 +8,9 @@ class FlameParticle {
 }
 
 class SmokeParticle {
-  constructor(x,y,vx,vy) { this.x=x;this.y=y;this.life=1.0;this.size=Math.random()*8+4;this.vx=vx*0.15+(Math.random()-0.5)*0.5;this.vy=vy*0.15-Math.random()*1.0-0.5;this.decay=Math.random()*0.003+0.0015;this.angle=Math.random()*Math.PI*2;this.spin=(Math.random()-0.5)*0.15;this.cr=Math.random()*1.5+0.5; }
-  update() { this.vx*=0.96;this.vy*=0.97;this.vy-=0.03;this.angle+=this.spin;const c=this.cr*(1.2-this.life);this.x+=this.vx+Math.cos(this.angle)*c;this.y+=this.vy+Math.sin(this.angle)*c;this.size+=0.25;this.life-=this.decay; }
-  draw(ctx) { const a=this.life*0.15;const gr=ctx.createRadialGradient(this.x,this.y,0,this.x,this.y,Math.max(0.1,this.size));gr.addColorStop(0,`rgba(140,150,160,${a})`);gr.addColorStop(0.5,`rgba(140,150,160,${a*0.5})`);gr.addColorStop(1,`rgba(140,150,160,0)`);ctx.beginPath();ctx.arc(this.x,this.y,Math.max(0.1,this.size),0,Math.PI*2);ctx.fillStyle=gr;ctx.fill(); }
+  constructor(x,y,vx,vy) { this.x=x;this.y=y;this.life=1.0;this.size=Math.random()*6+3;this.vx=vx*0.15+(Math.random()-0.5)*0.5;this.vy=vy*0.15-Math.random()*1.0-0.5;this.decay=Math.random()*0.008+0.005;this.angle=Math.random()*Math.PI*2;this.spin=(Math.random()-0.5)*0.15;this.cr=Math.random()*1.5+0.5; }
+  update() { this.vx*=0.96;this.vy*=0.97;this.vy-=0.03;this.angle+=this.spin;const c=this.cr*(1.2-this.life);this.x+=this.vx+Math.cos(this.angle)*c;this.y+=this.vy+Math.sin(this.angle)*c;if(this.size<28)this.size+=0.18;this.life-=this.decay; }
+  draw(ctx) { const a=this.life*0.14;const gr=ctx.createRadialGradient(this.x,this.y,0,this.x,this.y,Math.max(0.1,this.size));gr.addColorStop(0,`rgba(140,150,160,${a})`);gr.addColorStop(0.5,`rgba(140,150,160,${a*0.5})`);gr.addColorStop(1,`rgba(140,150,160,0)`);ctx.beginPath();ctx.arc(this.x,this.y,Math.max(0.1,this.size),0,Math.PI*2);ctx.fillStyle=gr;ctx.fill(); }
 }
 
 class DustParticle {
@@ -262,10 +262,13 @@ export class VisualEngine {
       // Suppress flame, smoke, and ambient glow during auto-advance — character reveals through mask only
       if(!this._autoAdvanceMode) {
         root.style.setProperty('--intensidad',0.85*oxygenScale);
-        const pts=speed>10?1:Math.floor(Math.random()*3+4);
-        for(let i=0;i<pts;i++) this._flameParticles.push(new FlameParticle(this._currentX,this._currentY,wx,wy,oxygenScale));
-        if(speed>3&&this._frameCount%2===0) this._smokeParticles.push(new SmokeParticle(this._currentX,this._currentY-20,vx,vy));
-        else if(this._frameCount%6===0) this._smokeParticles.push(new SmokeParticle(this._currentX+(Math.random()-0.5)*5,this._currentY-50,0,0));
+        // Hard caps — prevent particle accumulation that causes gradual sluggishness
+        const pts=speed>10?1:Math.floor(Math.random()*2+2);
+        if(this._flameParticles.length < 35) for(let i=0;i<pts;i++) this._flameParticles.push(new FlameParticle(this._currentX,this._currentY,wx,wy,oxygenScale));
+        if(this._smokeParticles.length < 45) {
+          if(speed>3&&this._frameCount%3===0) this._smokeParticles.push(new SmokeParticle(this._currentX,this._currentY-20,vx,vy));
+          else if(this._frameCount%8===0) this._smokeParticles.push(new SmokeParticle(this._currentX+(Math.random()-0.5)*5,this._currentY-50,0,0));
+        }
       } else {
         root.style.setProperty('--intensidad','0');
       }

@@ -16,34 +16,42 @@ export class TiznoTease {
 
   init() {
     if (!this._tease) return;
+    // Backdrop for click-outside-to-close
+    this._backdrop = document.createElement('div');
+    this._backdrop.id = 'tizno-backdrop';
+    document.body.appendChild(this._backdrop);
+    this._backdrop.addEventListener('click', () => this.close());
+
     this._tease.classList.add('visible');
     this._tease.addEventListener('click',   () => this.toggle());
     this._tease.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' ') this.toggle(); });
     this._closeBtn?.addEventListener('click', () => this.close());
     document.addEventListener('keydown', e => { if(e.key==='Escape' && this._open) this.close(); });
-    this._panel?.addEventListener('click', e => { if(e.target===this._panel) this.close(); });
     this._startIrregularBlink();
   }
 
-  /** Irregular async blink — slightly offset between eyes, random interval */
+  /** Irregular async blink — sometimes twice in a row, random interval */
   _startIrregularBlink() {
     const eyes = this._tease?.querySelectorAll('.tizno-eye');
     if (!eyes?.length) return;
-    const doBlink = () => {
-      // Left eye blinks slightly before right (0–60ms offset)
-      const offset = Math.floor(Math.random() * 60);
+    const doBlink = (countInRow = 0) => {
+      const offset = Math.floor(Math.random() * 50); // slight L-R offset
       eyes[0].classList.add('blink');
-      setTimeout(() => { eyes[1].classList.add('blink'); }, offset);
-      // Open after ~160ms
+      setTimeout(() => eyes[1].classList.add('blink'), offset);
       setTimeout(() => {
         eyes[0].classList.remove('blink');
         eyes[1].classList.remove('blink');
-      }, 160);
-      // Next blink: 1.2s – 3.8s (irregular)
-      setTimeout(doBlink, 1200 + Math.random() * 2600);
+        // 25% chance of double-blink (blink again quickly)
+        const doDouble = countInRow === 0 && Math.random() < 0.25;
+        if (doDouble) {
+          setTimeout(() => doBlink(1), 180 + Math.random() * 100);
+        } else {
+          // Normal interval: 1.0s – 4.2s
+          setTimeout(() => doBlink(0), 1000 + Math.random() * 3200);
+        }
+      }, 140);
     };
-    // Start after random initial delay
-    setTimeout(doBlink, 800 + Math.random() * 1200);
+    setTimeout(() => doBlink(0), 600 + Math.random() * 1400);
   }
 
   toggle() { this._open ? this.close() : this.open(); }
@@ -51,18 +59,17 @@ export class TiznoTease {
   open() {
     this._open = true;
     this._panel?.classList.add('open');
+    this._backdrop?.classList.add('active');
     this._tease.style.animationPlayState = 'paused';
     document.body.style.overflow = 'hidden';
-    if (!this._laughed) {
-      this._laughed = true;
-      this._playEchoLaugh();
-    }
+    if (!this._laughed) { this._laughed = true; this._playEchoLaugh(); }
     setTimeout(()=>{ this._closeBtn?.focus(); }, 150);
   }
 
   close() {
     this._open = false;
     this._panel?.classList.remove('open');
+    this._backdrop?.classList.remove('active');
     this._tease.style.animationPlayState = '';
     document.body.style.overflow = '';
     this._tease?.focus();

@@ -66,23 +66,28 @@
 .archive-col:last-child { box-shadow: none; }
 .archive-col:hover, .archive-col--highlighted { background: #080808; }
 
-/* Vertical amber divider between columns */
+/* Vertical amber divider — full column height, thin and organic */
 .archive-col::after {
-  content: ''; position: absolute; right: 0; top: 8%; bottom: 8%;
+  content: ''; position: absolute; right: 0; top: 0; bottom: 0;
   width: 1px;
   background: linear-gradient(to bottom,
-    transparent 0%, rgba(200,146,42,0.35) 30%,
-    rgba(200,146,42,0.35) 70%, transparent 100%
+    transparent 0%, rgba(200,146,42,0.25) 15%,
+    rgba(200,146,42,0.25) 85%, transparent 100%
   );
-  animation: pillarDividerPulse 4s ease-in-out infinite;
+  animation: pillarDividerPulse 5s ease-in-out infinite;
   pointer-events: none; z-index: 3;
 }
 .archive-col:last-child::after { display: none; }
+@keyframes pillarDividerPulse {
+  0%, 100% { opacity: 0.1; }
+  40%       { opacity: 0.7; }
+  60%       { opacity: 0.5; }
+}
 .archive-col:hover::after, .archive-col--highlighted::after {
-  opacity: 1 !important; animation-play-state: paused;
+  opacity: 0.9 !important; animation-play-state: paused;
   background: linear-gradient(to bottom,
-    transparent 0%, rgba(200,146,42,0.7) 25%,
-    rgba(200,146,42,0.7) 75%, transparent 100%
+    transparent 0%, rgba(200,146,42,0.6) 15%,
+    rgba(200,146,42,0.6) 85%, transparent 100%
   );
 }
 

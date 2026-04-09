@@ -422,6 +422,11 @@ export class ArchiveDOM {
       this._pactoModal.style.pointerEvents='none';
     }, 200);
 
+    // Step 3: hide completely after fade (display:none prevents Safari compositing ghost)
+    setTimeout(() => {
+      this._pactoModal.style.display='none';
+    }, 1100);
+
     // Step 3: callback fires after full fade (0.8s transition + 200ms offset)
     if (this._pactoCallback) {
       const cb = this._pactoCallback;
