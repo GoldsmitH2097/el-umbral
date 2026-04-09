@@ -4,14 +4,18 @@
   will-change: transform;
   transition: transform 0.15s ease, filter 0.15s ease;
 }
-/* Bump map canvas overlay — very subtle directional lighting */
+/* Subtle border highlight on hover — gives depth cue even without bump */
+.obra-cover--clickable:hover {
+  outline: 1px solid rgba(200,146,42,0.25);
+}
+/* Bump map canvas overlay */
 .cover-bump-canvas {
   position: absolute; inset: 0;
   width: 100% !important; height: 100% !important;
   pointer-events: none; z-index: 3;
   mix-blend-mode: overlay;
-  opacity: 0.28;
-  image-rendering: auto; /* smooth stretch from 32×48 */
+  opacity: 0.4;
+  image-rendering: auto;
 }
 
 /* ── Skip Button ──────────────────────────────────────────────────────────── */

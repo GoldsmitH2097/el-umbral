@@ -172,7 +172,7 @@
   }
   .archive-scroll-dot.active { background: #c8922a; }
 }
-/* ── Site footer padding: 5vh 5vw 4vh; font-size: 10px; color: #444; letter-spacing: 4px; text-transform: uppercase; }
+/* ── Site footer (old rules below, new rules at end of file) */
 .site-footer p { margin: 0 0 16px; }
 .footer-legal { display: flex; gap: 30px; justify-content: center; flex-wrap: wrap; }
 .footer-legal a { color: #333; text-decoration: none; font-size: 9px; letter-spacing: 3px; transition: color 0.3s; }
