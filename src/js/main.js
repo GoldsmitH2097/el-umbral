@@ -167,7 +167,11 @@ function enterMainSite() {
   document.getElementById('editorial-watermark').style.display='none';
   document.getElementById('skip-btn')?.classList.remove('visible');
   archive.showArchive(); audio.playTransitionEcho(); audio.stopAwakening();
-  audio.setAwakening(false); state.isAwakening=false; transitionTo(4);
+  audio.setAwakening(false); state.isAwakening=false;
+  // Silence everything — fire and wind should be inaudible in the archive
+  audio.setFireVolume(0, false);
+  audio.setWindVolume(0, 0.8); // fast fade to silence
+  transitionTo(4);
   initMobileArchive();
   fireflies.init();
   tizno.init();
