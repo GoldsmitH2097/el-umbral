@@ -172,14 +172,12 @@
 <!-- SCENE 1: THE TOMB -->
 <div id="gallery-container">
   <video id="char-video" loop muted playsinline autoplay preload="auto"></video>
-  <!--
-    Preload-only video: invisible, never shown. Used by primeNextVideo() to load
-    next character in iOS gesture context without flashing it on screen prematurely.
-  -->
   <video id="char-video-preload" muted playsinline preload="auto" style="display:none"></video>
+</div>
+<!-- Darkness: solid #020202 with mask hole. char-text lives here so it's revealed by same spotlight -->
+<div id="darkness">
   <div id="char-text"><h3 id="char-title">Cargando...</h3><p id="char-desc">Cargando...</p></div>
 </div>
-<div id="darkness"></div>
 <div id="ambient-light"></div>
 <div id="ui"><div id="instruccion">Toca y mantén pulsado<br>para encender la llama<br><span style="font-size:10px;opacity:0.5;letter-spacing:2px;">(Desactiva el silencio)</span></div></div>
 <div id="editorial-watermark">Soulware — Editorial Independiente</div>
