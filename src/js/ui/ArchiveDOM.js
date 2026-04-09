@@ -325,6 +325,8 @@ export class ArchiveDOM {
       const cols = document.querySelectorAll('.archive-col');
       if (idx >= 0 && idx < cols.length) {
         cols[idx]?.classList.add('archive-col--highlighted');
+        // Remove after 4s — transient welcome highlight, not a permanent state
+        setTimeout(() => cols[idx]?.classList.remove('archive-col--highlighted'), 4000);
       }
       // Focus management: move keyboard focus to archive heading (WCAG 2.4.3)
       setTimeout(()=>{ this._gridView.querySelector('h2[tabindex]')?.focus(); }, 100);
@@ -542,8 +544,17 @@ export class ArchiveDOM {
         const res = await fetch(`/${slug}.html`);
         const html = await res.text();
         const doc = new DOMParser().parseFromString(html, 'text/html');
-        const main = doc.querySelector('main, article, .content, body');
-        legalBody.innerHTML = main ? main.innerHTML : html;
+        // Strip elements that don't belong in the modal overlay
+        doc.querySelectorAll('img, .legal-logo, .legal-back, nav, header, style, script').forEach(el => el.remove());
+        // Remove the "← Volver" and "Soulware" navigation links
+        doc.querySelectorAll('a').forEach(a => {
+          const t = a.textContent.trim();
+          if (t === 'Soulware' || t.includes('Volver') || a.classList.contains('legal-logo') || a.classList.contains('legal-back')) {
+            a.remove();
+          }
+        });
+        const wrap = doc.querySelector('.legal-wrap, main, article, body');
+        legalBody.innerHTML = wrap ? wrap.innerHTML : '';
       } catch {
         legalBody.innerHTML = '<p style="color:#555;">No se pudo cargar el contenido.</p>';
       }

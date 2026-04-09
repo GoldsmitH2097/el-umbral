@@ -90,7 +90,7 @@ class AmbientParticles {
 
   _resize() {
     this.W = this.canvas.width  = window.innerWidth;
-    this.H = this.canvas.height = window.innerHeight * 2.5;
+    this.H = this.canvas.height = window.innerHeight; // fixed viewport height (container is position:fixed)
   }
 
   _spawn() {
@@ -143,14 +143,11 @@ export class ArchiveFireflies {
   }
 
   init() {
-    const mainSite = document.getElementById('main-site');
-    if (!mainSite) return;
-
-    // Firefly container — fixed overlay inside archive
+    // Attach to body (not #main-site) so position:fixed works correctly on scroll
     this._container = document.createElement('div');
     this._container.className = 'archive-firefly-container';
     this._container.setAttribute('aria-hidden', 'true');
-    mainSite.appendChild(this._container);
+    document.body.appendChild(this._container);
 
     // Spawn fireflies
     for (let i = 0; i < FIREFLY_COUNT; i++) {
@@ -162,7 +159,9 @@ export class ArchiveFireflies {
       this._particles = new AmbientParticles(this._container);
     }
 
-    // Track user activity
+    // Track user activity on mainSite
+    const mainSite = document.getElementById('main-site');
+    if (!mainSite) return;
     const reset = () => { this._lastActivity = Date.now(); };
     mainSite.addEventListener('mousemove', reset, { passive: true });
     mainSite.addEventListener('scroll',    reset, { passive: true });
@@ -174,18 +173,17 @@ export class ArchiveFireflies {
   }
 
   _getTargets() {
+    // Container is position:fixed — use viewport-relative coords (no scroll offset needed)
     const obrasEl   = document.getElementById('obras-section');
     const contactEl = document.getElementById('contact-section');
-    const mainSite  = document.getElementById('main-site');
-    const scroll    = mainSite?.scrollTop || 0;
 
     if (obrasEl) {
       const r = obrasEl.getBoundingClientRect();
-      this._obrasY = r.top + scroll + r.height * 0.4;
+      this._obrasY = r.top + r.height * 0.4;
     }
     if (contactEl) {
       const r = contactEl.getBoundingClientRect();
-      this._contactY = r.top + scroll + 80;
+      this._contactY = r.top + 80;
     }
   }
 
