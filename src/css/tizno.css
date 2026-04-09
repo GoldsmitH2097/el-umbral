@@ -26,24 +26,22 @@
   box-shadow: 0 -4px 20px rgba(200,146,42,0.1), 0 0 0 1px rgba(200,146,42,0.1);
 }
 
-/* Eyes — SYNC blink, faster cycle (was 3.8s staggered) */
 .tizno-eyes {
   position: absolute; top: 10px; left: 50%;
   transform: translateX(-50%);
   display: flex; gap: 14px;
 }
+/* Eyes — JS-driven blink (see TiznoTease.js), CSS just handles the transition */
 .tizno-eye {
   width: 7px; height: 9px;
   background: #c8922a; border-radius: 50%;
   box-shadow: 0 0 6px 2px rgba(200,146,42,0.9), 0 0 16px 5px rgba(200,146,42,0.4);
   transform-origin: center;
+  transition: transform 0.06s ease-in, box-shadow 0.06s ease;
 }
-/* Both eyes same animation, same timing — synchronized */
-.tizno-eye { animation: tiznoEyeBlink 2.0s ease-in-out infinite; }
-
-@keyframes tiznoEyeBlink {
-  0%, 38%, 48%, 100% { transform: scaleY(1); }
-  43% { transform: scaleY(0.06); }
+.tizno-eye.blink {
+  transform: scaleY(0.06);
+  box-shadow: 0 0 3px 1px rgba(200,146,42,0.5);
 }
 
 .tizno-glow {

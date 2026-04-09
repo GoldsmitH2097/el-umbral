@@ -24,98 +24,82 @@ export class ArchiveDOM {
   }
 
   _build() {
-    this._buildPillars();
-    this._buildObras();
+    this._buildArchiveGrid();
     this._buildContact();
     this._bindObraModal();
   }
 
-  _buildPillars() {
-    const grid=document.querySelector('.pillar-grid'); if(!grid) return;
-    // Horizontal swipe on mobile — remove class to revert to vertical stack
-    grid.classList.add('pillar-grid--swipe');
-    CHARACTERS.forEach((char,i)=>{
-      const pillar=document.createElement('div');
-      pillar.className='pillar' + (char.status==='missing' ? ' pillar--missing' : '');
-      pillar.dataset.index = i;
-      pillar.setAttribute('role','button'); pillar.setAttribute('tabindex','0');
+  _buildArchiveGrid() {
+    const grid = document.getElementById('obras-section');
+    if (!grid) return;
+    grid.classList.add('archive-grid');
 
-      const video=document.createElement('video');
-      video.loop=true; video.muted=true; video.playsInline=true; video.preload='metadata';
-      // Load src immediately so first frame shows as static — plays on hover
-      video.src=char.src; video.load();
+    // Scroll-indicator dots (mobile)
+    const dotsBar = document.createElement('div');
+    dotsBar.className = 'archive-scroll-dots';
+    dotsBar.setAttribute('aria-hidden', 'true');
 
-      const content=document.createElement('div'); content.className='pillar-content';
+    CHARACTERS.forEach((char, i) => {
+      // ── Column: one per archetype ──────────────────────────────────────
+      const col = document.createElement('div');
+      col.className = 'archive-col' + (char.status === 'missing' ? ' archive-col--missing' : '');
+      col.dataset.index = i;
+      col.dataset.archetype = char.slug;
+
+      // ── Pillar section (video + character info) ────────────────────────
+      const pillar = document.createElement('div');
+      pillar.className = 'archive-pillar';
+      pillar.setAttribute('role', 'button');
+      pillar.setAttribute('tabindex', '0');
+
+      const video = document.createElement('video');
+      video.loop = true; video.muted = true; video.playsInline = true; video.preload = 'metadata';
+      video.src = char.src; video.load();
+
       const socialHtml = char.social.length > 0
         ? `<div class="pillar-social">${char.social.map(s =>
             `<a href="${s.url}" target="_blank" rel="noopener" class="pillar-social-link" aria-label="${s.handle} on ${s.platform}">${ICONS[s.platform]}</a>`
           ).join('')}</div>`
         : '';
-      const statusBadge = char.status === 'missing'
-        ? `<span class="pillar-status">En paradero desconocido</span>` : '';
 
-      content.innerHTML=`
-        <h4>${['I','II','III','IV'][i]}. ${char.label}</h4>
-        <p>${char.desc}</p>
-      `;
+      const content = document.createElement('div');
+      content.className = 'pillar-content';
+      content.innerHTML = `<h4>${['I','II','III','IV'][i]}. ${char.label}</h4><p>${char.desc}</p>${socialHtml}`;
 
-      pillar.appendChild(video); pillar.appendChild(content); grid.appendChild(pillar);
+      pillar.appendChild(video);
+      pillar.appendChild(content);
 
-      pillar.addEventListener('mouseenter', () => video.play().catch(()=>{}));
+      pillar.addEventListener('mouseenter', () => video.play().catch(() => {}));
       pillar.addEventListener('mouseleave', () => video.pause());
-      pillar.addEventListener('touchstart', () => video.play().catch(()=>{}), {passive:true});
+      pillar.addEventListener('touchstart', () => video.play().catch(() => {}), { passive: true });
 
-      // Desktop only — mobile uses its own tap-to-detail overlay in mobile.js
-      if(char.status !== 'missing') {
-        pillar.addEventListener('click', (e) => {
-          if(window.innerWidth <= 768) return;
-          this.openReading(i);
-        });
-        pillar.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')this.openReading(i);});
+      if (char.status !== 'missing') {
+        pillar.addEventListener('click', () => { if (window.innerWidth > 768) this.openReading(i); });
+        pillar.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') this.openReading(i); });
       }
-    });
-  }
 
-  _buildObras() {
-    const section = document.getElementById('obras-section');
-    if (!section) return;
+      col.appendChild(pillar);
 
-    // Build one column per archetype, matching pillar positions
-    CHARACTERS.forEach((char, i) => {
-      const col = document.createElement('div');
-      col.className = 'obra-column';
-      col.dataset.index = i;
-      col.dataset.archetype = char.slug;
+      // ── Books section ──────────────────────────────────────────────────
+      const books = document.createElement('div');
+      books.className = 'archive-books';
 
-      // Archetype header — always visible on mobile, hidden on desktop (alignment handles it there)
-      const archetypeHeader = document.createElement('div');
-      archetypeHeader.className = 'obra-archetype-header';
-      archetypeHeader.innerHTML = `
-        <span class="obra-archetype-label">${char.label}</span>
-        <span class="obra-archetype-author">${char.author || ''}</span>
-      `;
-      col.appendChild(archetypeHeader);
+      // Mobile archetype header
+      const header = document.createElement('div');
+      header.className = 'obra-archetype-header';
+      header.innerHTML = `<span class="obra-archetype-label">${char.label}</span><span class="obra-archetype-author">${char.author || ''}</span>`;
+      books.appendChild(header);
 
-      // Get books for this archetype
-      const books = CATALOGUE.filter(item => item.archetype === char.slug);
+      const catalogue = CATALOGUE.filter(item => item.archetype === char.slug);
 
-      if (books.length === 0) {
-        // Empty column — Emperatriz or future archetype with no books yet
-        col.innerHTML = `<div class="obra-empty"><span>—</span></div>`;
+      if (catalogue.length === 0) {
+        books.innerHTML += `<div class="obra-empty"><span>—</span></div>`;
       } else {
-        books.forEach(item => {
+        catalogue.forEach(item => {
           const card = document.createElement('div');
 
-          // Anthology (La Corte) gets distinct visual treatment
           if (item.type === 'anthology') {
             card.className = `obra-book obra-book--anthology obra-book--${item.status}`;
-            const relatosHtml = item.relatos && item.relatos.length > 0
-              ? `<ul class="obra-relatos-list">${item.relatos.map(r =>
-                  `<li class="obra-relato-item">
-                    <span class="obra-relato-title">${r.title}</span>
-                    <span class="obra-relato-author">${r.author}</span>
-                  </li>`).join('')}</ul>`
-              : '';
             card.innerHTML = `
               <div class="obra-anthology-header">
                 <span class="obra-anthology-tag">Antología</span>
@@ -125,17 +109,12 @@ export class ArchiveDOM {
               <div class="obra-meta">
                 <p class="obra-series-info">${item.seriesInfo || ''}</p>
                 <p class="obra-desc">${item.desc}</p>
-                ${relatosHtml}
                 <span class="obra-btn obra-btn--soon">${item.buyLabel}</span>
-              </div>
-            `;
-            col.appendChild(card);
-            return; // skip standard card logic
+              </div>`;
+            books.appendChild(card); return;
           }
 
-          // Standard obra card
           card.className = `obra-book obra-book--${item.status}`;
-
           const coverHtml = item.img
             ? `<div class="obra-cover obra-cover--clickable" data-id="${item.id}" role="button" tabindex="0" aria-label="Ver detalles de ${item.title}"><img src="${item.img}" alt="${item.title}" loading="lazy" /></div>`
             : `<div class="obra-cover obra-cover--clickable obra-cover--empty" data-id="${item.id}" role="button" tabindex="0" aria-label="Ver detalles de ${item.title}"></div>`;
@@ -144,93 +123,74 @@ export class ArchiveDOM {
           if (item.status === 'available' && item.buyUrl) {
             ctaHtml = `<a href="${item.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy">${item.buyLabel}</a>`;
           } else if (item.status === 'countdown') {
-            ctaHtml = `<div class="obra-countdown">
-              <div class="countdown-timer" data-release="${item.releaseDate}"></div>
-              <span class="obra-btn obra-btn--locked">${item.buyLabel}</span>
-            </div>`;
+            ctaHtml = `<div class="obra-countdown"><div class="countdown-timer" data-release="${item.releaseDate}"></div><span class="obra-btn obra-btn--locked">${item.buyLabel}</span></div>`;
           } else {
             ctaHtml = `<span class="obra-btn obra-btn--soon">Próximamente</span>`;
           }
 
-          const statusLabels = {
-            'available': 'Disponible',
-            'coming-soon': 'Próximamente',
-            'countdown': 'Preventa',
-          };
-          const formatLabels = {
-            'Novela': 'Edición Física',
-            'Novela — Edición de coleccionista': 'Edición Física',
-            'Experiencia web interactiva': 'Experiencia Digital',
-            'Antología': 'Antología',
-          };
-          const statusPill = `<span class="obra-status-pill obra-status-pill--${item.status}">${statusLabels[item.status] || item.status}</span>`;
-          const formatBadge = item.format ? `<span class="obra-format-badge">${formatLabels[item.format] || item.format}</span>` : '';
-
-          const subtitleHtml = item.subtitle ? `<p class="obra-subtitle">${item.subtitle}</p>` : '';
+          const statusLabels = { 'available': 'Disponible', 'coming-soon': 'Próximamente', 'countdown': 'Preventa' };
+          const formatLabels = { 'Novela': 'Edición Física', 'Novela — Edición de coleccionista': 'Edición Física', 'Experiencia web interactiva': 'Experiencia Digital', 'Antología': 'Antología' };
 
           card.innerHTML = `
             ${coverHtml}
             <div class="obra-meta">
-              <div class="obra-badges">${statusPill}${formatBadge}</div>
+              <div class="obra-badges">
+                <span class="obra-status-pill obra-status-pill--${item.status}">${statusLabels[item.status] || item.status}</span>
+                ${item.format ? `<span class="obra-format-badge">${formatLabels[item.format] || item.format}</span>` : ''}
+              </div>
               <h3 class="obra-title">${item.title}</h3>
-              ${subtitleHtml}
+              ${item.subtitle ? `<p class="obra-subtitle">${item.subtitle}</p>` : ''}
               <p class="obra-desc">${item.desc}</p>
               ${ctaHtml}
-            </div>
-          `;
-          col.appendChild(card);
+            </div>`;
+          books.appendChild(card);
 
-          // Cover click → open modal
           const coverEl = card.querySelector('.obra-cover--clickable');
           if (coverEl) {
             coverEl.addEventListener('click', () => this.openObraModal(item.id));
-            coverEl.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' ') this.openObraModal(item.id); });
+            coverEl.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') this.openObraModal(item.id); });
           }
         });
       }
 
-      section.appendChild(col);
+      col.appendChild(books);
+      grid.appendChild(col);
+
+      // Dot per column
+      const dot = document.createElement('div');
+      dot.className = 'archive-scroll-dot' + (i === 0 ? ' active' : '');
+      dotsBar.appendChild(dot);
     });
 
+    // Append dots after grid (mobile only, hidden on desktop via CSS)
+    grid.insertAdjacentElement('afterend', dotsBar);
+
+    // Mobile: update dots on scroll
+    grid.addEventListener('scroll', () => {
+      const idx = Math.round(grid.scrollLeft / grid.offsetWidth);
+      dotsBar.querySelectorAll('.archive-scroll-dot').forEach((d, i) => {
+        d.classList.toggle('active', i === idx);
+      });
+    }, { passive: true });
+
     this._initCountdowns();
-    this._bindColumnHover();
     if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
       this._initCoverTilt();
     }
     this._initScrollReveal();
   }
 
-  // Pillars and obra-columns animate together as one block
-  _bindColumnHover() {
-    const pillars = document.querySelectorAll('.pillar');
-    const cols = document.querySelectorAll('.obra-column');
-
-    pillars.forEach((pillar, i) => {
-      const col = cols[i];
-      if (!col) return;
-      pillar.addEventListener('mouseenter', () => col.classList.add('obra-column--highlighted'));
-      pillar.addEventListener('mouseleave', () => col.classList.remove('obra-column--highlighted'));
-      col.addEventListener('mouseenter', () => pillar.classList.add('pillar--highlighted'));
-      col.addEventListener('mouseleave', () => pillar.classList.remove('pillar--highlighted'));
-    });
-  }
-
   _initScrollReveal() {
-    const cards = document.querySelectorAll('.obra-book');
+    const cards = document.querySelectorAll('.archive-books .obra-book');
     if (!cards.length) return;
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('revealed');
-          observer.unobserve(entry.target);
-        }
+        if (entry.isIntersecting) { entry.target.classList.add('revealed'); observer.unobserve(entry.target); }
       });
     }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
-
     cards.forEach((card, i) => {
-      // Stagger: column index × 80ms
-      const col = card.closest('.obra-column');
-      const colIndex = col ? [...document.querySelectorAll('.obra-column')].indexOf(col) : 0;
+      const col = card.closest('.archive-col');
+      const colIndex = col ? [...document.querySelectorAll('.archive-col')].indexOf(col) : 0;
       card.style.transitionDelay = `${colIndex * 80}ms`;
       observer.observe(card);
     });
@@ -386,13 +346,11 @@ export class ArchiveDOM {
     if(skipIntro) requestAnimationFrame(()=>{this._mainSite.style.transition='opacity 3s ease';});
     setTimeout(()=>{
       this._gridView.classList.add('archive-visible');
-      // Archetype persistence: pre-highlight the character last active in Scene 1
+      // Archetype persistence: pre-highlight the column for the last active character in Scene 1
       const idx = state.currentCharIndex;
-      const pillars = document.querySelectorAll('.pillar');
-      const cols = document.querySelectorAll('.obra-column');
-      if(idx >= 0 && idx < pillars.length) {
-        pillars[idx]?.classList.add('pillar--highlighted');
-        cols[idx]?.classList.add('obra-column--highlighted');
+      const cols = document.querySelectorAll('.archive-col');
+      if (idx >= 0 && idx < cols.length) {
+        cols[idx]?.classList.add('archive-col--highlighted');
       }
       // Focus management: move keyboard focus to archive heading (WCAG 2.4.3)
       setTimeout(()=>{ this._gridView.querySelector('h2[tabindex]')?.focus(); }, 100);

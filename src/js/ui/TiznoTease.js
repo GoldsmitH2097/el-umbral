@@ -22,6 +22,28 @@ export class TiznoTease {
     this._closeBtn?.addEventListener('click', () => this.close());
     document.addEventListener('keydown', e => { if(e.key==='Escape' && this._open) this.close(); });
     this._panel?.addEventListener('click', e => { if(e.target===this._panel) this.close(); });
+    this._startIrregularBlink();
+  }
+
+  /** Irregular async blink — slightly offset between eyes, random interval */
+  _startIrregularBlink() {
+    const eyes = this._tease?.querySelectorAll('.tizno-eye');
+    if (!eyes?.length) return;
+    const doBlink = () => {
+      // Left eye blinks slightly before right (0–60ms offset)
+      const offset = Math.floor(Math.random() * 60);
+      eyes[0].classList.add('blink');
+      setTimeout(() => { eyes[1].classList.add('blink'); }, offset);
+      // Open after ~160ms
+      setTimeout(() => {
+        eyes[0].classList.remove('blink');
+        eyes[1].classList.remove('blink');
+      }, 160);
+      // Next blink: 1.2s – 3.8s (irregular)
+      setTimeout(doBlink, 1200 + Math.random() * 2600);
+    };
+    // Start after random initial delay
+    setTimeout(doBlink, 800 + Math.random() * 1200);
   }
 
   toggle() { this._open ? this.close() : this.open(); }

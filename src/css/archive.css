@@ -45,72 +45,129 @@
   animation: heroSubReveal 2s ease forwards;
   animation-delay: 1.6s;
 }
-.pillar-grid { display: flex; width: 100%; flex: 1; min-height: 50vh; background: #080808; border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); }
-.pillar {
-  flex: 1; position: relative; background: #050505;
-  display: flex; flex-direction: column; justify-content: flex-end;
-  padding: 40px 20px; overflow: hidden; cursor: pointer !important;
-  transition: background 0.5s ease;
+/* ── Unified archive grid — replaces .pillar-grid + .obras-grid ─────────── */
+/* Each .archive-col contains [pillar section] + [books section] for one archetype.
+   Desktop: 4 equal columns side by side.
+   Mobile: horizontal scroll-snap carousel — one full-width column per swipe. */
+
+.archive-grid {
+  display: flex; width: 100%;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
 }
-/* Vertical amber pulse line between pillars — replaces static box-shadow */
-.pillar::after {
-  content: ''; position: absolute; right: 0; top: 0; bottom: 0;
+
+.archive-col {
+  flex: 1; display: flex; flex-direction: column;
+  position: relative; background: #050505;
+  box-shadow: 1px 0 0 0 rgba(255,255,255,0.04);
+  transition: background 0.5s ease;
+  min-height: 60vh;
+}
+.archive-col:last-child { box-shadow: none; }
+.archive-col:hover, .archive-col--highlighted { background: #080808; }
+
+/* Vertical amber divider between columns */
+.archive-col::after {
+  content: ''; position: absolute; right: 0; top: 8%; bottom: 8%;
   width: 1px;
   background: linear-gradient(to bottom,
-    transparent 0%, rgba(200,146,42,0.45) 25%,
-    rgba(200,146,42,0.45) 75%, transparent 100%
+    transparent 0%, rgba(200,146,42,0.35) 30%,
+    rgba(200,146,42,0.35) 70%, transparent 100%
   );
   animation: pillarDividerPulse 4s ease-in-out infinite;
-  transform-origin: center; pointer-events: none; z-index: 3;
+  pointer-events: none; z-index: 3;
 }
-.pillar:last-child::after { display: none; }
-@keyframes pillarDividerPulse {
-  0%, 100% { opacity: 0.2; }
-  50%       { opacity: 0.8; }
+.archive-col:last-child::after { display: none; }
+.archive-col:hover::after, .archive-col--highlighted::after {
+  opacity: 1 !important; animation-play-state: paused;
+  background: linear-gradient(to bottom,
+    transparent 0%, rgba(200,146,42,0.7) 25%,
+    rgba(200,146,42,0.7) 75%, transparent 100%
+  );
 }
-/* Hover: adjacent pillars brighten their shared line */
-.pillar:hover::after,
-.pillar--highlighted::after { opacity: 1 !important; animation-play-state: paused; background: linear-gradient(to bottom, transparent 0%, rgba(200,146,42,0.9) 20%, rgba(200,146,42,0.9) 80%, transparent 100%); }
-.pillar:hover, .pillar--highlighted { background: #080808; }
-/* Tonal math: brightness(0.9) contrast(1.5)
-   Lifted black at 0.15 → 0.15×0.9=0.135 → (0.135−0.5)×1.5+0.5 = −0.048 → 0 ✓
-   Smoke highlight  0.7 → 0.7×0.9 =0.63  → (0.63−0.5)×1.5+0.5  = 0.695    ✓
-   Bright smoke     1.0 → 1.0×0.9 =0.9   → (0.9−0.5)×1.5+0.5   = 1.1 → 1  ✓
-   Previous brightness(0.65) was halving the midrange — that's why highlights were dim. */
-.pillar video {
+
+/* ── Pillar section (character video + info) ─────────────────────────────── */
+.archive-pillar {
+  position: relative; overflow: hidden; cursor: pointer !important;
+  min-height: 45vh; display: flex; flex-direction: column;
+  justify-content: flex-end; padding: 40px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.archive-pillar video {
   position: absolute; top: -2%; left: -2%; width: 104%; height: 104%;
   object-fit: cover; opacity: 0.22;
   filter: grayscale(100%) brightness(1.0) contrast(1.3);
   transition: opacity 0.9s ease, filter 0.9s ease;
   transform: scale(1); pointer-events: none; z-index: 0;
 }
-.pillar:hover video, .pillar--highlighted video {
-  opacity: 0.68;
-  filter: grayscale(0%) brightness(0.85) contrast(1.1);
-  /* no scale — keeping B&W→color as the only hover signal */
+.archive-col:hover .archive-pillar video,
+.archive-col--highlighted .archive-pillar video {
+  opacity: 0.68; filter: grayscale(0%) brightness(0.85) contrast(1.1);
 }
-.pillar-content {
-  position: relative; z-index: 2; text-align: center;
-  padding-bottom: 8px;
+.archive-pillar .pillar-content {
+  position: relative; z-index: 2; text-align: center; padding-bottom: 8px;
 }
-.pillar-content h4 {
+.archive-pillar .pillar-content h4 {
   font-size: 14px; letter-spacing: 4px; margin: 0 0 10px 0;
   text-transform: uppercase; line-height: 1.5;
   transition: color 0.5s ease, text-shadow 0.5s ease;
 }
-.pillar:hover .pillar-content h4,
-.pillar--highlighted .pillar-content h4 {
+.archive-col:hover .archive-pillar .pillar-content h4,
+.archive-col--highlighted .archive-pillar .pillar-content h4 {
   color: #e8c87a;
   text-shadow: 0 0 20px rgba(200,146,42,0.4);
 }
-.pillar-content p { font-size: 12px; color: #888; line-height: 1.6; margin: 0 auto; max-width: 250px; }
-.pillar-content p,
-.pillar-content .pillar-social { opacity: 0.6; transition: opacity 0.4s ease; }
-.pillar:hover .pillar-content p,
-.pillar:hover .pillar-content .pillar-social,
-.pillar--highlighted .pillar-content p,
-.pillar--highlighted .pillar-content .pillar-social { opacity: 1; }
-.site-footer { text-align: center; padding: 5vh 5vw 4vh; font-size: 10px; color: #444; letter-spacing: 4px; text-transform: uppercase; }
+.archive-pillar .pillar-content p {
+  font-size: 12px; color: #888; line-height: 1.6; margin: 0 auto; max-width: 250px;
+  opacity: 0.6; transition: opacity 0.4s ease;
+}
+.archive-col:hover .archive-pillar .pillar-content p,
+.archive-col--highlighted .archive-pillar .pillar-content p { opacity: 1; }
+.archive-pillar .pillar-social {
+  display: flex; gap: 12px; justify-content: center; margin-top: 14px;
+  opacity: 0.6; transition: opacity 0.5s ease;
+}
+.archive-col:hover .archive-pillar .pillar-social,
+.archive-col--highlighted .archive-pillar .pillar-social { opacity: 1; }
+
+/* ── Books section ───────────────────────────────────────────────────────── */
+.archive-books {
+  display: flex; flex-direction: column; padding: 30px 20px;
+  gap: 30px; align-items: center; flex: 1;
+  transition: background 0.4s ease;
+}
+
+/* Mobile carousel — one full-width slide per character */
+@media (max-width: 768px) {
+  .archive-grid {
+    overflow-x: scroll; scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    /* Hide scrollbar but keep functionality */
+    scrollbar-width: none;
+  }
+  .archive-grid::-webkit-scrollbar { display: none; }
+  .archive-col {
+    min-width: 100vw; width: 100vw; flex-shrink: 0;
+    scroll-snap-align: start;
+    border-bottom: none;
+  }
+  .archive-col::after { display: none; } /* no dividers on mobile */
+  .archive-pillar { min-height: 40vh; }
+  .archive-pillar .pillar-content h4 { letter-spacing: 3px; font-size: 13px; }
+  .archive-books { padding: 20px 16px; gap: 20px; }
+
+  /* Scroll indicator dots */
+  .archive-scroll-dots {
+    display: flex; justify-content: center; gap: 8px;
+    padding: 12px 0 4px;
+  }
+  .archive-scroll-dot {
+    width: 4px; height: 4px; border-radius: 50%;
+    background: rgba(200,146,42,0.3); transition: background 0.3s;
+  }
+  .archive-scroll-dot.active { background: #c8922a; }
+}
+/* ── Site footer padding: 5vh 5vw 4vh; font-size: 10px; color: #444; letter-spacing: 4px; text-transform: uppercase; }
 .site-footer p { margin: 0 0 16px; }
 .footer-legal { display: flex; gap: 30px; justify-content: center; flex-wrap: wrap; }
 .footer-legal a { color: #333; text-decoration: none; font-size: 9px; letter-spacing: 3px; transition: color 0.3s; }

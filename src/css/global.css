@@ -1,9 +1,13 @@
 * { cursor: crosshair !important; box-sizing: border-box; }
 
-/* Widow / orphan prevention — browser-native, graceful degradation on older engines */
-h1, h2, h3, h4, h5, h6 { text-wrap: balance; }
-p, li, blockquote, .obra-desc, .site-hero-sub, .contact-sub,
-#obra-modal-vision, .reading-content p, #pacto-modal p { text-wrap: pretty; }
+/* Widow / orphan prevention — scoped to ARCHIVE only, NOT Scene 1 (text-wrap on animated
+   elements forces layout reflow every frame and kills canvas performance) */
+.site-hero h2, .pillar-content h4, .obra-title,
+#obra-modal-title, #legal-modal-title, .reading-content h1,
+.reading-content h2, .reading-content h3 { text-wrap: balance; }
+
+.reading-content p, .obra-desc, .site-hero-sub, .contact-sub,
+#obra-modal-vision, #pacto-modal p, .tizno-panel-sub { text-wrap: pretty; }
 
 body, html {
   margin: 0; padding: 0; background-color: #020202; height: 100vh; overflow: hidden;

@@ -41,12 +41,7 @@
   text-transform: uppercase; margin-bottom: 10px; font-style: italic;
 }
 
-/* Cross-highlight: pillar video brightens when obra-column is hovered */
-.pillar--highlighted { background: #080808; }
-.pillar--highlighted video {
-  opacity: 0.45 !important;
-  filter: grayscale(0%) brightness(0.8) contrast(1.15) !important;
-}
+/* Cross-highlight moved to archive-col in archive.css — these classes no longer used */
 
 /* ── Obras grid — 4 archetype-columns, fixed equal width ─────────────────── */
 .obras-grid {
