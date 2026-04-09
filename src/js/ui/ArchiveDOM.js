@@ -378,18 +378,30 @@ export class ArchiveDOM {
     closeBtn?.addEventListener('click', () => this._closeObraModal());
     modal.addEventListener('click', (e) => { if (e.target === modal) this._closeObraModal(); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') this._closeObraModal(); });
-    // Expose for cross-module access (e.g. mobile.js)
+    // Tab switching
+    document.querySelectorAll('.obra-tab').forEach(btn => {
+      btn.addEventListener('click', () => this._switchModalTab(btn.dataset.tab));
+    });
     window._openObraModal = (id) => this.openObraModal(id);
   }
 
   openObraModal(itemId) {
     const item = CATALOGUE.find(c => c.id === itemId); if (!item) return;
-    this._lastObraFocus = document.activeElement; // save for return focus on close
+    this._lastObraFocus = document.activeElement;
     const char = CHARACTERS.find(c => c.slug === item.archetype);
     const modal = document.getElementById('obra-modal');
 
+    // Always reset to "La Visión" tab on open
+    this._switchModalTab('vision');
+
     document.getElementById('obra-modal-archetype').textContent =
       char ? `Arquetipo: ${char.title}` : '';
+
+    // La Visión — atmospheric pitch
+    document.getElementById('obra-modal-vision').textContent =
+      item.vision || item.desc;
+
+    // El Manuscrito — practical info
     document.getElementById('obra-modal-title').textContent = item.title;
     document.getElementById('obra-modal-subtitle').textContent = item.subtitle || '';
     document.getElementById('obra-modal-author').textContent =
@@ -405,7 +417,6 @@ export class ArchiveDOM {
 
     let ctaHtml = '';
     if (item.type === 'anthology') {
-      // Anthology modal — show relatos list if any
       const relatosHtml = item.relatos && item.relatos.length > 0
         ? `<ul class="obra-modal-relatos">${item.relatos.map(r =>
             `<li><span class="obra-relato-title">${r.title}</span> <span class="obra-relato-author">${r.author}</span></li>`
@@ -419,7 +430,6 @@ export class ArchiveDOM {
         <div class="countdown-timer" data-release="${item.releaseDate}"></div>
         <span class="obra-btn obra-btn--locked">${item.buyLabel}</span>
       </div>`;
-      // Re-init countdown in the modal
       setTimeout(() => {
         const timer = modal.querySelector('.countdown-timer');
         if (timer) this._initSingleCountdown(timer);
@@ -431,8 +441,18 @@ export class ArchiveDOM {
 
     modal.classList.add('open');
     document.body.style.overflow = 'hidden';
-    // Focus the close button immediately (WCAG 2.4.3 focus management)
     setTimeout(()=>{ document.getElementById('obra-modal-close')?.focus(); }, 50);
+  }
+
+  _switchModalTab(tab) {
+    document.querySelectorAll('.obra-tab').forEach(btn => {
+      const isActive = btn.dataset.tab === tab;
+      btn.classList.toggle('obra-tab--active', isActive);
+      btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+    document.querySelectorAll('.obra-tab-panel').forEach(panel => {
+      panel.classList.toggle('obra-tab-panel--active', panel.id === `obra-panel-${tab}`);
+    });
   }
 
   _closeObraModal() {

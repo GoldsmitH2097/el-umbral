@@ -256,13 +256,25 @@
     <div id="obra-modal-cover"></div>
     <div id="obra-modal-info">
       <p id="obra-modal-archetype"></p>
-      <h2 id="obra-modal-title"></h2>
-      <p id="obra-modal-subtitle"></p>
-      <p id="obra-modal-author"></p>
-      <p id="obra-modal-series"></p>
-      <p id="obra-modal-format"></p>
-      <p id="obra-modal-desc"></p>
-      <div id="obra-modal-cta"></div>
+      <!-- Dual-layer tabs -->
+      <div id="obra-modal-tabs" role="tablist">
+        <button class="obra-tab obra-tab--active" data-tab="vision" role="tab" aria-selected="true">La Visión</button>
+        <button class="obra-tab" data-tab="manuscrito" role="tab" aria-selected="false">El Manuscrito</button>
+      </div>
+      <!-- Tab: La Visión — atmospheric pitch -->
+      <div id="obra-panel-vision" class="obra-tab-panel obra-tab-panel--active" role="tabpanel">
+        <p id="obra-modal-vision"></p>
+      </div>
+      <!-- Tab: El Manuscrito — practical info -->
+      <div id="obra-panel-manuscrito" class="obra-tab-panel" role="tabpanel">
+        <h2 id="obra-modal-title"></h2>
+        <p id="obra-modal-subtitle"></p>
+        <p id="obra-modal-author"></p>
+        <p id="obra-modal-series"></p>
+        <p id="obra-modal-format"></p>
+        <p id="obra-modal-desc"></p>
+        <div id="obra-modal-cta"></div>
+      </div>
     </div>
   </div>
 </div>

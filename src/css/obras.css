@@ -336,7 +336,37 @@
   padding: 3px 8px; color: #444; border: 1px solid rgba(255,255,255,0.05);
 }
 
-/* Accent color only on the single buyable item */
+/* ── Dual-layer modal tabs ────────────────────────────────────────────────── */
+#obra-modal-tabs {
+  display: flex; gap: 0; margin: 12px 0 24px; border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.obra-tab {
+  background: transparent; border: none; padding: 10px 0; margin-right: 28px;
+  font-family: 'Times New Roman', serif; font-size: 11px; letter-spacing: 4px;
+  text-transform: uppercase; color: #444; cursor: pointer !important;
+  transition: color 0.3s; position: relative; outline: none;
+}
+.obra-tab::after {
+  content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 1px;
+  background: #888; transform: scaleX(0); transition: transform 0.3s ease;
+}
+.obra-tab--active { color: #e8ecef; }
+.obra-tab--active::after { transform: scaleX(1); }
+.obra-tab:hover { color: #ccc; }
+.obra-tab:focus-visible { color: #fff; }
+
+.obra-tab-panel { display: none; }
+.obra-tab-panel--active { display: block; }
+
+#obra-panel-vision #obra-modal-vision {
+  font-size: 16px; line-height: 2; color: #999; font-style: italic; margin: 0;
+}
+
+@media (max-width: 768px) {
+  #obra-modal-tabs { margin: 8px 0 18px; }
+  .obra-tab { font-size: 10px; letter-spacing: 3px; margin-right: 20px; padding: 8px 0; }
+  #obra-panel-vision #obra-modal-vision { font-size: 14px; line-height: 1.9; }
+}
 .obra-btn--buy {
   background: transparent;
   border: 1px solid rgba(200,146,42,0.6);
