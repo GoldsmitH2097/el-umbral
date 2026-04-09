@@ -34,11 +34,12 @@ archive._router = router;
 const inst = document.getElementById('instruccion');
 setTimeout(()=>{ if(!state.isPressed&&!state.hasFinishedGallery) inst.style.opacity='0.6'; }, 2500);
 
-// Skip button — visible after 3s, hidden once archive is reached
+// Skip button — visible after 3s, persistent through all intro scenes until archive
 const skipBtn = document.getElementById('skip-btn');
 setTimeout(()=>{ if(state.activeScene < 4) skipBtn.classList.add('visible'); }, 3000);
 skipBtn?.addEventListener('click', ()=>{
   skipBtn.classList.remove('visible');
+  _stopHaptics();
   skipIntroAndEnterArchive();
 });
 
@@ -83,7 +84,26 @@ _autoTimer = setTimeout(() => {
   }
 }, 5000);
 
-// Check for deep link on boot; if clean URL, start normal intro
+// Haptic feedback — iOS/Android only, silently ignored on desktop
+let _hapticInterval = null;
+function _startHaptics() {
+  if (!navigator.vibrate) return;
+  navigator.vibrate(30);
+  _hapticInterval = setInterval(() => {
+    if (!state.isPressed && !state.isIgnited) { _stopHaptics(); return; }
+    const intensity = state.isIgnited ? 80 : Math.floor((state.ignitionProgress / 150) * 60) + 10;
+    navigator.vibrate(intensity);
+  }, 150);
+}
+function _stopHaptics() {
+  if (_hapticInterval) { clearInterval(_hapticInterval); _hapticInterval = null; }
+}
+// Called by VisualEngine when ignition completes
+window._onIgnitionComplete = () => {
+  _stopHaptics();
+  if (navigator.vibrate) navigator.vibrate([0, 50, 120]);
+};
+
 const isDeepLink = router.init();
 if (!isDeepLink) visual.start();
 
@@ -105,9 +125,17 @@ function enterScene2() {
   setTimeout(()=>{
     transitionTo(2); document.getElementById('scene-2').style.opacity='1';
     audio.setWindVolume(0.04); visual.enterScene2();
-    // Mobile: sequential tap mechanic instead of cursor-based discovery
     initMobileScene2(() => triggerAwakening());
     setTimeout(()=>{ document.getElementById('scene-2-light').style.opacity='1'; },2000);
+    // Idle hint — fades in after 5s if no whisper found yet
+    setTimeout(()=>{
+      if(state.activeScene===2 && state.whispersFound===0) {
+        document.getElementById('scene-2-hint')?.classList.add('visible');
+      }
+    }, 5000);
+    // Hide hint once first whisper found
+    const hideHint = () => document.getElementById('scene-2-hint')?.classList.remove('visible');
+    document.addEventListener('whisperFound', hideHint, { once: true });
   },2000);
 }
 
@@ -149,10 +177,14 @@ function handleDown(e) {
   audio.resumeIfSuspended();
   inst.style.opacity='0';
   const btn=document.getElementById('umbral-btn');
-  if(state.activeScene===1&&e.target!==btn&&!state.hasFinishedGallery) state.isPressed=true;
+  if(state.activeScene===1&&e.target!==btn&&!state.hasFinishedGallery) {
+    state.isPressed=true;
+    _startHaptics();
+  }
 }
 
 function handleUp() {
+  _stopHaptics();
   if(state.activeScene===1){
     state.isPressed=false;
     if(state.isIgnited&&!state.hasFinishedGallery&&!state.isSwapping){

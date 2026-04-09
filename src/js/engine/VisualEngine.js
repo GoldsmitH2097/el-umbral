@@ -207,12 +207,17 @@ export class VisualEngine {
   }
   start() { this._tick(); }
   setAutoAdvanceMode(v) { this._autoAdvanceMode = v; }
+
   _tick() {
     this._frameCount++;
     const ctx=this._ctx;
-    // KILL-SWITCH: zero GPU work when archive is covering the canvas
     if(state.activeScene>=4){ ctx.clearRect(0,0,this._canvas.width,this._canvas.height); requestAnimationFrame(()=>this._tick()); return; }
     ctx.clearRect(0,0,this._canvas.width,this._canvas.height);
+
+    // ── Simulation rate decoupling ─────────────────────────────────────────
+    // Physics runs every 2nd frame (~30fps), rendering runs every frame (~60fps).
+    // Halves main-thread particle math cost — biggest TBT win after DPR cap.
+    const runSim = (this._frameCount % 2 === 0);
     const lf=state.isAwakening?0.05:0.1;
     this._currentX+=(this._targetX-this._currentX)*lf; this._currentY+=(this._targetY-this._currentY)*lf;
     const vx=this._currentX-this._lastX, vy=this._currentY-this._lastY, speed=Math.sqrt(vx*vx+vy*vy);
@@ -220,18 +225,17 @@ export class VisualEngine {
     if(!state.isAwakening){ root.style.setProperty('--x',this._currentX+'px'); root.style.setProperty('--y',this._currentY+'px'); this._awakeningFrames=0; }
     else { const le=parseFloat(root.style.getPropertyValue('--radio-exterior')||350); root.style.setProperty('--radio-exterior',le+10+'px'); this._awakeningFrames++; }
     ctx.globalCompositeOperation='lighter';
-    // Dust fades out during awakening — fully invisible by frame 120 (~2 seconds at 60fps)
     const dustFade = state.isAwakening ? Math.max(0, 1 - this._awakeningFrames/120) : 1;
     for(let i=0;i<this._dustParticles.length;i++){
-      this._dustParticles[i].update(this._currentX,this._currentY,vx,vy,state.isIgnited,this._frameCount,this._canvas.width,this._canvas.height);
+      if(runSim) this._dustParticles[i].update(this._currentX,this._currentY,vx,vy,state.isIgnited,this._frameCount,this._canvas.width,this._canvas.height);
       this._dustParticles[i].draw(ctx, dustFade);
     }
-    if(state.activeScene===1) this._updateScene1(ctx,vx,vy,speed);
-    if(state.activeScene===2||state.activeScene===3) this._updateScene2(ctx);
+    if(state.activeScene===1) this._updateScene1(ctx,vx,vy,speed,runSim);
+    if(state.activeScene===2||state.activeScene===3) this._updateScene2(ctx,runSim);
     requestAnimationFrame(()=>this._tick());
   }
 
-  _updateScene1(ctx,vx,vy,speed) {
+  _updateScene1(ctx,vx,vy,speed,runSim) {
     const wx=-vx*1.2, wy=-vy*1.2;
     const oxygenScale=state.isIgnited?Math.max(0.05,1-speed*0.025):0;
     this._audio.setFireVolume(oxygenScale,this._audio.isReady&&(state.isPressed||state.isIgnited)&&!state.hasFinishedGallery);
@@ -247,7 +251,13 @@ export class VisualEngine {
       } else {
         root.style.setProperty('--intensidad','0');
       }
-      if(state.ignitionProgress>=150){ state.isIgnited=true; this._instEl.style.opacity='0'; this._audio.playCharacterSignature(state.currentCharIndex); }
+      if(state.ignitionProgress>=150){
+        state.isIgnited=true;
+        this._instEl.style.opacity='0';
+        this._audio.playCharacterSignature(state.currentCharIndex);
+        // Snap haptic — fired from VisualEngine, bridged via window callback set by main.js
+        window._onIgnitionComplete?.();
+      }
     } else if(!state.isPressed&&!state.isIgnited&&state.ignitionProgress>0){
       state.ignitionProgress-=4.0;
       if(state.ignitionProgress<=0){ state.ignitionProgress=0; if(state.isSwapping) this._swapToNextCharacter(); }
@@ -276,14 +286,14 @@ export class VisualEngine {
       this._liveEl.style.transform=`scale(1.05) translate(${ox}px,${oy}px)`;
     } else { this._liveEl.style.transform='scale(1.05) translate(0px,0px)'; }
     ctx.globalCompositeOperation='source-over';
-    for(let i=this._smokeParticles.length-1;i>=0;i--){const p=this._smokeParticles[i];p.update();p.draw(ctx);if(p.life<=0)this._smokeParticles.splice(i,1);}
+    for(let i=this._smokeParticles.length-1;i>=0;i--){const p=this._smokeParticles[i];if(runSim)p.update();p.draw(ctx);if(p.life<=0)this._smokeParticles.splice(i,1);}
     ctx.globalCompositeOperation='lighter';
-    for(let i=this._flameParticles.length-1;i>=0;i--){const p=this._flameParticles[i];p.update(wx);p.draw(ctx);if(p.life<=0)this._flameParticles.splice(i,1);}
+    for(let i=this._flameParticles.length-1;i>=0;i--){const p=this._flameParticles[i];if(runSim)p.update(wx);p.draw(ctx);if(p.life<=0)this._flameParticles.splice(i,1);}
   }
 
-  _updateScene2(ctx) {
+  _updateScene2(ctx,runSim) {
     ctx.globalCompositeOperation='lighter';
-    this._fireflies.forEach(f=>{f.update(this._currentX,this._currentY,this._frameCount);f.draw(ctx);});
+    this._fireflies.forEach(f=>{if(runSim)f.update(this._currentX,this._currentY,this._frameCount);f.draw(ctx);});
     if(this._frameCount%2===0&&this._fireflies.length>0&&!state.isAwakening){
       const f=this._fireflies[0];
       const detectionRadius = window.innerWidth < 768 ? 300 : 220;
@@ -303,6 +313,7 @@ export class VisualEngine {
           if(intensity>0.4&&w.dataset.found!=='true'){
             w.dataset.found='true'; state.whispersFound++;
             this._onWhisperFound(parseInt(w.dataset.index));
+            document.dispatchEvent(new Event('whisperFound'));
             if(state.whispersFound>=this._whispers.length) setTimeout(()=>this._onAllWhispersFound(),1000);
           }
         } else {
