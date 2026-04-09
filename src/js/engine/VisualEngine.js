@@ -7,10 +7,24 @@ class FlameParticle {
   draw(ctx) { const r=255,g=Math.floor(Math.max(0,190*(this.life*this.life))),b=this.life>0.92?80:Math.floor(Math.max(0,30*(this.life-0.7)*3)),a=this.life*0.5; const gr=ctx.createRadialGradient(this.x,this.y,0,this.x,this.y,Math.max(0.1,this.size)); gr.addColorStop(0,`rgba(${r},${g},${b},${a})`);gr.addColorStop(0.4,`rgba(${r},${g},${b},${a*0.6})`);gr.addColorStop(1,`rgba(${r},${g},${b},0)`); ctx.beginPath();ctx.arc(this.x,this.y,Math.max(0.1,this.size),0,Math.PI*2);ctx.fillStyle=gr;ctx.fill(); }
 }
 
+// Pre-rendered smoke sprite — drawn ONCE, stamped via drawImage (no per-frame gradient)
+const _smokeSprite = new OffscreenCanvas(64, 64);
+const _sCtx = _smokeSprite.getContext('2d');
+const _sGr = _sCtx.createRadialGradient(32, 32, 0, 32, 32, 32);
+_sGr.addColorStop(0,   'rgba(140,150,160,0.22)');
+_sGr.addColorStop(0.5, 'rgba(140,150,160,0.10)');
+_sGr.addColorStop(1,   'rgba(140,150,160,0)');
+_sCtx.fillStyle = _sGr;
+_sCtx.beginPath(); _sCtx.arc(32,32,32,0,Math.PI*2); _sCtx.fill();
+
 class SmokeParticle {
   constructor(x,y,vx,vy) { this.x=x;this.y=y;this.life=1.0;this.size=Math.random()*6+3;this.vx=vx*0.15+(Math.random()-0.5)*0.5;this.vy=vy*0.15-Math.random()*1.0-0.5;this.decay=Math.random()*0.008+0.005;this.angle=Math.random()*Math.PI*2;this.spin=(Math.random()-0.5)*0.15;this.cr=Math.random()*1.5+0.5; }
   update() { this.vx*=0.96;this.vy*=0.97;this.vy-=0.03;this.angle+=this.spin;const c=this.cr*(1.2-this.life);this.x+=this.vx+Math.cos(this.angle)*c;this.y+=this.vy+Math.sin(this.angle)*c;if(this.size<28)this.size+=0.18;this.life-=this.decay; }
-  draw(ctx) { const a=this.life*0.14;const gr=ctx.createRadialGradient(this.x,this.y,0,this.x,this.y,Math.max(0.1,this.size));gr.addColorStop(0,`rgba(140,150,160,${a})`);gr.addColorStop(0.5,`rgba(140,150,160,${a*0.5})`);gr.addColorStop(1,`rgba(140,150,160,0)`);ctx.beginPath();ctx.arc(this.x,this.y,Math.max(0.1,this.size),0,Math.PI*2);ctx.fillStyle=gr;ctx.fill(); }
+  draw(ctx) {
+    ctx.globalAlpha = this.life * 0.14;
+    ctx.drawImage(_smokeSprite, (this.x-this.size)|0, (this.y-this.size)|0, (this.size*2)|0, (this.size*2)|0);
+    ctx.globalAlpha = 1;
+  }
 }
 
 class DustParticle {

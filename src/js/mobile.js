@@ -64,9 +64,9 @@ export function initMobileScene2(onAllFound) {
 export function initMobileArchive() {
   if (!isMobile()) return;
 
-  // Autoplay all pillar videos on mobile — loop at low opacity for ambient effect
+  // Autoplay archive-pillar videos on mobile
   setTimeout(() => {
-    document.querySelectorAll('.pillar video').forEach(v => {
+    document.querySelectorAll('.archive-pillar video').forEach(v => {
       v.play().catch(() => {});
     });
   }, 600);
@@ -154,9 +154,9 @@ export function initMobileArchive() {
 
   closeBtn?.addEventListener('click', closeDetail);
 
-  // Wire up pillar taps — added after a tick so ArchiveDOM has built the pillars
+  // Wire up archive-pillar taps
   setTimeout(() => {
-    document.querySelectorAll('.pillar').forEach((pillar, i) => {
+    document.querySelectorAll('.archive-pillar').forEach((pillar, i) => {
       pillar.addEventListener('click', (e) => {
         if (!isMobile()) return;
         e.stopPropagation();

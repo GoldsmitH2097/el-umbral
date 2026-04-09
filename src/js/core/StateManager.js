@@ -67,7 +67,7 @@ export const CATALOGUE = [
     seriesInfo: 'Obra principal del arquetipo',
     format: 'Novela',
     status: 'coming-soon',
-    img: null,
+    img: '/assets/alicia-cover.webp',
     vision: 'El reino cayó. La voz, no. Una tragedia lírica sobre lo que queda cuando se derrumba lo que creíste que eras — y descubres que algo más duro, más frío, más tuyo, sobrevivía debajo.',
     desc: 'Una tragedia lírica personal. El reino cayó. La voz, no.',
     buyUrl: null,

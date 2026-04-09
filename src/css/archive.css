@@ -225,13 +225,20 @@
 
 /* ── Mobile Responsiveness ────────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  .pillar-grid { flex-direction: column; min-height: 100vh; }
-  .pillar { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.05); min-height: 25vh; }
-  .pillar:last-child { border-bottom: none; }
-  /* Reduce letter-spacing — large values overflow narrow screens and break centering */
   .site-hero h2 { font-size: 22px; letter-spacing: 5px; }
   .site-hero p { letter-spacing: 1px; font-size: 14px; }
-  .site-nav .logo { letter-spacing: 4px; }
   .site-nav .links span { margin-left: 20px; letter-spacing: 2px; }
-  .pillar-content h4 { letter-spacing: 3px; font-size: 13px; }
+  .archive-col { min-width: 100vw; }
 }
+
+/* ── Site footer ─────────────────────────────────────────────────────────── */
+.site-footer {
+  text-align: center; padding: 6vh 5vw 5vh;
+  font-size: 10px; color: #333; letter-spacing: 4px; text-transform: uppercase;
+  border-top: 1px solid rgba(255,255,255,0.04);
+}
+.footer-logo { height: 28px; width: 28px; object-fit: contain; opacity: 0.3; margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto; filter: invert(1); }
+.site-footer p { margin: 0 0 14px; }
+.footer-legal { display: flex; gap: 30px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+.footer-legal a, .footer-legal a:visited { color: #333; text-decoration: none; font-size: 9px; letter-spacing: 3px; transition: color 0.3s; font-family: 'Times New Roman', serif; }
+.footer-legal a:hover { color: #777; }
