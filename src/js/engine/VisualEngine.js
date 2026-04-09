@@ -291,9 +291,6 @@ export class VisualEngine {
       this._liveEl.style.transform=`scale(1.05) translate(${ox}px,${oy}px)`;
     } else { this._liveEl.style.transform='scale(1.05) translate(0px,0px)'; }
     ctx.globalCompositeOperation='source-over';
-      this._liveEl.style.transform=`scale(1.05) translate(${ox}px,${oy}px)`;
-    } else { this._liveEl.style.transform='scale(1.05) translate(0px,0px)'; }
-    ctx.globalCompositeOperation='source-over';
     for(let i=this._smokeParticles.length-1;i>=0;i--){const p=this._smokeParticles[i];if(runSim)p.update();p.draw(ctx);if(p.life<=0)this._smokeParticles.splice(i,1);}
     ctx.globalCompositeOperation='lighter';
     for(let i=this._flameParticles.length-1;i>=0;i--){const p=this._flameParticles[i];if(runSim)p.update(wx);p.draw(ctx);if(p.life<=0)this._flameParticles.splice(i,1);}

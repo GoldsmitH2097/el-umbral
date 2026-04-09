@@ -416,8 +416,6 @@ export class ArchiveDOM {
     autor?.classList.toggle('reading-panel--active', tab === 'autor');
     libros?.classList.toggle('reading-panel--active', tab === 'libros');
   }
-    if(this._router) this._router.navigateTo(index);
-  }
 
   closeReading() {
     // Remove button from DOM entirely — no CSS hiding, no ghost rendering
