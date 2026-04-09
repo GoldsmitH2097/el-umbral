@@ -10,7 +10,14 @@ El usuario desciende. No hay mapa de salida.
 
 Vinculada al arquetipo **El Arlequín Sin Flores** / **Germán Ferri** (@germyto).
 
-**Estado actual:** En preparación. Aparece en el catálogo como "Experiencia Digital".
+**Estado actual:** Contenido existe. Lista para construir.
+
+- ✅ Prólogo — escrito por Germán Ferri
+- ✅ Episodio 1 — escrito por Germán Ferri
+- ⬜ Episodios siguientes — en escritura
+- ⬜ Motor de texto — por construir
+- ⬜ Integración en El Umbral — por construir
+- ⬜ Umbral de pago — depende de Tizno
 **URL prevista:** soulware.live/anatomia (o integrada dentro del archivo)
 
 ---
@@ -42,15 +49,17 @@ Invocación
 - A partir del corte, requiere pago (ver TIZNO.md para modelo de monetización)
 - La experiencia es psicológica, no gore — incomodidad, no violencia
 - Terror de lo que no se ve, no de lo que se muestra
+- **Prólogo y Episodio 1 escritos — contenido disponible**
 
-### Lo que falta (preguntas para Germán):
-1. ¿Cuántos capítulos tiene la versión completa?
-2. ¿El Capítulo 1 existe en borrador?
-3. ¿Hay una sinopsis del arco narrativo completo?
-4. ¿La voz es segunda persona (tú), primera (yo), o narrador?
-5. ¿Hay personajes, o solo el descenso?
-6. ¿El usuario toma decisiones que afectan el relato, o es lineal?
-7. ¿Hay un final, o el descenso es el final?
+### Lo que falta confirmar con Germán/Ruben antes de construir:
+1. ¿La voz es segunda persona (tú), primera (yo), o narrador?
+2. ¿El usuario toma decisiones o es lineal?
+3. ¿Hay imágenes/video o solo texto + audio?
+4. ¿Cómo se accede desde el archivo? (¿pillar del Arlequín, portada de Anatomía?)
+5. ¿Pantalla completa o convive con el archivo?
+
+### Para arrancar la construcción:
+Ruben entrega el texto del Prólogo y Episodio 1 en la conversación de Anatomía.
 
 ---
 
@@ -153,4 +162,6 @@ Resumen:
 
 Cuando estés listo, abre una nueva conversación en el Proyecto Soulware y di:
 
-> "Lee CLAUDE.md y ANATOMIA.md. Vamos a construir Anatomía del Vacío."
+> "Lee CLAUDE.md y ANATOMIA.md. Vamos a construir Anatomía del Vacío. Te paso el texto del Prólogo y el Episodio 1."
+
+Luego pega o adjunta el texto. Arrancamos desde ahí.
