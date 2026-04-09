@@ -1,6 +1,7 @@
 #gallery-container {
   position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
   z-index: 1; pointer-events: none; transition: opacity 0.5s; overflow: hidden;
+  -webkit-touch-callout: none; /* iOS: suppress "save image" long-press menu */
   -webkit-mask-image: radial-gradient(circle at var(--x,50%) var(--y,50%), black 0%, rgba(0,0,0,0.8) var(--radio-interior,0px), transparent var(--radio-exterior,0px));
   mask-image: radial-gradient(circle at var(--x,50%) var(--y,50%), black 0%, rgba(0,0,0,0.8) var(--radio-interior,0px), transparent var(--radio-exterior,0px));
 }

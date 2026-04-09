@@ -1,4 +1,4 @@
-import { CHARACTERS, CATALOGUE } from '../core/StateManager.js';
+import { CHARACTERS, CATALOGUE, state } from '../core/StateManager.js';
 
 // Social platform SVG icons
 const ICONS = {
@@ -16,6 +16,10 @@ export class ArchiveDOM {
     this._readBody=document.getElementById('read-body-content');
     this._readingBgVideo=document.getElementById('reading-bg-video');
     this._pactoModal=document.getElementById('pacto-modal');
+    // Focus tracking — for returning focus on modal/reading close
+    this._lastObraFocus = null;
+    this._lastReadingFocus = null;
+    this._pactoCallback = null; // called when user accepts El Pacto
     this._build(); this._bindEvents();
   }
 
@@ -255,11 +259,24 @@ export class ArchiveDOM {
     if(skipIntro) this._mainSite.style.transition='none';
     this._mainSite.style.opacity='1'; this._mainSite.style.pointerEvents='auto';
     if(skipIntro) requestAnimationFrame(()=>{this._mainSite.style.transition='opacity 3s ease';});
-    setTimeout(()=>{ this._gridView.classList.add('archive-visible'); }, 200);
+    setTimeout(()=>{
+      this._gridView.classList.add('archive-visible');
+      // Archetype persistence: pre-highlight the character last active in Scene 1
+      const idx = state.currentCharIndex;
+      const pillars = document.querySelectorAll('.pillar');
+      const cols = document.querySelectorAll('.obra-column');
+      if(idx >= 0 && idx < pillars.length) {
+        pillars[idx]?.classList.add('pillar--highlighted');
+        cols[idx]?.classList.add('obra-column--highlighted');
+      }
+      // Focus management: move keyboard focus to archive heading (WCAG 2.4.3)
+      setTimeout(()=>{ this._gridView.querySelector('h2[tabindex]')?.focus(); }, 100);
+    }, 200);
   }
 
   openReading(index) {
     const char=CHARACTERS[index]; if(!char) return;
+    this._lastReadingFocus = document.activeElement; // save for return focus on close
     this._readTitle.innerText=char.title;
     const socialHtml = char.social.length > 0
       ? `<div class="reading-social">${char.social.map(s =>
@@ -274,6 +291,7 @@ export class ArchiveDOM {
       this._readingView.style.display='block';
       this._readingView.style.opacity='1'; this._readingView.style.pointerEvents='auto';
       this._readingView.scrollTo(0,0); this._onSceneChange(5);
+      this._readTitle?.focus(); // focus management (WCAG 2.4.3)
       // Create the Volver button only when reading view is open — injecting prevents ghost rendering
       if (!document.getElementById('btn-volver')) {
         const btn = document.createElement('button');
@@ -294,12 +312,29 @@ export class ArchiveDOM {
       this._readingView.style.display='none';
       this._gridView.style.transform='scale(1)'; this._gridView.style.opacity='1';
       this._readingBgVideo.pause(); this._readingBgVideo.src=''; this._onSceneChange(4);
+      // Return focus to the pillar that triggered reading view
+      setTimeout(()=>{ this._lastReadingFocus?.focus(); this._lastReadingFocus = null; }, 50);
     },500);
     if(this._router) this._router.navigateToArchive();
   }
 
-  openPacto() { this._pactoModal.style.opacity='1'; this._pactoModal.style.pointerEvents='auto'; }
-  closePacto() { this._pactoModal.style.opacity='0'; this._pactoModal.style.pointerEvents='none'; }
+  openPacto(cb) {
+    this._pactoCallback = cb || null;
+    this._pactoModal.style.opacity='1';
+    this._pactoModal.style.pointerEvents='auto';
+    // Focus "Acepto" button for keyboard users
+    setTimeout(()=>{ document.getElementById('btn-cerrar-pacto')?.focus(); }, 100);
+  }
+  closePacto() {
+    this._pactoModal.style.opacity='0';
+    this._pactoModal.style.pointerEvents='none';
+    // Execute callback (e.g. enterScene2) if set — then clear it
+    if (this._pactoCallback) {
+      const cb = this._pactoCallback;
+      this._pactoCallback = null;
+      cb();
+    }
+  }
 
   _bindObraModal() {
     const modal = document.getElementById('obra-modal');
@@ -314,6 +349,7 @@ export class ArchiveDOM {
 
   openObraModal(itemId) {
     const item = CATALOGUE.find(c => c.id === itemId); if (!item) return;
+    this._lastObraFocus = document.activeElement; // save for return focus on close
     const char = CHARACTERS.find(c => c.slug === item.archetype);
     const modal = document.getElementById('obra-modal');
 
@@ -360,12 +396,16 @@ export class ArchiveDOM {
 
     modal.classList.add('open');
     document.body.style.overflow = 'hidden';
+    // Focus the close button immediately (WCAG 2.4.3 focus management)
+    setTimeout(()=>{ document.getElementById('obra-modal-close')?.focus(); }, 50);
   }
 
   _closeObraModal() {
     const modal = document.getElementById('obra-modal');
     modal?.classList.remove('open');
     document.body.style.overflow = '';
+    // Return focus to the cover that triggered the modal
+    setTimeout(()=>{ this._lastObraFocus?.focus(); this._lastObraFocus = null; }, 50);
   }
 
   _initSingleCountdown(el) {
@@ -387,6 +427,7 @@ export class ArchiveDOM {
       el.addEventListener('click',()=>{
         if(el.dataset.action==='scroll-top') document.getElementById('main-site').scrollTo({top:0,behavior:'smooth'});
         if(el.dataset.action==='scroll-obras') document.getElementById('obras-section')?.scrollIntoView({behavior:'smooth'});
+        if(el.dataset.action==='scroll-contact') document.getElementById('contact-section')?.scrollIntoView({behavior:'smooth'});
         if(el.dataset.action==='open-pacto') this.openPacto();
       });
     });

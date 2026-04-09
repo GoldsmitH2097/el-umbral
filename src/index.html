@@ -125,6 +125,9 @@
 </head>
 <body>
 
+<!-- SKIP BUTTON — first focusable element in DOM (WCAG 2.4.1) -->
+<button id="skip-btn" aria-label="Romper el trance — saltar experiencia">Romper el trance</button>
+
 <!-- ═══════════════════════════════════════════════════════════════
      GHOST DOM — .sr-only: invisible to eyes, fully readable by
      Googlebot and screen readers. Includes <a> links so Google
@@ -163,9 +166,6 @@
     <p>Cuando el Arlequín entra en la sala, la cordura sale por la ventana.</p>
   </article>
 </div>
-
-<!-- SKIP BUTTON — always visible, subtle, for returning users -->
-<button id="skip-btn" aria-label="Saltar experiencia">Saltar experiencia</button>
 
 <!-- SCENE 1: THE TOMB -->
 <div id="gallery-container">
@@ -206,11 +206,11 @@
       <div class="logo"><img src="/assets/soulware-logo.webp" alt="Soulware" class="site-logo" /></div>
       <div class="links">
         <span role="button" tabindex="0" data-action="scroll-obras">LAS OBRAS</span>
-        <span role="button" tabindex="0" data-action="open-pacto">EL PACTO</span>
+        <span role="button" tabindex="0" data-action="scroll-contact">CONTACTO</span>
       </div>
     </nav>
     <header class="site-hero">
-      <h2>Las Crónicas</h2>
+      <h2 tabindex="-1">Las Crónicas</h2>
       <p class="site-hero-sub">Cuatro arquetipos. Cuatro universos. Bienvenido al Archivo de Soulware.</p>
       <p class="site-hero-editorial">Soulware es una editorial independiente de ficción oscura y universos de autor.</p>
     </header>
@@ -232,7 +232,7 @@
 <div id="reading-view">
   <video id="reading-bg-video" loop muted playsinline preload="none"></video>
   <div class="reading-content">
-    <h1 id="read-title"></h1>
+    <h1 id="read-title" tabindex="-1"></h1>
     <div class="read-body" id="read-body-content"></div>
   </div>
 </div>

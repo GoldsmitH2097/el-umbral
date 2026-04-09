@@ -216,5 +216,6 @@ document.addEventListener('touchend',handleUp);
 document.getElementById('umbral-btn').addEventListener('click',e=>{
   e.stopPropagation();
   audio.resumeIfSuspended(); // iOS Safari audio unlock on button click
-  enterScene2();
+  // El Pacto — obligatory gate. User must accept before entering Scene 2.
+  archive.openPacto(() => enterScene2());
 });
