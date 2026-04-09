@@ -1,34 +1,25 @@
 /* ─────────────────────────────────────────────────────────────────────────────
-   LAYER ARCHITECTURE — Scene 1 (The Tomb)
+   SCENE 1 LAYER ARCHITECTURE — Canvas Hole-Punch (destination-out)
 
-   z-index 1: #gallery-container  — videos, NO mask (GPU-hardware-accelerated)
-   z-index 2: #darkness           — solid #020202 + mask = reveals video below
-   z-index 3: #ambient-light      — color-dodge warm glow
-   z-index 4: #vfx-canvas         — particles (flame, smoke, dust, firefly)
-   z-index 5: #ui                 — instruccion text
-   z-index 6: #umbral-btn         — enter button
+   z-index 0: #gallery-container  — videos, NO CSS mask, fully GPU-accelerated
+   z-index 1: #char-text          — character name/desc, revealed through canvas hole
+   z-index 3: #vfx-canvas         — owns ALL visual effects:
+                                     • black blanket (fillRect)
+                                     • spotlight hole (destination-out)
+                                     • ambient glow (lighter)
+                                     • smoke, flame, dust particles
+   z-index 5: #ui                 — instruction text, always visible
+   z-index 6: #umbral-btn
 
-   WHY #darkness not #gallery-container gets the mask:
-   - Mask on VIDEO = browser composites mask with changing video frames every frame = CPU
-   - Mask on SOLID COLOR = base content never changes, GPU applies mask once = free
+   No CSS masks. No CSS vars for the spotlight. Zero DOM layout recalculation.
+   destination-out erases canvas pixels → video + char-text show through.
    ───────────────────────────────────────────────────────────────────────────── */
 
 #gallery-container {
   position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
-  z-index: 1; pointer-events: none; transition: opacity 0.5s; overflow: hidden;
+  z-index: 0; pointer-events: none; transition: opacity 0.5s; overflow: hidden;
   -webkit-touch-callout: none;
-  /* NO mask — video renders clean, fully hardware-accelerated */
-}
-
-/* Darkness overlay: solid black with a transparent hole.
-   Mask on static solid color = GPU rasterizes once, blends cheaply.
-   Inverse gradient: transparent at cursor (reveals video), black at edges. */
-#darkness {
-  position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
-  background-color: #020202;
-  -webkit-mask-image: radial-gradient(circle at var(--x,50%) var(--y,50%), transparent 0%, rgba(0,0,0,0.55) var(--radio-interior,0px), black var(--radio-exterior,0px));
-  mask-image: radial-gradient(circle at var(--x,50%) var(--y,50%), transparent 0%, rgba(0,0,0,0.55) var(--radio-interior,0px), black var(--radio-exterior,0px));
-  z-index: 2; pointer-events: none;
+  /* NO mask — video renders fully hardware-accelerated */
 }
 
 #char-video {
@@ -36,23 +27,20 @@
   object-fit: contain; opacity: 0.8; transform: scale(1.05); will-change: transform;
 }
 
+/* char-text at z-index 1 — above video (0), below canvas (3). Revealed by destination-out hole. */
 #char-text {
   position: absolute; bottom: 15vh; left: 0; width: 100%; text-align: center;
-  color: #fff; opacity: 0.9; letter-spacing: 2px; padding: 50px 20px;
+  color: #fff; opacity: 0.9; letter-spacing: 2px; padding: 50px 20px; z-index: 1;
   background: radial-gradient(ellipse at center, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.5) 40%, transparent 70%);
   pointer-events: none;
-  /* No z-index needed — lives inside #darkness, revealed by same mask spotlight */
 }
 
 #char-title { margin: 0 0 15px 0; color: #fff; font-size: 32px; letter-spacing: 8px; font-weight: 300; text-transform: uppercase; text-shadow: 0 2px 10px rgba(0,0,0,1); }
 #char-desc { font-size: 16px; line-height: 2; font-weight: 300; margin: 0 auto; max-width: 480px; display: block; color: #eee; text-shadow: 0 2px 5px rgba(0,0,0,1); }
 
-/* Ambient warm glow — color-dodge above the darkness layer */
-#ambient-light {
-  position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
-  background: radial-gradient(circle at var(--x,50%) var(--y,50%), rgba(255,110,20,var(--intensidad,0)) 0%, rgba(180,40,0,calc(var(--intensidad,0)*0.6)) var(--radio-interior,0px), transparent var(--radio-exterior,0px));
-  z-index: 3; pointer-events: none; mix-blend-mode: color-dodge;
-}
+/* #ambient-light no longer needed for Scene 1 — glow is drawn on canvas */
+/* Kept only for Scene 2 light effect (scene-2-light uses --x --y vars) */
+#ambient-light { display: none; }
 
 #ui { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; z-index: 5; pointer-events: none; }
 #instruccion { font-size: 14px; letter-spacing: 6px; color: rgba(255,255,255,0.3); text-transform: uppercase; opacity: 0; transition: opacity 1.5s ease; line-height: 1.8; }

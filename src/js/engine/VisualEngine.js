@@ -113,7 +113,9 @@ export class VisualEngine {
   constructor({audio,onWhisperFound,onAllWhispersFound}) {
     this._audio=audio; this._onWhisperFound=onWhisperFound; this._onAllWhispersFound=onAllWhispersFound;
     this._canvas=document.getElementById('vfx-canvas');
-    this._ctx=this._canvas.getContext('2d');
+    this._ctx=this._canvas.getContext('2d', {alpha: true}); // alpha:true required for destination-out
+    // Spotlight state — driven by canvas destination-out, NOT CSS vars
+    this._radioInt=0; this._radioExt=0; this._intensidad=0;
     this._videoEl=document.getElementById('char-video');
     this._preloadEl=document.getElementById('char-video-preload');
     // Track which element is currently "live" vs "preloading"
@@ -148,7 +150,10 @@ export class VisualEngine {
     // The text hint in canvas.css handles the nudge: "Busca las voces en la oscuridad".
     // This method now does nothing beyond what main.js already handles via the CSS hint.
   }
-  clearFlame() { this._flameParticles=[];this._smokeParticles=[];state.isIgnited=false; }
+  clearFlame() {
+    this._flameParticles=[]; this._smokeParticles=[]; state.isIgnited=false;
+    this._radioInt=0; this._radioExt=0; this._intensidad=0;
+  }
 
   /**
    * Called from touchend/mouseup gesture handler in main.js — inside gesture context.
@@ -211,36 +216,71 @@ export class VisualEngine {
 
   _tick(timestamp) {
     requestAnimationFrame((ts) => this._tick(ts));
-    // 144Hz fast-forward protection — clamp to ~60fps
-    // Without this: on 120Hz+ screens, ignitionProgress and particle physics
-    // run 2x fast (particles die in half the time, flame ignites instantly)
     const elapsed = timestamp - this._lastFrameTime;
-    if (elapsed < 14) return; // skip frame if >71fps
+    if (elapsed < 14) return; // 144Hz guard
     this._lastFrameTime = timestamp;
-
     this._frameCount++;
-    const ctx=this._ctx;
-    if(state.activeScene>=4){ ctx.clearRect(0,0,this._canvas.width,this._canvas.height); requestAnimationFrame(()=>this._tick()); return; }
-    ctx.clearRect(0,0,this._canvas.width,this._canvas.height);
 
-    // Dust runs at 30fps (100 particles), flame/smoke run at full 60fps
-    // Sprite optimization makes 60fps smoke affordable; dust is the only concern
-    const runDustSim = (this._frameCount % 2 === 0);
+    const ctx=this._ctx, W=this._canvas.width, H=this._canvas.height;
+
+    // Scene 4+ — clear canvas and return (no spotlight needed)
+    if(state.activeScene>=4){ ctx.clearRect(0,0,W,H); return; }
+
+    // ── Cursor lerp ──────────────────────────────────────────────────────────
     const lf=state.isAwakening?0.05:0.1;
-    this._currentX+=(this._targetX-this._currentX)*lf; this._currentY+=(this._targetY-this._currentY)*lf;
-    const vx=this._currentX-this._lastX, vy=this._currentY-this._lastY, speed=Math.sqrt(vx*vx+vy*vy);
+    this._currentX+=(this._targetX-this._currentX)*lf;
+    this._currentY+=(this._targetY-this._currentY)*lf;
+    const vx=this._currentX-this._lastX, vy=this._currentY-this._lastY;
+    const speed=Math.sqrt(vx*vx+vy*vy);
     this._lastX=this._currentX; this._lastY=this._currentY;
+
+    // --x/--y still needed for #scene-2-light radial gradient
     if(!state.isAwakening){ root.style.setProperty('--x',this._currentX+'px'); root.style.setProperty('--y',this._currentY+'px'); this._awakeningFrames=0; }
-    else { const le=parseFloat(root.style.getPropertyValue('--radio-exterior')||350); root.style.setProperty('--radio-exterior',le+10+'px'); this._awakeningFrames++; }
-    ctx.globalCompositeOperation='lighter';
-    const dustFade = state.isAwakening ? Math.max(0, 1 - this._awakeningFrames/120) : 1;
-    for(let i=0;i<this._dustParticles.length;i++){
-      if(runDustSim) this._dustParticles[i].update(this._currentX,this._currentY,vx,vy,state.isIgnited,this._frameCount,this._canvas.width,this._canvas.height);
-      this._dustParticles[i].draw(ctx, dustFade);
+    else { this._radioExt=Math.min(this._radioExt+10, W*1.5); this._awakeningFrames++; }
+
+    const cx=this._currentX, cy=this._currentY;
+
+    // ── CANVAS HOLE-PUNCH SPOTLIGHT (replaces CSS mask) ──────────────────────
+    // Step 1: Paint solid black blanket over entire canvas
+    ctx.globalCompositeOperation='source-over';
+    ctx.globalAlpha=1;
+    ctx.fillStyle='#020202';
+    ctx.fillRect(0,0,W,H);
+
+    // Step 2: Erase spotlight hole — destination-out makes canvas transparent at cursor
+    // The video (z-index 0) and char-text (z-index 1) show through the transparent area
+    if(this._radioExt>0){
+      ctx.globalCompositeOperation='destination-out';
+      const hole=ctx.createRadialGradient(cx,cy,this._radioInt,cx,cy,this._radioExt);
+      hole.addColorStop(0,'rgba(0,0,0,1)');   // fully erase center
+      hole.addColorStop(1,'rgba(0,0,0,0)');   // keep edges black
+      ctx.fillStyle=hole;
+      ctx.beginPath(); ctx.arc(cx,cy,this._radioExt,0,Math.PI*2); ctx.fill();
     }
+
+    // Step 3: Ambient warm glow (lighter blend — adds to transparent + black areas)
+    if(this._intensidad>0 && this._radioExt>0){
+      ctx.globalCompositeOperation='lighter';
+      const glow=ctx.createRadialGradient(cx,cy,0,cx,cy,this._radioExt);
+      glow.addColorStop(0,`rgba(255,110,20,${(this._intensidad*0.45).toFixed(3)})`);
+      const midStop=Math.min(0.99,this._radioInt/Math.max(1,this._radioExt));
+      glow.addColorStop(midStop,`rgba(180,40,0,${(this._intensidad*0.28).toFixed(3)})`);
+      glow.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=glow;
+      ctx.beginPath(); ctx.arc(cx,cy,this._radioExt,0,Math.PI*2); ctx.fill();
+    }
+
+    // ── Dust particles ───────────────────────────────────────────────────────
+    const runDustSim=(this._frameCount%2===0);
+    ctx.globalCompositeOperation='lighter';
+    const dustFade=state.isAwakening?Math.max(0,1-this._awakeningFrames/120):1;
+    for(let i=0;i<this._dustParticles.length;i++){
+      if(runDustSim) this._dustParticles[i].update(cx,cy,vx,vy,state.isIgnited,this._frameCount,W,H);
+      this._dustParticles[i].draw(ctx,dustFade);
+    }
+
     if(state.activeScene===1) this._updateScene1(ctx,vx,vy,speed);
     if(state.activeScene===2||state.activeScene===3) this._updateScene2(ctx);
-    requestAnimationFrame(()=>this._tick());
   }
 
   _updateScene1(ctx,vx,vy,speed) {
@@ -250,41 +290,36 @@ export class VisualEngine {
     if(state.isIgnited&&!state.hasFinishedGallery) this._audio.emitCrackle();
     if(state.isPressed&&!state.isIgnited&&!state.hasFinishedGallery){
       state.ignitionProgress+=4.0; const sc=state.ignitionProgress/150;
-      root.style.setProperty('--radio-interior',state.ignitionProgress*1.2+'px');
-      root.style.setProperty('--radio-exterior',state.ignitionProgress*4.5+'px');
-      // In auto-advance mode: expand the mask but suppress flame particles and glow
+      this._radioInt=state.ignitionProgress*1.2;
+      this._radioExt=state.ignitionProgress*4.5;
       if(!this._autoAdvanceMode) {
-        root.style.setProperty('--intensidad',0.8*sc);
+        this._intensidad=0.8*sc;
         if(Math.random()<sc*0.5) this._flameParticles.push(new FlameParticle(this._currentX,this._currentY,wx,wy,sc));
       } else {
-        root.style.setProperty('--intensidad','0');
+        this._intensidad=0;
       }
       if(state.ignitionProgress>=150){
         state.isIgnited=true;
         this._instEl.style.opacity='0';
-        document.body.style.cursor='none'; // flame is now the cursor
+        document.body.style.cursor='none';
         this._audio.playCharacterSignature(state.currentCharIndex);
-        // Snap haptic — fired from VisualEngine, bridged via window callback set by main.js
         window._onIgnitionComplete?.();
       }
     } else if(!state.isPressed&&!state.isIgnited&&state.ignitionProgress>0){
       state.ignitionProgress-=4.0;
       if(state.ignitionProgress<=0){ state.ignitionProgress=0; if(state.isSwapping) this._swapToNextCharacter(); }
       const sc=state.ignitionProgress/150;
-      root.style.setProperty('--radio-interior',state.ignitionProgress*1.2+'px');
-      root.style.setProperty('--radio-exterior',state.ignitionProgress*4.5+'px');
-      // Suppress glow during auto-advance ramp-down — no glow between characters
-      root.style.setProperty('--intensidad', this._autoAdvanceMode ? '0' : 0.8*sc);
+      this._radioInt=state.ignitionProgress*1.2;
+      this._radioExt=state.ignitionProgress*4.5;
+      this._intensidad=this._autoAdvanceMode?0:0.8*sc;
     }
     if(state.isIgnited){
       const oxygenScale = Math.max(0.05, 1-speed*0.025);
       const fl=Math.random()*5-2.5;
-      // Radii: interior 180px, exterior 480px — big enough for presence, not burning characters
-      root.style.setProperty('--radio-interior',Math.max(40,(180+fl)*oxygenScale)+'px');
-      root.style.setProperty('--radio-exterior',Math.max(120,(480+fl*2)*oxygenScale)+'px');
-      // Suppress flame, smoke, and ambient glow during auto-advance — character reveals through mask only
+      this._radioInt=Math.max(40,(180+fl)*oxygenScale);
+      this._radioExt=Math.max(120,(480+fl*2)*oxygenScale);
       if(!this._autoAdvanceMode) {
-        root.style.setProperty('--intensidad',0.85*oxygenScale);
+        this._intensidad=0.85*oxygenScale;
         // Raised caps + spawn rate — sprite makes this affordable again
         const pts=speed>10?1:Math.floor(Math.random()*3+3);
         if(this._flameParticles.length < 50) for(let i=0;i<pts;i++) this._flameParticles.push(new FlameParticle(this._currentX,this._currentY,wx,wy,oxygenScale));
@@ -293,7 +328,7 @@ export class VisualEngine {
           else if(this._frameCount%4===0) this._smokeParticles.push(new SmokeParticle(this._currentX+(Math.random()-0.5)*5,this._currentY-50,0,0));
         }
       } else {
-        root.style.setProperty('--intensidad','0');
+        this._intensidad=0;
       }
       const ox=(this._currentX-this._canvas.width/2)*0.02, oy=(this._currentY-this._canvas.height/2)*0.02;
       this._liveEl.style.transform=`scale(1.05) translate(${ox}px,${oy}px)`;

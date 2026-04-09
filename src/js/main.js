@@ -187,6 +187,8 @@ function handleDown(e) {
   }
   audio.init();
   audio.resumeIfSuspended();
+  // If already in archive (deep link skip), silence wind/fire immediately
+  if (state.activeScene >= 4) { audio.setFireVolume(0, false); audio.setWindVolume(0, 1); }
   inst.style.opacity='0';
   const btn=document.getElementById('umbral-btn');
   if(state.activeScene===1&&e.target!==btn&&!state.hasFinishedGallery) {
