@@ -1,7 +1,7 @@
 /**
  * TiznoTease.js
  * Hollow Knight style peek element. Bounces at bottom, reveals panel on click.
- * Synthetic laugh via Web Audio on first reveal.
+ * Echoey laugh via Web Audio on first open.
  */
 
 export class TiznoTease {
@@ -21,13 +21,10 @@ export class TiznoTease {
     this._tease.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' ') this.toggle(); });
     this._closeBtn?.addEventListener('click', () => this.close());
     document.addEventListener('keydown', e => { if(e.key==='Escape' && this._open) this.close(); });
-    // Click outside panel closes it
     this._panel?.addEventListener('click', e => { if(e.target===this._panel) this.close(); });
   }
 
-  toggle() {
-    this._open ? this.close() : this.open();
-  }
+  toggle() { this._open ? this.close() : this.open(); }
 
   open() {
     this._open = true;
@@ -36,9 +33,9 @@ export class TiznoTease {
     document.body.style.overflow = 'hidden';
     if (!this._laughed) {
       this._laughed = true;
-      this._playLaugh();
+      this._playEchoLaugh();
     }
-    setTimeout(()=>{ this._closeBtn?.focus(); }, 100);
+    setTimeout(()=>{ this._closeBtn?.focus(); }, 150);
   }
 
   close() {
@@ -49,7 +46,6 @@ export class TiznoTease {
     this._tease?.focus();
   }
 
-  /** Returns viewport position of Tizno for firefly targeting */
   getPosition() {
     const r = this._tease?.getBoundingClientRect();
     if (!r) return null;
@@ -59,10 +55,10 @@ export class TiznoTease {
   isOpen() { return this._open; }
 
   /**
-   * Synthetic laugh — 3 short descending oscillator pulses.
-   * Sounds like a small creature going "heh... heh... heh"
+   * Echoey laugh — creature-like chuckle with reverb tail.
+   * Three pulses + a fading echo chain using delay nodes.
    */
-  _playLaugh() {
+  _playEchoLaugh() {
     try {
       if (!this._audioCtx) {
         this._audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -70,35 +66,67 @@ export class TiznoTease {
       const ctx = this._audioCtx;
       if (ctx.state === 'suspended') ctx.resume();
 
+      // Delay node for echo effect
+      const delay1 = ctx.createDelay(1.0);
+      const delay2 = ctx.createDelay(1.0);
+      delay1.delayTime.value = 0.22;
+      delay2.delayTime.value = 0.44;
+
+      const feedbackGain1 = ctx.createGain();
+      const feedbackGain2 = ctx.createGain();
+      feedbackGain1.gain.value = 0.35;
+      feedbackGain2.gain.value = 0.18;
+
+      const masterGain = ctx.createGain();
+      masterGain.gain.value = 0.7;
+
+      // Low-pass for warmth
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.value = 1200;
+
+      // Routing: source → filter → delay1 → delay2 → master → out
+      filter.connect(delay1);
+      delay1.connect(feedbackGain1);
+      feedbackGain1.connect(delay1); // feedback loop 1
+      delay1.connect(delay2);
+      delay2.connect(feedbackGain2);
+      feedbackGain2.connect(delay2); // feedback loop 2
+      delay1.connect(masterGain);
+      delay2.connect(masterGain);
+      masterGain.connect(ctx.destination);
+
+      // Three laugh pulses
       const pulses = [
-        { t: 0,    freq: 480, endFreq: 280, vol: 0.08 },
-        { t: 0.14, freq: 420, endFreq: 240, vol: 0.07 },
-        { t: 0.28, freq: 360, endFreq: 200, vol: 0.06 },
+        { t: 0,    f: 520, fe: 300, vol: 0.11 },
+        { t: 0.16, f: 460, fe: 260, vol: 0.09 },
+        { t: 0.32, f: 400, fe: 220, vol: 0.07 },
       ];
 
       pulses.forEach(p => {
         const osc  = ctx.createOscillator();
         const gain = ctx.createGain();
-        // Slight distortion — makes it sound less clean, more creature-like
-        const wave = ctx.createWaveShaper();
-        wave.curve = _makeDistortionCurve(30);
+        const dist = ctx.createWaveShaper();
+        dist.curve = _distCurve(40);
 
-        osc.connect(wave); wave.connect(gain); gain.connect(ctx.destination);
+        osc.connect(dist); dist.connect(gain); gain.connect(filter);
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(p.freq, ctx.currentTime + p.t);
-        osc.frequency.exponentialRampToValueAtTime(p.endFreq, ctx.currentTime + p.t + 0.1);
+        osc.frequency.setValueAtTime(p.f, ctx.currentTime + p.t);
+        osc.frequency.exponentialRampToValueAtTime(p.fe, ctx.currentTime + p.t + 0.12);
         gain.gain.setValueAtTime(p.vol, ctx.currentTime + p.t);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + p.t + 0.13);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + p.t + 0.15);
         osc.start(ctx.currentTime + p.t);
-        osc.stop(ctx.currentTime + p.t + 0.15);
+        osc.stop(ctx.currentTime + p.t + 0.18);
       });
-    } catch(e) {
-      // AudioContext unavailable — silent fail
-    }
+
+      // Auto-fade master after 1.5s (echo tail decays)
+      masterGain.gain.setValueAtTime(0.7, ctx.currentTime + 1.0);
+      masterGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 2.0);
+    } catch(_) {}
   }
 }
 
-function _makeDistortionCurve(amount) {
+function _distCurve(amount) {
   const n = 256, curve = new Float32Array(n);
   for (let i = 0; i < n; i++) {
     const x = (i * 2) / n - 1;

@@ -7,8 +7,8 @@ const ICONS = {
 };
 
 export class ArchiveDOM {
-  constructor({router, onSceneChange}) {
-    this._router=router; this._onSceneChange=onSceneChange;
+  constructor({router, onSceneChange, tizno=null}) {
+    this._router=router; this._onSceneChange=onSceneChange; this._tizno=tizno;
     this._mainSite=document.getElementById('main-site');
     this._gridView=document.getElementById('grid-view');
     this._readingView=document.getElementById('reading-view');
@@ -237,17 +237,19 @@ export class ArchiveDOM {
   }
 
   _initCoverTilt() {
-    const MAP_W = 32, MAP_H = 48;
+    const MAP_W = 24, MAP_H = 36; // smaller = faster, still enough detail
 
     document.querySelectorAll('.obra-cover--clickable').forEach(cover => {
-      // Canvas for bump-map lighting overlay
       const bumpCanvas = document.createElement('canvas');
       bumpCanvas.className = 'cover-bump-canvas';
       bumpCanvas.width = MAP_W; bumpCanvas.height = MAP_H;
       cover.appendChild(bumpCanvas);
       const bctx = bumpCanvas.getContext('2d');
+      const imgData = bctx.createImageData(MAP_W, MAP_H); // pre-allocated, reused
 
       let heightMap = null;
+      let rafId = null;
+      let pendingLx = 0, pendingLy = 0;
 
       const buildHeightMap = () => {
         if (heightMap) return;
@@ -263,48 +265,43 @@ export class ArchiveDOM {
           for (let i = 0; i < MAP_W * MAP_H; i++) {
             raw[i] = (0.299*px[i*4] + 0.587*px[i*4+1] + 0.114*px[i*4+2]) / 255;
           }
-          // Smooth pass (3×3 box)
           heightMap = new Float32Array(MAP_W * MAP_H);
           for (let y = 1; y < MAP_H-1; y++) {
             for (let x = 1; x < MAP_W-1; x++) {
-              const i = y*MAP_W + x;
-              heightMap[i] = (raw[i]*4 + raw[i-1] + raw[i+1] + raw[i-MAP_W] + raw[i+MAP_W]) / 8;
+              const i = y*MAP_W+x;
+              heightMap[i] = (raw[i]*4+raw[i-1]+raw[i+1]+raw[i-MAP_W]+raw[i+MAP_W]) / 8;
             }
           }
-        } catch(_) { /* CORS guard — silent fail */ }
+        } catch(_) {}
       };
 
       const renderBump = (lx, ly) => {
         if (!heightMap) return;
-        const img = bctx.createImageData(MAP_W, MAP_H);
         const lz = 0.7;
         const lLen = Math.sqrt(lx*lx + ly*ly + lz*lz);
         const nlx = lx/lLen, nly = ly/lLen, nlz = lz/lLen;
-
+        const d = imgData.data;
         for (let y = 1; y < MAP_H-1; y++) {
           for (let x = 1; x < MAP_W-1; x++) {
-            const i = y*MAP_W + x;
-            // Surface normal from height differences (Sobel-lite)
-            const nx = (heightMap[i-1] - heightMap[i+1]) * 4;
-            const ny = (heightMap[i-MAP_W] - heightMap[i+MAP_W]) * 4;
+            const i = y*MAP_W+x;
+            const nx = (heightMap[i-1]-heightMap[i+1])*4;
+            const ny = (heightMap[i-MAP_W]-heightMap[i+MAP_W])*4;
             const nz = 1.0;
-            const nLen = Math.sqrt(nx*nx + ny*ny + nz*nz);
+            const nLen = Math.sqrt(nx*nx+ny*ny+nz*nz);
             const dot = Math.max(0, (nx/nLen)*nlx + (ny/nLen)*nly + (nz/nLen)*nlz);
-
-            const idx = i * 4;
-            // Warm lit / neutral shadow
-            img.data[idx]   = Math.min(255, dot * 255 * 1.3);   // R: warm
-            img.data[idx+1] = Math.min(255, dot * 220 * 1.1);   // G
-            img.data[idx+2] = Math.min(255, dot * 160);          // B: less blue = warm
-            img.data[idx+3] = Math.min(60, dot * 90);            // very subtle alpha
+            const idx = i*4;
+            d[idx]   = Math.min(255, dot*320);
+            d[idx+1] = Math.min(255, dot*260);
+            d[idx+2] = Math.min(255, dot*160);
+            d[idx+3] = Math.min(55, dot*85);
           }
         }
-        bctx.putImageData(img, 0, 0);
+        bctx.putImageData(imgData, 0, 0);
       };
 
       cover.addEventListener('mouseenter', () => {
         const img = cover.querySelector('img');
-        if (img && !img.complete) { img.addEventListener('load', buildHeightMap, {once:true}); }
+        if (img && !img.complete) img.addEventListener('load', buildHeightMap, {once:true});
         else buildHeightMap();
       });
 
@@ -312,27 +309,24 @@ export class ArchiveDOM {
         const rect = cover.getBoundingClientRect();
         const x = (e.clientX - rect.left) / rect.width;
         const y = (e.clientY - rect.top)  / rect.height;
-        const rotY =  (x - 0.5) * 18;
+        const rotY = (x - 0.5) * 18;
         const rotX = -(y - 0.5) * 18;
-
-        // Pure tilt — no scale, no zoom, no cropping
+        // Transform is cheap — apply immediately for responsiveness
         cover.style.transform = `perspective(600px) rotateX(${rotX}deg) rotateY(${rotY}deg)`;
-
-        // Light source from cursor direction, drop shadow opposite
-        const lx = (0.5 - x) * 1.6;
-        const ly = (0.5 - y) * 1.6;
-        renderBump(lx, ly);
-
         const sx = (x - 0.5) * 18;
         const sy = (y - 0.5) * 18;
         cover.style.filter = `drop-shadow(${sx.toFixed(1)}px ${sy.toFixed(1)}px 18px rgba(0,0,0,0.75))`;
+        // Bump render throttled to one RAF per frame
+        pendingLx = (0.5 - x) * 1.6;
+        pendingLy = (0.5 - y) * 1.6;
+        if (!rafId) rafId = requestAnimationFrame(() => { renderBump(pendingLx, pendingLy); rafId = null; });
       });
 
       cover.addEventListener('mouseleave', () => {
+        if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
         cover.style.transition = 'transform 0.45s cubic-bezier(0.25,1,0.5,1), filter 0.45s ease';
-        cover.style.transform  = '';
-        cover.style.filter     = '';
-        // Clear bump canvas
+        cover.style.transform = '';
+        cover.style.filter = '';
         bctx.clearRect(0, 0, MAP_W, MAP_H);
         setTimeout(() => { cover.style.transition = ''; }, 450);
       });
@@ -453,17 +447,28 @@ export class ArchiveDOM {
     this._pactoCallback = cb || null;
     this._pactoModal.style.opacity='1';
     this._pactoModal.style.pointerEvents='auto';
-    // Focus "Acepto" button for keyboard users
     setTimeout(()=>{ document.getElementById('btn-cerrar-pacto')?.focus(); }, 100);
   }
   closePacto() {
-    this._pactoModal.style.opacity='0';
-    this._pactoModal.style.pointerEvents='none';
-    // Execute callback (e.g. enterScene2) if set — then clear it
+    // Step 1: text vanishes immediately (feels decisive)
+    this._pactoModal.querySelectorAll('h2, p').forEach(el => {
+      el.style.transition = 'opacity 0.2s ease';
+      el.style.opacity = '0';
+    });
+    const btn = document.getElementById('btn-cerrar-pacto');
+    if (btn) { btn.style.transition='opacity 0.1s'; btn.style.opacity='0'; }
+
+    // Step 2: backdrop fades after 200ms
+    setTimeout(() => {
+      this._pactoModal.style.opacity='0';
+      this._pactoModal.style.pointerEvents='none';
+    }, 200);
+
+    // Step 3: callback fires after full fade (0.8s transition + 200ms offset)
     if (this._pactoCallback) {
       const cb = this._pactoCallback;
       this._pactoCallback = null;
-      cb();
+      setTimeout(cb, 900);
     }
   }
 
@@ -581,36 +586,59 @@ export class ArchiveDOM {
       el.addEventListener('click',()=>{
         if(el.dataset.action==='scroll-top') document.getElementById('main-site').scrollTo({top:0,behavior:'smooth'});
         if(el.dataset.action==='scroll-obras') document.getElementById('obras-section')?.scrollIntoView({behavior:'smooth'});
-        if(el.dataset.action==='scroll-contact') document.getElementById('contact-section')?.scrollIntoView({behavior:'smooth'});
+        if(el.dataset.action==='scroll-contact') this._tizno ? this._tizno.open() : document.getElementById('contact-section')?.scrollIntoView({behavior:'smooth'});
         if(el.dataset.action==='open-pacto') this.openPacto();
       });
     });
-    // Contact form — fetch submit to Formspree, show feedback without navigating away
-    document.getElementById('contact-form')?.addEventListener('submit', async e => {
+
+    // Legal modals — intercept footer links, fetch & display inline
+    const legalModal  = document.getElementById('legal-modal');
+    const legalClose  = document.getElementById('legal-modal-close');
+    const legalTitle  = document.getElementById('legal-modal-title');
+    const legalBody   = document.getElementById('legal-modal-body');
+    const openLegal = async (slug, title) => {
+      legalTitle.textContent = title;
+      legalBody.innerHTML = '<p style="color:#444;letter-spacing:2px;">Cargando...</p>';
+      legalModal.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      try {
+        const res = await fetch(`/${slug}.html`);
+        const html = await res.text();
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const main = doc.querySelector('main, article, .content, body');
+        legalBody.innerHTML = main ? main.innerHTML : html;
+      } catch {
+        legalBody.innerHTML = '<p style="color:#555;">No se pudo cargar el contenido.</p>';
+      }
+      setTimeout(()=>{ legalClose?.focus(); }, 100);
+    };
+    const closeLegal = () => {
+      legalModal?.classList.remove('open');
+      document.body.style.overflow = '';
+    };
+    document.querySelectorAll('[data-legal]').forEach(a => {
+      a.addEventListener('click', e => {
+        e.preventDefault();
+        openLegal(a.dataset.legal, a.dataset.legalTitle || a.textContent);
+      });
+    });
+    legalClose?.addEventListener('click', closeLegal);
+    legalModal?.addEventListener('click', e => { if(e.target===legalModal) closeLegal(); });
+    document.addEventListener('keydown', e => { if(e.key==='Escape' && legalModal?.classList.contains('open')) closeLegal(); });
+
+    // Contact form submit (Netlify)
+    document.addEventListener('submit', async e => {
+      if (!e.target.matches('#contact-form, #tizno-contact-form')) return;
       e.preventDefault();
       const btn = e.target.querySelector('button[type="submit"]');
       const original = btn.textContent;
       btn.textContent = 'Enviando...'; btn.disabled = true;
       try {
-        const formData = new FormData(e.target);
-        const res = await fetch('/', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: new URLSearchParams(formData).toString()
-        });
-        if (res.ok) {
-          btn.textContent = 'Enviado ✓';
-          e.target.reset();
-        } else {
-          btn.textContent = 'Error — inténtalo de nuevo';
-          btn.disabled = false;
-          setTimeout(() => { btn.textContent = original; }, 3000);
-        }
-      } catch {
-        btn.textContent = 'Error — inténtalo de nuevo';
-        btn.disabled = false;
-        setTimeout(() => { btn.textContent = original; }, 3000);
-      }
+        const res = await fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(new FormData(e.target)).toString() });
+        btn.textContent = res.ok ? 'Enviado ✓' : 'Error — inténtalo de nuevo';
+        if (res.ok) e.target.reset();
+        else { btn.disabled = false; setTimeout(() => { btn.textContent = original; }, 3000); }
+      } catch { btn.textContent = 'Error'; btn.disabled = false; setTimeout(() => { btn.textContent = original; }, 3000); }
     });
   }
 }

@@ -25,6 +25,7 @@ const visual = new VisualEngine({
 
 const archive = new ArchiveDOM({
   router: null,
+  tizno: tizno,
   onSceneChange: (target) => { target==='enterMainSite' ? enterMainSite() : transitionTo(target); },
 });
 
@@ -64,9 +65,9 @@ function _autoAdvanceNext() {
     if(!state.isIgnited) { state.isPressed = false; visual.setAutoAdvanceMode(false); _isAutoAdvancing = false; return; }
     state.isPressed = false; // stop building, isIgnited stays true — character stays revealed
 
-    // Hold character visible for 3.5s, then release
+    // Hold character visible for 5.5s (was 3.5s — too fast to see them all)
     setTimeout(() => {
-      state.isIgnited = false;   // triggers ramp-down in RAF loop
+      state.isIgnited = false;
       state.isSwapping = true;
       visual.primeNextVideo();
 
@@ -74,10 +75,10 @@ function _autoAdvanceNext() {
         visual.setAutoAdvanceMode(false);
         _isAutoAdvancing = false;
         if(!state.hasFinishedGallery && !state.isPressed && state.activeScene === 1) {
-          _autoTimer = setTimeout(_autoAdvanceNext, 500); // short dark gap between characters
+          _autoTimer = setTimeout(_autoAdvanceNext, 1200); // was 500 — breathe between chars
         }
-      }, 800); // ramp-down duration
-    }, 3500); // show character for 3.5 seconds
+      }, 800);
+    }, 5500); // was 3500
   }, 900); // ignition build-up
 }
 
@@ -154,8 +155,8 @@ function triggerAwakening() {
     const s3=document.getElementById('scene-3'); s3.style.opacity='1'; s3.style.pointerEvents='auto';
     document.body.style.cursor='auto';
     document.querySelectorAll('*').forEach(el=>el.style.setProperty('cursor','auto','important'));
-    // Auto-advance to archive after 4s if user hasn't clicked ADENTRARSE
-    setTimeout(()=>{ if(state.activeScene===3) enterMainSite(); }, 4000);
+    // Auto-advance to archive after 7s if user hasn't clicked ADENTRARSE (was 4s — too fast)
+    setTimeout(()=>{ if(state.activeScene===3) enterMainSite(); }, 7000);
   },3000);
 }
 

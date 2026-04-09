@@ -2,34 +2,31 @@
    TIZNO — Hollow Knight style peek element, fixed bottom of viewport
    ══════════════════════════════════════════════════════════════════════════ */
 
-/* ── Peek element — always visible at bottom ─────────────────────────────── */
 #tizno-tease {
   position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
   z-index: 45; cursor: pointer !important;
-  display: none; /* shown by JS when archive is ready */
-  flex-direction: column; align-items: center;
+  display: none; flex-direction: column; align-items: center;
   animation: tiznoBounce 3.2s ease-in-out infinite;
   transition: filter 0.4s ease;
 }
 #tizno-tease.visible { display: flex; }
-#tizno-tease:hover { filter: brightness(1.3); animation-play-state: paused; }
+#tizno-tease:hover { filter: brightness(1.4); animation-play-state: paused; }
 
 @keyframes tiznoBounce {
   0%, 100% { transform: translateX(-50%) translateY(0); }
-  40%       { transform: translateX(-50%) translateY(-7px); }
+  40%       { transform: translateX(-50%) translateY(-8px); }
   60%       { transform: translateX(-50%) translateY(-5px); }
 }
 
-/* ── Silhouette — dark ink blob peeking from below ───────────────────────── */
 .tizno-silhouette {
   width: 52px; height: 38px;
   background: radial-gradient(ellipse at 50% 60%, #0a0a0a 60%, #151515 100%);
   border-radius: 50% 50% 0 0 / 70% 70% 0 0;
   position: relative;
-  box-shadow: 0 -4px 20px rgba(200,146,42,0.08), 0 0 0 1px rgba(200,146,42,0.08);
+  box-shadow: 0 -4px 20px rgba(200,146,42,0.1), 0 0 0 1px rgba(200,146,42,0.1);
 }
 
-/* ── Eyes — two amber orbs that blink independently ─────────────────────── */
+/* Eyes — SYNC blink, faster cycle (was 3.8s staggered) */
 .tizno-eyes {
   position: absolute; top: 10px; left: 50%;
   transform: translateX(-50%);
@@ -37,103 +34,105 @@
 }
 .tizno-eye {
   width: 7px; height: 9px;
-  background: #c8922a;
-  border-radius: 50%;
-  box-shadow: 0 0 6px 2px rgba(200,146,42,0.8), 0 0 14px 4px rgba(200,146,42,0.3);
+  background: #c8922a; border-radius: 50%;
+  box-shadow: 0 0 6px 2px rgba(200,146,42,0.9), 0 0 16px 5px rgba(200,146,42,0.4);
   transform-origin: center;
 }
-.tizno-eye:nth-child(1) { animation: tiznoEyeBlink 3.8s ease-in-out infinite; }
-.tizno-eye:nth-child(2) { animation: tiznoEyeBlink 3.8s ease-in-out infinite 0.6s; }
+/* Both eyes same animation, same timing — synchronized */
+.tizno-eye { animation: tiznoEyeBlink 2.0s ease-in-out infinite; }
 
 @keyframes tiznoEyeBlink {
-  0%, 42%, 58%, 100% { transform: scaleY(1); }
-  50% { transform: scaleY(0.08); }
+  0%, 38%, 48%, 100% { transform: scaleY(1); }
+  43% { transform: scaleY(0.06); }
 }
 
-/* Subtle glow ring under the silhouette */
 .tizno-glow {
-  width: 40px; height: 4px;
-  background: radial-gradient(ellipse at center, rgba(200,146,42,0.25) 0%, transparent 70%);
+  width: 44px; height: 5px;
+  background: radial-gradient(ellipse at center, rgba(200,146,42,0.3) 0%, transparent 70%);
   margin-top: -2px;
 }
 
-/* ── Panel — slides up from below when clicked ───────────────────────────── */
+/* ── Panel ────────────────────────────────────────────────────────────────── */
 #tizno-panel {
   position: fixed; bottom: 0; left: 0; width: 100vw;
-  background: #050505;
-  border-top: 1px solid rgba(200,146,42,0.2);
-  z-index: 44;
-  transform: translateY(100%);
+  background: #050505; border-top: 1px solid rgba(200,146,42,0.2);
+  z-index: 44; transform: translateY(100%);
   transition: transform 0.55s cubic-bezier(0.25, 1, 0.5, 1);
-  padding: 40px 5vw 50px;
-  max-height: 80vh; overflow-y: auto;
+  padding: 44px 5vw 48px; max-height: 85vh; overflow-y: auto;
 }
 #tizno-panel.open { transform: translateY(0); }
 
+/* Close handle — just the bar, no text */
+#tizno-panel-close {
+  position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+  background: transparent; border: none; cursor: pointer !important;
+  width: 40px; height: 20px; padding: 0; display: flex; align-items: center; justify-content: center;
+}
+#tizno-panel-close::before {
+  content: ''; display: block; width: 32px; height: 2px;
+  background: rgba(255,255,255,0.15); border-radius: 2px;
+  transition: background 0.3s;
+}
+#tizno-panel-close:hover::before { background: rgba(200,146,42,0.6); }
+
+/* 2-column layout: info left, form right */
 #tizno-panel-inner {
-  max-width: 560px; margin: 0 auto; text-align: center;
+  max-width: 960px; margin: 0 auto;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start;
 }
 
-/* Tizno header in panel */
+/* Left column */
 .tizno-panel-header {
-  display: flex; flex-direction: column; align-items: center; gap: 12px;
-  margin-bottom: 32px;
+  display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px;
 }
 .tizno-panel-title {
   font-size: 10px; letter-spacing: 8px; text-transform: uppercase;
   color: #c8922a; margin: 0;
 }
-.tizno-panel-line {
-  width: 60px; height: 1px; background: rgba(200,146,42,0.3);
-}
-.tizno-panel-sub {
-  font-size: 12px; letter-spacing: 2px; color: #555; font-style: italic; margin: 0;
-}
+.tizno-panel-line { width: 60px; height: 1px; background: rgba(200,146,42,0.3); }
+.tizno-panel-sub  { font-size: 12px; letter-spacing: 2px; color: #555; font-style: italic; margin: 0; }
 
-/* Social + email quick links */
 .tizno-social-row {
-  display: flex; gap: 20px; justify-content: center; margin-bottom: 28px;
-  flex-wrap: wrap;
+  display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap;
 }
 .tizno-social-link {
-  display: flex; align-items: center; gap: 8px;
-  color: #666; text-decoration: none; font-size: 11px;
-  letter-spacing: 3px; text-transform: uppercase;
-  transition: color 0.3s;
+  display: flex; align-items: center; gap: 8px; color: #666;
+  text-decoration: none; font-size: 11px; letter-spacing: 3px;
+  text-transform: uppercase; transition: color 0.3s;
 }
 .tizno-social-link:hover { color: #c8922a; }
 
-.tizno-email {
-  font-size: 12px; color: #555; letter-spacing: 2px; margin-bottom: 28px;
-  text-transform: uppercase;
-}
+.tizno-email { font-size: 11px; color: #555; letter-spacing: 2px; margin-bottom: 0; text-transform: uppercase; }
 .tizno-email a { color: inherit; text-decoration: none; transition: color 0.3s; }
 .tizno-email a:hover { color: #e8ecef; }
 
-/* Tizno future placeholder */
 .tizno-future {
-  margin-top: 28px; padding-top: 20px;
+  margin-top: 28px; padding-top: 18px;
   border-top: 1px solid rgba(255,255,255,0.04);
-  font-size: 10px; letter-spacing: 4px; color: #333;
+  font-size: 10px; letter-spacing: 4px; color: #2a2a2a;
   text-transform: uppercase; font-style: italic;
 }
 
-/* Close strip at top of panel */
-#tizno-panel-close {
-  position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
-  background: transparent; border: none; color: #444;
-  font-size: 10px; letter-spacing: 4px; text-transform: uppercase;
-  cursor: pointer !important; transition: color 0.3s;
-  font-family: 'Times New Roman', serif;
-  display: flex; flex-direction: column; align-items: center; gap: 6px;
+/* Right column — contact form */
+.tizno-form-col { display: flex; flex-direction: column; gap: 10px; }
+.tizno-form-col .tizno-form-title {
+  font-size: 10px; letter-spacing: 5px; text-transform: uppercase;
+  color: #555; margin: 0 0 14px;
 }
-#tizno-panel-close::before {
-  content: ''; display: block; width: 28px; height: 1px; background: #333;
+.tizno-contact-form { display: flex; flex-direction: column; gap: 10px; }
+.tizno-contact-form input,
+.tizno-contact-form textarea {
+  background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.12);
+  color: #e8ecef; font-family: 'Times New Roman', serif; font-size: 13px;
+  padding: 11px 14px; outline: none; transition: border-color 0.3s;
+  letter-spacing: 1px; resize: none;
 }
-#tizno-panel-close:hover { color: #888; }
-#tizno-panel-close:hover::before { background: #666; }
+.tizno-contact-form input:focus,
+.tizno-contact-form textarea:focus { border-color: rgba(200,146,42,0.5); }
+.tizno-contact-form input::placeholder,
+.tizno-contact-form textarea::placeholder { color: #3a3a3a; }
 
 @media (max-width: 768px) {
+  #tizno-panel-inner { grid-template-columns: 1fr; gap: 32px; }
   #tizno-panel { padding: 36px 5vw 40px; }
-  .tizno-social-row { gap: 14px; }
 }
