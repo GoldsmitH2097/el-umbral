@@ -70,14 +70,15 @@
   .mobile-detail-lore { font-size: 16px; line-height: 2; color: #c0c0c0; }
   .mobile-detail-lore p { margin-bottom: 20px; }
 
-  /* archive-col on mobile — full screen height, half/half video:books */
-  .archive-col { min-height: auto; height: 100dvh; }
+  /* archive-col on mobile — full natural height, no artificial 50/50 split */
+  .archive-col { min-height: auto; height: auto; }
   .archive-pillar {
     height: 50dvh !important; min-height: unset !important;
     padding: 20px 5vw 20px !important;
   }
+  /* Books flow naturally below pillar — NO sub-scroll */
   .archive-books {
-    height: 50dvh; overflow-y: auto;
+    height: auto !important; overflow-y: visible !important;
     border-top: 1px solid rgba(255,255,255,0.05);
   }
   .archive-pillar video { opacity: 0.5 !important; }

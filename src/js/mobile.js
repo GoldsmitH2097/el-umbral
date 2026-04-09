@@ -153,6 +153,24 @@ export function initMobileArchive() {
   closeBtn?.addEventListener('click', closeDetail);
 
   // Wire up archive-pillar taps
+  // Use event delegation on the grid as a belt-and-suspenders approach
+  const grid = document.querySelector('.archive-grid');
+  if (grid) {
+    grid.addEventListener('click', (e) => {
+      if (!isMobile()) return;
+      const pillar = e.target.closest('.archive-pillar');
+      if (!pillar) return;
+      const pillars = Array.from(document.querySelectorAll('.archive-pillar'));
+      const i = pillars.indexOf(pillar);
+      if (i >= 0) { e.stopPropagation(); openDetail(i); }
+    });
+    grid.addEventListener('touchend', (e) => {
+      // Prevent ghost click delays on iOS
+      const pillar = e.target.closest('.archive-pillar');
+      if (pillar) e.preventDefault();
+    }, { passive: false });
+  }
+  // Also direct listeners as fallback
   setTimeout(() => {
     document.querySelectorAll('.archive-pillar').forEach((pillar, i) => {
       pillar.addEventListener('click', (e) => {
@@ -161,7 +179,7 @@ export function initMobileArchive() {
         openDetail(i);
       });
     });
-  }, 500);
+  }, 800);
 }
 
 function initCountdown(el) {

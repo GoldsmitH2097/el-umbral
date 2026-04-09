@@ -66,29 +66,33 @@
 .archive-col:last-child { box-shadow: none; }
 .archive-col:hover, .archive-col--highlighted { background: #080808; }
 
-/* Vertical amber divider — thin, faint, organic pulse */
+/* Vertical amber divider — thin, organic staggered pulse */
 .archive-col::after {
   content: ''; position: absolute; right: 0; top: 0; bottom: 0;
   width: 1px;
   background: linear-gradient(to bottom,
-    transparent 0%, rgba(200,146,42,0.3) 20%,
-    rgba(200,146,42,0.3) 80%, transparent 100%
+    transparent 0%, rgba(200,146,42,0.35) 20%,
+    rgba(200,146,42,0.35) 80%, transparent 100%
   );
-  animation: pillarDividerPulse 6s ease-in-out infinite;
+  animation: pillarDividerPulse 7s ease-in-out infinite;
   pointer-events: none; z-index: 3;
 }
 .archive-col:last-child::after { display: none; }
+/* Staggered phase so columns breathe independently */
+.archive-col:nth-child(1)::after { animation-delay: 0s; }
+.archive-col:nth-child(2)::after { animation-delay: 2.3s; }
+.archive-col:nth-child(3)::after { animation-delay: 4.6s; }
 @keyframes pillarDividerPulse {
-  0%   { opacity: 0.05; }
-  50%  { opacity: 0.28; }
-  100% { opacity: 0.05; }
+  0%   { opacity: 0.04; }
+  50%  { opacity: 0.35; }
+  100% { opacity: 0.04; }
 }
-.archive-col:hover::after, .archive-col--highlighted::after {
-  opacity: 0.6 !important; animation-play-state: paused;
-  background: linear-gradient(to bottom,
-    transparent 0%, rgba(200,146,42,0.55) 20%,
-    rgba(200,146,42,0.55) 80%, transparent 100%
-  );
+/* Hover: both adjacent lines light up together, gently */
+.archive-col:hover::after {
+  opacity: 0.5 !important; animation-play-state: paused;
+}
+.archive-col:hover + .archive-col::after {
+  opacity: 0.5 !important; animation-play-state: paused;
 }
 
 /* ── Pillar section (character video + info) ─────────────────────────────── */
@@ -196,53 +200,50 @@
 #btn-cerrar-pacto { background: transparent; border: 1px solid #333; color: #888; padding: 10px 30px; font-size: 10px; letter-spacing: 4px; text-transform: uppercase; cursor: pointer !important; transition: all 0.3s; font-family: 'Times New Roman', serif; }
 #btn-cerrar-pacto:hover { border-color: #fff; color: #fff; }
 
-/* ── Reading view tabs ────────────────────────────────────────────────────── */
-.reading-tabs {
-  position: absolute; top: 36px; left: 50%; transform: translateX(-50%);
-  display: flex; z-index: 42; border: 1px solid rgba(255,255,255,0.08);
+/* ── Reading view — no tabs, side-by-side layout ─────────────────────────── */
+/* Panels always visible — author left, books right */
+.reading-panel { display: block !important; }
+.reading-content {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 5vw;
+  align-items: start;
 }
-.reading-tabs--mobile {
-  position: fixed; top: auto; bottom: calc(100dvh - 44vh);
-  left: 0; transform: none; width: 100%; border: none;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-  justify-content: center;
+/* Section headers replacing tab buttons */
+.reading-section-label {
+  font-size: 8px; letter-spacing: 6px; text-transform: uppercase;
+  color: #444; margin: 0 0 24px; padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
-.reading-tab {
-  background: transparent; border: none; border-right: 1px solid rgba(255,255,255,0.08);
-  color: #444; font-size: 9px; letter-spacing: 5px; text-transform: uppercase;
-  padding: 9px 28px; cursor: pointer !important;
-  font-family: 'Times New Roman', serif; transition: color 0.3s, background 0.3s;
+@media (max-width: 900px) {
+  .reading-content { grid-template-columns: 1fr; gap: 40px; }
 }
-.reading-tab:last-child { border-right: none; }
-.reading-tab--active { color: #c8922a; background: rgba(200,146,42,0.05); }
-.reading-tab:hover:not(.reading-tab--active) { color: #777; }
 
-/* Panels */
-.reading-panel { display: none; }
-.reading-panel--active { display: block; }
-.mobile-panel { display: none; }
-.mobile-panel--active { display: block; }
+/* Hide tab UI — we no longer use tabs */
+.reading-tabs { display: none !important; }
 
-/* Libros panel in reading view */
-#reading-obras-list { display: flex; flex-direction: column; gap: 32px; padding-top: 8px; }
+/* Libros panel */
+#reading-obras-list { display: flex; flex-direction: column; gap: 36px; padding-top: 8px; }
 .reading-obra-card {
-  display: flex; gap: 24px; align-items: flex-start;
-  padding-bottom: 32px; border-bottom: 1px solid rgba(255,255,255,0.05);
+  display: flex; gap: 20px; align-items: flex-start;
+  padding-bottom: 36px; border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 .reading-obra-card:last-child { border-bottom: none; padding-bottom: 0; }
-.reading-obra-cover { flex-shrink: 0; width: 100px; }
+.reading-obra-cover { flex-shrink: 0; width: 120px; }
 .reading-obra-cover img { width: 100%; display: block; }
 .reading-obra-cover-empty {
-  width: 100px; aspect-ratio: 2/3; background: #0a0a0a;
+  width: 120px; aspect-ratio: 2/3; background: #080808;
   border: 1px solid rgba(255,255,255,0.06); display: flex;
   align-items: center; justify-content: center;
-  font-size: 9px; letter-spacing: 3px; color: #333;
+  font-size: 8px; letter-spacing: 3px; color: #333; text-transform: uppercase;
 }
 .reading-obra-info { flex: 1; }
-.reading-obra-title { font-size: 14px; letter-spacing: 4px; text-transform: uppercase; margin: 0 0 6px; font-weight: normal; color: #e8ecef; }
-.reading-obra-vision { font-size: 13px; color: #777; line-height: 1.9; font-style: italic; margin: 0 0 14px; }
-.reading-obra-meta { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-.reading-obra-format { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: #444; border: 1px solid rgba(255,255,255,0.06); padding: 3px 8px; }
+.reading-obra-title { font-size: 13px; letter-spacing: 4px; text-transform: uppercase; margin: 0 0 4px; font-weight: normal; color: #e8ecef; }
+.reading-obra-subtitle { font-size: 10px; color: #555; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 10px; }
+.reading-obra-author { font-size: 11px; color: #666; margin: 0 0 10px; font-style: italic; }
+.reading-obra-vision { font-size: 13px; color: #666; line-height: 1.9; font-style: italic; margin: 0 0 12px; }
+.reading-obra-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.reading-obra-format { font-size: 8px; letter-spacing: 3px; text-transform: uppercase; color: #444; border: 1px solid rgba(255,255,255,0.06); padding: 3px 8px; }
 #legal-modal {
   position: fixed; inset: 0; background: rgba(2,2,2,0.97); z-index: 70;
   display: flex; align-items: center; justify-content: center;
@@ -271,10 +272,14 @@
 
 /* ── Mobile Responsiveness ────────────────────────────────────────────────── */
 @media (max-width: 768px) {
+  /* Allow horizontal scroll for archive-grid — parent must not clip it */
+  #main-site { overflow-x: auto !important; }
   .site-hero h2 { font-size: 22px; letter-spacing: 5px; }
   .site-hero p { letter-spacing: 1px; font-size: 14px; }
   .site-nav .links span { margin-left: 20px; letter-spacing: 2px; }
   .archive-col { min-width: 100vw; }
+  /* Remove tap delay on pillars */
+  .archive-pillar { touch-action: manipulation; }
 }
 
 /* ── Site footer ─────────────────────────────────────────────────────────── */

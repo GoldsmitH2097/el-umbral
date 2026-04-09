@@ -215,10 +215,9 @@ export class VisualEngine {
     if(state.activeScene>=4){ ctx.clearRect(0,0,this._canvas.width,this._canvas.height); requestAnimationFrame(()=>this._tick()); return; }
     ctx.clearRect(0,0,this._canvas.width,this._canvas.height);
 
-    // ── Simulation rate decoupling ─────────────────────────────────────────
-    // Physics runs every 2nd frame (~30fps), rendering runs every frame (~60fps).
-    // Halves main-thread particle math cost — biggest TBT win after DPR cap.
-    const runSim = (this._frameCount % 2 === 0);
+    // Dust runs at 30fps (100 particles), flame/smoke run at full 60fps
+    // Sprite optimization makes 60fps smoke affordable; dust is the only concern
+    const runDustSim = (this._frameCount % 2 === 0);
     const lf=state.isAwakening?0.05:0.1;
     this._currentX+=(this._targetX-this._currentX)*lf; this._currentY+=(this._targetY-this._currentY)*lf;
     const vx=this._currentX-this._lastX, vy=this._currentY-this._lastY, speed=Math.sqrt(vx*vx+vy*vy);
@@ -228,15 +227,15 @@ export class VisualEngine {
     ctx.globalCompositeOperation='lighter';
     const dustFade = state.isAwakening ? Math.max(0, 1 - this._awakeningFrames/120) : 1;
     for(let i=0;i<this._dustParticles.length;i++){
-      if(runSim) this._dustParticles[i].update(this._currentX,this._currentY,vx,vy,state.isIgnited,this._frameCount,this._canvas.width,this._canvas.height);
+      if(runDustSim) this._dustParticles[i].update(this._currentX,this._currentY,vx,vy,state.isIgnited,this._frameCount,this._canvas.width,this._canvas.height);
       this._dustParticles[i].draw(ctx, dustFade);
     }
-    if(state.activeScene===1) this._updateScene1(ctx,vx,vy,speed,runSim);
-    if(state.activeScene===2||state.activeScene===3) this._updateScene2(ctx,runSim);
+    if(state.activeScene===1) this._updateScene1(ctx,vx,vy,speed);
+    if(state.activeScene===2||state.activeScene===3) this._updateScene2(ctx);
     requestAnimationFrame(()=>this._tick());
   }
 
-  _updateScene1(ctx,vx,vy,speed,runSim) {
+  _updateScene1(ctx,vx,vy,speed) {
     const wx=-vx*1.2, wy=-vy*1.2;
     const oxygenScale=state.isIgnited?Math.max(0.05,1-speed*0.025):0;
     this._audio.setFireVolume(oxygenScale,this._audio.isReady&&(state.isPressed||state.isIgnited)&&!state.hasFinishedGallery);
@@ -271,9 +270,9 @@ export class VisualEngine {
     if(state.isIgnited){
       const oxygenScale = Math.max(0.05, 1-speed*0.025);
       const fl=Math.random()*5-2.5;
-      // Restored radii — match Vela7 reference (was 120/375, now 210/640)
-      root.style.setProperty('--radio-interior',Math.max(40,(210+fl)*oxygenScale)+'px');
-      root.style.setProperty('--radio-exterior',Math.max(120,(640+fl*2)*oxygenScale)+'px');
+      // Radii: interior 180px, exterior 480px — big enough for presence, not burning characters
+      root.style.setProperty('--radio-interior',Math.max(40,(180+fl)*oxygenScale)+'px');
+      root.style.setProperty('--radio-exterior',Math.max(120,(480+fl*2)*oxygenScale)+'px');
       // Suppress flame, smoke, and ambient glow during auto-advance — character reveals through mask only
       if(!this._autoAdvanceMode) {
         root.style.setProperty('--intensidad',0.85*oxygenScale);
@@ -291,14 +290,14 @@ export class VisualEngine {
       this._liveEl.style.transform=`scale(1.05) translate(${ox}px,${oy}px)`;
     } else { this._liveEl.style.transform='scale(1.05) translate(0px,0px)'; }
     ctx.globalCompositeOperation='source-over';
-    for(let i=this._smokeParticles.length-1;i>=0;i--){const p=this._smokeParticles[i];if(runSim)p.update();p.draw(ctx);if(p.life<=0)this._smokeParticles.splice(i,1);}
+    for(let i=this._smokeParticles.length-1;i>=0;i--){const p=this._smokeParticles[i];p.update();p.draw(ctx);if(p.life<=0)this._smokeParticles.splice(i,1);}
     ctx.globalCompositeOperation='lighter';
-    for(let i=this._flameParticles.length-1;i>=0;i--){const p=this._flameParticles[i];if(runSim)p.update(wx);p.draw(ctx);if(p.life<=0)this._flameParticles.splice(i,1);}
+    for(let i=this._flameParticles.length-1;i>=0;i--){const p=this._flameParticles[i];p.update(wx);p.draw(ctx);if(p.life<=0)this._flameParticles.splice(i,1);}
   }
 
-  _updateScene2(ctx,runSim) {
+  _updateScene2(ctx) {
     ctx.globalCompositeOperation='lighter';
-    this._fireflies.forEach(f=>{if(runSim)f.update(this._currentX,this._currentY,this._frameCount);f.draw(ctx);});
+    this._fireflies.forEach(f=>{f.update(this._currentX,this._currentY,this._frameCount);f.draw(ctx);});
     if(this._frameCount%2===0&&this._fireflies.length>0&&!state.isAwakening){
       const f=this._fireflies[0];
       const detectionRadius = window.innerWidth < 768 ? 300 : 220;

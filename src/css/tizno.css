@@ -9,21 +9,16 @@
 }
 #tizno-backdrop.active { display: block; }
 
-/* Peek element */
+/* Peek element — STATIC at bottom, no bounce */
 #tizno-tease {
   position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
   z-index: 45; cursor: pointer !important;
   display: none; flex-direction: column; align-items: center;
-  animation: tiznoBounce 3.2s ease-in-out infinite;
+  /* No tiznoBounce animation — silhouette stays fixed at bottom */
   transition: filter 0.4s ease;
 }
 #tizno-tease.visible { display: flex; }
-#tizno-tease:hover { filter: brightness(1.4); animation-play-state: paused; }
-@keyframes tiznoBounce {
-  0%, 100% { transform: translateX(-50%) translateY(0); }
-  40%       { transform: translateX(-50%) translateY(-8px); }
-  60%       { transform: translateX(-50%) translateY(-5px); }
-}
+#tizno-tease:hover { filter: brightness(1.4); }
 
 /* Silhouette blob */
 .tizno-silhouette {
@@ -34,21 +29,24 @@
   box-shadow: 0 -4px 20px rgba(200,146,42,0.1), 0 0 0 1px rgba(200,146,42,0.1);
 }
 
-/* Eyes — strictly at the bottom of the silhouette */
-.tizno-eyes {
-  position: absolute; bottom: 7px; left: 50%;
-  transform: translateX(-50%);
-  display: flex; gap: 14px;
-}
+/* Eyes — wiggle independently inside the silhouette */
 .tizno-eye {
   width: 7px; height: 9px;
   background: #c8922a; border-radius: 50%;
   box-shadow: 0 0 6px 2px rgba(200,146,42,0.9), 0 0 16px 5px rgba(200,146,42,0.4);
   transform-origin: center;
   transition: transform 0.06s ease-in, box-shadow 0.06s ease;
+  animation: eyeFloat 3.5s ease-in-out infinite;
+}
+.tizno-eye:last-child { animation-duration: 3.1s; animation-delay: 0.4s; }
+@keyframes eyeFloat {
+  0%, 100% { transform: translateY(0px); }
+  35%       { transform: translateY(-3px); }
+  65%       { transform: translateY(-1px); }
 }
 .tizno-eye.blink {
-  transform: scaleY(0.06);
+  transform: scaleY(0.06) !important;
+  animation-play-state: paused;
   box-shadow: 0 0 3px 1px rgba(200,146,42,0.5);
 }
 

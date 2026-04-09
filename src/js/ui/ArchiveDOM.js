@@ -340,23 +340,26 @@ export class ArchiveDOM {
     const char=CHARACTERS[index]; if(!char) return;
     this._lastReadingFocus = document.activeElement;
     this._readTitle.innerText=char.title;
+    // Add section label above bio
+    const sectionLabel = '<p class="reading-section-label">Autor</p>';
     const socialHtml = char.social.length > 0
       ? `<div class="reading-social">${char.social.map(s =>
           `<a href="${s.url}" target="_blank" rel="noopener" class="reading-social-link">
             ${ICONS[s.platform]} <span>${s.handle}</span>
           </a>`).join('')}</div>`
       : '';
-    this._readBody.innerHTML = char.lore + socialHtml;
+    this._readBody.innerHTML = sectionLabel + char.lore + socialHtml;
     this._readingBgVideo.src=char.src; this._readingBgVideo.load(); this._readingBgVideo.play().catch(()=>{});
 
     // Populate Libros panel
     const obrasList = document.getElementById('reading-obras-list');
     if (obrasList) {
       const obras = CATALOGUE.filter(c => c.archetype === char.slug);
+      const librosLabel = '<p class="reading-section-label">Obras</p>';
       if (obras.length === 0) {
-        obrasList.innerHTML = '<p style="color:#333;letter-spacing:3px;font-size:10px;text-transform:uppercase;text-align:center;padding:40px 0;">En preparación</p>';
+        obrasList.innerHTML = librosLabel + '<p style="color:#333;letter-spacing:3px;font-size:10px;text-transform:uppercase;text-align:center;padding:40px 0;">En preparación</p>';
       } else {
-        obrasList.innerHTML = obras.map(item => {
+        obrasList.innerHTML = librosLabel + obras.map(item => {
           const coverHtml = item.img
             ? `<div class="reading-obra-cover"><img src="${item.img}" alt="${item.title}" loading="lazy" decoding="async" /></div>`
             : `<div class="reading-obra-cover"><div class="reading-obra-cover-empty">${item.type==='anthology'?'Antología':'—'}</div></div>`;
@@ -371,9 +374,12 @@ export class ArchiveDOM {
             ${coverHtml}
             <div class="reading-obra-info">
               <h3 class="reading-obra-title">${item.title}</h3>
+              ${item.subtitle ? `<p class="reading-obra-subtitle">${item.subtitle}</p>` : ''}
+              ${item.author ? `<p class="reading-obra-author">${item.author}</p>` : ''}
               <p class="reading-obra-vision">${item.vision || item.desc}</p>
               <div class="reading-obra-meta">
                 ${item.format ? `<span class="reading-obra-format">${item.format}</span>` : ''}
+                ${item.seriesInfo ? `<span class="reading-obra-format">${item.seriesInfo}</span>` : ''}
                 ${ctaHtml}
               </div>
             </div>
