@@ -237,32 +237,104 @@ export class ArchiveDOM {
   }
 
   _initCoverTilt() {
+    const MAP_W = 32, MAP_H = 48;
+
     document.querySelectorAll('.obra-cover--clickable').forEach(cover => {
-      // Inject glare div — one per cover, reused on every move
-      const glare = document.createElement('div');
-      glare.className = 'obra-cover-glare';
-      cover.appendChild(glare);
+      // Canvas for bump-map lighting overlay
+      const bumpCanvas = document.createElement('canvas');
+      bumpCanvas.className = 'cover-bump-canvas';
+      bumpCanvas.width = MAP_W; bumpCanvas.height = MAP_H;
+      cover.appendChild(bumpCanvas);
+      const bctx = bumpCanvas.getContext('2d');
+
+      let heightMap = null;
+
+      const buildHeightMap = () => {
+        if (heightMap) return;
+        const img = cover.querySelector('img');
+        if (!img || !img.complete || !img.naturalWidth) return;
+        try {
+          const off = document.createElement('canvas');
+          off.width = MAP_W; off.height = MAP_H;
+          const ctx = off.getContext('2d');
+          ctx.drawImage(img, 0, 0, MAP_W, MAP_H);
+          const px = ctx.getImageData(0, 0, MAP_W, MAP_H).data;
+          const raw = new Float32Array(MAP_W * MAP_H);
+          for (let i = 0; i < MAP_W * MAP_H; i++) {
+            raw[i] = (0.299*px[i*4] + 0.587*px[i*4+1] + 0.114*px[i*4+2]) / 255;
+          }
+          // Smooth pass (3×3 box)
+          heightMap = new Float32Array(MAP_W * MAP_H);
+          for (let y = 1; y < MAP_H-1; y++) {
+            for (let x = 1; x < MAP_W-1; x++) {
+              const i = y*MAP_W + x;
+              heightMap[i] = (raw[i]*4 + raw[i-1] + raw[i+1] + raw[i-MAP_W] + raw[i+MAP_W]) / 8;
+            }
+          }
+        } catch(_) { /* CORS guard — silent fail */ }
+      };
+
+      const renderBump = (lx, ly) => {
+        if (!heightMap) return;
+        const img = bctx.createImageData(MAP_W, MAP_H);
+        const lz = 0.7;
+        const lLen = Math.sqrt(lx*lx + ly*ly + lz*lz);
+        const nlx = lx/lLen, nly = ly/lLen, nlz = lz/lLen;
+
+        for (let y = 1; y < MAP_H-1; y++) {
+          for (let x = 1; x < MAP_W-1; x++) {
+            const i = y*MAP_W + x;
+            // Surface normal from height differences (Sobel-lite)
+            const nx = (heightMap[i-1] - heightMap[i+1]) * 4;
+            const ny = (heightMap[i-MAP_W] - heightMap[i+MAP_W]) * 4;
+            const nz = 1.0;
+            const nLen = Math.sqrt(nx*nx + ny*ny + nz*nz);
+            const dot = Math.max(0, (nx/nLen)*nlx + (ny/nLen)*nly + (nz/nLen)*nlz);
+
+            const idx = i * 4;
+            // Warm lit / neutral shadow
+            img.data[idx]   = Math.min(255, dot * 255 * 1.3);   // R: warm
+            img.data[idx+1] = Math.min(255, dot * 220 * 1.1);   // G
+            img.data[idx+2] = Math.min(255, dot * 160);          // B: less blue = warm
+            img.data[idx+3] = Math.min(60, dot * 90);            // very subtle alpha
+          }
+        }
+        bctx.putImageData(img, 0, 0);
+      };
+
+      cover.addEventListener('mouseenter', () => {
+        const img = cover.querySelector('img');
+        if (img && !img.complete) { img.addEventListener('load', buildHeightMap, {once:true}); }
+        else buildHeightMap();
+      });
 
       cover.addEventListener('mousemove', (e) => {
         const rect = cover.getBoundingClientRect();
-        const x = (e.clientX - rect.left) / rect.width;   // 0–1 left to right
-        const y = (e.clientY - rect.top)  / rect.height;  // 0–1 top to bottom
-        const rotY =  (x - 0.5) * 22;   // –11° to +11° horizontal
-        const rotX = -(y - 0.5) * 22;   // –11° to +11° vertical (inverted)
-        cover.style.transform =
-          `perspective(550px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.05)`;
-        glare.style.setProperty('--gx', `${(x * 100).toFixed(1)}%`);
-        glare.style.setProperty('--gy', `${(y * 100).toFixed(1)}%`);
+        const x = (e.clientX - rect.left) / rect.width;
+        const y = (e.clientY - rect.top)  / rect.height;
+        const rotY =  (x - 0.5) * 18;
+        const rotX = -(y - 0.5) * 18;
+
+        // Pure tilt — no scale, no zoom, no cropping
+        cover.style.transform = `perspective(600px) rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+
+        // Light source from cursor direction, drop shadow opposite
+        const lx = (0.5 - x) * 1.6;
+        const ly = (0.5 - y) * 1.6;
+        renderBump(lx, ly);
+
+        const sx = (x - 0.5) * 18;
+        const sy = (y - 0.5) * 18;
+        cover.style.filter = `drop-shadow(${sx.toFixed(1)}px ${sy.toFixed(1)}px 18px rgba(0,0,0,0.75))`;
       });
 
       cover.addEventListener('mouseleave', () => {
-        // Smooth spring back — override transition only for reset
-        cover.style.transition = 'transform 0.4s cubic-bezier(0.25,1,0.5,1), box-shadow 0.4s ease';
-        cover.style.transform = '';
-        // Restore snappy transition after spring finishes
-        setTimeout(() => {
-          cover.style.transition = '';
-        }, 400);
+        cover.style.transition = 'transform 0.45s cubic-bezier(0.25,1,0.5,1), filter 0.45s ease';
+        cover.style.transform  = '';
+        cover.style.filter     = '';
+        // Clear bump canvas
+        bctx.clearRect(0, 0, MAP_W, MAP_H);
+        setTimeout(() => { cover.style.transition = ''; }, 450);
       });
     });
   }

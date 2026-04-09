@@ -4,10 +4,12 @@ import { AudioEngine } from './engine/AudioEngine.js';
 import { VisualEngine } from './engine/VisualEngine.js';
 import { ArchiveDOM } from './ui/ArchiveDOM.js';
 import { ArchiveFireflies } from './ui/ArchiveFireflies.js';
+import { TiznoTease } from './ui/TiznoTease.js';
 import { initMobileScene2, initMobileArchive } from './mobile.js';
 
-const audio = new AudioEngine();
-const fireflies = new ArchiveFireflies();
+const audio    = new AudioEngine();
+const tizno    = new TiznoTease();
+const fireflies = new ArchiveFireflies(tizno);
 
 // ── prefers-reduced-motion: skip intro entirely ─────────────────────────────
 // Respects OS-level accessibility setting. Also legally required (WCAG 2.3.3).
@@ -116,8 +118,8 @@ function skipIntroAndEnterArchive() {
   document.body.style.cursor='auto';
   document.querySelectorAll('*').forEach(el=>el.style.setProperty('cursor','auto','important'));
   fireflies.init();
+  tizno.init();
 }
-
 function enterScene2() {
   audio.playTransitionEcho(); transitionTo(0);
   state.isIgnited=false; visual.clearFlame(); audio.setFireVolume(0,false);
@@ -166,7 +168,8 @@ function enterMainSite() {
   archive.showArchive(); audio.playTransitionEcho(); audio.stopAwakening();
   audio.setAwakening(false); state.isAwakening=false; transitionTo(4);
   initMobileArchive();
-  fireflies.init(); // start fireflies + particles after archive is shown
+  fireflies.init();
+  tizno.init();
 }
 
 function handleDown(e) {

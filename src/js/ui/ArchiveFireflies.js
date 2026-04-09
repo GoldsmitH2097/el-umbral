@@ -5,8 +5,9 @@
  */
 
 const FIREFLY_COUNT = 4;
-const INACTIVITY_OBRAS = 18000;   // 18s idle → drift toward obras
-const INACTIVITY_CONTACT = 36000; // 36s idle → drift toward contact
+const INACTIVITY_OBRAS   = 18000;  // 18s → drift toward obras
+const INACTIVITY_CONTACT = 36000;  // 36s → drift toward contact
+const INACTIVITY_TIZNO   = 55000;  // 55s → orbit Tizno tease
 const CAPABLE = navigator.hardwareConcurrency >= 4
   && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -128,15 +129,17 @@ class AmbientParticles {
 
 // ── Main export ───────────────────────────────────────────────────────────────
 export class ArchiveFireflies {
-  constructor() {
+  constructor(tiznoTease = null) {
+    this._tizno     = tiznoTease;
     this._container = null;
     this._fireflies = [];
     this._particles = null;
-    this._raf = null;
+    this._raf       = null;
     this._lastActivity = Date.now();
-    this._running = false;
+    this._running   = false;
     this._obrasY    = 0;
     this._contactY  = 0;
+    this._orbitAngle = 0;
   }
 
   init() {
@@ -198,13 +201,22 @@ export class ArchiveFireflies {
     this._fireflies.forEach((ff, i) => {
       let tx = W2, ty = this._obrasY, att = 0;
 
-      if (idle > INACTIVITY_CONTACT) {
-        // Guide toward contact
+      if (idle > INACTIVITY_TIZNO && this._tizno) {
+        // Orbit Tizno tease — circular motion around its position
+        this._orbitAngle += 0.008;
+        const tPos = this._tizno.getPosition();
+        if (tPos) {
+          const radius = 40 + i * 18;
+          const angle  = this._orbitAngle + (i * Math.PI / 2);
+          tx = tPos.x + Math.cos(angle) * radius;
+          ty = tPos.y + Math.sin(angle) * radius * 0.5;
+          att = 0.003;
+        }
+      } else if (idle > INACTIVITY_CONTACT) {
         tx = W2 + (i % 2 === 0 ? -60 : 60);
         ty = this._contactY + i * 20;
         att = 0.0008;
       } else if (idle > INACTIVITY_OBRAS) {
-        // Guide toward obras
         tx = W2 + (i % 2 === 0 ? -80 : 80);
         ty = this._obrasY + i * 30;
         att = 0.0006;

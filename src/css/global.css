@@ -1,5 +1,10 @@
 * { cursor: crosshair !important; box-sizing: border-box; }
 
+/* Widow / orphan prevention — browser-native, graceful degradation on older engines */
+h1, h2, h3, h4, h5, h6 { text-wrap: balance; }
+p, li, blockquote, .obra-desc, .site-hero-sub, .contact-sub,
+#obra-modal-vision, .reading-content p, #pacto-modal p { text-wrap: pretty; }
+
 body, html {
   margin: 0; padding: 0; background-color: #020202; height: 100vh; overflow: hidden;
   font-family: 'Times New Roman', serif; user-select: none;

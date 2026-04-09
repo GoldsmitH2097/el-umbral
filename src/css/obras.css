@@ -1,20 +1,18 @@
-/* ── 3D tilt on book covers ───────────────────────────────────────────────── */
+/* ── 3D tilt + bump map canvas ───────────────────────────────────────────── */
 .obra-cover--clickable {
   transform-style: preserve-3d;
   will-change: transform;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.15s ease, filter 0.15s ease;
 }
-.obra-cover--clickable:hover {
-  box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+/* Bump map canvas overlay — very subtle directional lighting */
+.cover-bump-canvas {
+  position: absolute; inset: 0;
+  width: 100% !important; height: 100% !important;
+  pointer-events: none; z-index: 3;
+  mix-blend-mode: overlay;
+  opacity: 0.28;
+  image-rendering: auto; /* smooth stretch from 32×48 */
 }
-/* Glare overlay — injected by JS, follows cursor via CSS custom props */
-.obra-cover-glare {
-  position: absolute; inset: 0; z-index: 2; pointer-events: none;
-  background: radial-gradient(circle at var(--gx,50%) var(--gy,50%), rgba(255,255,255,0.12) 0%, transparent 65%);
-  opacity: 0; transition: opacity 0.3s ease;
-  border-radius: inherit;
-}
-.obra-cover--clickable:hover .obra-cover-glare { opacity: 1; }
 
 /* ── Skip Button ──────────────────────────────────────────────────────────── */
 #skip-btn {
@@ -48,7 +46,6 @@
 .pillar--highlighted video {
   opacity: 0.45 !important;
   filter: grayscale(0%) brightness(0.8) contrast(1.15) !important;
-  transform: scale(1.05) !important;
 }
 
 /* ── Obras grid — 4 archetype-columns, fixed equal width ─────────────────── */
@@ -84,32 +81,23 @@
 }
 .obra-book--available { cursor: pointer; }
 
-/* Cover — centered, fixed small size */
+/* Cover — 20% larger, no overflow:hidden (tilt without cropping), padding mat */
 .obra-cover {
-  width: 100%; max-width: 130px; aspect-ratio: 2/3; overflow: hidden;
+  width: 100%; max-width: 155px; aspect-ratio: 2/3;
   position: relative; background: #060606;
+  padding: 6px;
+  border: 1px solid rgba(255,255,255,0.06);
+  /* overflow: visible — tilt effect fills frame without edge cropping */
 }
 .obra-cover img {
   width: 100%; height: 100%; object-fit: cover;
   filter: brightness(0.95);
-  transition: filter 0.5s ease, transform 0.5s ease;
-  transform: scale(1.02);
+  display: block;
 }
-.obra-book--available:hover .obra-cover img,
-.obra-column--highlighted .obra-book--available .obra-cover img {
-  filter: brightness(1.05); transform: scale(1.06);
-}
-/* Coming-soon/countdown: full color, slightly dimmed — no grayscale */
 .obra-book--coming-soon .obra-cover img,
-.obra-book--countdown .obra-cover img {
-  filter: brightness(0.8);
-}
-
+.obra-book--countdown .obra-cover img { filter: brightness(0.8); }
 .obra-cover--clickable { cursor: pointer !important; }
-.obra-cover--clickable:hover img { filter: brightness(1.1) !important; transform: scale(1.04) !important; }
-.obra-cover--empty {
-  display: none; /* no cover = no box — empty placeholder looks broken */
-}
+.obra-cover--empty { display: none; }
 
 /* Brighter text in obras section */
 .obra-title { color: #e0e4e8; }
