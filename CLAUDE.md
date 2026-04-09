@@ -1,67 +1,73 @@
-# El Umbral — Project Reference
-
-> Canonical documentation for AI-assisted development.
-> Read this before touching any file.
+# CLAUDE.md — Soulware / El Umbral
+## Canonical project reference. Read this before every session.
 
 ---
 
-## What this is
+## The project
 
-El Umbral is the cinematic digital front door for **Soulware**, a Spanish independent publishing house.
-It replaces soulware.live entirely. It is an immersive web experience — not a traditional site.
+**soulware.live** is the digital front door for Soulware, a Spanish independent publishing house specialising in dark fiction. It is a cinematic, immersive web experience — not a conventional editorial site. The experience is the brand.
 
-**Live URL:** https://soulware.live
-**Backup URL:** https://el-umbral.netlify.app
+**Live:** https://soulware.live
 **Repo:** https://github.com/GoldsmitH2097/el-umbral
 **Local:** `/Users/ruben/Developer/el-umbral`
-**Deploy:** `git push origin main` → Netlify auto-builds in ~10s
+**Deploy:** `git push origin main` → Netlify auto-builds (~10s)
+**Rollback:** Netlify Deploys panel → click any past deploy → Publish
 
 ---
 
 ## The team
 
-| Person | Role | Handle |
-|--------|------|--------|
-| Rubén | Creative Director, Soulware | — |
-| Javier | Writer (El Caballero), infra access | @wwyeid0n |
-| Irina | Writer (La Sortílega) | @irina_mlk_ |
-| Germán | Writer (El Arlequín Sin Flores) | @germyto |
-| La Emperatriz | Writer (status: missing — narrative, not technical) | — |
+| Person | Role | Handle | Notes |
+|--------|------|--------|-------|
+| Rubén | Creative Director, client | — | Decisions, content, vision |
+| Javier (Casanova) | Co-founder, El Caballero Sin Nombre, infra | @wwyeid0n | Netlify account owner, repo access |
+| Irina | La Sortílega Sin Sombra | @irina_mlk_ | IG + Threads |
+| Germán | El Arlequín Sin Flores | @germyto | Threads only |
+| Alicia Sarel | La Emperatriz Sin Reino | @aliciasarel | IG only |
 
-Netlify account: **franjacasanova's team** (Javier)
-Publisher Instagram: @core.soulware
-Editorial email: editorial@soulware.live
+**Publisher:** @core.soulware (IG)
+**Editorial email:** editorial@soulware.live
+**Netlify team:** franjacasanova's team
+
+---
+
+## How we work
+
+- Claude is senior lead developer and project manager
+- Rubén is the client — present ideas for approval, flag decisions clearly
+- Every session ends with HANDOVER.md updated
+- Commit convention: `type(scope): description` — types: feat/fix/seo/perf/style/refactor/content/chore
+- Never vague commits ("fix bug", "update") — always specific
 
 ---
 
 ## Stack
 
 - **Vite + Vanilla JS** — no React (canvas 60fps stutter with VDOM GC)
-- **Netlify** — hosting, CDN, auto-deploy from GitHub main
-- **Formspree** — contact form (v1 API, email-based)
-- CSS custom properties for GPU-composited flame mask
+- **Netlify** — hosting, CDN, auto-deploy, Netlify Forms
+- **No server-side rendering** — SPA with History API deep links
 
 ```
 src/
 ├── index.html              # Ghost DOM (SEO) + scene scaffolding
 ├── css/
-│   ├── global.css          # Reset, .sr-only, touch-action scoped
-│   ├── canvas.css          # Scene 1: gallery, ambient light, UI
-│   ├── archive.css         # Scene 4/5: pillars, reading, pacto
-│   ├── obras.css           # Las Obras grid, countdown, contact
+│   ├── global.css          # Reset, .sr-only, touch-action, mobile-only overlay rules
+│   ├── canvas.css          # Scenes 1-3: gallery, ambient light, hints
+│   ├── archive.css         # Scene 4/5: pillars, reading, modals, footer
+│   ├── obras.css           # Las Obras: grid, countdown, status pills, modal
 │   ├── typography.css      # Reading view, drop cap, social links
-│   └── mobile.css          # All mobile styles (≤768px)
+│   └── mobile.css          # All mobile styles (≤768px) + horizontal swipe
 └── js/
-    ├── main.js             # Entry, input handling, scene transitions
+    ├── main.js             # Entry, scene transitions, auto-advance, haptics
     ├── mobile.js           # Mobile Scene 2 tap + archive tap-to-detail
     ├── core/
     │   ├── StateManager.js # CHARACTERS[], CATALOGUE[], state, Events
     │   └── Router.js       # History API, deep link bypass
     ├── engine/
-    │   ├── AudioEngine.js  # Web Audio: Cm7 leitmotif, cave ambience
-    │   └── VisualEngine.js # Canvas: flame, smoke, dust, firefly
+    │   ├── AudioEngine.js  # Web Audio: Cm7 leitmotif, cave ambience, iOS unlock
+    │   └── VisualEngine.js # Canvas: flame, smoke, dust, firefly (30fps sim / 60fps render)
     └── ui/
-        └── ArchiveDOM.js   # Archive grid, obras, contact, reading view
+        └── ArchiveDOM.js   # Archive grid, obras, contact, reading view, modals
 ```
 
 ---
@@ -70,146 +76,125 @@ src/
 
 | Scene | Name | Description |
 |-------|------|-------------|
-| 1 | The Tomb | Press-and-hold flame ignition gallery, 4 characters |
-| 2 | Voces del Umbral | Whisper hunt (cursor/firefly desktop; tap mobile) |
-| 3 | The Awakening | Binaural whiteout, auto-advances to archive after 4s |
-| 4 | The Archive | Characters + Las Obras (same scroll page) |
-| 5 | Reading | Full lore article per character (desktop only) |
+| 1 | The Tomb | Press-hold flame ignition. Auto-advances after 5s. |
+| 2 | Voces del Umbral | Whisper hunt. Desktop: cursor proximity. Mobile: sequential tap. |
+| 3 | The Awakening | Binaural flash. "ADENTRARSE" button + auto-advance after 4s. |
+| 4 | The Archive | Characters + Las Obras on one scroll page. |
+| 5 | Reading View | Full lore per character + social links. Desktop only. |
 
 ---
 
 ## Characters (StateManager.js — CHARACTERS[])
 
-| Index | Slug | Title | Status | Video |
-|-------|------|-------|--------|-------|
-| 0 | emperatriz | La Emperatriz Sin Reino | active | /reina-sin-corona.mp4 | Alicia Sarel | @aliciasarel (IG) |
-| 1 | caballero | El Caballero Sin Nombre | active | /caballero-sin-nombre.mp4 | WW. & Eidon | @wwyeid0n (IG+Threads) |
-| 2 | sortilega | La Sortílega Sin Sombra | active | /sortilega-sin-sombra.mp4 | Irina M. | @irina_mlk_ (IG+Threads) |
-| 3 | arlequin | El Arlequín Sin Flores | active | /arlequin-sin-flores.mp4 | Germán Ferri | @germyto (Threads) |
+| Slug | Title | Author | Social | Video |
+|------|-------|--------|--------|-------|
+| emperatriz | La Emperatriz Sin Reino | Alicia Sarel | @aliciasarel (IG) | /reina-sin-corona.mp4 |
+| caballero | El Caballero Sin Nombre | WW. & Eidon | @wwyeid0n (IG+Threads) | /caballero-sin-nombre.mp4 |
+| sortilega | La Sortílega Sin Sombra | Irina M. | @irina_mlk_ (IG+Threads) | /sortilega-sin-sombra.mp4 |
+| arlequin | El Arlequín Sin Flores | Germán Ferri | @germyto (Threads) | /arlequin-sin-flores.mp4 |
 
-La Emperatriz is "en paradero desconocido" — this is narrative, not a code flag.
-She has full video, lore, and pillar. No social links. No books. No click-block.
+La Emperatriz is "en paradero desconocido" — this is narrative, not a bug.
 
 ---
 
 ## Catalogue (StateManager.js — CATALOGUE[])
 
-| ID | Title | Archetype | Status |
-|----|-------|-----------|--------|
-| pulso-blanda | Pulso del Núcleo (Tapa Blanda) | caballero | available → Amazon ES |
-| pulso-dura | Pulso del Núcleo (Tapa Dura) | caballero | coming-soon |
-| filamentos | Filamentos de Oscuridad | sortilega | countdown → 2026-05-12 |
-| anatomia | Anatomía del Vacío | arlequin | coming-soon (web experience) |
+| ID | Title | Archetype | Status | Notes |
+|----|-------|-----------|--------|-------|
+| emperatriz-obra | En preparación | emperatriz | coming-soon | Tragedia lírica, Alicia Sarel. Title TBD. |
+| la-corte | Totalis Libertas | emperatriz | coming-soon | Anthology. "Antología de la Verdad Histórica de España". `relatos[]` array ready to populate. |
+| pulso-blanda | Pulso del Núcleo (Tapa Blanda) | caballero | **available** | Amazon ES link live. Amber buy button. |
+| pulso-dura | Pulso del Núcleo (Tapa Dura) | caballero | coming-soon | — |
+| filamentos | Filamentos de Oscuridad | sortilega | countdown | Release: 2026-05-12 |
+| anatomia | Anatomía del Vacío | arlequin | coming-soon | Interactive web experience |
+
+To add a relato to La Corte: add entry to `relatos[]` array in StateManager.js. No code changes needed.
 
 ---
 
-## Key architecture decisions — DO NOT REVERSE without reason
+## Architecture decisions — DO NOT REVERSE without reason
 
-- **No React** — canvas 60fps stutter with VDOM GC pauses
-- **CSS custom props drive flame mask** — GPU compositing, not canvas redraw
-- **.sr-only for ghost DOM** — not aria-hidden (breaks screen readers) or display:none (blocks Googlebot)
-- **Root-relative video paths** `/name.mp4` — bare paths break on deep-linked URLs
-- **touch-action:none scoped** to `#gallery-container #scene-2 #scene-3 #vfx-canvas` — NOT body
-- **box-shadow over border-right** for pillar dividers — borders cause white line artifacts
-- **brightness(0.9) contrast(1.5)** on archive pillar videos — crushes lifted blacks, preserves smoke highlights
-- **preload="metadata"** on archive videos — loads first frame for static display without full download
-
----
-
-## Commit convention
-
-```
-type(scope): plain English description
-```
-
-Types: `feat` / `fix` / `seo` / `perf` / `style` / `refactor` / `content` / `chore`
-
-Examples:
-- `fix(mobile): scope touch-action to intro layers`
-- `feat(audio): iOS resume on touch`
-- `seo(ghost-dom): add anchor links for crawling`
-
-Never: "update", "fix bug", "changes"
+- **No React** — canvas 60fps needs clean main thread
+- **CSS custom props drive flame mask** — GPU compositing
+- **.sr-only for ghost DOM** — not display:none (blocks Googlebot)
+- **Root-relative video paths** `/name.mp4` — bare paths break deep links
+- **touch-action:none scoped** to intro layers only — not body
+- **box-shadow over border-right** for pillar dividers — borders cause artifacts
+- **display:none (not opacity:0) on overlays** — opacity:0 doesn't hide position:fixed children
+- **#mobile-char-detail display:none in global.css** — must exist outside media query or bleeds onto desktop
+- **30fps simulation / 60fps render** — particle physics every 2nd frame, halves TBT
+- **Canvas at 1:1 CSS pixels** — no DPR scaling. Fire/smoke doesn't need retina. Scaling increases TBT.
 
 ---
 
-## Auto-advance (Scene 1)
+## Known technical constraints
 
-Starts 5s after load if no interaction. Simulates press-hold-release cycle:
-- 900ms ramp-up → ignition → 3.5s display → 800ms ramp-down → 500ms gap → next character
-- `visual.setAutoAdvanceMode(true)` suppresses flame particles AND glow (mask-only reveal)
-- User interaction cancels auto-advance immediately
-- After user releases, auto-advance resumes 3s later (experience stays on rails)
+**iOS audio:**
+- Silent buffer unlock + `_buildGraph()` must be synchronous in gesture handler
+- `_restartNoiseSources()` after every `resume()` — iOS drops looping BufferSourceNodes on suspend
+- `navigator.audioSession.type = 'playback'` for mute switch bypass (iOS 17+)
+- Page Visibility API: suspend on hidden, restart sources on resume
 
----
-
-## iOS audio — known behaviour
-
-- `navigator.audioSession.type = 'playback'` bypasses mute switch (iOS 17+)
-- Silent buffer unlock + synchronous `_buildGraph()` in gesture context
-- `_restartNoiseSources()` called after every `resume()` — iOS drops looping BufferSourceNodes on suspend
-- Oscillator-based sounds (notes, leitmotif) work reliably; looping noise sources are fragile
+**Video:**
+- 4 × ~2.4MB MP4s currently on Netlify — bandwidth risk at scale
+- Migrate to Bunny.net or Cloudflare R2 before any marketing push
+- Pillar videos: `preload="metadata"` loads first frame as static thumbnail
 
 ---
 
-## Mobile architecture
+## SEO status
 
-**Scene 2:** Sequential tap mechanic — whispers appear one by one, tap to reveal, all 4 → awakening
-**Archive:** `initMobileArchive()` in mobile.js
-- Pillars: 200px tall, video autoplays (0.5 opacity), description always visible
-- Tap pillar → `#mobile-char-detail` overlay (video bg, lore, social, books)
-- ArchiveDOM `openReading()` blocked on mobile (`window.innerWidth <= 768` guard)
-
----
-
-## SEO
-
-- Canonical + OG + Twitter meta → `https://soulware.live/`
-- Ghost DOM in index.html with `.sr-only` for Googlebot crawlability
-- `sitemap.xml` and `robots.txt` in `/public/` → reference soulware.live
-- No `aria-hidden` or `display:none` on crawlable content
+- **Google Search Console:** Registered ✅ Sitemap: submit at console (go to Sitemaps section)
+- **Indexed:** Yes (crawled April 8 2026) ✅
+- **Sitemap:** `/sitemap.xml` ✅ includes all 4 character routes + legal pages
+- **robots.txt:** ✅
+- **JSON-LD:** Organization + 4 Book schemas ✅
+- **OG/Twitter meta:** ✅ with 1200×630 image
+- **Favicons:** PNG 32px, 16px, Apple touch icon 180px ✅
+- **Ghost DOM:** semantic h1/h2/nav/article with .sr-only ✅
 
 ---
 
-## Rollback
+## Forms
 
-Netlify Deploys panel → click any past deploy → "Publish deploy" — takes 10s, no terminal needed.
+**Netlify Forms** — `data-netlify="true"` on the contact form.
+No verification needed. Messages arrive at Netlify dashboard → Forms.
+Honeypot field included for spam protection.
 
 ---
 
-## Roadmap
+## Legal pages
 
-### Immediate
-- [ ] Legal pages: Aviso Legal, Privacidad, Cookies (required in Spain)
-- [ ] Formspree: Javier clicks verification email sent to editorial@soulware.live on first form submission
-- [ ] Video CDN migration (Bunny.net / Cloudflare R2) before real traffic — MP4s will hit Netlify bandwidth
-
-### Phase 2 — Identity
-- [ ] ES/EN language toggle
-- [ ] Color/iconography system linking archetypes to books
-- [ ] La Emperatriz new video when writer is signed
-
-### Phase 3 — Anatomía del Vacío
-- [ ] Immersive web experience, sentence-by-sentence, procedural sound
-- [ ] Two chapters written, needs visual identity first
-- [ ] No voice — pure text + ambient sound + animation
-
-### Phase 4 — Tizno
-- [ ] Narrative entity linked to El Arlequín. Small, soot and ink. Never corporate.
-- [ ] Phase 1: predefined guided paths widget
-- [ ] Phase 2: Claude API + system prompt + admin panel (no-deploy prompt updates)
-
-### Phase 5 — Commerce
-- [ ] Shopify + Stripe (Spain-first: Bizum, tarjeta, SEPA)
-- [ ] Shop abstraction layer already in CATALOGUE (buyUrl field)
+All at `/public/`: aviso-legal.html, privacidad.html, cookies.html
+Accessible from footer. Serve without .html extension via Netlify pretty URLs.
 
 ---
 
 ## Assets
 
-All optimized assets live in `/public/assets/`:
-- Book covers: WebP, 111–162KB
-- Logo: `soulware-logo.webp` 5.3KB, 120×120px (nav: 36×36px display)
-- Source files (unoptimized): `/assets/` folder in repo root
+`/public/assets/`: book covers as WebP, soulware-logo.webp (5.3KB, display 36px)
+`/public/`: MP4 videos, favicons, og-image.jpg, legal pages, sitemap.xml, robots.txt
+`/assets/`: source (unoptimised) files — NOT served
 
-Video files (in `/public/`): ~10–20MB each — migrate to CDN before launch traffic
+---
+
+## Pending — requires Ruben/Javier action
+
+| Item | Owner | Status |
+|------|-------|--------|
+| Submit sitemap in Search Console | Javier | Pending — go to Sitemaps section |
+| Video CDN (Bunny.net) | Javier | Before marketing push |
+| Goodreads author page (WW. & Eidon) | Javier | Pending |
+| Amazon author page + publisher name | Javier | Pending |
+| Editorial directories submission | Ruben | Pending |
+| @soulware.editorial branded social | Ruben | Pending |
+| La Emperatriz obra title | Ruben | TBD |
+| La Corte author names + relatos | Ruben/Javier | TBD |
+| Book cover for La Emperatriz obra | Alicia Sarel | TBD |
+
+---
+
+## Tizno
+
+Separate design doc: see `TIZNO.md` in this repo.
+Tizno lives inside El Umbral as a feature. Development tracked in the same Soulware Claude Project.
