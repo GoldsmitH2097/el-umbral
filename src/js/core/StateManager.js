@@ -7,7 +7,9 @@ export const CHARACTERS = [
     status: 'active',
     desc: 'No cayó. Fue separada. Su herida no se exhibe. Se reconoce.',
     src: '/reina-sin-corona.mp4',
-    social: [],
+    social: [
+      { platform: 'instagram', url: 'https://www.instagram.com/aliciasarel', handle: '@aliciasarel' }
+    ],
     lore: `<p>No cayó. Fue separada.</p><p>De un orden. De una sala. De una arquitectura de poder que durante mucho tiempo pareció firme. Lo demás aún no debe decirse.</p><p>La Emperatriz Sin Reino no arrastra su ruina: la administra. No pide restitución. No reclama compasión. Conserva algo más alto y más peligroso que un título: criterio.</p><p>Su herida no se exhibe. Se reconoce.</p><p>Hay en ella una tragedia antigua, pero no blanda. Algo lírico, sí, aunque sin desmayo. Sabe lo que se pierde cuando cae una estructura; sabe también que no toda pérdida empobrece. A veces depura.</p><h3>La Corte</h3><p>Toda corte es una maquinaria. Sonríe, concede, decora, promete. Después mide, selecciona, aparta. La Corte fue escuela, escenario y sentencia. Allí aprendió que el poder rara vez se anuncia con ruido, y que la traición casi nunca entra por la puerta principal.</p><p>No corresponde aún contar los nombres. Ni las alianzas. Ni la forma exacta del quiebre.</p><p>Baste decir que quien sobrevive a la Corte ya no vuelve a confundir compañía con lealtad, ni aplauso con verdad.</p><p><em>Proyecto en desarrollo. La figura permanece abierta. El reino cayó. La voz, no.</em></p>`
   },
   {
@@ -72,10 +74,10 @@ export const CATALOGUE = [
   },
   {
     id: 'la-corte',
-    title: 'La Corte',
-    subtitle: null,          // series title TBD — "Antología de la Historia de España" to confirm
+    title: 'Totalis Libertas',
+    subtitle: 'Antología de la Verdad Histórica de España',
     archetype: 'emperatriz',
-    type: 'anthology',       // signals different rendering in ArchiveDOM and obra modal
+    type: 'anthology',
     author: 'Varios autores',
     seriesInfo: 'Relatos breves e intensos de la Historia de España',
     format: 'Antología',
