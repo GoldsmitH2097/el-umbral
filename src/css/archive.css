@@ -19,6 +19,9 @@
 /* Start invisible — animations trigger via .archive-visible class added by ArchiveDOM.showArchive() */
 .site-hero h2 { font-size: 4vw; font-weight: normal; letter-spacing: 15px; margin: 0 0 20px 0; text-transform: uppercase; opacity: 0; }
 .site-hero p { font-size: 16px; color: #666; letter-spacing: 2px; font-style: italic; max-width: 600px; margin: 0 auto; line-height: 1.8; opacity: 0; }
+.site-hero-sub { color: #777; }
+.site-hero-editorial { font-size: 10px; color: #444; letter-spacing: 3px; text-transform: uppercase; margin: 8px auto 0; max-width: 600px; }
+#editorial-watermark { font-size: 9px; letter-spacing: 4px; text-transform: uppercase; color: rgba(255,255,255,0.15); margin-top: 20px; pointer-events: none; }
 
 @keyframes heroTitleReveal {
   from { opacity: 0; transform: translateY(16px); letter-spacing: 22px; }
@@ -60,8 +63,9 @@
 .footer-legal a { color: #333; text-decoration: none; font-size: 9px; letter-spacing: 3px; transition: color 0.3s; }
 .footer-legal a:hover { color: #888; }
 
-#reading-view { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #020202; z-index: 30; display: none; opacity: 0; pointer-events: none; transition: opacity 1s ease; overflow-y: auto; overflow-x: hidden; }
-#reading-bg-video { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover; opacity: 0.15; filter: grayscale(100%) blur(20px); z-index: 1; pointer-events: none; }
+#reading-view { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: #020202; z-index: 30; display: none; opacity: 0; pointer-events: none; transition: opacity 1s ease; overflow-y: auto; overflow-x: hidden; }
+#reading-bg-video { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; object-fit: cover; opacity: 0.15; filter: grayscale(100%) blur(20px); z-index: 1; pointer-events: none; }
+
 .reading-content { position: relative; z-index: 2; max-width: 650px; margin: 0 auto; padding: 15vh 5vw 20vh 5vw; }
 #btn-volver { 
   position: fixed; top: 40px; left: 5vw; z-index: 40; 

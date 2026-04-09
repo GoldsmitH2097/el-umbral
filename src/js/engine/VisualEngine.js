@@ -196,7 +196,15 @@ export class VisualEngine {
       setTimeout(()=>{const b=document.getElementById('umbral-btn');b.style.opacity='1';b.style.pointerEvents='auto';},500);
     }
   }
-  _resizeCanvas() { this._canvas.width=window.innerWidth; this._canvas.height=window.innerHeight; }
+  _resizeCanvas() {
+    // Cap DPR at 1.5 — 4K Macs at 3x draw exponentially more pixels with zero visual gain
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    this._canvas.width = window.innerWidth * dpr;
+    this._canvas.height = window.innerHeight * dpr;
+    this._canvas.style.width = window.innerWidth + 'px';
+    this._canvas.style.height = window.innerHeight + 'px';
+    this._ctx.scale(dpr, dpr);
+  }
   start() { this._tick(); }
   setAutoAdvanceMode(v) { this._autoAdvanceMode = v; }
   _tick() {

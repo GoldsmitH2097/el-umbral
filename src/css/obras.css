@@ -127,7 +127,7 @@
 /* ── Countdown — large, centered, timer above date label ─────────────────── */
 .obra-countdown { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 12px; width: 100%; }
 .countdown-timer { display: flex; gap: 10px; align-items: baseline; justify-content: center; flex-wrap: wrap; }
-.countdown-timer span { font-size: 28px; letter-spacing: 1px; color: #aaa; font-weight: 300; }
+.countdown-timer span { font-size: 28px; letter-spacing: 1px; color: #aaa; font-weight: 300; font-variant-numeric: tabular-nums; }
 .countdown-timer em { font-size: 8px; letter-spacing: 2px; color: #555; text-transform: uppercase; font-style: normal; margin-left: 2px; }
 .obra-countdown .obra-btn { align-self: center; }
 
@@ -295,3 +295,37 @@
   padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 .obra-modal-relatos li:last-child { border-bottom: none; }
+
+/* ── Status pills + format badges ────────────────────────────────────────── */
+.obra-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+
+.obra-status-pill {
+  font-size: 8px; letter-spacing: 3px; text-transform: uppercase;
+  padding: 3px 8px; border: 1px solid;
+}
+.obra-status-pill--available {
+  color: #c8922a; border-color: rgba(200,146,42,0.4);
+  background: rgba(200,146,42,0.08);
+}
+.obra-status-pill--coming-soon {
+  color: #555; border-color: rgba(255,255,255,0.08);
+}
+.obra-status-pill--countdown {
+  color: #888; border-color: rgba(255,255,255,0.1);
+}
+.obra-format-badge {
+  font-size: 8px; letter-spacing: 3px; text-transform: uppercase;
+  padding: 3px 8px; color: #444; border: 1px solid rgba(255,255,255,0.05);
+}
+
+/* Accent color only on the single buyable item */
+.obra-btn--buy {
+  background: transparent;
+  border: 1px solid rgba(200,146,42,0.6);
+  color: #c8922a;
+  letter-spacing: 3px;
+}
+.obra-btn--buy:hover {
+  background: rgba(200,146,42,0.1);
+  border-color: #c8922a;
+}

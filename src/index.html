@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Soulware — Crónicas de la Oscuridad</title>
+  <title>Soulware — Editorial Independiente Española | Ficción Oscura y Universos de Autor</title>
 
-  <meta name="description" content="Has cruzado la línea. La historia se escribe con sangre, sombras y ecos en la oscuridad. Explora las crónicas de El Umbral." />
+  <meta name="description" content="Soulware es una editorial independiente española de ficción oscura. Cuatro arquetipos, cuatro universos literarios. Descubre el catálogo, los autores y sus mundos." />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://soulware.live/" />
 
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://soulware.live/" />
-  <meta property="og:title" content="Soulware — Las Crónicas de la Oscuridad" />
-  <meta property="og:description" content="La historia se escribe con sangre, sombras y ecos en la oscuridad. Selecciona tu camino." />
+  <meta property="og:title" content="Soulware — Editorial Independiente Española | Ficción Oscura" />
+  <meta property="og:description" content="Soulware es una editorial independiente española de ficción oscura. Cuatro arquetipos, cuatro universos literarios." />
   <meta property="og:image" content="https://soulware.live/og-image.jpg" />
   <meta property="og:image:alt" content="Soulware — Las Crónicas de la Oscuridad" />
   <meta property="og:image:width" content="1200" />
@@ -29,6 +29,92 @@
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
   <meta name="theme-color" content="#020202" />
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://soulware.live/#organization",
+        "name": "Soulware",
+        "description": "Editorial independiente española de ficción oscura y universos de autor.",
+        "url": "https://soulware.live",
+        "logo": { "@type": "ImageObject", "url": "https://soulware.live/assets/soulware-logo.webp" },
+        "sameAs": [
+          "https://www.instagram.com/core.soulware",
+          "https://www.instagram.com/aliciasarel",
+          "https://www.instagram.com/wwyeid0n",
+          "https://www.instagram.com/irina_mlk_",
+          "https://www.threads.com/@wwyeid0n",
+          "https://www.threads.com/@irina_mlk_",
+          "https://www.threads.com/@germyto"
+        ],
+        "email": "editorial@soulware.live",
+        "foundingLocation": { "@type": "Place", "name": "España" }
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://soulware.live/#website",
+        "url": "https://soulware.live",
+        "name": "Soulware",
+        "description": "Editorial independiente española de ficción oscura",
+        "publisher": { "@id": "https://soulware.live/#organization" },
+        "inLanguage": "es"
+      },
+      {
+        "@type": "Book",
+        "name": "Pulso del Núcleo — Núcleo Eterno",
+        "author": { "@type": "Person", "name": "WW. & Eidon" },
+        "publisher": { "@id": "https://soulware.live/#organization" },
+        "bookFormat": "Paperback",
+        "description": "Primera de tres novelas. Una crónica oscura y épica sobre legado, guerra y conciencia.",
+        "inLanguage": "es",
+        "url": "https://soulware.live/caballero",
+        "offers": {
+          "@type": "Offer",
+          "url": "https://www.amazon.es/Pulso-del-N%C3%BAcleo-Parte-Eterno/dp/8409810344/",
+          "availability": "https://schema.org/InStock",
+          "seller": { "@type": "Organization", "name": "Amazon ES" }
+        }
+      },
+      {
+        "@type": "Book",
+        "name": "Filamentos de Oscuridad — Resonancia de la Penumbra",
+        "author": { "@type": "Person", "name": "Irina M." },
+        "publisher": { "@id": "https://soulware.live/#organization" },
+        "bookFormat": "Paperback",
+        "description": "Primera de dos novelas. Los hilos que conectan lo que no debería estar conectado.",
+        "inLanguage": "es",
+        "url": "https://soulware.live/sortilega",
+        "offers": {
+          "@type": "Offer",
+          "availability": "https://schema.org/PreOrder"
+        }
+      },
+      {
+        "@type": "Book",
+        "name": "Anatomía del Vacío",
+        "author": { "@type": "Person", "name": "Germán Ferri" },
+        "publisher": { "@id": "https://soulware.live/#organization" },
+        "description": "Experiencia de relato inmersivo e interactivo. Terror psicológico en la web.",
+        "inLanguage": "es",
+        "url": "https://soulware.live/arlequin"
+      },
+      {
+        "@type": "Book",
+        "name": "Totalis Libertas — Antología de la Verdad Histórica de España",
+        "author": { "@type": "Person", "name": "Varios autores" },
+        "publisher": { "@id": "https://soulware.live/#organization" },
+        "bookFormat": "Paperback",
+        "description": "Antología de relatos breves e intensos sobre la historia de España.",
+        "inLanguage": "es",
+        "url": "https://soulware.live/emperatriz"
+      }
+    ]
+  }
+  </script>
 
   <link rel="stylesheet" href="/css/global.css" />
   <link rel="stylesheet" href="/css/canvas.css" />
@@ -92,7 +178,7 @@
   <div id="char-text"><h3 id="char-title">Cargando...</h3><p id="char-desc">Cargando...</p></div>
 </div>
 <div id="ambient-light"></div>
-<div id="ui"><div id="instruccion">Toca y mantén pulsado<br>para encender la llama<br><span style="font-size:10px;opacity:0.5;letter-spacing:2px;">(Desactiva el silencio)</span></div></div>
+<div id="ui"><div id="instruccion">Toca y mantén pulsado<br>para encender la llama<br><span style="font-size:10px;opacity:0.5;letter-spacing:2px;">(Desactiva el silencio)</span></div><div id="editorial-watermark">Soulware — Editorial Independiente</div></div>
 <button id="umbral-btn" aria-label="Cruzar El Umbral">EL UMBRAL<span class="cruzar-txt">CRUZAR</span></button>
 
 <!-- SCENE 2: VOCES DEL UMBRAL -->
@@ -123,7 +209,8 @@
     </nav>
     <header class="site-hero">
       <h2>Las Crónicas</h2>
-      <p>Has cruzado la línea. La historia se escribe con sangre, sombras y ecos en la oscuridad. Selecciona tu camino.</p>
+      <p class="site-hero-sub">Cuatro arquetipos. Cuatro universos. Bienvenido al archivo de Soulware.</p>
+      <p class="site-hero-editorial">Soulware es una editorial independiente de ficción oscura y universos de autor.</p>
     </header>
     <section class="pillar-grid"></section>
     <section class="obras-grid" id="obras-section"></section>

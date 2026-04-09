@@ -7,6 +7,12 @@ import { initMobileScene2, initMobileArchive } from './mobile.js';
 
 const audio = new AudioEngine();
 
+// ── prefers-reduced-motion: skip intro entirely ─────────────────────────────
+// Respects OS-level accessibility setting. Also legally required (WCAG 2.3.3).
+if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  document.addEventListener('DOMContentLoaded', () => skipIntroAndEnterArchive(), { once: true });
+}
+
 const visual = new VisualEngine({
   audio,
   onWhisperFound: (index) => audio.playCharacterSignature(index),

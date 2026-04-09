@@ -28,6 +28,8 @@ export class ArchiveDOM {
 
   _buildPillars() {
     const grid=document.querySelector('.pillar-grid'); if(!grid) return;
+    // Horizontal swipe on mobile — remove class to revert to vertical stack
+    grid.classList.add('pillar-grid--swipe');
     CHARACTERS.forEach((char,i)=>{
       const pillar=document.createElement('div');
       pillar.className='pillar' + (char.status==='missing' ? ' pillar--missing' : '');
@@ -146,11 +148,26 @@ export class ArchiveDOM {
             ctaHtml = `<span class="obra-btn obra-btn--soon">Próximamente</span>`;
           }
 
+          const statusLabels = {
+            'available': 'Disponible',
+            'coming-soon': 'Próximamente',
+            'countdown': 'Preventa',
+          };
+          const formatLabels = {
+            'Novela': 'Edición Física',
+            'Novela — Edición de coleccionista': 'Edición Física',
+            'Experiencia web interactiva': 'Experiencia Digital',
+            'Antología': 'Antología',
+          };
+          const statusPill = `<span class="obra-status-pill obra-status-pill--${item.status}">${statusLabels[item.status] || item.status}</span>`;
+          const formatBadge = item.format ? `<span class="obra-format-badge">${formatLabels[item.format] || item.format}</span>` : '';
+
           const subtitleHtml = item.subtitle ? `<p class="obra-subtitle">${item.subtitle}</p>` : '';
 
           card.innerHTML = `
             ${coverHtml}
             <div class="obra-meta">
+              <div class="obra-badges">${statusPill}${formatBadge}</div>
               <h3 class="obra-title">${item.title}</h3>
               ${subtitleHtml}
               <p class="obra-desc">${item.desc}</p>
@@ -216,7 +233,9 @@ export class ArchiveDOM {
       <div class="contact-inner">
         <h2 class="contact-title">Contacto</h2>
         <p class="contact-sub">Prensa, colaboraciones y preguntas sobre el universo Soulware.</p>
-        <form class="contact-form" id="contact-form" action="https://formspree.io/editorial@soulware.live" method="POST">
+        <form class="contact-form" id="contact-form" name="contacto-soulware" data-netlify="true" netlify-honeypot="bot-field">
+          <input type="hidden" name="form-name" value="contacto-soulware" />
+          <input type="text" name="bot-field" style="display:none" aria-hidden="true" />
           <input type="text" name="name" placeholder="Nombre" required autocomplete="name" />
           <input type="email" name="email" placeholder="Email" required autocomplete="email" />
           <textarea name="message" placeholder="Mensaje" rows="4" required></textarea>
@@ -378,10 +397,11 @@ export class ArchiveDOM {
       const original = btn.textContent;
       btn.textContent = 'Enviando...'; btn.disabled = true;
       try {
-        const res = await fetch(e.target.action, {
+        const formData = new FormData(e.target);
+        const res = await fetch('/', {
           method: 'POST',
-          body: new FormData(e.target),
-          headers: { 'Accept': 'application/json' }
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams(formData).toString()
         });
         if (res.ok) {
           btn.textContent = 'Enviado ✓';
