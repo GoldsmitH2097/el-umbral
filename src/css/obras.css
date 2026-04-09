@@ -250,3 +250,6 @@
   #obra-modal-title { font-size: 20px; letter-spacing: 4px; }
   #obra-modal-close { top: 16px; right: 16px; }
 }
+
+/* Archetype header — hidden on desktop (pillar alignment provides context), shown on mobile */
+.obra-archetype-header { display: none; }

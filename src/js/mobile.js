@@ -112,10 +112,14 @@ export function initMobileArchive() {
             cta = `<span class="obra-btn obra-btn--soon">Próximamente</span>`;
           }
           const sub = item.subtitle ? `<p class="obra-subtitle">${item.subtitle}</p>` : '';
+          const seriesHtml = item.seriesInfo ? `<p class="obra-series-info">${item.seriesInfo}</p>` : '';
+          const coverHtml = item.img
+            ? `<img src="${item.img}" alt="${item.title}" class="mobile-book-cover obra-cover--clickable" data-id="${item.id}" style="cursor:pointer;" />`
+            : '';
           return `<div class="mobile-detail-book">
-            ${item.img ? `<img src="${item.img}" alt="${item.title}" class="mobile-book-cover" />` : ''}
+            ${coverHtml}
             <div>
-              <h3 class="obra-title">${item.title}</h3>${sub}
+              <h3 class="obra-title">${item.title}</h3>${sub}${seriesHtml}
               <p class="obra-desc" style="opacity:1;max-height:none;">${item.desc}</p>
               ${cta}
             </div>
@@ -123,6 +127,13 @@ export function initMobileArchive() {
         }).join('') + `</div>`;
       // Re-init countdowns for newly added timers
       detailObras.querySelectorAll('.countdown-timer').forEach(el => initCountdown(el));
+      // Wire book covers to obra modal
+      detailObras.querySelectorAll('.obra-cover--clickable').forEach(img => {
+        img.addEventListener('click', () => {
+          // Call ArchiveDOM's modal — it's exposed on window for cross-module access
+          window._openObraModal?.(img.dataset.id);
+        });
+      });
     } else {
       detailObras.innerHTML = '';
     }

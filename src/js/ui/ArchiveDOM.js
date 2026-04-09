@@ -81,6 +81,15 @@ export class ArchiveDOM {
       col.dataset.index = i;
       col.dataset.archetype = char.slug;
 
+      // Archetype header — always visible on mobile, hidden on desktop (alignment handles it there)
+      const archetypeHeader = document.createElement('div');
+      archetypeHeader.className = 'obra-archetype-header';
+      archetypeHeader.innerHTML = `
+        <span class="obra-archetype-label">${char.label}</span>
+        <span class="obra-archetype-author">${char.author || ''}</span>
+      `;
+      col.appendChild(archetypeHeader);
+
       // Get books for this archetype
       const books = CATALOGUE.filter(item => item.archetype === char.slug);
 
@@ -243,6 +252,8 @@ export class ArchiveDOM {
     closeBtn?.addEventListener('click', () => this._closeObraModal());
     modal.addEventListener('click', (e) => { if (e.target === modal) this._closeObraModal(); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') this._closeObraModal(); });
+    // Expose for cross-module access (e.g. mobile.js)
+    window._openObraModal = (id) => this.openObraModal(id);
   }
 
   openObraModal(itemId) {
