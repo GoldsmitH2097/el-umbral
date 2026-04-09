@@ -194,10 +194,10 @@ export class ArchiveDOM {
 
     this._initCountdowns();
     this._bindColumnHover();
-    // 3D tilt only on pointer devices — no-op on touch
     if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
       this._initCoverTilt();
     }
+    this._initScrollReveal();
   }
 
   // Pillars and obra-columns animate together as one block
@@ -212,6 +212,27 @@ export class ArchiveDOM {
       pillar.addEventListener('mouseleave', () => col.classList.remove('obra-column--highlighted'));
       col.addEventListener('mouseenter', () => pillar.classList.add('pillar--highlighted'));
       col.addEventListener('mouseleave', () => pillar.classList.remove('pillar--highlighted'));
+    });
+  }
+
+  _initScrollReveal() {
+    const cards = document.querySelectorAll('.obra-book');
+    if (!cards.length) return;
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('revealed');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+    cards.forEach((card, i) => {
+      // Stagger: column index × 80ms
+      const col = card.closest('.obra-column');
+      const colIndex = col ? [...document.querySelectorAll('.obra-column')].indexOf(col) : 0;
+      card.style.transitionDelay = `${colIndex * 80}ms`;
+      observer.observe(card);
     });
   }
 

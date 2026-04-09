@@ -3,9 +3,11 @@ import { Router } from './core/Router.js';
 import { AudioEngine } from './engine/AudioEngine.js';
 import { VisualEngine } from './engine/VisualEngine.js';
 import { ArchiveDOM } from './ui/ArchiveDOM.js';
+import { ArchiveFireflies } from './ui/ArchiveFireflies.js';
 import { initMobileScene2, initMobileArchive } from './mobile.js';
 
 const audio = new AudioEngine();
+const fireflies = new ArchiveFireflies();
 
 // ── prefers-reduced-motion: skip intro entirely ─────────────────────────────
 // Respects OS-level accessibility setting. Also legally required (WCAG 2.3.3).
@@ -113,6 +115,7 @@ function skipIntroAndEnterArchive() {
   archive.showArchive({skipIntro:true});
   document.body.style.cursor='auto';
   document.querySelectorAll('*').forEach(el=>el.style.setProperty('cursor','auto','important'));
+  fireflies.init();
 }
 
 function enterScene2() {
@@ -156,7 +159,6 @@ function triggerAwakening() {
 
 function enterMainSite() {
   const s3=document.getElementById('scene-3'); s3.style.opacity='0'; s3.style.pointerEvents='none';
-  // DOM cleanup: remove invisible layers that can block events in Scene 4
   document.getElementById('scene-2').style.display='none';
   s3.style.display='none';
   document.getElementById('editorial-watermark').style.display='none';
@@ -164,6 +166,7 @@ function enterMainSite() {
   archive.showArchive(); audio.playTransitionEcho(); audio.stopAwakening();
   audio.setAwakening(false); state.isAwakening=false; transitionTo(4);
   initMobileArchive();
+  fireflies.init(); // start fireflies + particles after archive is shown
 }
 
 function handleDown(e) {
