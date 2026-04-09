@@ -18,9 +18,9 @@
 .site-hero { padding: 10vh 5vw; text-align: center; }
 /* Start invisible — animations trigger via .archive-visible class added by ArchiveDOM.showArchive() */
 .site-hero h2 { font-size: 4vw; font-weight: normal; letter-spacing: 15px; margin: 0 0 20px 0; text-transform: uppercase; opacity: 0; }
-.site-hero p { font-size: 16px; color: #666; letter-spacing: 2px; font-style: italic; max-width: 600px; margin: 0 auto; line-height: 1.8; opacity: 0; }
-.site-hero-sub { color: #777; max-width: 900px; white-space: nowrap; }
-.site-hero-editorial { font-size: 10px; color: #444; letter-spacing: 3px; text-transform: uppercase; margin: 8px auto 0; max-width: 600px; }
+.site-hero p { font-size: 16px; color: #888; letter-spacing: 2px; font-style: italic; max-width: 600px; margin: 0 auto; line-height: 1.8; opacity: 0; }
+.site-hero-sub { color: #999; max-width: 900px; white-space: nowrap; }
+.site-hero-editorial { font-size: 10px; color: #666; letter-spacing: 3px; text-transform: uppercase; margin: 8px auto 0; max-width: 600px; }
 #editorial-watermark {
   position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
   font-size: 9px; letter-spacing: 5px; text-transform: uppercase;
@@ -47,20 +47,44 @@
 }
 .pillar-grid { display: flex; width: 100%; flex: 1; min-height: 50vh; background: #080808; border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); }
 /* box-shadow instead of border-right — borders paint over overflow:hidden and cause the white line */
-.pillar { flex: 1; position: relative; background: #050505; display: flex; flex-direction: column; justify-content: flex-end; padding: 40px 20px; overflow: hidden; cursor: pointer !important; transition: flex 0.6s cubic-bezier(0.25,1,0.5,1), background 0.5s ease; box-shadow: 1px 0 0 0 rgba(255,255,255,0.04); }
+.pillar { flex: 1; position: relative; background: #050505; display: flex; flex-direction: column; justify-content: flex-end; padding: 40px 20px; overflow: hidden; cursor: pointer !important; transition: flex 0.6s cubic-bezier(0.25,1,0.5,1), background 0.5s ease, box-shadow 0.5s ease; box-shadow: 1px 0 0 0 rgba(255,255,255,0.04); }
 .pillar:last-child { box-shadow: none; }
-.pillar:hover { flex: 1.5; background: #020202; }
+.pillar:hover, .pillar--highlighted {
+  flex: 1.5; background: #080808;
+  box-shadow: inset 0 0 60px rgba(200,146,42,0.04), 1px 0 0 0 rgba(255,255,255,0.04);
+}
 /* Tonal math: brightness(0.9) contrast(1.5)
    Lifted black at 0.15 → 0.15×0.9=0.135 → (0.135−0.5)×1.5+0.5 = −0.048 → 0 ✓
    Smoke highlight  0.7 → 0.7×0.9 =0.63  → (0.63−0.5)×1.5+0.5  = 0.695    ✓
    Bright smoke     1.0 → 1.0×0.9 =0.9   → (0.9−0.5)×1.5+0.5   = 1.1 → 1  ✓
    Previous brightness(0.65) was halving the midrange — that's why highlights were dim. */
-.pillar video { position: absolute; top: -2%; left: -2%; width: 104%; height: 104%; object-fit: cover; opacity: 0.12; filter: grayscale(100%) brightness(0.9) contrast(1.5); transition: opacity 0.8s ease, transform 6s ease; transform: scale(1); pointer-events: none; z-index: 0; }
-.pillar:hover video, .pillar--highlighted video { opacity: 0.5; transform: scale(1.05); }
+.pillar video {
+  position: absolute; top: -2%; left: -2%; width: 104%; height: 104%;
+  object-fit: cover;
+  opacity: 0.18;
+  /* Resting state: B&W. Hover: full color reveal — the character's real palette appears */
+  filter: grayscale(100%) brightness(0.9) contrast(1.4);
+  transition: opacity 0.9s ease, transform 6s ease, filter 0.9s ease;
+  transform: scale(1); pointer-events: none; z-index: 0;
+}
+.pillar:hover video, .pillar--highlighted video {
+  opacity: 0.62;
+  filter: grayscale(0%) brightness(0.8) contrast(1.15);
+  transform: scale(1.05);
+}
 .pillar-content { position: relative; z-index: 2; transition: transform 0.5s ease; transform: translateY(20px); text-align: center; }
 .pillar:hover .pillar-content { transform: translateY(0); }
-.pillar-content h4 { font-size: 14px; letter-spacing: 4px; margin: 0 0 15px 0; text-transform: uppercase; line-height: 1.5; }
-.pillar-content p { font-size: 12px; color: #888; line-height: 1.6; margin: 0 auto; max-width: 250px; opacity: 0; transition: opacity 0.5s ease; }
+.pillar-content h4 {
+  font-size: 14px; letter-spacing: 4px; margin: 0 0 15px 0;
+  text-transform: uppercase; line-height: 1.5;
+  transition: color 0.5s ease, text-shadow 0.5s ease;
+}
+.pillar:hover .pillar-content h4,
+.pillar--highlighted .pillar-content h4 {
+  color: #e8c87a; /* warm amber-gold — echoes the flame, the buy button */
+  text-shadow: 0 0 20px rgba(200, 146, 42, 0.4);
+}
+.pillar-content p { font-size: 12px; color: #999; line-height: 1.6; margin: 0 auto; max-width: 250px; opacity: 0; transition: opacity 0.5s ease; }
 .pillar:hover .pillar-content p,
 .pillar--highlighted .pillar-content p { opacity: 1; }
 .site-footer { text-align: center; padding: 5vh 5vw 4vh; font-size: 10px; color: #444; letter-spacing: 4px; text-transform: uppercase; }

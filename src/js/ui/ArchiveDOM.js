@@ -250,6 +250,7 @@ export class ArchiveDOM {
     const timers = document.querySelectorAll('.countdown-timer');
     timers.forEach(el => {
       const target = new Date(el.dataset.release).getTime();
+      let prevS = -1;
       const update = () => {
         const now = Date.now();
         const diff = target - now;
@@ -258,7 +259,9 @@ export class ArchiveDOM {
         const h = Math.floor((diff % 86400000) / 3600000);
         const m = Math.floor((diff % 3600000) / 60000);
         const s = Math.floor((diff % 60000) / 1000);
-        el.innerHTML = `<span>${d}<em>d</em></span><span>${h}<em>h</em></span><span>${m}<em>m</em></span><span>${s}<em>s</em></span>`;
+        const slide = s !== prevS ? ' countdown-slide' : '';
+        prevS = s;
+        el.innerHTML = `<span>${d}<em>d</em></span><span>${h}<em>h</em></span><span>${m}<em>m</em></span><span class="countdown-seconds${slide}">${s}<em>s</em></span>`;
       };
       update();
       setInterval(update, 1000);
@@ -465,12 +468,15 @@ export class ArchiveDOM {
 
   _initSingleCountdown(el) {
     const target = new Date(el.dataset.release).getTime();
+    let prevS = -1;
     const update = () => {
       const diff = target - Date.now();
       if (diff <= 0) { el.textContent = 'Disponible ahora'; return; }
       const d = Math.floor(diff/86400000), h = Math.floor((diff%86400000)/3600000);
       const m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
-      el.innerHTML = `<span>${d}<em>d</em></span><span>${h}<em>h</em></span><span>${m}<em>m</em></span><span>${s}<em>s</em></span>`;
+      const slide = s !== prevS ? ' countdown-slide' : '';
+      prevS = s;
+      el.innerHTML = `<span>${d}<em>d</em></span><span>${h}<em>h</em></span><span>${m}<em>m</em></span><span class="countdown-seconds${slide}">${s}<em>s</em></span>`;
     };
     update(); setInterval(update, 1000);
   }

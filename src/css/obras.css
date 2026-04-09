@@ -108,9 +108,9 @@
 }
 
 /* Brighter text in obras section */
-.obra-title { color: #ddd; }
-.obra-subtitle { color: #666; }
-.obra-desc { color: #666; }
+.obra-title { color: #e0e4e8; }
+.obra-subtitle { color: #777; }
+.obra-desc { color: #888; }
 .obra-meta { display: flex; flex-direction: column; gap: 6px; align-items: center; text-align: center; width: 100%; }
 .obra-title {
   font-size: 13px; font-weight: normal; letter-spacing: 3px;
@@ -144,9 +144,23 @@
 
 /* ── Countdown — large, centered, timer above date label ─────────────────── */
 .obra-countdown { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 12px; width: 100%; }
-.countdown-timer { display: flex; gap: 10px; align-items: baseline; justify-content: center; flex-wrap: wrap; }
+.countdown-timer { display: flex; gap: 10px; align-items: baseline; justify-content: center; flex-wrap: wrap; overflow: hidden; }
 .countdown-timer span { font-size: 28px; letter-spacing: 1px; color: #aaa; font-weight: 300; font-variant-numeric: tabular-nums; }
 .countdown-timer em { font-size: 8px; letter-spacing: 2px; color: #555; text-transform: uppercase; font-style: normal; margin-left: 2px; }
+/* Seconds span — amber accent + slide-in animation */
+.countdown-seconds {
+  color: #c8922a !important;
+  display: inline-block;
+  overflow: hidden;
+}
+.countdown-seconds em { color: rgba(200,146,42,0.5) !important; }
+@keyframes countdownSecSlide {
+  from { transform: translateY(-60%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.countdown-seconds.countdown-slide {
+  animation: countdownSecSlide 0.28s cubic-bezier(0.25, 1, 0.5, 1);
+}
 .obra-countdown .obra-btn { align-self: center; }
 
 /* ── Contact section ──────────────────────────────────────────────────────── */
@@ -326,10 +340,10 @@
   background: rgba(200,146,42,0.08);
 }
 .obra-status-pill--coming-soon {
-  color: #555; border-color: rgba(255,255,255,0.08);
+  color: #777; border-color: rgba(255,255,255,0.12);
 }
 .obra-status-pill--countdown {
-  color: #888; border-color: rgba(255,255,255,0.1);
+  color: #aaa; border-color: rgba(255,255,255,0.15);
 }
 .obra-format-badge {
   font-size: 8px; letter-spacing: 3px; text-transform: uppercase;
