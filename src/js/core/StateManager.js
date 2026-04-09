@@ -59,7 +59,7 @@ export const CHARACTERS = [
 export const CATALOGUE = [
   {
     id: 'emperatriz-obra',
-    title: 'Título por confirmar',
+    title: 'En preparación',
     subtitle: 'Tragedia lírica',
     archetype: 'emperatriz',
     type: 'obra',                    // single novel
@@ -68,7 +68,7 @@ export const CATALOGUE = [
     format: 'Novela',
     status: 'coming-soon',
     img: null,
-    desc: 'Una tragedia lírica personal. El reino cayó. La voz, no. Más detalles próximamente.',
+    desc: 'Una tragedia lírica personal. El reino cayó. La voz, no.',
     buyUrl: null,
     buyLabel: 'Próximamente',
   },
