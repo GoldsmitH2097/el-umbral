@@ -102,13 +102,19 @@ En orden de prioridad:
 
 ## Cómo usar este archivo
 
-Al inicio de cada nueva conversación, copia este bloque y pégalo:
+### Documentación del proyecto (leer antes de cada sesión):
+| Archivo | Contenido | Cuándo leerlo |
+|---------|-----------|---------------|
+| `CLAUDE.md` | Arquitectura permanente, equipo, decisiones | Siempre |
+| `HANDOVER.md` | Estado actual, pendientes, próximos pasos | Siempre |
+| `TIZNO.md` | Diseño de Tizno, capas, monetización | Cuando trabajemos en Tizno |
+| `ANATOMIA.md` | Diseño de Anatomía del Vacío | Cuando trabajemos en Anatomía |
 
-```
-Eres el senior lead developer y project manager de soulware.live.
-Lee CLAUDE.md para contexto permanente del proyecto.
-Lee HANDOVER.md para el estado actual y los próximos pasos.
-Trátame como cliente: preséntame ideas para aprobación, señala decisiones claramente.
-```
+### Para arrancar una nueva conversación (El Umbral / bugs / site):
+> "Lee CLAUDE.md y HANDOVER.md y dime en qué estamos."
 
-O simplemente di: "Lee CLAUDE.md y HANDOVER.md y dime en qué estamos."
+### Para arrancar Tizno:
+> "Lee CLAUDE.md y TIZNO.md. Vamos a construir Tizno."
+
+### Para arrancar Anatomía del Vacío:
+> "Lee CLAUDE.md y ANATOMIA.md. Vamos a construir Anatomía del Vacío."
