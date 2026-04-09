@@ -1,225 +1,236 @@
 # HANDOVER.md — El Umbral / Soulware
-*Última actualización: 9 Abril 2026 — Fin de sesión. Auditorías externas completadas.*
+*Última actualización: 9 Abril 2026 — Cierre de sesión de día completo*
+*Próxima sesión: Mañana*
 
 ---
 
 ## Estado del sitio
 
-**Live:** https://soulware.live
-**Último commit:** `cb7f7e1` — AUDIT_BRIEF_V2.md added
-**Repo:** github.com/GoldsmitH2097/el-umbral
-**Deploy:** git push origin main → Netlify auto-build (~10s)
+**Live:** https://soulware.live  
+**Último commit:** `cb7f7e1` — docs: AUDIT_BRIEF_V2.md  
+**Build:** ✅ Limpio  
+**Deploy:** ✅ Netlify auto-deploy activo
 
 ---
 
-## Qué se hizo hoy (resumen ejecutivo)
+## Resumen de la sesión de hoy
 
-### Arquitectura — cambio más importante del día
-**Canvas destination-out** reemplaza el CSS mask-image sobre el video.
-- Antes: `mask-image` en `#gallery-container` con video dentro → browser recalculaba máscara sobre frames de video 60fps → CPU/compositing bottleneck → 1fps bajo carga
-- Ahora: Canvas pinta negro, `destination-out` borra agujero → video (z-0) y char-text (z-1) se ven a través → operación GPU pura, cero recálculo de layout
-- Resultado: TBT desktop estimado ~200-600ms (era 18,790ms)
+### Hito principal: Canvas destination-out
+El refactor más importante del día. La arquitectura de spotlight pasó de:
+- CSS mask-image sobre vídeo en reproducción (CPU, mata hardware acceleration)
+A:
+- Canvas `destination-out`: pinta negro, borra agujero transparente → vídeo se ve por debajo (GPU puro)
 
-### Otros fixes del día
-- 60fps física para llama/humo (era 30fps — se veía "a mitad de frames")
-- 144Hz timestamp guard (era double-speed en ProMotion screens)
-- Cursor desaparece al ignitar (la llama ES el cursor)
-- Audio sizzle: windGain=0.015 se silencia al entrar al archivo
-- Spam protection en EL UMBRAL button (pointerEvents:none al primer click)
-- Tizno: silhouette estática, ojos wiggle con CSS (eyeFloat animation)
-- Tizno eyes: container CSS `.tizno-eyes` faltaba — restaurado con justify-content:center
-- Mobile: overflow-x fix, touch-action:manipulation, event delegation
-- Totalis Libertas: overflow de texto con letter-spacing arreglado
-- Reading view: autor + libros side-by-side (desktop), apilado (mobile)
-- Footer: logo dorado, links legales con :visited fix
-- Dead CSS vars purged: --radio-interior, --radio-exterior, --intensidad ya no existen
-- AUDIT_BRIEF_V2.md creado y pusheado
+Esto resolvió el 1fps, el stuttering, y el "medio apagado" de la llama.
 
----
-
-## Auditorías externas completadas (April 9, 2026)
-
-Tres LLMs auditaron soulware.live. Síntesis de hallazgos:
-
-### ✅ Confirmado como arreglado por los auditores
-- destination-out approach: correcto y limpio ✅
-- Dead CSS vars: purged completamente ✅
-- Bundle size: JS 73KB / CSS 36KB — tiny, sin render-blocking ✅
-- SEO 100/100: meta tags, structured data, sitemap, robots.txt ✅
-- Rutas deep links: /emperatriz /caballero /sortilega /arlequin → 200 OK ✅
-- SPA fallback Netlify: correcto ✅
-- Schema.org: Organization + WebSite + 3 Book entities (correcto) ✅
-- Filamentos: availabilityStarts 2026-05-12 ✅
-
----
-
-## Bugs / issues pendientes — PRIORIDAD ALTA
-
-### 1. Smoke glitch (Gemini diagnosó la causa exacta)
-**Root cause:**
-- **Bounding box clipping**: si el gradiente del sprite toca el borde del OffscreenCanvas,
-  el pixel exterior tiene alpha 0.01 en vez de 0. Con 85 humos apilados, el borde se multiplica y
-  se vuelve visible como un cuadrado.
-- **Sub-pixel jitter**: coordenadas float → GPU aplica anti-aliasing al vuelo.
-
-**Fix exacto (2 líneas):**
-```js
-// En OffscreenCanvas sprite creation: añadir 15% padding
-const _smokeSprite = new OffscreenCanvas(76, 76); // era 64x64
-// ... gradient centrado en 38,38 con radio 30 (no 32) para dejar margen
-
-// En SmokeParticle.draw(): forzar coordenadas enteras
-ctx.drawImage(_smokeSprite, (this.x-this.size)|0, (this.y-this.size)|0, ...);
-// Ya teníamos el |0 — verificar que el sprite también tiene margen
+### Commits del día (newest first)
+```
+cb7f7e1  docs: AUDIT_BRIEF_V2.md — updated audit prompt for external LLMs
+27b514d  fix: tizno-eyes container CSS was missing
+6e32f1b  fix: destination-out canvas spotlight, audio sizzle, remove CSS masks
+f42b430  fix: totalis libertas overflow, mobile clicks, 60fps physics, layout
+de4eac7  fix: audio silence on archive, faint line, logo color, anthology centered
+f780a7e  fix(critical): unclosed CSS comment hiding reading-view, btn-volver, all modals
+9a3080d  perf+fix: LERP covers, smoke sprite, footer, mobile, covers
+b6c22a5  perf+fix: smoke cap, safari acepto ghost, tizno overhaul, vertical lines
 ```
 
-### 2. Video CDN — Crítico para escalabilidad
-- 4x ~2.5MB MP4s en Netlify sin CDN edge caching
-- Cache headers: `max-age=0,must-revalidate` → re-valida 10MB en cada visita
-- **Fix inmediato antes de Bunny.net**: añadir headers en netlify.toml:
-  ```toml
-  [[headers]]
-    for = "/*.mp4"
-    [headers.values]
-      Cache-Control = "public, max-age=2592000"
-  ```
-- **Fix real**: migrar a Bunny.net. Javier tiene los videos. Cuando tenga URLs → 10 min de código.
-- **Bonus**: Gemini sugiere `preload="none"` en pillar videos + `.load()` solo cuando aparece el botón EL UMBRAL en Scene 3
+---
 
-### 3. prefers-reduced-motion CSS (accesibilidad legal)
-Claude auditó: el JS salta el intro si reduced-motion, pero las animaciones CSS siguen corriendo.
-**Fix (una sola regla global):**
-```css
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
+## Arquitectura actual — referencias rápidas
+
+### Canvas Scene 1 (The Tomb)
+```
+z-index 0: #gallery-container   — video, sin CSS mask, GPU hardware-accelerated
+z-index 1: #char-text           — nombre/desc personaje, revelado por agujero canvas
+z-index 3: #vfx-canvas          — negro → destination-out → glow → partículas
+z-index 5: #ui                  — instrucción, siempre visible
+z-index 6: #umbral-btn
+```
+
+VisualEngine ya NO usa CSS vars para el spotlight:
+- `this._radioInt`, `this._radioExt`, `this._intensidad` → instance vars, puro canvas
+- Solo `--x` y `--y` siguen en CSS (para `#scene-2-light`)
+
+### Archive Scene 4
+```
+.archive-col = 1 columna por arquetipo (pillar video + libros)
+Desktop: 4 columnas, hover expande
+Mobile: scroll-snap horizontal, 50dvh video / books naturales abajo
+```
+
+---
+
+## AUDIT RESULTS — 3 LLMs (9 Abril 2026)
+
+### Consenso de los 3 (Claude + Gemini + GPT)
+
+1. **Video CDN** — Bunny.net. 4x2.5MB en Netlify con `max-age=0,must-revalidate`.
+   No caching. Re-valida en cada visita. Prioridad máxima antes de cualquier marketing push.
+
+2. **Email capture** — Ninguno. La ausencia de captación de emails es el mayor
+   error de negocio. En Tizno drawer. Lenguaje en universo. "Firma el pacto."
+
+3. **TBT desktop sigue elevado** — Mejoró mucho (de 18,790ms a ~200-600ms estimado).
+   Pero RAF loop en Scenes 1-3 sigue bloqueando main thread. Fix final: OffscreenCanvas worker.
+
+4. **Anatomía del Vacío** — "El placeholder más cool de internet" (GPT). Necesita más.
+   Gemini: glitch teaser VHS + acorde disonante en hover. No dejar solo "En preparación".
+
+### Hallazgos únicos de Claude (código)
+
+- `cursor: crosshair !important` en `*` es demasiado agresivo. Necesita `!important`
+  en cursor:none para la llama. Considerar scope a `body` o scene containers.
+- `user-select: none` en body: hostil en reading view. Aflojar en `.reading-content`
+  y `.tizno-panel` donde el usuario puede querer copiar texto.
+- **Cache headers de vídeo**: `max-age=0,must-revalidate` — sin CDN, re-valida 2.5MB
+  en cada visita. Aunque sea con Netlify: añadir `Cache-Control: max-age=2592000` en headers.
+- **`<lastmod>` falta en sitemap**. Google usa lastmod, ignora changefreq/priority.
+- **ISBN falta en JSON-LD de Pulso del Núcleo**. Añadir si se tiene ISBN-13.
+- **Filamentos: offer sin `url` ni `seller`** en JSON-LD. Añadir antes del lanzamiento.
+- `touch-action: none` en múltiples scene elements — verificar no bloquea scroll en Scene 4.
+
+### Hallazgos únicos de Gemini (arquitectura)
+
+- **Smoke glitch diagnosticado**: Dos causas posibles:
+  1. Bounding box clipping — el gradiente radial toca el borde del OffscreenCanvas.
+     Fix: añadir 15% padding al sprite canvas.
+  2. Sub-pixel rendering jitter — coords float a drawImage.
+     Fix: integer coords con bitwise OR: `ctx.drawImage(sprite, x|0, y|0)`
+- **Cookie banner: NO construir**. Bajo AEPD "Strictly Necessary" clauses,
+  sin analytics, sin tracking pixels, sin cookies de terceros → legalmente exento.
+  Un banner rompería la atmósfera sin necesidad legal real.
+- **Native Web Share API**: `navigator.share()` en reading view. Botón "Propagar Visión".
+  Abre share sheet nativo iOS/Android con deep link del personaje. Zero clutter visual.
+- **Stateful intro bypass**: `localStorage.setItem('hasCrossed','true')` cuando llega al archivo.
+  En visitas posteriores: texto sutil "[ Adentrarse al Archivo ]" para skip.
+- **Cinematic e-commerce handoff**: Antes de redirect a Amazon/Stripe, fade a negro
+  con "Abriendo pasaje seguro..." (800ms). Evita el corte a white Amazon.
+- **prefers-reduced-motion CSS**: Añadir global override además del JS skip:
+  ```css
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
   }
-}
-```
+  ```
 
-### 4. cursor: crosshair !important en *
-Primer línea de global.css. Agresivo: obliga a todos los elementos a crosshair.
-- Fuerza que cursor:pointer y cursor:none necesiten !important para override
-- En móvil es irrelevante y crea cálculo innecesario
-- **Fix**: cambiar a `body { cursor: crosshair; }` y quitarlo del *
+### Hallazgos únicos de GPT (negocio/UX)
 
-### 5. user-select: none en body
-- Bloquea selección de texto en toda la página, incluyendo reading view
-- En cinematic intro: correcto
-- En reading view donde alguien quiere copiar título/autor: hostil
-- **Fix**: añadir `user-select: text` en `.reading-content` y `.tizno-panel`
-
----
-
-## Issues pendientes — PRIORIDAD MEDIA
-
-### 6. OffscreenCanvas Worker (TBT a 0ms)
-- 200-600ms TBT es mucho mejor que 18,790ms, pero no es 0ms
-- La física de partículas sigue en el main thread
-- `canvas.transferControlToOffscreen()` + Web Worker eliminaría todo el TBT del intro
-- Complejidad: alta (2-3 horas). Safari fallback necesario.
-- **No urgente hasta que hagamos push de marketing**
-
-### 7. Email capture / newsletter (todos los auditores lo señalaron)
-- Cero captación de email en el sitio actual
-- Gemini: campo email en Tizno drawer "Firma el pacto. Recibe los susurros del Umbral."
-- Claude: captura de pre-order bajo el countdown de Filamentos
-- Netlify Forms soporta esto nativamente (sin código extra de backend)
-- **Alto ROI, bajo coste de desarrollo**
-
-### 8. Route-specific og/meta tags (GPT)
-- Las rutas /emperatriz etc. devuelven el mismo shell estático a los crawlers
-- Los meta tags (og:title, og:description, og:image) no se actualizan por ruta
-- **Fix**: en Router._resolve(), actualizar document.title + meta og:* con datos del personaje
-- Mejora SEO para compartir en redes (WhatsApp preview mostraría el personaje, no la home)
-
-### 9. Share button en reading view
-- Deep links /emperatriz etc. ya funcionan — capitalizarlos
-- Gemini: botón "Propagar Visión" con `navigator.share()` API
-- En móvil: abre native iOS/Android share sheet con el deep link + quote del personaje
-- **Alto impacto, zero visual clutter**
-
-### 10. Filamentos countdown → captura de email pre-order
-- El countdown existe y funciona
-- Añadir input email debajo: "Avísame cuando salga" → Netlify Form
-- **Convierte la espera en lista antes del lanzamiento (May 12)**
+- **Route-specific metadata sin verificar**: ¿Las URLs `/emperatriz`, `/caballero` etc.
+  sirven metadata específica (title, og:image, canonical, twitter:card)?
+  Si todas devuelven el mismo shell, SEO de personajes es débil.
+- **Camino de compra un beat demasiado sutil**: "La atmósfera es correcta. La oscuridad
+  no es un rasgo de personalidad, es un impuesto." Añadir una frase editorial clara
+  cerca del header del archivo: qué es Soulware, qué pueden hacer ahora.
+- **Kill all non-essential work after Scene 3, hard**: El archivo es la página de dinero.
+  Cuando el usuario llega, el sitio debe comportarse como experiencia de contenido.
+  No como benchmark intentando impresionar a una GPU.
+- **Mecanismo de retorno**: Fragmento semanal, nota de Tizno con timestamp, teaser
+  de siguiente descenso. Algo que dé valor a visitas repetidas.
+- **Anatomía del Vacío "coolest placeholder on the internet"** — Misma recmendación
+  que Gemini pero más contundente. La tarjeta de Arlequín necesita presencia.
 
 ---
 
-## Issues pendientes — PRIORIDAD BAJA
+## BACKLOG PRIORIZADO (para mañana)
 
-### 11. sitemap.xml — añadir `<lastmod>`
-- Actualmente tiene changefreq y priority (Google ignora ambos)
-- `<lastmod>` sí lo usa Google
-- Fix: añadir fecha de última modificación a cada URL
+### P0 — Bugs abiertos
 
-### 12. ISBN en Pulso del Núcleo JSON-LD
-- Schema.org Book soporta `isbn`
-- Si tenemos el ISBN-13, añadirlo fortalece los Rich Results
-- Javier lo tiene (está en Amazon)
+| Bug | Causa | Fix |
+|-----|-------|-----|
+| Smoke glitch menor | Sprite bounding box o sub-pixel coords | 15% padding en sprite OffscreenCanvas + `x\|0` en drawImage |
+| Route metadata específica | SPA devuelve mismo shell para todos los slugs | Actualizar title/og:image/canonical en cada deep link route |
 
-### 13. Filamentos JSON-LD — añadir url + seller al offer
-- Pulso tiene url (Amazon) + seller
-- Filamentos solo tiene availability + availabilityStarts
-- Completar antes del lanzamiento May 12
+### P1 — Performance
 
-### 14. Anatomía del Vacío — glitch teaser (Gemini)
-- Actualmente muestra card estática "coming-soon"
-- Sugerencia: hover/tap dispara CSS VHS-glitch animation + acorde disonante Web Audio
-- Convierte "en preparación" en un easter egg narrativo
+| Item | Impacto | Responsable |
+|------|---------|-------------|
+| Video CDN (Bunny.net) | Eliminará 10MB sin CDN | **Javier** — subir 4 MPs y enviar URLs |
+| Cache headers vídeo Netlify | Inmediato: añadir `max-age=2592000` aunque sin CDN | Claude — netlify.toml |
+| OffscreenCanvas worker | TBT desktop → 0ms | Claude — 2-3h trabajo |
+| prefers-reduced-motion CSS | Accesibilidad + WCAG | Claude — 5 min |
 
-### 15. Cinematic e-commerce handoff (Gemini)
-- Al hacer clic "Comprar en Amazon", el usuario salta de #020202 a fondo blanco de Amazon
-- Interstitial: fade a gris oscuro + "Abriendo pasaje seguro..." (800ms) → redirect
-- Preserva la atmósfera hasta el último momento
+### P2 — SEO quick wins
 
-### 16. Stateful skip para return visitors (GPT)
-- `localStorage.setItem('hasCrossed', 'true')` cuando el usuario llega al archivo
-- En visitas siguientes: mostrar sutil "[ Adentrarse al Archivo ]" para saltar la vela
-- Respeta el tiempo de fans del sitio que vuelven a comprar
+| Item | Fix |
+|------|-----|
+| `<lastmod>` en sitemap | Añadir fechas reales (o fecha de build) |
+| ISBN en JSON-LD de Pulso | Si Javier tiene ISBN-13, añadir |
+| Filamentos offer: url + seller | Rellenar antes del 12 Mayo |
+| cursor: crosshair scope | Cambiar de `*` a `body` + scopes específicos |
 
----
+### P3 — Features nuevas (consenso de 3 auditorías)
 
-## Confirmado por Claude: NO implementar
+**Email capture en Tizno** (MÁXIMA PRIORIDAD de features)
+- Un input email en el drawer: "Firma el pacto. Recibe los susurros del Umbral."
+- Antes del formulario de contacto
+- Netlify Forms (sin JS extra, built-in spam protection)
+- Lista: lanzamientos, Anatomía del Vacío, fragmentos
 
-**Cookie consent banner**: Claude auditó específicamente esto y confirma que NO es necesario bajo AEPD (Agencia Española de Protección de Datos) — la ley española exime explícitamente el almacenamiento "estrictamente necesario". El sitio no usa tracking cookies, Google Analytics ni pixels. Añadir un banner rompería la experiencia sin beneficio legal real. Solo asegurarse de que Aviso Legal sea accesible.
+**Stateful intro bypass**
+- localStorage check en page load
+- Si `hasCrossed === 'true'`: mostrar link sutil al fondo de Scene 1 tras 2s
+- "[ Adentrarse al Archivo ]" — no eliminar la intro, solo ofrecer skip
 
----
+**Native Web Share API en reading view**
+- Botón amber: "Propagar Visión"
+- `navigator.share()` → deep link + quote del personaje
+- Fallback: copy to clipboard
 
-## Decisiones pendientes de Ruben
+**Cinematic e-commerce handoff**
+- Al clicar "Comprar en Amazon": fade negro → "Abriendo pasaje seguro..." → redirect
+- Mantiene atmósfera antes del corte a Amazon blanco
 
-| Decisión | Contexto |
-|----------|----------|
-| ¿Bunny.net o Cloudflare R2? | Para video CDN. Bunny = más barato. CF = ecosistema |
-| ¿Email capture en Tizno o como componente separado? | Estilo del form |
-| ¿Share button texto? | "Propagar Visión" era la sugerencia de Gemini |
-| ¿ISBN de Pulso del Núcleo? | Para JSON-LD — pedirle a Javier |
-| ¿Anatomía glitch teaser? | ¿Aprueba la dirección creativa? |
-| Netlify headers para video cache | Decisión trivial — sí hacerlo YA |
+**Anatomía del Vacío teaser**
+- En hover/tap de la tarjeta: glitch VHS + acorde disonante (Web Audio)
+- Cambia "En preparación" por algo que provoque
 
-## Decisiones pendientes de Javier
+### P4 — Pendiente de Javier
 
 | Item | Status |
 |------|--------|
-| Google Search Console — submit sitemap | **URGENTE** |
-| Video CDN (Bunny.net) — subir 4 MP4s | Antes de marketing push |
-| ISBN de Pulso del Núcleo | Para JSON-LD |
-| Amazon: publisher name "Soulware" + author bio | SEO backlink |
+| Google Search Console — submit sitemap | **URGENTE** — sin esto Google no indexa |
+| Video CDN (Bunny.net) — upload + URLs | Antes de cualquier marketing |
+| ISBN-13 de Pulso del Núcleo | Para JSON-LD |
+| Goodreads author page (WW. & Eidon) | Backlink de alta DA |
+| Amazon author page + publisher name | Backlink + discoverability |
+
+### P5 — Pendiente de Rubén/equipo
+
+| Item | Status |
+|------|--------|
+| Anatomía del Vacío: sinopsis + Cap.1 borrador | Esperando a Germán |
+| Título de la obra de Emperatriz (Alicia Sarel) | TBD |
+| Relatos de Totalis Libertas | TBD |
+| Arquetipo para Filamentos en reading view | TBD |
 
 ---
 
-## Cómo arrancar la siguiente sesión
+## Cómo arrancar mañana
 
 ```
 "Lee CLAUDE.md y HANDOVER.md y dime en qué estamos."
 ```
 
-**Primera tarea recomendada para mañana:**
-1. Netlify headers para video cache (10 min, netlify.toml)
-2. Smoke glitch fix (15 min, OffscreenCanvas padding)
-3. prefers-reduced-motion CSS (5 min, una regla)
-4. cursor:crosshair scope reduction (5 min)
-5. user-select fix en reading-content (2 min)
+**Primera prioridad recomendada para mañana:**
+1. Smoke glitch fix (15min)
+2. prefers-reduced-motion CSS (5min)
+3. Cache headers netlify.toml para vídeos (10min)
+4. Email capture en Tizno (30min)
+5. Route-specific metadata (45min)
 
-Luego: email capture en Tizno + share button en reading view.
+---
+
+## Decisiones técnicas importantes — NO revertir sin razón
+
+- **No React** — canvas 60fps necesita main thread limpio
+- **Canvas destination-out** para spotlight — no volver a CSS mask en video
+- **Smoke sprite OffscreenCanvas** — no volver a createRadialGradient por frame
+- **position:fixed en firefly container** — no volver a absolute dentro de main-site
+- **display:none (no opacity:0) en overlays** — opacity:0 no oculta fixed children en Safari
+- **Root-relative video paths** `/name.mp4` — bare paths rompen deep links
+- **touch-action scoped** solo a intro layers — preserva scroll móvil en archive
+
+---
+
+*Sesión completa: ~14 horas de trabajo continuo. El sitio está en buen estado.*
+*El audio, la llama, el archivo, mobile, y la estructura general funcionan correctamente.*
