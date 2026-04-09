@@ -1,211 +1,135 @@
-# HANDOVER.md — Estado actual del proyecto
-## Actualizar al final de cada sesión. Es la primera lectura de cada nueva conversación.
-
-**Última sesión:** 9 de abril 2026
-**Commit más reciente:** `d1ea4d7` — feat(ux): el pacto obligatorio al cruzar umbral, contacto en nav
+# HANDOVER.md — El Umbral / Soulware
+*Última actualización: 9 Abril 2026 — Sesión larga de fixes y performance*
 
 ---
 
-## Estado del sitio
+## Estado actual del sitio
 
-**soulware.live está live, indexado y funcionando.**
+**Live:** https://soulware.live | https://el-umbral.netlify.app
+**Último commit:** `201ffd6` — fix: fireflies follow scroll, caballero highlight, legal modal clean
 
-- Google Search Console registrado ✅ (Javier lo hizo el 8 abr)
-- Página indexada, crawleada por smartphone bot ✅
-- Sitemap pendiente de submit manual (ir a Sitemaps en Search Console)
-- Scores Lighthouse: Mobile 98 / Desktop 60 (TBT problema pendiente)
+El sitio está en producción y funcional. Hoy se hicieron +12 commits con fixes críticos y mejoras de performance.
 
 ---
 
-## Qué se ha construido (sesiones de hoy — 9 abr)
+## Qué se ha hecho hoy (en orden)
 
-### Narrativa / UX
-- **El Pacto** movido de nav a gate obligatorio al cruzar El Umbral (Scene 1 → 2)
-  - `openPacto(callback)` — ejecuta callback al aceptar
-  - umbral-btn ahora muestra El Pacto primero; `enterScene2()` se ejecuta tras "Acepto"
-  - El skip button bypasea el Pacto (va directo a Scene 4) — correcto
-- Nav: "EL PACTO" reemplazado por "CONTACTO" (scroll a `#contact-section`)
+### Commits del día (newest first)
 
-### Accesibilidad (WCAG)
-- Skip button movido al primer elemento del DOM (WCAG 2.4.1) + copy "Romper el trance"
-- Focus management completo:
-  - Scene 4 load → focus en h2 "Las Crónicas"
-  - Reading view open → focus en h1 del personaje; close → return focus al pillar
-  - Obra modal open → focus en botón cerrar; close → return focus al cover
-  - El Pacto modal → focus en "Acepto" al abrirse
-- `tabindex="-1"` en h2 archive y h1 read-title (para focus programático)
+| Commit | Descripción |
+|--------|-------------|
+| `201ffd6` | fix: fireflies follow scroll, caballero highlight, legal modal clean |
+| `de4eac7` | fix: audio silence on archive, faint line, logo color, anthology centered |
+| `f780a7e` | fix(critical): unclosed CSS comment hiding reading-view, btn-volver, all modals |
+| `9a3080d` | perf+fix: LERP covers, smoke sprite, footer, mobile, covers |
+| `b6c22a5` | perf+fix: smoke cap, safari acepto ghost, tizno overhaul, vertical lines |
 
-### Persistencia de arquetipo
-- Scene 1 → Scene 4: personaje activo al entrar al archivo recibe `pillar--highlighted` + `obra-column--highlighted`
+### Bugs críticos resueltos
 
-### Mobile / iOS
-- `-webkit-touch-callout: none` en `#gallery-container` (suprime menú "guardar imagen" en press-and-hold)
+1. **CSS comentario sin cerrar** — `/* ── Site footer padding:...` sin `*/` comentó TODA la segunda mitad de archive.css: `#reading-view`, `#btn-volver`, todos los modals, footer CSS. Causa raíz de la "página negra al hacer clic en personajes".
 
----
+2. **Safari "Acepto" ghost** — `#pacto-modal` sin `display:none` después del fade causaba que Safari mostrara el botón sobre el archivo. Fix: `display:none` a 1100ms.
 
-## Pendiente inmediato (código — próxima sesión)
+3. **Mobile navigation roto** — `mobile.js` usaba `.pillar` (clase obsoleta tras el grid refactor). Actualizado a `.archive-pillar`.
 
-En orden de prioridad:
+4. **Audio atascado** — `fireGain` y `windGain` no se silenciaban al entrar al archivo. Añadido `setFireVolume(0)` + `setWindVolume(0)` en `enterMainSite()`.
 
-1. **Nuevo Lighthouse** — ver si TBT mejoró con 30fps sim. Si sigue alto → OffscreenCanvas.
-2. **3D tilt en portadas** — cursor tracking + rotateX/Y + gradient glare
-3. **Dual-layer book modal** — "La Visión" / "El Manuscrito" tabs (copy de "La Visión" por arquetipo: escrito por Claude, aprueba Ruben)
-4. **Audio muffling** — BiquadFilterNode lowpass cuando modal abre
-5. **Scene 3 auto-advance** — ya implementado (4s), confirmar que funciona bien
-6. **Video CDN** — cuando Javier tenga URLs de Bunny.net, actualizar paths en StateManager (10 min)
+5. **El Caballero permanentemente activo** — `archive-col--highlighted` nunca se eliminaba. Ahora se quita con `setTimeout(..., 4000)`.
 
----
-
-## Pendiente — Ruben/Javier (no código)
-
-| Item | Owner | Urgencia |
-|------|-------|---------|
-| Submit sitemap en Search Console | Javier | HOY |
-| Video CDN (Bunny.net) | Javier | Antes de marketing push |
-| Goodreads + Amazon author pages | Javier | Esta semana |
-| Directorios editoriales | Ruben | Este mes |
-| @soulware.editorial social | Ruben | Este mes |
-| La Emperatriz obra título definitivo | Ruben | Cuando esté listo |
-| La Corte: autores + títulos de relatos | Ruben/Javier | Cuando estén listos |
-
----
-
-## Decisiones pendientes de Ruben
-
-1. **Tizno visual** — ¿cómo aparece? ¿qué lo activa? (ver TIZNO.md)
-2. **Dual-layer modal copy** — "La Visión" tab: Claude redacta, Ruben aprueba (próxima sesión)
-3. **Awwwards/FWA submission** — esperar a que TBT esté bajo 300ms
-4. **Newsletter** — ¿implementar "El Pacto" newsletter (Mailchimp/Resend)?
-5. **Boutique** — ¿cuándo empieza la conversación sobre arquitectura de comercio?
-
----
-
-## Cómo usar este archivo
-
-### Para arrancar una nueva conversación (El Umbral / bugs / site):
-> "Lee CLAUDE.md y HANDOVER.md y dime en qué estamos."
-
-### Para arrancar Tizno:
-> "Lee CLAUDE.md y TIZNO.md. Vamos a construir Tizno."
-
-### Para arrancar Anatomía del Vacío:
-> "Lee CLAUDE.md y ANATOMIA.md. Vamos a construir Anatomía del Vacío."
-## Actualizar al final de cada sesión. Es la primera lectura de cada nueva conversación.
-
-**Última sesión:** 9 de abril 2026
-**Commit más reciente:** `753891c` — fix: mobile-char-detail bleeding onto desktop
-
----
-
-## Estado del sitio
-
-**soulware.live está live, indexado y funcionando.**
-
-- Google Search Console registrado ✅ (Javier lo hizo el 8 abr)
-- Página indexada, crawleada por smartphone bot ✅
-- Sitemap pendiente de submit manual (ir a Sitemaps en Search Console)
-- Scores Lighthouse: Mobile 98 / Desktop 60 (TBT problema pendiente)
-
----
-
-## Qué se ha construido (sesión de hoy)
-
-### SEO y visibilidad
-- Title tag: "Soulware — Editorial Independiente Española | Ficción Oscura y Universos de Autor"
-- Meta description editorial-focused
-- JSON-LD: Organization + 4 Book schemas inyectados en `<head>`
-- Sitemap corregido (/reina → /emperatriz, legal pages añadidas)
-
-### UX / Contenido
-- Línea editorial en Scene 1 (watermark bottom-fixed) y Scene 4 hero
-- Hero text: "Cuatro arquetipos. Cuatro universos. Bienvenido al Archivo de Soulware."
-- Status pills: [DISPONIBLE] [PRÓXIMAMENTE] en todas las obras
-- Amber accent color en el único botón de compra (Pulso tapa blanda)
-- Format badges: [EDICIÓN FÍSICA] [EXPERIENCIA DIGITAL] etc.
-- Book descriptions con hooks comerciales (aprobadas por Ruben)
-- Scene 2 idle hint: "Busca las voces en la oscuridad" tras 5s, desaparece al primer hallazgo
-
-### Mobile
-- Horizontal swipe carousel para character pillars (revertible: quitar clase `pillar-grid--swipe`)
-- Haptic feedback en Scene 1: pulso mientras crece la llama, snap al ignitar
-- 100dvh en todos los overlays (fix iOS bottom bar)
-- Archetype label + author encima de obras en mobile
+6. **Fireflies no siguen al scroll** — Container era `position: absolute` dentro de `#main-site`. Movido a `document.body` con `position: fixed`. Coordenadas ahora viewport-relativas.
 
 ### Performance
-- 30fps simulación / 60fps render (partículas: physics cada 2 frames, draw cada frame)
-- DPR cap revertido — canvas ya era 1:1, escalar añadía pixels y empeoró TBT
-- OffscreenCanvas: decidido NO hacer todavía. Esperar nuevo Lighthouse tras 30fps fix.
 
-### Bugs corregidos
-- `#mobile-char-detail` display:none en global.css — era visible en desktop, `#mobile-char-close` (el "← Volver") y video overlay con position:fixed sangraban sobre toda la interfaz
-- Watermark editorial movido de `#ui` centrado a bottom-fixed
-- Hint de Scene 2 ya NO ilumina whispers automáticamente — solo texto
-- "Bienvenido al Archivo" con white-space:nowrap, no se rompe en líneas
-- `pillar--highlighted` también muestra descripción (Emperatriz fix)
+- **Smoke sprite pre-renderizado**: `createRadialGradient` por frame → `drawImage` con `OffscreenCanvas`. ~10x más rápido por partícula de humo.
+- **LERP para cover tilt**: `mousemove` solo guarda coords target. RAF aplica interpolación (friction 0.12). Elimina layout thrashing.
+- **Smoke particle caps**: hard cap 35 llama / 45 humo. Decay 3.5x más rápido. Size capped a 28px.
+- **decoding="async"** en todas las imágenes de portada.
+- `pillarDividerPulse` (línea vertical) ahora 6s cycle, `opacity: 0.05-0.28` (era 0.1-0.7, demasiado brillante).
 
-### Infraestructura
-- Netlify Forms reemplaza Formspree (sin verificación manual requerida)
-- tabular-nums en countdown timer
-- prefers-reduced-motion bypass directo a Scene 4
+### Mejoras visuales y UX
 
----
-
-## Pendiente inmediato (código — próxima sesión)
-
-En orden de prioridad:
-
-1. **Nuevo Lighthouse** — ver si TBT mejoró con 30fps sim. Si sigue alto → OffscreenCanvas.
-2. **Skip button** — hacer primer elemento focusable del DOM (WCAG 2.4.1)
-3. **Focus management** — Scene 4 load → focus h2; modal open → focus close; modal close → return focus
-4. **Archetype persistence** — carácter de Scene 1 pre-highlighted en Scene 4
-5. **3D tilt en portadas** — cursor tracking + rotateX/Y + gradient glare
-6. **Dual-layer book modal** — "La Visión" / "El Manuscrito" tabs (pending: Ruben confirmar copy de "La Visión")
-7. **touch-action en Scene 1** — `-webkit-touch-callout: none` en Scene 1 container
-8. **Audio muffling** — BiquadFilterNode lowpass cuando modal abre
-9. **Scene 3 auto-advance** — ya implementado (4s), confirmar que funciona bien
-10. **Video CDN** — cuando Javier tenga URLs de Bunny.net, actualizar paths en StateManager (10 min)
+- Footer restaurado: logo Soulware (dorado, sin `filter:invert`), copyright, links legales con `:visited` fix.
+- Contact form eliminada del bottom de página (ahora solo en Tizno drawer).
+- Tizno drawer: backdrop `#tizno-backdrop` para cerrar al clicar fuera. Ojos en la base de la silueta (`bottom: 7px`). Double-blink (25% probabilidad). Contenido: social → email → identidad Tizno.
+- CONTACTO botón ahora hace toggle (no solo abre).
+- Social links eliminados de los pillars del grid (solo en reading view).
+- Legal modal: filtra logo, `.legal-back`, y links de navegación antes de inyectar el HTML.
+- Nuevas portadas: `alicia-cover.webp` (400×600) y `anatomia-del-vacio.webp` (actualizado).
+- SEO: `availabilityStarts` añadido a Filamentos JSON-LD.
+- Android scrollbar oculto en `.archive-grid`.
 
 ---
 
-## Pendiente — Ruben/Javier (no código)
+## Arquitectura actual (referencias rápidas)
 
-| Item | Owner | Urgencia |
-|------|-------|---------|
-| Submit sitemap en Search Console | Javier | HOY |
-| Video CDN (Bunny.net) | Javier | Antes de marketing push |
-| Goodreads + Amazon author pages | Javier | Esta semana |
-| Directorios editoriales | Ruben | Este mes |
-| @soulware.editorial social | Ruben | Este mes |
-| La Emperatriz obra título definitivo | Ruben | Cuando esté listo |
-| La Corte: autores + títulos de relatos | Ruben/Javier | Cuando estén listos |
-
----
-
-## Decisiones pendientes de Ruben
-
-1. **Tizno visual** — ¿cómo aparece? ¿qué lo activa? (ver TIZNO.md)
-2. **Dual-layer modal copy** — "La Visión" tab necesita texto poético para cada obra
-3. **Awwwards/FWA submission** — esperar a que TBT esté bajo 300ms
-4. **Newsletter** — ¿implementar "El Pacto" newsletter (Mailchimp/Resend)?
-5. **Boutique** — ¿cuándo empieza la conversación sobre arquitectura de comercio?
+```
+src/
+├── index.html              # HTML principal — #tizno-tease, #tizno-panel, modals
+├── css/
+│   ├── archive.css         # Archivo, reading view, btn-volver, modals, footer
+│   ├── obras.css           # Book cards, anthology, firefly container (position:fixed)
+│   ├── tizno.css           # Tizno peek + panel + backdrop
+│   └── mobile.css          # Mobile archive (archive-pillar, archive-col)
+└── js/
+    ├── main.js             # enterMainSite: setFireVolume(0)+setWindVolume(0) on enter
+    ├── mobile.js           # initMobileArchive: .archive-pillar (updated)
+    └── ui/
+        ├── ArchiveDOM.js   # showArchive: highlight removed after 4s; legal fetch filtered
+        └── ArchiveFireflies.js # Container en body (position:fixed), viewport coords
+```
 
 ---
 
-## Cómo usar este archivo
+## Bugs conocidos / pendientes
 
-### Documentación del proyecto (leer antes de cada sesión):
-| Archivo | Contenido | Cuándo leerlo |
-|---------|-----------|---------------|
-| `CLAUDE.md` | Arquitectura permanente, equipo, decisiones | Siempre |
-| `HANDOVER.md` | Estado actual, pendientes, próximos pasos | Siempre |
-| `TIZNO.md` | Diseño de Tizno, capas, monetización | Cuando trabajemos en Tizno |
-| `ANATOMIA.md` | Diseño de Anatomía del Vacío | Cuando trabajemos en Anatomía |
+### Alta prioridad
+1. **Reading view / perfil de personaje** — Funciona (botón ← Volver visible ahora). PERO: no tiene tabs "Perfil | Libros" — actualmente muestra lore + social juntos. Pendiente refactor con tabs.
+2. **Mobile character detail** — `.archive-pillar` click debería activar `#mobile-char-detail`. Debe verificarse en dispositivo real tras el fix de hoy.
+3. **Líneas de texto dentro del Tizno drawer** — El usuario mencionó que el texto "se va dentro del drawer". Puede ser padding insuficiente o z-index del `#tizno-panel` compitiendo con el backdrop.
 
-### Para arrancar una nueva conversación (El Umbral / bugs / site):
-> "Lee CLAUDE.md y HANDOVER.md y dime en qué estamos."
+### Media prioridad
+4. **prefers-reduced-motion** — Debe saltar directamente a Scene 4 (skip intro completa). Actualmente solo para partículas. Fix en `main.js`: check al inicio, `showArchive({skipIntro:true})` inmediato.
+5. **BiquadFilterNode pop** — No está implementada la muffling de audio al abrir modals. Pendiente si Rubén lo quiere.
+6. **Mobile: partículas Tizno en horizontal scroll** — Las partículas de ArchiveFireflies no reaccionan al scroll horizontal del archive-grid. Complejidad media.
+7. **Totalis Libertas** — Estilizado pero posiblemente aún desalineado en algunos breakpoints. Requiere verificación visual.
 
-### Para arrancar Tizno:
-> "Lee CLAUDE.md y TIZNO.md. Vamos a construir Tizno."
+### Baja prioridad
+8. Tizno: "llegará pronto" — sistema de prompt admin panel (no construido aún).
+9. Stripe/Shopify integración — pendiente decisión de arquitectura.
+10. Video CDN (Bunny.net) — pendiente Javier.
+11. Awwwards — tras fix de TBT.
 
-### Para arrancar Anatomía del Vacío:
-> "Lee CLAUDE.md y ANATOMIA.md. Vamos a construir Anatomía del Vacío."
+---
+
+## Cómo arrancar siguiente sesión
+
+```
+"Lee CLAUDE.md y HANDOVER.md y dime en qué estamos."
+```
+
+O para continuar con lo más urgente:
+```
+"Lee CLAUDE.md y HANDOVER.md. Quiero implementar los tabs de perfil en reading view (Perfil + Libros). Y verificar mobile."
+```
+
+---
+
+## Decisiones pendientes de Rubén
+
+| Decisión | Contexto |
+|----------|----------|
+| ¿Stripe directo o Shopify? | Para Tizno / monetización Anatomía |
+| Tabs en reading view: ¿Perfil + Libros? | UX del perfil de personaje |
+| Tizno: ¿trigger de activación final? | ¿clic en silhouette, o también auto-aparece? |
+| Mobile archive: ¿ok el carousel actual? | Un slide por personaje (pillar + libros) |
+| Anatomía del Vacío: sinopsis de Germán | Necesaria para construir AnatomiaEngine |
+
+---
+
+## Decisiones pendientes de Javier
+
+| Item | Status |
+|------|--------|
+| Google Search Console — submit sitemap | **URGENTE** — sin esto Google no indexa |
+| Video CDN (Bunny.net) | Antes de cualquier push de marketing |
+| DNS soulware.live (si hay issues) | Confirmar que apunta a Netlify |
