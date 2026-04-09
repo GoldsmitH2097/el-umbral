@@ -224,9 +224,9 @@ document.addEventListener('mouseup',handleUp);
 document.addEventListener('touchstart',e=>{ visual.updateTarget(e.touches[0].clientX,e.touches[0].clientY); handleDown(e); },{passive:false});
 document.addEventListener('touchmove',e=>{ if(state.activeScene<4) e.preventDefault(); visual.updateTarget(e.touches[0].clientX,e.touches[0].clientY); },{passive:false});
 document.addEventListener('touchend',handleUp);
-document.getElementById('umbral-btn').addEventListener('click',e=>{
+document.getElementById('umbral-btn').addEventListener('click', function(e) {
   e.stopPropagation();
-  audio.resumeIfSuspended(); // iOS Safari audio unlock on button click
-  // El Pacto — obligatory gate. User must accept before entering Scene 2.
+  this.style.pointerEvents = 'none'; // spam protection — disable immediately on first click
+  audio.resumeIfSuspended();
   archive.openPacto(() => enterScene2());
 });

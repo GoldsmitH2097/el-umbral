@@ -206,10 +206,18 @@ export class VisualEngine {
     this._canvas.width = window.innerWidth;
     this._canvas.height = window.innerHeight;
   }
-  start() { this._tick(); }
+  start() { this._lastFrameTime = 0; this._tick(0); }
   setAutoAdvanceMode(v) { this._autoAdvanceMode = v; }
 
-  _tick() {
+  _tick(timestamp) {
+    requestAnimationFrame((ts) => this._tick(ts));
+    // 144Hz fast-forward protection — clamp to ~60fps
+    // Without this: on 120Hz+ screens, ignitionProgress and particle physics
+    // run 2x fast (particles die in half the time, flame ignites instantly)
+    const elapsed = timestamp - this._lastFrameTime;
+    if (elapsed < 14) return; // skip frame if >71fps
+    this._lastFrameTime = timestamp;
+
     this._frameCount++;
     const ctx=this._ctx;
     if(state.activeScene>=4){ ctx.clearRect(0,0,this._canvas.width,this._canvas.height); requestAnimationFrame(()=>this._tick()); return; }
@@ -254,6 +262,7 @@ export class VisualEngine {
       if(state.ignitionProgress>=150){
         state.isIgnited=true;
         this._instEl.style.opacity='0';
+        document.body.style.cursor='none'; // flame is now the cursor
         this._audio.playCharacterSignature(state.currentCharIndex);
         // Snap haptic — fired from VisualEngine, bridged via window callback set by main.js
         window._onIgnitionComplete?.();
