@@ -255,14 +255,13 @@ export class ArchiveDOM {
     setTimeout(()=>{
       this._readingView.style.opacity='1'; this._readingView.style.pointerEvents='auto';
       this._readingView.scrollTo(0,0); this._onSceneChange(5);
-      if(btnVolver){ btnVolver.style.opacity='1'; btnVolver.style.pointerEvents='auto'; }
+      btnVolver?.classList.add('visible');
     },500);
     if(this._router) this._router.navigateTo(index);
   }
 
   closeReading() {
-    const btnVolver = document.getElementById('btn-volver');
-    if(btnVolver){ btnVolver.style.opacity='0'; btnVolver.style.pointerEvents='none'; }
+    document.getElementById('btn-volver')?.classList.remove('visible');
     this._readingView.style.opacity='0'; this._readingView.style.pointerEvents='none';
     setTimeout(()=>{
       this._gridView.style.transform='scale(1)'; this._gridView.style.opacity='1';
