@@ -69,21 +69,31 @@
 }
 .obra-cover img {
   width: 100%; height: 100%; object-fit: cover;
-  filter: brightness(0.85);
+  filter: brightness(0.95);
   transition: filter 0.5s ease, transform 0.5s ease;
   transform: scale(1.02);
 }
 .obra-book--available:hover .obra-cover img,
 .obra-column--highlighted .obra-book--available .obra-cover img {
-  filter: brightness(1); transform: scale(1.06);
+  filter: brightness(1.05); transform: scale(1.06);
 }
 /* Coming-soon/countdown: full color, slightly dimmed — no grayscale */
 .obra-book--coming-soon .obra-cover img,
 .obra-book--countdown .obra-cover img {
-  filter: brightness(0.7);
+  filter: brightness(0.8);
 }
 
-/* ── Book metadata — centered ─────────────────────────────────────────────── */
+.obra-cover--clickable { cursor: pointer !important; }
+.obra-cover--clickable:hover img { filter: brightness(1.1) !important; transform: scale(1.04) !important; }
+.obra-cover--empty {
+  aspect-ratio: 2/3; background: #0a0a0a;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+/* Brighter text in obras section */
+.obra-title { color: #ddd; }
+.obra-subtitle { color: #666; }
+.obra-desc { color: #666; }
 .obra-meta { display: flex; flex-direction: column; gap: 6px; align-items: center; text-align: center; width: 100%; }
 .obra-title {
   font-size: 13px; font-weight: normal; letter-spacing: 3px;
@@ -159,4 +169,84 @@
   .obra-title { font-size: 12px; }
   .obra-desc { opacity: 1; max-height: none; }
   #skip-btn { bottom: 20px; right: 20px; font-size: 10px; padding: 8px 14px; }
+}
+
+/* ── Book card modal ──────────────────────────────────────────────────────── */
+#obra-modal {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(2,2,2,0.97); z-index: 60;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.4s ease;
+  padding: 5vw;
+}
+#obra-modal.open { opacity: 1; pointer-events: auto; }
+
+#obra-modal-close {
+  position: absolute; top: 30px; right: 30px;
+  background: transparent; border: none; color: #555;
+  font-size: 28px; cursor: pointer; transition: color 0.3s;
+  line-height: 1; padding: 5px 10px;
+}
+#obra-modal-close:hover { color: #fff; }
+
+#obra-modal-inner {
+  display: flex; gap: 60px; align-items: flex-start;
+  max-width: 900px; width: 100%;
+}
+
+#obra-modal-cover {
+  flex-shrink: 0; width: 220px;
+}
+#obra-modal-cover img {
+  width: 100%; display: block;
+  filter: brightness(0.95);
+}
+#obra-modal-cover .obra-modal-no-cover {
+  width: 220px; aspect-ratio: 2/3;
+  background: #0a0a0a;
+  border: 1px solid rgba(255,255,255,0.06);
+  display: flex; align-items: center; justify-content: center;
+  color: #333; font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+}
+
+#obra-modal-info {
+  flex: 1; display: flex; flex-direction: column; gap: 10px;
+}
+
+#obra-modal-archetype {
+  font-size: 10px; letter-spacing: 4px; color: #666;
+  text-transform: uppercase; margin: 0;
+}
+#obra-modal-title {
+  font-size: 26px; font-weight: normal; letter-spacing: 6px;
+  text-transform: uppercase; margin: 0; color: #e8ecef; line-height: 1.3;
+}
+#obra-modal-subtitle {
+  font-size: 12px; letter-spacing: 3px; color: #666;
+  text-transform: uppercase; margin: 0;
+}
+#obra-modal-author {
+  font-size: 13px; color: #aaa; letter-spacing: 2px; margin: 6px 0 0; font-style: italic;
+}
+#obra-modal-series {
+  font-size: 11px; color: #555; letter-spacing: 2px; margin: 0;
+  text-transform: uppercase;
+}
+#obra-modal-format {
+  font-size: 10px; color: #444; letter-spacing: 2px; margin: 0;
+  text-transform: uppercase;
+}
+#obra-modal-desc {
+  font-size: 15px; color: #888; line-height: 1.8; margin: 14px 0 0;
+  font-style: italic;
+}
+#obra-modal-cta { margin-top: 24px; }
+
+@media (max-width: 768px) {
+  #obra-modal { padding: 20px 5vw; align-items: flex-start; overflow-y: auto; }
+  #obra-modal-inner { flex-direction: column; gap: 24px; }
+  #obra-modal-cover { width: 140px; }
+  #obra-modal-title { font-size: 20px; letter-spacing: 4px; }
+  #obra-modal-close { top: 16px; right: 16px; }
 }

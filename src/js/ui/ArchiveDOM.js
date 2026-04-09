@@ -23,6 +23,7 @@ export class ArchiveDOM {
     this._buildPillars();
     this._buildObras();
     this._buildContact();
+    this._bindObraModal();
   }
 
   _buildPillars() {
@@ -92,8 +93,8 @@ export class ArchiveDOM {
           card.className = `obra-book obra-book--${item.status}`;
 
           const coverHtml = item.img
-            ? `<div class="obra-cover"><img src="${item.img}" alt="${item.title}" loading="lazy" /></div>`
-            : '';
+            ? `<div class="obra-cover obra-cover--clickable" data-id="${item.id}" role="button" tabindex="0" aria-label="Ver detalles de ${item.title}"><img src="${item.img}" alt="${item.title}" loading="lazy" /></div>`
+            : `<div class="obra-cover obra-cover--clickable obra-cover--empty" data-id="${item.id}" role="button" tabindex="0" aria-label="Ver detalles de ${item.title}"></div>`;
 
           let ctaHtml = '';
           if (item.status === 'available' && item.buyUrl) {
@@ -119,6 +120,13 @@ export class ArchiveDOM {
             </div>
           `;
           col.appendChild(card);
+
+          // Cover click → open modal
+          const coverEl = card.querySelector('.obra-cover--clickable');
+          if (coverEl) {
+            coverEl.addEventListener('click', () => this.openObraModal(item.id));
+            coverEl.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' ') this.openObraModal(item.id); });
+          }
         });
       }
 
@@ -227,6 +235,75 @@ export class ArchiveDOM {
 
   openPacto() { this._pactoModal.style.opacity='1'; this._pactoModal.style.pointerEvents='auto'; }
   closePacto() { this._pactoModal.style.opacity='0'; this._pactoModal.style.pointerEvents='none'; }
+
+  _bindObraModal() {
+    const modal = document.getElementById('obra-modal');
+    const closeBtn = document.getElementById('obra-modal-close');
+    if (!modal) return;
+    closeBtn?.addEventListener('click', () => this._closeObraModal());
+    modal.addEventListener('click', (e) => { if (e.target === modal) this._closeObraModal(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') this._closeObraModal(); });
+  }
+
+  openObraModal(itemId) {
+    const item = CATALOGUE.find(c => c.id === itemId); if (!item) return;
+    const char = CHARACTERS.find(c => c.slug === item.archetype);
+    const modal = document.getElementById('obra-modal');
+
+    document.getElementById('obra-modal-archetype').textContent =
+      char ? `Arquetipo: ${char.title}` : '';
+    document.getElementById('obra-modal-title').textContent = item.title;
+    document.getElementById('obra-modal-subtitle').textContent = item.subtitle || '';
+    document.getElementById('obra-modal-author').textContent =
+      item.author ? `Autor: ${item.author}` : '';
+    document.getElementById('obra-modal-series').textContent = item.seriesInfo || '';
+    document.getElementById('obra-modal-format').textContent = item.format || '';
+    document.getElementById('obra-modal-desc').textContent = item.desc;
+
+    const coverEl = document.getElementById('obra-modal-cover');
+    coverEl.innerHTML = item.img
+      ? `<img src="${item.img}" alt="${item.title}" />`
+      : `<div class="obra-modal-no-cover">Sin portada</div>`;
+
+    let ctaHtml = '';
+    if (item.status === 'available' && item.buyUrl) {
+      ctaHtml = `<a href="${item.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy">${item.buyLabel}</a>`;
+    } else if (item.status === 'countdown') {
+      ctaHtml = `<div class="obra-countdown">
+        <div class="countdown-timer" data-release="${item.releaseDate}"></div>
+        <span class="obra-btn obra-btn--locked">${item.buyLabel}</span>
+      </div>`;
+      // Re-init countdown in the modal
+      setTimeout(() => {
+        const timer = modal.querySelector('.countdown-timer');
+        if (timer) this._initSingleCountdown(timer);
+      }, 50);
+    } else {
+      ctaHtml = `<span class="obra-btn obra-btn--soon">Próximamente</span>`;
+    }
+    document.getElementById('obra-modal-cta').innerHTML = ctaHtml;
+
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  _closeObraModal() {
+    const modal = document.getElementById('obra-modal');
+    modal?.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  _initSingleCountdown(el) {
+    const target = new Date(el.dataset.release).getTime();
+    const update = () => {
+      const diff = target - Date.now();
+      if (diff <= 0) { el.textContent = 'Disponible ahora'; return; }
+      const d = Math.floor(diff/86400000), h = Math.floor((diff%86400000)/3600000);
+      const m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
+      el.innerHTML = `<span>${d}<em>d</em></span><span>${h}<em>h</em></span><span>${m}<em>m</em></span><span>${s}<em>s</em></span>`;
+    };
+    update(); setInterval(update, 1000);
+  }
 
   _bindEvents() {
     document.getElementById('final-btn')?.addEventListener('click',()=>this._onSceneChange('enterMainSite'));

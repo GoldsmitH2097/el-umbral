@@ -14,7 +14,9 @@
   <meta property="og:title" content="Soulware — Las Crónicas de la Oscuridad" />
   <meta property="og:description" content="La historia se escribe con sangre, sombras y ecos en la oscuridad. Selecciona tu camino." />
   <meta property="og:image" content="https://soulware.live/og-image.jpg" />
-  <meta property="og:image:alt" content="El Umbral — Oscuridad y Misterio" />
+  <meta property="og:image:alt" content="Soulware — Las Crónicas de la Oscuridad" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
 
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:url" content="https://soulware.live/" />
@@ -22,8 +24,11 @@
   <meta name="twitter:description" content="Has cruzado la línea. La historia se escribe con sangre, sombras y ecos en la oscuridad." />
   <meta name="twitter:image" content="https://soulware.live/og-image.jpg" />
 
-  <!-- SVG candle favicon — no external dependency -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🕯️</text></svg>">
+  <!-- Favicons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <meta name="theme-color" content="#020202" />
 
   <link rel="stylesheet" href="/css/global.css" />
   <link rel="stylesheet" href="/css/canvas.css" />
@@ -123,7 +128,14 @@
     <section class="pillar-grid"></section>
     <section class="obras-grid" id="obras-section"></section>
     <section class="contact-section" id="contact-section"></section>
-    <footer class="site-footer"><p>Soulware &copy; MMXXVI. Nada es lo que parece.</p></footer>
+    <footer class="site-footer">
+      <p>Soulware &copy; MMXXVI. Nada es lo que parece.</p>
+      <nav class="footer-legal">
+        <a href="/aviso-legal.html">Aviso Legal</a>
+        <a href="/privacidad.html">Privacidad</a>
+        <a href="/cookies.html">Cookies</a>
+      </nav>
+    </footer>
   </div>
 </div>
 
@@ -146,6 +158,24 @@
     <div class="mobile-detail-lore" id="mobile-detail-lore"></div>
     <div class="mobile-detail-social" id="mobile-detail-social"></div>
     <div class="mobile-detail-obras" id="mobile-detail-obras"></div>
+  </div>
+</div>
+
+<!-- BOOK CARD MODAL -->
+<div id="obra-modal" role="dialog" aria-modal="true" aria-labelledby="obra-modal-title">
+  <button id="obra-modal-close" aria-label="Cerrar">&#215;</button>
+  <div id="obra-modal-inner">
+    <div id="obra-modal-cover"></div>
+    <div id="obra-modal-info">
+      <p id="obra-modal-archetype"></p>
+      <h2 id="obra-modal-title"></h2>
+      <p id="obra-modal-subtitle"></p>
+      <p id="obra-modal-author"></p>
+      <p id="obra-modal-series"></p>
+      <p id="obra-modal-format"></p>
+      <p id="obra-modal-desc"></p>
+      <div id="obra-modal-cta"></div>
+    </div>
   </div>
 </div>
 
