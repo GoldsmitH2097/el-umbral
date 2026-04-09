@@ -1,31 +1,9 @@
-/* ── Gallery container — NO mask on video (compositing bottleneck fix) ───────
-   Old: mask-image applied directly to container with playing video.
-   The browser had to recalculate a radial mask over decoded video frames
-   at 60fps — forces CPU compositing, destroys performance.
-
-   New: video is always fully visible. A separate #darkness-overlay sits above
-   it with a transparent "hole" — radial gradient from transparent-center to
-   black-edges. The hole REVEALS the video underneath. Pure GPU composite.
-   ─────────────────────────────────────────────────────────────────────────── */
 #gallery-container {
   position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
   z-index: 1; pointer-events: none; transition: opacity 0.5s; overflow: hidden;
   -webkit-touch-callout: none;
-  /* NO mask here anymore — video renders clean */
-}
-
-/* Darkness overlay — punches a transparent hole to reveal the video below.
-   Inverse of the old mask: transparent at cursor, black at edges.
-   This composites on GPU as a simple layer, no video pixel touching needed. */
-#darkness-overlay {
-  position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
-  background: radial-gradient(circle at var(--x,50%) var(--y,50%),
-    transparent 0%,
-    transparent var(--radio-interior,0px),
-    rgba(2,2,2,1) var(--radio-exterior,0px));
-  z-index: 2; pointer-events: none;
-  /* will-change: background hints GPU to composite independently */
-  will-change: background;
+  -webkit-mask-image: radial-gradient(circle at var(--x,50%) var(--y,50%), black 0%, rgba(0,0,0,0.8) var(--radio-interior,0px), transparent var(--radio-exterior,0px));
+  mask-image: radial-gradient(circle at var(--x,50%) var(--y,50%), black 0%, rgba(0,0,0,0.8) var(--radio-interior,0px), transparent var(--radio-exterior,0px));
 }
 
 #char-video {
@@ -37,7 +15,7 @@
   position: absolute; bottom: 15vh; left: 0; width: 100%; text-align: center;
   color: #fff; opacity: 0.9; letter-spacing: 2px; padding: 50px 20px;
   background: radial-gradient(ellipse at center, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.5) 40%, transparent 70%);
-  will-change: transform, text-shadow; z-index: 3;
+  will-change: transform, text-shadow;
 }
 
 #char-title { margin: 0 0 15px 0; color: #fff; font-size: 32px; letter-spacing: 8px; font-weight: 300; text-transform: uppercase; text-shadow: 0 2px 10px rgba(0,0,0,1); }
@@ -46,8 +24,7 @@
 #ambient-light {
   position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
   background: radial-gradient(circle at var(--x,50%) var(--y,50%), rgba(255,110,20,var(--intensidad,0)) 0%, rgba(180,40,0,calc(var(--intensidad,0)*0.6)) var(--radio-interior,0px), transparent var(--radio-exterior,0px));
-  z-index: 3; pointer-events: none; mix-blend-mode: color-dodge;
-  /* No CSS transition — VisualEngine drives this every frame manually */
+  z-index: 2; pointer-events: none; mix-blend-mode: color-dodge;
 }
 
 #ui { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; z-index: 5; pointer-events: none; }
