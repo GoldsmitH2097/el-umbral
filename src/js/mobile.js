@@ -80,7 +80,7 @@ export function initMobileArchive() {
   const closeBtn = document.getElementById('mobile-char-close');
   const mainSite = document.getElementById('main-site');
 
-  const openDetail = (charIndex) => {
+  const openDetail = (charIndex, activeTab = 'autor') => {
     const char = CHARACTERS[charIndex];
     if (!char) return;
 
@@ -97,52 +97,42 @@ export function initMobileArchive() {
 
     // Books for this archetype
     const books = CATALOGUE.filter(b => b.archetype === char.slug);
-    if (books.length > 0) {
-      detailObras.innerHTML = `<div class="mobile-detail-obras-list">` +
-        books.map(item => {
-          let cta = '';
-          if (item.status === 'available' && item.buyUrl) {
-            cta = `<a href="${item.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy">${item.buyLabel}</a>`;
-          } else if (item.status === 'countdown') {
-            cta = `<div class="obra-countdown">
-              <div class="countdown-timer" data-release="${item.releaseDate}"></div>
-              <span class="obra-btn obra-btn--locked">${item.buyLabel}</span>
-            </div>`;
-          } else {
-            cta = `<span class="obra-btn obra-btn--soon">Próximamente</span>`;
-          }
-          const sub = item.subtitle ? `<p class="obra-subtitle">${item.subtitle}</p>` : '';
-          const seriesHtml = item.seriesInfo ? `<p class="obra-series-info">${item.seriesInfo}</p>` : '';
-          const coverHtml = item.img
-            ? `<img src="${item.img}" alt="${item.title}" class="mobile-book-cover obra-cover--clickable" data-id="${item.id}" style="cursor:pointer;" />`
-            : '';
+    detailObras.innerHTML = books.length === 0
+      ? '<p style="color:#333;letter-spacing:3px;font-size:10px;text-transform:uppercase;padding:20px 0;">En preparación</p>'
+      : books.map(item => {
+          let cta = item.status === 'available' && item.buyUrl
+            ? `<a href="${item.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy">${item.buyLabel}</a>`
+            : item.status === 'countdown'
+            ? `<div class="obra-countdown"><div class="countdown-timer" data-release="${item.releaseDate}"></div><span class="obra-btn obra-btn--locked">${item.buyLabel}</span></div>`
+            : `<span class="obra-btn obra-btn--soon">Próximamente</span>`;
+          const coverHtml = item.img ? `<img src="${item.img}" alt="${item.title}" class="mobile-book-cover" />` : '';
           return `<div class="mobile-detail-book">
             ${coverHtml}
             <div>
-              <h3 class="obra-title">${item.title}</h3>${sub}${seriesHtml}
-              <p class="obra-desc" style="opacity:1;max-height:none;">${item.desc}</p>
+              <h3 class="obra-title">${item.title}</h3>
+              ${item.subtitle ? `<p class="obra-subtitle">${item.subtitle}</p>` : ''}
+              <p style="font-style:italic;color:#666;font-size:13px;line-height:1.8;margin:8px 0 12px;">${item.vision || item.desc}</p>
               ${cta}
             </div>
           </div>`;
-        }).join('') + `</div>`;
-      // Re-init countdowns for newly added timers
-      detailObras.querySelectorAll('.countdown-timer').forEach(el => initCountdown(el));
-      // Wire book covers to obra modal
-      detailObras.querySelectorAll('.obra-cover--clickable').forEach(img => {
-        img.addEventListener('click', () => {
-          // Call ArchiveDOM's modal — it's exposed on window for cross-module access
-          window._openObraModal?.(img.dataset.id);
-        });
-      });
-    } else {
-      detailObras.innerHTML = '';
-    }
+        }).join('');
+
+    // Init countdowns
+    detailObras.querySelectorAll('.countdown-timer').forEach(el => initCountdown(el));
 
     // Background video
     detailVideo.src = char.src; detailVideo.load(); detailVideo.play().catch(()=>{});
     detail.style.display = 'block';
     detail.classList.add('open');
-    mainSite.style.overflow = 'hidden'; // prevent background scroll
+    mainSite.style.overflow = 'hidden';
+
+    // Switch to requested tab
+    switchMobileTab(activeTab);
+
+    // Wire mobile tabs
+    document.querySelectorAll('#mobile-char-detail .reading-tab').forEach(b => {
+      b.onclick = () => switchMobileTab(b.dataset.tab);
+    });
   };
 
   const closeDetail = () => {
@@ -150,6 +140,14 @@ export function initMobileArchive() {
     detail.style.display = 'none';
     detailVideo.pause(); detailVideo.src = '';
     mainSite.style.overflow = 'auto';
+  };
+
+  const switchMobileTab = (tab) => {
+    document.querySelectorAll('#mobile-char-detail .reading-tab').forEach(b => {
+      b.classList.toggle('reading-tab--active', b.dataset.tab === tab);
+    });
+    document.getElementById('mobile-panel-autor')?.classList.toggle('mobile-panel--active', tab === 'autor');
+    document.getElementById('mobile-panel-libros')?.classList.toggle('mobile-panel--active', tab === 'libros');
   };
 
   closeBtn?.addEventListener('click', closeDetail);

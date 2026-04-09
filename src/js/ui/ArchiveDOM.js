@@ -140,10 +140,13 @@ export class ArchiveDOM {
             </div>`;
           books.appendChild(card);
 
+          const charIdx = CHARACTERS.findIndex(c => c.slug === item.archetype);
           const coverEl = card.querySelector('.obra-cover--clickable');
           if (coverEl) {
-            coverEl.addEventListener('click', () => this.openObraModal(item.id));
-            coverEl.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') this.openObraModal(item.id); });
+            // Clicking a book opens the author panel on "Libros" tab
+            const openLibros = () => { if (window.innerWidth > 768) this.openReading(charIdx, 'libros'); };
+            coverEl.addEventListener('click', openLibros);
+            coverEl.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openLibros(); });
           }
         });
       }
@@ -333,9 +336,9 @@ export class ArchiveDOM {
     }, 200);
   }
 
-  openReading(index) {
+  openReading(index, activeTab = 'autor') {
     const char=CHARACTERS[index]; if(!char) return;
-    this._lastReadingFocus = document.activeElement; // save for return focus on close
+    this._lastReadingFocus = document.activeElement;
     this._readTitle.innerText=char.title;
     const socialHtml = char.social.length > 0
       ? `<div class="reading-social">${char.social.map(s =>
@@ -345,13 +348,50 @@ export class ArchiveDOM {
       : '';
     this._readBody.innerHTML = char.lore + socialHtml;
     this._readingBgVideo.src=char.src; this._readingBgVideo.load(); this._readingBgVideo.play().catch(()=>{});
+
+    // Populate Libros panel
+    const obrasList = document.getElementById('reading-obras-list');
+    if (obrasList) {
+      const obras = CATALOGUE.filter(c => c.archetype === char.slug);
+      if (obras.length === 0) {
+        obrasList.innerHTML = '<p style="color:#333;letter-spacing:3px;font-size:10px;text-transform:uppercase;text-align:center;padding:40px 0;">En preparación</p>';
+      } else {
+        obrasList.innerHTML = obras.map(item => {
+          const coverHtml = item.img
+            ? `<div class="reading-obra-cover"><img src="${item.img}" alt="${item.title}" loading="lazy" decoding="async" /></div>`
+            : `<div class="reading-obra-cover"><div class="reading-obra-cover-empty">${item.type==='anthology'?'Antología':'—'}</div></div>`;
+          let ctaHtml = '';
+          if (item.status === 'available' && item.buyUrl)
+            ctaHtml = `<a href="${item.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy">${item.buyLabel}</a>`;
+          else if (item.status === 'countdown')
+            ctaHtml = `<div class="obra-countdown"><div class="countdown-timer" data-release="${item.releaseDate}"></div><span class="obra-btn obra-btn--locked">${item.buyLabel}</span></div>`;
+          else
+            ctaHtml = `<span class="obra-btn obra-btn--soon">Próximamente</span>`;
+          return `<div class="reading-obra-card">
+            ${coverHtml}
+            <div class="reading-obra-info">
+              <h3 class="reading-obra-title">${item.title}</h3>
+              <p class="reading-obra-vision">${item.vision || item.desc}</p>
+              <div class="reading-obra-meta">
+                ${item.format ? `<span class="reading-obra-format">${item.format}</span>` : ''}
+                ${ctaHtml}
+              </div>
+            </div>
+          </div>`;
+        }).join('');
+        // Init countdowns inside panel
+        obrasList.querySelectorAll('.countdown-timer').forEach(el => this._initSingleCountdown(el));
+      }
+    }
+
     this._gridView.style.transform='scale(0.95)'; this._gridView.style.opacity='0';
     setTimeout(()=>{
       this._readingView.style.display='block';
       this._readingView.style.opacity='1'; this._readingView.style.pointerEvents='auto';
       this._readingView.scrollTo(0,0); this._onSceneChange(5);
-      this._readTitle?.focus(); // focus management (WCAG 2.4.3)
-      // Create the Volver button only when reading view is open — injecting prevents ghost rendering
+      // Switch to requested tab
+      this._switchReadingTab(activeTab);
+      this._readTitle?.focus();
       if (!document.getElementById('btn-volver')) {
         const btn = document.createElement('button');
         btn.id = 'btn-volver';
@@ -359,7 +399,23 @@ export class ArchiveDOM {
         btn.addEventListener('click', () => this.closeReading());
         document.body.appendChild(btn);
       }
+      // Wire tab buttons
+      document.querySelectorAll('#reading-view .reading-tab').forEach(b => {
+        b.onclick = () => this._switchReadingTab(b.dataset.tab);
+      });
     },500);
+  }
+
+  _switchReadingTab(tab) {
+    document.querySelectorAll('#reading-view .reading-tab').forEach(b => {
+      b.classList.toggle('reading-tab--active', b.dataset.tab === tab);
+      b.setAttribute('aria-selected', b.dataset.tab === tab ? 'true' : 'false');
+    });
+    const autor = document.getElementById('reading-panel-autor');
+    const libros = document.getElementById('reading-panel-libros');
+    autor?.classList.toggle('reading-panel--active', tab === 'autor');
+    libros?.classList.toggle('reading-panel--active', tab === 'libros');
+  }
     if(this._router) this._router.navigateTo(index);
   }
 

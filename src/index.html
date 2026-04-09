@@ -230,24 +230,41 @@
   </div>
 </div>
 
-<!-- SCENE 5: READING VIEW -->
+<!-- SCENE 5: READING VIEW — Author + Books tabs -->
 <div id="reading-view">
   <video id="reading-bg-video" loop muted playsinline preload="none"></video>
+  <nav class="reading-tabs" role="tablist" aria-label="Secciones">
+    <button class="reading-tab reading-tab--active" data-tab="autor" role="tab" aria-selected="true">Autor</button>
+    <button class="reading-tab" data-tab="libros" role="tab" aria-selected="false">Libros</button>
+  </nav>
   <div class="reading-content">
-    <h1 id="read-title" tabindex="-1"></h1>
-    <div class="read-body" id="read-body-content"></div>
+    <div id="reading-panel-autor" class="reading-panel reading-panel--active">
+      <h1 id="read-title" tabindex="-1"></h1>
+      <div class="read-body" id="read-body-content"></div>
+    </div>
+    <div id="reading-panel-libros" class="reading-panel">
+      <div id="reading-obras-list"></div>
+    </div>
   </div>
 </div>
 
-<!-- MOBILE CHARACTER DETAIL OVERLAY -->
+<!-- MOBILE CHARACTER DETAIL OVERLAY — same tabs -->
 <div id="mobile-char-detail">
   <video id="mobile-char-video-bg" loop muted playsinline preload="none"></video>
   <button id="mobile-char-close">← Volver</button>
+  <nav class="reading-tabs reading-tabs--mobile" role="tablist">
+    <button class="reading-tab reading-tab--active" data-tab="autor">Autor</button>
+    <button class="reading-tab" data-tab="libros">Libros</button>
+  </nav>
   <div class="mobile-detail-content">
-    <h2 class="mobile-detail-title" id="mobile-detail-title"></h2>
-    <div class="mobile-detail-lore" id="mobile-detail-lore"></div>
-    <div class="mobile-detail-social" id="mobile-detail-social"></div>
-    <div class="mobile-detail-obras" id="mobile-detail-obras"></div>
+    <div id="mobile-panel-autor" class="mobile-panel mobile-panel--active">
+      <h2 class="mobile-detail-title" id="mobile-detail-title"></h2>
+      <div class="mobile-detail-lore" id="mobile-detail-lore"></div>
+      <div class="mobile-detail-social" id="mobile-detail-social"></div>
+    </div>
+    <div id="mobile-panel-libros" class="mobile-panel">
+      <div class="mobile-detail-obras" id="mobile-detail-obras"></div>
+    </div>
   </div>
 </div>
 
