@@ -5,12 +5,12 @@ export const CHARACTERS = [
     title: 'La Emperatriz Sin Reino',
     author: 'Alicia Sarel',
     status: 'active',
-    desc: 'No cayó. Fue separada. Su herida no se exhibe. Se reconoce.',
+    desc: 'No reclama compasión. Exige testigos.',
     src: '/reina-sin-corona.mp4',
     social: [
       { platform: 'instagram', url: 'https://www.instagram.com/aliciasarel', handle: '@aliciasarel' }
     ],
-    lore: `<p>No cayó. Fue separada.</p><p>De un orden. De una sala. De una arquitectura de poder que durante mucho tiempo pareció firme. Lo demás aún no debe decirse.</p><p>La Emperatriz Sin Reino no arrastra su ruina: la administra. No pide restitución. No reclama compasión. Conserva algo más alto y más peligroso que un título: criterio.</p><p>Su herida no se exhibe. Se reconoce.</p><p>Hay en ella una tragedia antigua, pero no blanda. Algo lírico, sí, aunque sin desmayo. Sabe lo que se pierde cuando cae una estructura; sabe también que no toda pérdida empobrece. A veces depura.</p><h3>La Corte</h3><p>Toda corte es una maquinaria. Sonríe, concede, decora, promete. Después mide, selecciona, aparta. La Corte fue escuela, escenario y sentencia. Allí aprendió que el poder rara vez se anuncia con ruido, y que la traición casi nunca entra por la puerta principal.</p><p>No corresponde aún contar los nombres. Ni las alianzas. Ni la forma exacta del quiebre.</p><p>Baste decir que quien sobrevive a la Corte ya no vuelve a confundir compañía con lealtad, ni aplauso con verdad.</p><p><em>Proyecto en desarrollo. La figura permanece abierta. El reino cayó. La voz, no.</em></p>`
+    lore: `<p>La Emperatriz Sin Reino no reclama compasión. Exige testigos.</p><p>No cayó. Fue separada de un orden, una sala, una arquitectura de poder que durante mucho tiempo pareció firme. La diferencia importa.</p><p>No arrastra su ruina: la administra. Conserva algo más alto y más peligroso que un título: criterio. Su herida no se exhibe. Se reconoce.</p><p>Un reino se pierde, pero una estirpe de autores nace de su ausencia. No busques aquí víctimas, sino soberanos de su propio relato. Adéntrate en la sala del exilio y reconoce la voz de los que han aprendido a administrar su propia historia.</p><h3>La Corte</h3><p>Toda corte es una maquinaria. Sonríe, concede, decora, promete. Después mide, selecciona, aparta. Allí aprendió que el poder rara vez se anuncia con ruido, y que la traición casi nunca entra por la puerta principal.</p><p>Quien sobrevive a la Corte ya no vuelve a confundir compañía con lealtad, ni aplauso con verdad.</p><p><em>El reino cayó. La voz, no.</em></p>`
   },
   {
     slug: 'caballero',
@@ -24,7 +24,7 @@ export const CHARACTERS = [
       { platform: 'instagram', url: 'https://www.instagram.com/wwyeid0n', handle: '@wwyeid0n' },
       { platform: 'threads', url: 'https://www.threads.com/@wwyeid0n', handle: '@wwyeid0n' }
     ],
-    lore: `<p>Nadie sabe bajo qué bandera lucha, porque no ha dejado sobrevivientes para que cuenten el emblema de su escudo. Su armadura está picada por el óxido y la sangre seca de mil batallas olvidadas, pesada como las consecuencias de los actos irredimibles.</p><p>No posee técnica ni estilo. Su combate es un proceso industrial de desmantelamiento humano. Cada golpe de su espada no busca vencer al oponente, sino quebrar la moral, aplastar el hueso y erradicar la esperanza.</p><p>Dicen que dentro de la armadura ya no hay un hombre, sino un concepto físico: el fin inminente.</p>`
+    lore: `<p>Nadie sabe bajo qué bandera lucha, porque no ha dejado sobrevivientes para que cuenten el emblema de su escudo.</p><p>En el silencio previo a la carga, solo se escucha el acompasado golpeteo de los corazones — un pálpito unísono que recorre la formación. No luchan por oro, sino por estirpe y el juramento inmarcesible que los une. Saben que antes del ocaso, la tierra reclamará su libación carmesí.</p><p>Su armadura está picada por el óxido y la sangre seca de mil batallas olvidadas. No posee técnica ni estilo. Su combate es un proceso industrial de desmantelamiento humano. Cada golpe no busca vencer al oponente: busca quebrar la moral, aplastar el hueso, erradicar la esperanza.</p><p>Dicen que dentro de la armadura ya no hay un hombre, sino un concepto físico: el fin inminente.</p>`
   },
   {
     slug: 'sortilega',
@@ -38,7 +38,7 @@ export const CHARACTERS = [
       { platform: 'instagram', url: 'https://www.instagram.com/irina_mlk_', handle: '@irina_mlk_' },
       { platform: 'threads', url: 'https://www.threads.com/@irina_mlk_', handle: '@irina_mlk_' }
     ],
-    lore: `<p>Nunca la miras directamente. Solo la percibes en la visión periférica, como una distorsión térmica sobre el asfalto caliente. Es la arquitecta de la duda, la tejedora de las medias verdades que arruinan vidas enteras.</p><p>Sus hechizos no conjuran fuego ni rayos; alteran la percepción. Te hace creer que la puerta siempre estuvo abierta, que el abismo es solo un escalón bajo. Sus víctimas no caen en batalla, mueren de locura, atrapadas en laberintos construidos dentro de sus propias mentes.</p><p>Si alguna vez notas que el fuego de una vela vacila sin que haya viento, ella está escuchando.</p>`
+    lore: `<p>No intentes mirarla directamente. El reflejo será tu perdición.</p><p>Solo la percibes en la visión periférica, como una distorsión térmica sobre el asfalto caliente. Es la arquitecta de la duda, la tejedora de las medias verdades que arruinan vidas enteras.</p><p>Sus hechizos no conjuran fuego ni rayos. Alteran la percepción. Te hace creer que la puerta siempre estuvo abierta, que el abismo es solo un escalón bajo. Sus víctimas no caen en batalla — mueren de locura, atrapadas en laberintos construidos dentro de sus propias mentes.</p><p>Cuidado con lo que crees saber. Ella ya está tejiendo tu destino con medias verdades.</p><p><em>Si alguna vez notas que el fuego de una vela vacila sin que haya viento, ella está escuchando.</em></p>`
   },
   {
     slug: 'arlequin',
@@ -51,7 +51,7 @@ export const CHARACTERS = [
     social: [
       { platform: 'threads', url: 'https://www.threads.com/@germyto', handle: '@germyto' }
     ],
-    lore: `<p>La comedia murió hace siglos, y él es el forense encargado de la autopsia. Su función no es hacer reír, sino descolocar violentamente la expectativa de su audiencia. Es el fallo en el sistema, la nota disonante tocada a todo volumen.</p><p>Se mueve con tirones espasmódicos, como un muñeco de cuerdas manejado por un titiritero ebrio. Sus chistes son axiomas aterradores sobre el vacío existencial.</p><p>Cuando el Arlequín entra en la sala, la cordura sale por la ventana. No te rías con él, porque su risa es contagiosa, y rara vez se detiene antes de que te falte el aire de forma permanente.</p>`
+    lore: `<p>La comedia murió hace siglos. Él es el forense encargado de la autopsia.</p><p>No entras a leer un relato. Entras para ser diseccionado por él.</p><p>El Arlequín ya te observa. Su función no es hacer reír, sino descolocar violentamente la expectativa de su audiencia. Deja que el relato hurge en tus miedos mientras escuchas el estruendo de tu propio silencio.</p><p>Se mueve con tirones espasmódicos, como un muñeco de cuerdas manejado por un titiritero ebrio. Sus chistes son axiomas aterradores sobre el vacío existencial.</p><p>Cuando el Arlequín entra en la sala, la cordura sale por la ventana. No te rías con él, porque su risa es contagiosa — y rara vez se detiene antes de que te falte el aire de forma permanente.</p><p><em>¿Vas a ser el testigo o la víctima?</em></p>`
   },
 ];
 
@@ -114,8 +114,8 @@ export const CATALOGUE = [
     seriesInfo: 'Primera de tres novelas',
     format: 'Novela — Edición de coleccionista',
     status: 'coming-soon',
-    img: '/assets/pulso-hard-cover-es.webp',
-    vision: 'La misma historia. Otro peso en las manos. Encuadernación en tela, papel de alto gramaje y una maquetación mucho más depurada. Para quienes entienden que un libro también se revela en su forma.',
+    img: '/assets/pulso-soft-cover-es.webp',
+    vision: 'La misma historia. Otro peso en las manos. Encuadernación en tela, papel de alto gramaje, maquetación depurada. Para quienes entienden que un libro también se revela en su forma.',
     desc: 'Encuadernación premium, papel de alto gramaje, ilustraciones exclusivas.',
     buyUrl: null,
     buyLabel: 'Próximamente',
@@ -146,8 +146,8 @@ export const CATALOGUE = [
     format: 'Experiencia web interactiva',
     status: 'coming-soon',
     img: '/assets/anatomia-del-vacio.webp',
-    vision: 'No hay páginas. No hay narración de voz. Solo el descenso, frase a frase, en tiempo real. Terror psicológico construido con silencio, ritmo y la certeza de que no hay mapa de salida. Una experiencia que vives en la pantalla, con el sonido construido en directo por el propio sitio.',
-    desc: 'No es un libro. Es una experiencia web inmersiva de terror psicológico. Desciendes. No hay mapa de salida.',
+    vision: 'No entras a leer un relato. Entras para ser diseccionado por él. Terror psicológico frase a frase, en tiempo real — sin páginas, sin narración de voz, sin mapa de salida. Solo el descenso. Solo tu silencio.',
+    desc: 'No entras a leer un relato. Entras para ser diseccionado por él.',
     buyUrl: null,
     buyLabel: 'Próximamente',
   },
