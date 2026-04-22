@@ -1,19 +1,51 @@
 # HANDOVER.md — El Umbral / Soulware
-*Última actualización: 9 Abril 2026 — Cierre de sesión de día completo*
-*Próxima sesión: Mañana*
+*Última actualización: 22 Abril 2026*
 
 ---
 
 ## Estado del sitio
 
 **Live:** https://soulware.live  
-**Último commit:** `cb7f7e1` — docs: AUDIT_BRIEF_V2.md  
+**Último commit:** `5d8eac5` — feat(analytics): GA4 tag  
 **Build:** ✅ Limpio  
 **Deploy:** ✅ Netlify auto-deploy activo
 
 ---
 
-## Resumen de la sesión de hoy
+## Sesión 22 Abril 2026 — Lo que se hizo
+
+### Copy (brief Susana Azcona)
+- Lore actualizado por arquetipo (Emperatriz, Caballero, Sortílega, Arlequín)
+- Anatomía del Vacío: desc/vision con copy de Susana ("No entras a leer un relato...")
+- Mismo cover para tapa blanda y dura de Pulso del Núcleo
+- ISBN 978-8409810345 añadido al JSON-LD de Pulso
+
+### Bugs mobile corregidos
+- Overlay de personaje: animación de apertura rota (RAF fix)
+- Tabs Autor/Libros invisibles (`.reading-tabs` ocultaba también `.reading-tabs--mobile`)
+- `touchend preventDefault` bloqueaba el scroll-snap horizontal del carousel
+
+### Desktop reading view
+- `max-width: 650px` → `1100px` (era demasiado estrecho para el grid de 2 columnas)
+
+### Route metadata
+- Router.js actualiza title/og:title/og:description/og:url/canonical por personaje
+- Compartir `/emperatriz` en WhatsApp muestra datos del personaje, no homepage genérica
+
+### Google Search Console ✅
+- Propiedad `https://soulware.live/` verificada vía HTML file
+- Archivo `google8ac032f1f6add1da.html` en `/public/` (mantener siempre)
+- Sitemap ya estaba submitido y funcionando: 8 URLs, status Success
+- DNS TXT de Google añadido en Netlify (no necesario para esta propiedad pero sin daño)
+
+### Google Analytics 4 ✅
+- Propiedad: **Soulware** | Measurement ID: **G-VC5QW7C1CQ**
+- Timezone: Spain (GMT+02:00) | Moneda: Euro
+- Industry: Books & Literature | Objectives: Drive sales + Web traffic
+- Tag añadido al `index.html` — tracking activo desde ahora
+- Para añadir a Javier: GA Admin → Property access management → Add users
+
+---
 
 ### Hito principal: Canvas destination-out
 El refactor más importante del día. La arquitectura de spotlight pasó de:
