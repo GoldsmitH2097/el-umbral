@@ -1,4 +1,7 @@
-* { cursor: crosshair !important; box-sizing: border-box; }
+* { box-sizing: border-box; }
+body { cursor: crosshair; }
+/* Intro scenes get crosshair; archive/reading get default (overridden per element) */
+#gallery-container, #scene-2, #scene-3 { cursor: crosshair; }
 
 /* Widow / orphan prevention — scoped to ARCHIVE only, NOT Scene 1 (text-wrap on animated
    elements forces layout reflow every frame and kills canvas performance) */
@@ -12,7 +15,19 @@
 body, html {
   margin: 0; padding: 0; background-color: #020202; height: 100vh; overflow: hidden;
   font-family: 'Times New Roman', serif; user-select: none;
-  /* touch-action: none removed — was blocking mobile archive scroll */
+}
+
+/* Allow text selection in reading view and Tizno panel */
+.reading-content, #read-title, .read-body,
+.tizno-panel, .tizno-info-col, .tizno-form-col { user-select: text; }
+
+/* prefers-reduced-motion — kill all animations globally for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* Apply touch-action strictly to intro layers only */

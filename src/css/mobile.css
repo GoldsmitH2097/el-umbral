@@ -61,7 +61,8 @@
   }
 
   .mobile-detail-content {
-    position: relative; z-index: 2; padding: 45vh 6vw 15vh;
+    position: relative; z-index: 2;
+    padding: 46vh 6vw 15vh; /* 40vh video + ~6vh for tabs height */
   }
   .mobile-detail-title {
     font-size: 20px; letter-spacing: 6px; text-transform: uppercase;

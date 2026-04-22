@@ -122,8 +122,19 @@ export function initMobileArchive() {
 
     // Background video
     detailVideo.src = char.src; detailVideo.load(); detailVideo.play().catch(()=>{});
+
+    // Show overlay with proper transition — needs RAF between display:block and .open
+    // Otherwise browser batches both changes and opacity transition never fires
     detail.style.display = 'block';
-    detail.classList.add('open');
+    detail.style.opacity = '0';
+    detail.style.pointerEvents = 'none';
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        detail.classList.add('open');
+        detail.style.opacity = '';
+        detail.style.pointerEvents = '';
+      });
+    });
     mainSite.style.overflow = 'hidden';
 
     // Switch to requested tab
@@ -137,9 +148,10 @@ export function initMobileArchive() {
 
   const closeDetail = () => {
     detail.classList.remove('open');
-    detail.style.display = 'none';
+    mainSite.style.overflow = '';
     detailVideo.pause(); detailVideo.src = '';
-    mainSite.style.overflow = 'auto';
+    // Wait for fade-out transition before hiding
+    setTimeout(() => { detail.style.display = 'none'; }, 400);
   };
 
   const switchMobileTab = (tab) => {
@@ -152,8 +164,7 @@ export function initMobileArchive() {
 
   closeBtn?.addEventListener('click', closeDetail);
 
-  // Wire up archive-pillar taps
-  // Use event delegation on the grid as a belt-and-suspenders approach
+  // Single event delegation on the grid — reliable, no duplicates
   const grid = document.querySelector('.archive-grid');
   if (grid) {
     grid.addEventListener('click', (e) => {
@@ -164,22 +175,9 @@ export function initMobileArchive() {
       const i = pillars.indexOf(pillar);
       if (i >= 0) { e.stopPropagation(); openDetail(i); }
     });
-    grid.addEventListener('touchend', (e) => {
-      // Prevent ghost click delays on iOS
-      const pillar = e.target.closest('.archive-pillar');
-      if (pillar) e.preventDefault();
-    }, { passive: false });
+    // No touchend preventDefault — touch-action:manipulation already handles 300ms delay
+    // and preventDefault here was blocking the horizontal scroll-snap carousel
   }
-  // Also direct listeners as fallback
-  setTimeout(() => {
-    document.querySelectorAll('.archive-pillar').forEach((pillar, i) => {
-      pillar.addEventListener('click', (e) => {
-        if (!isMobile()) return;
-        e.stopPropagation();
-        openDetail(i);
-      });
-    });
-  }, 800);
 }
 
 function initCountdown(el) {

@@ -7,15 +7,16 @@ class FlameParticle {
   draw(ctx) { const r=255,g=Math.floor(Math.max(0,190*(this.life*this.life))),b=this.life>0.92?80:Math.floor(Math.max(0,30*(this.life-0.7)*3)),a=this.life*0.5; const gr=ctx.createRadialGradient(this.x,this.y,0,this.x,this.y,Math.max(0.1,this.size)); gr.addColorStop(0,`rgba(${r},${g},${b},${a})`);gr.addColorStop(0.4,`rgba(${r},${g},${b},${a*0.6})`);gr.addColorStop(1,`rgba(${r},${g},${b},0)`); ctx.beginPath();ctx.arc(this.x,this.y,Math.max(0.1,this.size),0,Math.PI*2);ctx.fillStyle=gr;ctx.fill(); }
 }
 
-// Pre-rendered smoke sprite — drawn ONCE, stamped via drawImage (no per-frame gradient)
-const _smokeSprite = new OffscreenCanvas(64, 64);
+// Pre-rendered smoke sprite — 15% padding so gradient reaches true zero at edges
+// (without padding the outermost pixel has alpha ~0.01, visible when 85 sprites overlap)
+const _smokeSprite = new OffscreenCanvas(80, 80);
 const _sCtx = _smokeSprite.getContext('2d');
-const _sGr = _sCtx.createRadialGradient(32, 32, 0, 32, 32, 32);
+const _sGr = _sCtx.createRadialGradient(40, 40, 0, 40, 40, 36); // radius 36 of 40 = padding
 _sGr.addColorStop(0,   'rgba(140,150,160,0.20)');
 _sGr.addColorStop(0.5, 'rgba(140,150,160,0.09)');
 _sGr.addColorStop(1,   'rgba(140,150,160,0)');
 _sCtx.fillStyle = _sGr;
-_sCtx.beginPath(); _sCtx.arc(32,32,32,0,Math.PI*2); _sCtx.fill();
+_sCtx.beginPath(); _sCtx.arc(40,40,40,0,Math.PI*2); _sCtx.fill();
 
 class SmokeParticle {
   constructor(x,y,vx,vy) { this.x=x;this.y=y;this.life=1.0;this.size=Math.random()*8+4;this.vx=vx*0.15+(Math.random()-0.5)*0.5;this.vy=vy*0.15-Math.random()*1.0-0.5;this.decay=Math.random()*0.005+0.003;this.angle=Math.random()*Math.PI*2;this.spin=(Math.random()-0.5)*0.15;this.cr=Math.random()*1.5+0.5; }

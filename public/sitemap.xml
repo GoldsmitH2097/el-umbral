@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://soulware.live/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
-  <url><loc>https://soulware.live/emperatriz</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://soulware.live/caballero</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://soulware.live/sortilega</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://soulware.live/arlequin</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://soulware.live/aviso-legal</loc><changefreq>yearly</changefreq><priority>0.2</priority></url>
-  <url><loc>https://soulware.live/privacidad</loc><changefreq>yearly</changefreq><priority>0.2</priority></url>
-  <url><loc>https://soulware.live/cookies</loc><changefreq>yearly</changefreq><priority>0.2</priority></url>
+  <url><loc>https://soulware.live/</loc><lastmod>2026-04-22</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://soulware.live/emperatriz</loc><lastmod>2026-04-22</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://soulware.live/caballero</loc><lastmod>2026-04-22</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://soulware.live/sortilega</loc><lastmod>2026-04-22</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://soulware.live/arlequin</loc><lastmod>2026-04-22</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://soulware.live/aviso-legal</loc><lastmod>2026-04-09</lastmod><changefreq>yearly</changefreq><priority>0.2</priority></url>
+  <url><loc>https://soulware.live/privacidad</loc><lastmod>2026-04-09</lastmod><changefreq>yearly</changefreq><priority>0.2</priority></url>
+  <url><loc>https://soulware.live/cookies</loc><lastmod>2026-04-09</lastmod><changefreq>yearly</changefreq><priority>0.2</priority></url>
 </urlset>

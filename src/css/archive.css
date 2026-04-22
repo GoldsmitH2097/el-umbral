@@ -219,8 +219,28 @@
   .reading-content { grid-template-columns: 1fr; gap: 40px; }
 }
 
-/* Hide tab UI — we no longer use tabs */
-.reading-tabs { display: none !important; }
+/* Desktop reading view doesn't use tabs — side-by-side layout */
+.reading-tabs:not(.reading-tabs--mobile) { display: none !important; }
+
+/* Mobile detail tabs — visible and fixed below the video */
+.reading-tabs--mobile {
+  position: fixed; left: 0; width: 100%;
+  top: 40vh; /* sits just below the video (40vh tall) */
+  display: flex; justify-content: center;
+  background: rgba(2,2,2,0.95);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  z-index: 36;
+}
+.reading-tab {
+  background: transparent; border: none;
+  border-right: 1px solid rgba(255,255,255,0.08);
+  color: #444; font-size: 9px; letter-spacing: 5px; text-transform: uppercase;
+  padding: 12px 28px; cursor: pointer !important;
+  font-family: 'Times New Roman', serif; transition: color 0.3s;
+}
+.reading-tab:last-child { border-right: none; }
+.reading-tab--active { color: #c8922a; }
+.reading-tab:hover:not(.reading-tab--active) { color: #888; }
 
 /* Libros panel */
 #reading-obras-list { display: flex; flex-direction: column; gap: 36px; padding-top: 8px; }
