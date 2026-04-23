@@ -45,7 +45,6 @@
     50%       { opacity: 1; }
   }
 }
-}
 
 /* ── MOBILE ARCHIVE: Character cards expandable ───────────────────────────── */
 @media (max-width: 768px) {
@@ -125,8 +124,7 @@
 
 /* archive-grid horizontal swipe handled in archive.css */
 
-/* ── Tizno — hide on mobile (no hover mechanic, covers footer) ───────────── */
+/* ── Tizno — reposition on mobile so it clears the footer ────────────────── */
 @media (max-width: 768px) {
-  #tizno-tease { display: none !important; }
-  #tizno-backdrop { display: none !important; }
+  #tizno-tease { bottom: 64px; }
 }

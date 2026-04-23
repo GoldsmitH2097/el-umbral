@@ -145,3 +145,23 @@
   #tizno-panel-inner { grid-template-columns: 1fr; gap: 32px; }
   #tizno-panel { padding: 36px 5vw 40px; }
 }
+
+/* ── El Pacto — email capture ────────────────────────────────────────────── */
+.tizno-pacto {
+  padding-top: 24px; margin-top: 24px;
+  border-top: 1px solid rgba(255,255,255,0.04);
+}
+.tizno-pacto-label {
+  font-size: 11px; color: #555; letter-spacing: 2px;
+  font-style: italic; margin: 0 0 12px;
+}
+.tizno-pacto-form { display: flex; gap: 8px; }
+.tizno-pacto-form input[type="email"] {
+  flex: 1; min-width: 0;
+  background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.12);
+  color: #e8ecef; font-family: 'Times New Roman', serif; font-size: 13px;
+  padding: 10px 14px; outline: none; transition: border-color 0.3s; letter-spacing: 1px;
+}
+.tizno-pacto-form input[type="email"]:focus { border-color: rgba(200,146,42,0.5); }
+.tizno-pacto-form input[type="email"]::placeholder { color: #3a3a3a; }
+.tizno-pacto-btn { margin-top: 0 !important; white-space: nowrap; flex-shrink: 0; }

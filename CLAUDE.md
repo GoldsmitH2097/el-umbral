@@ -144,7 +144,7 @@ To add a relato to La Corte: add entry to `relatos[]` array in StateManager.js. 
 
 ## SEO status
 
-- **Google Search Console:** Registered ✅ Sitemap: submit at console (go to Sitemaps section)
+- **Google Search Console:** Registered ✅ Sitemap: submitted ✅ (8 URLs indexed, April 2026)
 - **Indexed:** Yes (crawled April 8 2026) ✅
 - **Sitemap:** `/sitemap.xml` ✅ includes all 4 character routes + legal pages
 - **robots.txt:** ✅
@@ -182,7 +182,7 @@ Accessible from footer. Serve without .html extension via Netlify pretty URLs.
 
 | Item | Owner | Status |
 |------|-------|--------|
-| Submit sitemap in Search Console | Javier | Pending — go to Sitemaps section |
+| Submit sitemap in Search Console | Javier | ✅ Done — 8 URLs indexed |
 | Video CDN (Bunny.net) | Javier | Before marketing push |
 | Goodreads author page (WW. & Eidon) | Javier | Pending |
 | Amazon author page + publisher name | Javier | Pending |
