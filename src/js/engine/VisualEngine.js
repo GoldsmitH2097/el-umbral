@@ -207,6 +207,7 @@ export class VisualEngine {
     if(index>=CHARACTERS.length) return;
     const c=CHARACTERS[index];
     this._liveEl.src=c.src; this._liveEl.load(); this._liveEl.play().catch(()=>{});
+    if (window.innerWidth <= 768) this._liveEl.style.objectFit = 'cover';
     this._titleEl.innerText=c.title; this._descEl.innerText=c.desc;
   }
   _swapToNextCharacter() {
@@ -223,7 +224,8 @@ export class VisualEngine {
       nextEl.style.position = 'absolute';
       nextEl.style.top = '0'; nextEl.style.left = '0';
       nextEl.style.width = '100vw'; nextEl.style.height = '100vh';
-      nextEl.style.objectFit = 'contain'; nextEl.style.transform = 'scale(1.05)';
+      nextEl.style.objectFit = window.innerWidth <= 768 ? 'cover' : 'contain';
+      nextEl.style.transform = 'scale(1.05)';
       prevEl.style.display = 'none';
       nextEl.play().catch(()=>{});
       this._liveEl = nextEl;

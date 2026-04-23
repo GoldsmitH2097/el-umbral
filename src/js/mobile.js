@@ -32,7 +32,8 @@ export function initMobileScene2(onAllFound) {
     currentIndex++;
 
     if (currentIndex >= whispers.length) {
-      setTimeout(onAllFound, 800);
+      // Longer delay on last whisper — give user time to read it before awakening
+      setTimeout(onAllFound, 3000);
     } else {
       // Hide found whisper after 600ms, then show next
       setTimeout(() => {
