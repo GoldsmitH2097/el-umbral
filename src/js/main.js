@@ -7,6 +7,8 @@ import { ArchiveFireflies } from './ui/ArchiveFireflies.js';
 import { TiznoTease } from './ui/TiznoTease.js';
 import { initMobileScene2, initMobileArchive } from './mobile.js';
 
+const isMobile = () => window.innerWidth <= 768;
+
 const audio    = new AudioEngine();
 const tizno    = new TiznoTease();
 const fireflies = new ArchiveFireflies(tizno);
@@ -88,6 +90,39 @@ _autoTimer = setTimeout(() => {
     _autoAdvanceNext();
   }
 }, 5000);
+
+// ── Mobile tap-to-reveal (Scene 1) ─────────────────────────────────────────
+// Replaces press-and-hold on touch devices. One tap = instant reveal for 3s,
+// then spotlight closes and moves to next character.
+let _mobileTapLock = false;
+
+function _doMobileTap() {
+  if (_mobileTapLock || state.isIgnited || state.isSwapping || state.hasFinishedGallery) return;
+  _mobileTapLock = true;
+  if(_autoTimer) { clearTimeout(_autoTimer); _autoTimer = null; }
+  if(_isAutoAdvancing) { _isAutoAdvancing = false; visual.setAutoAdvanceMode(false); }
+
+  visual.forceIgnite();
+
+  // Hold character visible for 3s, then swap to next
+  setTimeout(() => {
+    if (state.hasFinishedGallery) { _mobileTapLock = false; return; }
+    state.isIgnited = false;
+    state.isSwapping = true;
+    visual.primeNextVideo();
+    setTimeout(() => {
+      _mobileTapLock = false;
+      // Resume auto-advance 4s after tap if user doesn't tap again
+      if (!state.hasFinishedGallery) {
+        _autoTimer = setTimeout(() => {
+          if (state.activeScene === 1 && !state.hasFinishedGallery && !_mobileTapLock) {
+            _doMobileTap();
+          }
+        }, 4000);
+      }
+    }, 900);
+  }, 3000);
+}
 
 // Haptic feedback — iOS/Android only, silently ignored on desktop
 let _hapticInterval = null;
@@ -187,19 +222,23 @@ function handleDown(e) {
   }
   audio.init();
   audio.resumeIfSuspended();
-  // If already in archive (deep link skip), silence wind/fire immediately
   if (state.activeScene >= 4) { audio.setFireVolume(0, false); audio.setWindVolume(0, 1); }
   inst.style.opacity='0';
   const btn=document.getElementById('umbral-btn');
   if(state.activeScene===1&&e.target!==btn&&!state.hasFinishedGallery) {
-    state.isPressed=true;
-    _startHaptics();
+    if (isMobile()) {
+      // Mobile: tap = instant reveal, no press-and-hold
+      _doMobileTap();
+    } else {
+      state.isPressed=true;
+      _startHaptics();
+    }
   }
 }
 
 function handleUp() {
   _stopHaptics();
-  if(state.activeScene===1){
+  if(state.activeScene===1 && !isMobile()){
     state.isPressed=false;
     if(state.isIgnited&&!state.hasFinishedGallery&&!state.isSwapping){
       state.isIgnited=false;
@@ -226,10 +265,22 @@ document.addEventListener('mouseup',handleUp);
 document.addEventListener('touchstart',e=>{ visual.updateTarget(e.touches[0].clientX,e.touches[0].clientY); handleDown(e); },{passive:false});
 document.addEventListener('touchmove',e=>{ if(state.activeScene<4) e.preventDefault(); visual.updateTarget(e.touches[0].clientX,e.touches[0].clientY); },{passive:false});
 document.addEventListener('touchend',handleUp);
-document.getElementById('umbral-btn').addEventListener('click', function(e) {
+const _umbralBtn = document.getElementById('umbral-btn');
+_umbralBtn.addEventListener('click', function(e) {
   e.stopPropagation();
   this.style.pointerEvents = 'none';
-  this.style.opacity = '0'; // hide immediately — don't wait for enterScene2 callback (900ms delay)
+  this.style.opacity = '0';
   audio.resumeIfSuspended();
   archive.openPacto(() => enterScene2());
 });
+// iOS fix: touchend on the button directly ensures it fires even when document
+// touchend handler runs first. Prevents Arlequín getting stuck after last character.
+_umbralBtn.addEventListener('touchend', function(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  if (this.style.pointerEvents === 'none') return;
+  this.style.pointerEvents = 'none';
+  this.style.opacity = '0';
+  audio.resumeIfSuspended();
+  archive.openPacto(() => enterScene2());
+}, { passive: false });

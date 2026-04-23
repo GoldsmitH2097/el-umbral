@@ -30,28 +30,49 @@ export class TiznoTease {
     this._startIrregularBlink();
   }
 
-  /** Irregular async blink — sometimes twice in a row, random interval */
+  /** Asymmetric blink — each eye blinks on its own independent schedule */
   _startIrregularBlink() {
     const eyes = this._tease?.querySelectorAll('.tizno-eye');
     if (!eyes?.length) return;
-    const doBlink = (countInRow = 0) => {
-      const offset = Math.floor(Math.random() * 50); // slight L-R offset
-      eyes[0].classList.add('blink');
-      setTimeout(() => eyes[1].classList.add('blink'), offset);
+
+    const blinkEye = (eye, scheduleNext) => {
+      eye.classList.add('blink');
+      // Each eye has its own open duration (120-200ms)
+      const openDuration = 120 + Math.floor(Math.random() * 80);
       setTimeout(() => {
-        eyes[0].classList.remove('blink');
-        eyes[1].classList.remove('blink');
-        // 25% chance of double-blink (blink again quickly)
-        const doDouble = countInRow === 0 && Math.random() < 0.25;
-        if (doDouble) {
-          setTimeout(() => doBlink(1), 180 + Math.random() * 100);
-        } else {
-          // Normal interval: 1.0s – 4.2s
-          setTimeout(() => doBlink(0), 1000 + Math.random() * 3200);
-        }
-      }, 140);
+        eye.classList.remove('blink');
+        scheduleNext();
+      }, openDuration);
     };
-    setTimeout(() => doBlink(0), 600 + Math.random() * 1400);
+
+    const scheduleLeft = () => {
+      // Left eye: 1.2s – 4.5s between blinks
+      const delay = 1200 + Math.random() * 3300;
+      // 20% chance of double-blink
+      const doDouble = Math.random() < 0.20;
+      setTimeout(() => {
+        blinkEye(eyes[0], () => {
+          if (doDouble) setTimeout(() => blinkEye(eyes[0], scheduleLeft), 150 + Math.random() * 100);
+          else scheduleLeft();
+        });
+      }, delay);
+    };
+
+    const scheduleRight = () => {
+      // Right eye: different rhythm, 0.9s – 3.8s — slightly faster
+      const delay = 900 + Math.random() * 2900;
+      const doDouble = Math.random() < 0.15;
+      setTimeout(() => {
+        blinkEye(eyes[1], () => {
+          if (doDouble) setTimeout(() => blinkEye(eyes[1], scheduleRight), 120 + Math.random() * 80);
+          else scheduleRight();
+        });
+      }, delay);
+    };
+
+    // Start on offset initial delays so they don't sync
+    setTimeout(() => scheduleLeft(), 400 + Math.random() * 800);
+    setTimeout(() => scheduleRight(), 1100 + Math.random() * 600);
   }
 
   toggle() { this._open ? this.close() : this.open(); }

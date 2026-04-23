@@ -34,7 +34,7 @@
   }
   /* Just found — brief fade, no interaction */
   .whisper.mobile-found {
-    display: block !important;
+    display: block;
     pointer-events: none !important;
     color: rgba(220,240,255,0.15) !important;
     text-shadow: none !important;

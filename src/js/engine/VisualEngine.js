@@ -157,6 +157,23 @@ export class VisualEngine {
   }
 
   /**
+   * Mobile tap — instant ignite without press-and-hold.
+   * Skips the ignitionProgress buildup, jumps directly to ignited state.
+   */
+  forceIgnite() {
+    state.isIgnited = true;
+    state.isPressed = false;
+    state.ignitionProgress = 150;
+    this._radioInt = 180;
+    this._radioExt = 680;
+    this._intensidad = 0.85;
+    this._instEl.style.opacity = '0';
+    document.body.style.cursor = 'none';
+    this._audio.playCharacterSignature(state.currentCharIndex);
+    window._onIgnitionComplete?.();
+  }
+
+  /**
    * Called from touchend/mouseup gesture handler in main.js — inside gesture context.
    * Loads next video into the HIDDEN preload element so iOS unlocks play() permission,
    * without changing the visible video (which would flash the new character early).

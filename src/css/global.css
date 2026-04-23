@@ -91,5 +91,8 @@ body, html {
 @media (max-width: 768px) {
   #scene-3 h1 { font-size: 20px; letter-spacing: 12px; margin-bottom: 40px; }
   #final-btn { padding: 16px 30px; font-size: 12px; letter-spacing: 5px; }
-  #voces-title { font-size: 14px; letter-spacing: 8px; }
+  /* Instrucción "mantén pulsado" — no aplica en mobile, tap es instantáneo */
+  #instruccion { display: none !important; }
+  /* Videos Scene 1: cover para que ocupen todo el ancho en portrait */
+  #char-video { object-fit: cover !important; }
 }
