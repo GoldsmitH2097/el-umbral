@@ -1,268 +1,132 @@
 # HANDOVER.md — El Umbral / Soulware
-*Última actualización: 22 Abril 2026*
+*Last updated: April 23, 2026*
 
 ---
 
-## Estado del sitio
+## Site status
 
-**Live:** https://soulware.live  
-**Último commit:** `5d8eac5` — feat(analytics): GA4 tag  
-**Build:** ✅ Limpio  
-**Deploy:** ✅ Netlify auto-deploy activo
-
----
-
-## Sesión 22 Abril 2026 — Lo que se hizo
-
-### Copy (brief Susana Azcona)
-- Lore actualizado por arquetipo (Emperatriz, Caballero, Sortílega, Arlequín)
-- Anatomía del Vacío: desc/vision con copy de Susana ("No entras a leer un relato...")
-- Mismo cover para tapa blanda y dura de Pulso del Núcleo
-- ISBN 978-8409810345 añadido al JSON-LD de Pulso
-
-### Bugs mobile corregidos
-- Overlay de personaje: animación de apertura rota (RAF fix)
-- Tabs Autor/Libros invisibles (`.reading-tabs` ocultaba también `.reading-tabs--mobile`)
-- `touchend preventDefault` bloqueaba el scroll-snap horizontal del carousel
-
-### Desktop reading view
-- `max-width: 650px` → `1100px` (era demasiado estrecho para el grid de 2 columnas)
-
-### Route metadata
-- Router.js actualiza title/og:title/og:description/og:url/canonical por personaje
-- Compartir `/emperatriz` en WhatsApp muestra datos del personaje, no homepage genérica
-
-### Google Search Console ✅
-- Propiedad `https://soulware.live/` verificada vía HTML file
-- Archivo `google8ac032f1f6add1da.html` en `/public/` (mantener siempre)
-- Sitemap ya estaba submitido y funcionando: 8 URLs, status Success
-- DNS TXT de Google añadido en Netlify (no necesario para esta propiedad pero sin daño)
-
-### Google Analytics 4 ✅
-- Propiedad: **Soulware** | Measurement ID: **G-VC5QW7C1CQ**
-- Timezone: Spain (GMT+02:00) | Moneda: Euro
-- Industry: Books & Literature | Objectives: Drive sales + Web traffic
-- Tag añadido al `index.html` — tracking activo desde ahora
-- Para añadir a Javier: GA Admin → Property access management → Add users
+**Live:** https://soulware.live
+**Repo:** github.com/GoldsmitH2097/el-umbral
+**Local:** `/Users/ruben/Developer/el-umbral`
+**Last commit:** `a6ffcdd` — fix(mobile): last whisper delay, pacto outline, video cover on swap
+**Build:** ✅ Clean
+**Deploy:** ✅ Netlify auto-deploy from `main`
 
 ---
 
-### Hito principal: Canvas destination-out
-El refactor más importante del día. La arquitectura de spotlight pasó de:
-- CSS mask-image sobre vídeo en reproducción (CPU, mata hardware acceleration)
-A:
-- Canvas `destination-out`: pinta negro, borra agujero transparente → vídeo se ve por debajo (GPU puro)
-
-Esto resolvió el 1fps, el stuttering, y el "medio apagado" de la llama.
-
-### Commits del día (newest first)
-```
-cb7f7e1  docs: AUDIT_BRIEF_V2.md — updated audit prompt for external LLMs
-27b514d  fix: tizno-eyes container CSS was missing
-6e32f1b  fix: destination-out canvas spotlight, audio sizzle, remove CSS masks
-f42b430  fix: totalis libertas overflow, mobile clicks, 60fps physics, layout
-de4eac7  fix: audio silence on archive, faint line, logo color, anthology centered
-f780a7e  fix(critical): unclosed CSS comment hiding reading-view, btn-volver, all modals
-9a3080d  perf+fix: LERP covers, smoke sprite, footer, mobile, covers
-b6c22a5  perf+fix: smoke cap, safari acepto ghost, tizno overhaul, vertical lines
-```
-
----
-
-## Arquitectura actual — referencias rápidas
-
-### Canvas Scene 1 (The Tomb)
-```
-z-index 0: #gallery-container   — video, sin CSS mask, GPU hardware-accelerated
-z-index 1: #char-text           — nombre/desc personaje, revelado por agujero canvas
-z-index 3: #vfx-canvas          — negro → destination-out → glow → partículas
-z-index 5: #ui                  — instrucción, siempre visible
-z-index 6: #umbral-btn
-```
-
-VisualEngine ya NO usa CSS vars para el spotlight:
-- `this._radioInt`, `this._radioExt`, `this._intensidad` → instance vars, puro canvas
-- Solo `--x` y `--y` siguen en CSS (para `#scene-2-light`)
-
-### Archive Scene 4
-```
-.archive-col = 1 columna por arquetipo (pillar video + libros)
-Desktop: 4 columnas, hover expande
-Mobile: scroll-snap horizontal, 50dvh video / books naturales abajo
-```
-
----
-
-## AUDIT RESULTS — 3 LLMs (9 Abril 2026)
-
-### Consenso de los 3 (Claude + Gemini + GPT)
-
-1. **Video CDN** — Bunny.net. 4x2.5MB en Netlify con `max-age=0,must-revalidate`.
-   No caching. Re-valida en cada visita. Prioridad máxima antes de cualquier marketing push.
-
-2. **Email capture** — Ninguno. La ausencia de captación de emails es el mayor
-   error de negocio. En Tizno drawer. Lenguaje en universo. "Firma el pacto."
-
-3. **TBT desktop sigue elevado** — Mejoró mucho (de 18,790ms a ~200-600ms estimado).
-   Pero RAF loop en Scenes 1-3 sigue bloqueando main thread. Fix final: OffscreenCanvas worker.
-
-4. **Anatomía del Vacío** — "El placeholder más cool de internet" (GPT). Necesita más.
-   Gemini: glitch teaser VHS + acorde disonante en hover. No dejar solo "En preparación".
-
-### Hallazgos únicos de Claude (código)
-
-- `cursor: crosshair !important` en `*` es demasiado agresivo. Necesita `!important`
-  en cursor:none para la llama. Considerar scope a `body` o scene containers.
-- `user-select: none` en body: hostil en reading view. Aflojar en `.reading-content`
-  y `.tizno-panel` donde el usuario puede querer copiar texto.
-- **Cache headers de vídeo**: `max-age=0,must-revalidate` — sin CDN, re-valida 2.5MB
-  en cada visita. Aunque sea con Netlify: añadir `Cache-Control: max-age=2592000` en headers.
-- **`<lastmod>` falta en sitemap**. Google usa lastmod, ignora changefreq/priority.
-- **ISBN falta en JSON-LD de Pulso del Núcleo**. Añadir si se tiene ISBN-13.
-- **Filamentos: offer sin `url` ni `seller`** en JSON-LD. Añadir antes del lanzamiento.
-- `touch-action: none` en múltiples scene elements — verificar no bloquea scroll en Scene 4.
-
-### Hallazgos únicos de Gemini (arquitectura)
-
-- **Smoke glitch diagnosticado**: Dos causas posibles:
-  1. Bounding box clipping — el gradiente radial toca el borde del OffscreenCanvas.
-     Fix: añadir 15% padding al sprite canvas.
-  2. Sub-pixel rendering jitter — coords float a drawImage.
-     Fix: integer coords con bitwise OR: `ctx.drawImage(sprite, x|0, y|0)`
-- **Cookie banner: NO construir**. Bajo AEPD "Strictly Necessary" clauses,
-  sin analytics, sin tracking pixels, sin cookies de terceros → legalmente exento.
-  Un banner rompería la atmósfera sin necesidad legal real.
-- **Native Web Share API**: `navigator.share()` en reading view. Botón "Propagar Visión".
-  Abre share sheet nativo iOS/Android con deep link del personaje. Zero clutter visual.
-- **Stateful intro bypass**: `localStorage.setItem('hasCrossed','true')` cuando llega al archivo.
-  En visitas posteriores: texto sutil "[ Adentrarse al Archivo ]" para skip.
-- **Cinematic e-commerce handoff**: Antes de redirect a Amazon/Stripe, fade a negro
-  con "Abriendo pasaje seguro..." (800ms). Evita el corte a white Amazon.
-- **prefers-reduced-motion CSS**: Añadir global override además del JS skip:
-  ```css
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
-  }
-  ```
-
-### Hallazgos únicos de GPT (negocio/UX)
-
-- **Route-specific metadata sin verificar**: ¿Las URLs `/emperatriz`, `/caballero` etc.
-  sirven metadata específica (title, og:image, canonical, twitter:card)?
-  Si todas devuelven el mismo shell, SEO de personajes es débil.
-- **Camino de compra un beat demasiado sutil**: "La atmósfera es correcta. La oscuridad
-  no es un rasgo de personalidad, es un impuesto." Añadir una frase editorial clara
-  cerca del header del archivo: qué es Soulware, qué pueden hacer ahora.
-- **Kill all non-essential work after Scene 3, hard**: El archivo es la página de dinero.
-  Cuando el usuario llega, el sitio debe comportarse como experiencia de contenido.
-  No como benchmark intentando impresionar a una GPU.
-- **Mecanismo de retorno**: Fragmento semanal, nota de Tizno con timestamp, teaser
-  de siguiente descenso. Algo que dé valor a visitas repetidas.
-- **Anatomía del Vacío "coolest placeholder on the internet"** — Misma recmendación
-  que Gemini pero más contundente. La tarjeta de Arlequín necesita presencia.
-
----
-
-## BACKLOG PRIORIZADO (para mañana)
-
-### P0 — Bugs abiertos
-
-| Bug | Causa | Fix |
-|-----|-------|-----|
-| Smoke glitch menor | Sprite bounding box o sub-pixel coords | 15% padding en sprite OffscreenCanvas + `x\|0` en drawImage |
-| Route metadata específica | SPA devuelve mismo shell para todos los slugs | Actualizar title/og:image/canonical en cada deep link route |
-
-### P1 — Performance
-
-| Item | Impacto | Responsable |
-|------|---------|-------------|
-| Video CDN (Bunny.net) | Eliminará 10MB sin CDN | **Javier** — subir 4 MPs y enviar URLs |
-| Cache headers vídeo Netlify | Inmediato: añadir `max-age=2592000` aunque sin CDN | Claude — netlify.toml |
-| OffscreenCanvas worker | TBT desktop → 0ms | Claude — 2-3h trabajo |
-| prefers-reduced-motion CSS | Accesibilidad + WCAG | Claude — 5 min |
-
-### P2 — SEO quick wins
-
-| Item | Fix |
-|------|-----|
-| `<lastmod>` en sitemap | Añadir fechas reales (o fecha de build) |
-| ISBN en JSON-LD de Pulso | Si Javier tiene ISBN-13, añadir |
-| Filamentos offer: url + seller | Rellenar antes del 12 Mayo |
-| cursor: crosshair scope | Cambiar de `*` a `body` + scopes específicos |
-
-### P3 — Features nuevas (consenso de 3 auditorías)
-
-**Email capture en Tizno** (MÁXIMA PRIORIDAD de features)
-- Un input email en el drawer: "Firma el pacto. Recibe los susurros del Umbral."
-- Antes del formulario de contacto
-- Netlify Forms (sin JS extra, built-in spam protection)
-- Lista: lanzamientos, Anatomía del Vacío, fragmentos
-
-**Stateful intro bypass**
-- localStorage check en page load
-- Si `hasCrossed === 'true'`: mostrar link sutil al fondo de Scene 1 tras 2s
-- "[ Adentrarse al Archivo ]" — no eliminar la intro, solo ofrecer skip
-
-**Native Web Share API en reading view**
-- Botón amber: "Propagar Visión"
-- `navigator.share()` → deep link + quote del personaje
-- Fallback: copy to clipboard
-
-**Cinematic e-commerce handoff**
-- Al clicar "Comprar en Amazon": fade negro → "Abriendo pasaje seguro..." → redirect
-- Mantiene atmósfera antes del corte a Amazon blanco
-
-**Anatomía del Vacío teaser**
-- En hover/tap de la tarjeta: glitch VHS + acorde disonante (Web Audio)
-- Cambia "En preparación" por algo que provoque
-
-### P4 — Pendiente de Javier
-
-| Item | Status |
-|------|--------|
-| Google Search Console — submit sitemap | **URGENTE** — sin esto Google no indexa |
-| Video CDN (Bunny.net) — upload + URLs | Antes de cualquier marketing |
-| ISBN-13 de Pulso del Núcleo | Para JSON-LD |
-| Goodreads author page (WW. & Eidon) | Backlink de alta DA |
-| Amazon author page + publisher name | Backlink + discoverability |
-
-### P5 — Pendiente de Rubén/equipo
-
-| Item | Status |
-|------|--------|
-| Anatomía del Vacío: sinopsis + Cap.1 borrador | Esperando a Germán |
-| Título de la obra de Emperatriz (Alicia Sarel) | TBD |
-| Relatos de Totalis Libertas | TBD |
-| Arquetipo para Filamentos en reading view | TBD |
-
----
-
-## Cómo arrancar mañana
+## How to start a session
 
 ```
-"Lee CLAUDE.md y HANDOVER.md y dime en qué estamos."
+"Read CLAUDE.md and HANDOVER.md and tell me where we are."
 ```
 
-**Primera prioridad recomendada para mañana:**
-1. Smoke glitch fix (15min)
-2. prefers-reduced-motion CSS (5min)
-3. Cache headers netlify.toml para vídeos (10min)
-4. Email capture en Tizno (30min)
-5. Route-specific metadata (45min)
+Paste this file fresh at the start of every new chat.
 
 ---
 
-## Decisiones técnicas importantes — NO revertir sin razón
+## What was completed in this session (April 23, 2026)
 
-- **No React** — canvas 60fps necesita main thread limpio
-- **Canvas destination-out** para spotlight — no volver a CSS mask en video
-- **Smoke sprite OffscreenCanvas** — no volver a createRadialGradient por frame
-- **position:fixed en firefly container** — no volver a absolute dentro de main-site
-- **display:none (no opacity:0) en overlays** — opacity:0 no oculta fixed children en Safari
-- **Root-relative video paths** `/name.mp4` — bare paths rompen deep links
-- **touch-action scoped** solo a intro layers — preserva scroll móvil en archive
+### Analytics & SEO
+- **Google Analytics 4** — Property "Soulware" created: `G-VC5QW7C1CQ`, Spain timezone, Euro, Books & Literature. Tag live in `index.html`.
+- **Google Search Console** — property `https://soulware.live/` verified via HTML file. Sitemap submitted, 8 URLs indexed. Keep `public/google8ac032f1f6add1da.html` forever.
+- **Route metadata** — Router.js updates title/og:title/og:description/og:url/canonical per character slug. Sharing `/emperatriz` on WhatsApp shows character-specific data.
+
+### Copy (Susana Azcona brief)
+- All 4 archetype lore texts updated
+- Anatomía del Vacío: "No entras a leer un relato. Entras para ser diseccionado por él."
+- La Corte / Totalis Libertas: full vision + desc from brief
+- All CTAs updated: "Reclamar mi Ejemplar", "Reclamar la Edición", "Entrar en la Corte", "Cruza el Umbral", "Entrar en la Sombra", "Iniciar mi Disección"
+- ISBN 978-8409810345 added to Pulso JSON-LD
+
+### Flame & smoke engine (critical fixes)
+- **Smoke glitch fixed** — reverted to `createRadialGradient` per frame (Vela7.html approach). OffscreenCanvas sprite caused a Z-axis zoom artefact as drawImage scaled a fixed 80px image. Gradient per-frame draws at exact size each frame — no artefact. Restored Vela7 params: decay 0.0015-0.003, curl radius 0.5-2.0.
+- **Flame flicker fixed** — replaced hard 14ms frame guard with delta-time physics. Guard was causing irregular timing (skipped frame at 13.8ms → next at 30ms = visible stutter). Now: 8ms minimum guard, `dt = clamp(rawDelta, 8, 32) / 16.67`. ignitionProgress and cursor lerp scale with dt. Smooth at any refresh rate.
+- **`forceIgnite()`** added to VisualEngine — instant ignite without progressive buildup. Used by mobile tap mechanic.
+
+### Mobile overhaul
+- **Scene 1 — tap-to-reveal** replaces broken press-and-hold. `_doMobileTap()` calls `forceIgnite()`, holds character for 3s, then swaps. Auto-advance resumes 4s after tap.
+- **Instrucción hidden on mobile** — "MANTÉN PULSADO" doesn't apply on mobile.
+- **Videos edge-to-edge** — `object-fit: cover` on mobile. Applied in `_loadCharacterVideo()` AND `_swapToNextCharacter()` — both needed or subsequent characters revert to `contain` (inline style beats CSS).
+- **Arlequín iOS fix** — added `touchend` directly on `#umbral-btn`. Prevents last character getting stuck when document touchend races the button.
+- **Scene 3 "EL UMBRAL"** — reduced `font-size: 20px` and `letter-spacing: 12px` on mobile (was 36px/30px, cut off left side of viewport). Auto-advance 7s → 12s.
+- **Scene 2 Voces del Umbral** — typewriter mode: one whisper at a time, fixed center (`50vh`). "VOCES DEL UMBRAL" title moved to `top: 18vh fixed` so it doesn't overlap whispers.
+- **Whispers JS** — replaced MutationObserver (fired after attribute already changed) with `setTimeout(1200)`. Found whisper hides before next appears (600ms). Last whisper delay 800ms → 3000ms (time to read).
+- **Skip button** — moved to `top: 20px` on mobile (was `bottom: 30px`, overlapped footer/watermark).
+- **Scroll overflow** — `#main-site { overflow-x: hidden }` + `archive-grid max-width: 100vw`. Fixed double horizontal scroll.
+- **Hero text** — removed `white-space: nowrap` from `.site-hero-sub`. Text now wraps on mobile.
+- **Tizno hidden on mobile** — no hover mechanic, was covering footer. `display: none !important` on mobile.
+- **Footer** — `word-break: break-word` prevents text overflow.
+- **Empty space under Arlequín** — `.archive-books { flex: none }` on mobile.
+- **CTAs** — 3 hardcoded "Próximamente" in ArchiveDOM.js now use `item.buyLabel`.
+- **Pacto button** — `outline: none` + `focus-visible` amber on `#btn-cerrar-pacto`. Removes blue browser focus ring.
+
+### Tizno
+- **Asymmetric blink** — each eye has completely independent schedule. Left: 1.2-4.5s, 20% double-blink. Right: 0.9-3.8s, 15% double-blink. Different initial delays so they never sync on load.
 
 ---
 
-*Sesión completa: ~14 horas de trabajo continuo. El sitio está en buen estado.*
-*El audio, la llama, el archivo, mobile, y la estructura general funcionan correctamente.*
+## Architecture — DO NOT REVERSE without reason
+
+| Decision | Reason |
+|----------|--------|
+| No React | Canvas 60fps needs clean main thread |
+| Canvas `destination-out` for spotlight | Not CSS mask-image on video (kills hardware acceleration → ~1fps) |
+| **Smoke: `createRadialGradient` per frame** | OffscreenCanvas sprite caused Z-axis zoom artefact. Gradient draws at exact size each frame. |
+| Flame: delta-time physics (no hard guard) | Hard 14ms guard caused frame skips and flicker |
+| `position:fixed` on firefly container | Not absolute inside scrolling parent |
+| `display:none` (not `opacity:0`) on overlays | opacity:0 doesn't hide `position:fixed` children in Safari |
+| Root-relative video paths `/name.mp4` | Bare paths break deep links |
+| `touch-action: none` scoped to intro layers only | Preserves scroll in archive |
+| `object-fit: cover` on mobile — set via JS in both `_loadCharacterVideo()` AND `_swapToNextCharacter()` | CSS alone isn't enough: swap sets inline `objectFit = 'contain'` which overrides CSS |
+| `.sr-only` for ghost DOM | Not `display:none` (Googlebot won't read hidden elements) |
+
+---
+
+## Known pending bugs / items for next session
+
+### Mobile bugs still open
+| Bug | Notes |
+|-----|-------|
+| **Tizno not visible on mobile** | Hidden intentionally (no hover, was covering footer), but Ruben wants it shown. Needs a mobile-appropriate trigger and position. |
+| **Character video sizes may still vary** | Cover applied in loadCharacterVideo + swapToNextCharacter. Verify on device. |
+
+### Features / roadmap
+| Item | Priority | Owner | Notes |
+|------|----------|-------|-------|
+| **Bunny.net CDN** — 4 MP4s off Netlify | P1 | Javier | Upload videos, send URLs → I update 4 paths in 10 min |
+| **Email capture in Tizno** | P1 | Claude | "Firma el pacto" — Netlify Forms, in drawer |
+| **Tizno on mobile** | P1 | Claude | Needs design decision: trigger, position, UX |
+| **Anatomía del Vacío** build-out | P2 | Claude + Germán | Content exists (prologue + ep.1). See ANATOMIA.md |
+| **Stateful intro bypass** | P2 | Claude | localStorage `hasCrossed` → skip link on repeat visits |
+| **Native Web Share API** | P3 | Claude | `navigator.share()` in reading view, deep link + character quote |
+| **Cinematic Amazon handoff** | P3 | Claude | Fade to black → "Abriendo pasaje seguro..." → redirect |
+| **OffscreenCanvas worker** | P3 | Claude | TBT → ~0ms. Complex (2-3h). Safari fallback needed. |
+| **Awwwards / FWA submission** | P4 | Ruben | After performance pass |
+| **Whispers as real book quotes** | P4 | Ruben | Choose one line per book |
+| **Anatomía glitch teaser** | P4 | Claude | VHS glitch + dissonant chord on hover/tap |
+| **Emperatriz obra title** | — | Alicia Sarel | TBD |
+| **Totalis Libertas relatos** | — | Ruben/Javier | Content needed |
+| **Goodreads author page** | — | Javier | WW. & Eidon |
+| **Amazon author page** | — | Javier | Publisher name + bio + link |
+| **Google Analytics access for Javier** | — | Ruben | GA Admin → Property access management → Add users |
+| **Submit sitemap in Search Console** | ✅ DONE | — | 8 URLs, Status: Success |
+
+---
+
+## Key files
+
+| File | Purpose |
+|------|---------|
+| `src/js/engine/VisualEngine.js` | Flame/smoke/dust/firefly + delta-time tick + forceIgnite() |
+| `src/js/main.js` | Scene transitions, _doMobileTap(), umbral-btn listeners |
+| `src/js/mobile.js` | Scene 1 tap, Scene 2 typewriter whispers, archive overlay |
+| `src/js/core/StateManager.js` | CHARACTERS[], CATALOGUE[], CTAs, lore, vision, desc |
+| `src/js/core/Router.js` | Route metadata per character slug |
+| `src/js/ui/ArchiveDOM.js` | Archive grid, obras, contact, reading view, modals |
+| `src/js/ui/TiznoTease.js` | Asymmetric blink, panel open/close, echo laugh |
+| `src/css/global.css` | Reset, .sr-only, scene 3 mobile overrides, instruccion hidden |
+| `src/css/canvas.css` | Scene 1 layer architecture |
+| `src/css/archive.css` | Archive grid, reading view, footer, hero text |
+| `src/css/mobile.css` | All mobile overrides, typewriter whispers, archive overlay |
+| `src/css/tizno.css` | Tizno peek, eyes, panel |
+| `public/google8ac032f1f6add1da.html` | Search Console verification — KEEP FOREVER |
