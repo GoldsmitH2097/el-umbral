@@ -444,3 +444,16 @@
   0%, 100% { opacity: 0.3; transform: scaleX(0.7); }
   50%       { opacity: 1;   transform: scaleX(1);   }
 }
+
+/* ── Multi-edition card (Pulso del Núcleo) ───────────────────────────────── */
+.obra-editions {
+  display: flex; flex-direction: column; gap: 6px; width: 100%; align-items: center;
+}
+.obra-edition-btn {
+  width: 100%; max-width: 180px; text-align: center;
+  display: flex; flex-direction: column; gap: 2px; align-items: center;
+}
+.obra-edition-label {
+  display: block; font-size: 7px; letter-spacing: 3px;
+  text-transform: uppercase; opacity: 0.6; margin-bottom: 2px;
+}

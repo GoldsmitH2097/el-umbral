@@ -115,7 +115,20 @@ export class ArchiveDOM {
             : `<div class="obra-cover obra-cover--clickable obra-cover--empty" data-id="${item.id}" role="button" tabindex="0" aria-label="Ver detalles de ${item.title}"></div>`;
 
           let ctaHtml = '';
-          if (item.status === 'available' && item.buyUrl) {
+          if (item.editions) {
+            // Multi-edition card — one cover, edition buttons below
+            const editionBtns = item.editions.map(ed => {
+              if (ed.status === 'available' && ed.buyUrl) {
+                return `<a href="${ed.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy obra-edition-btn">
+                  <span class="obra-edition-label">${ed.label}</span>${ed.buyLabel}
+                </a>`;
+              }
+              return `<span class="obra-btn obra-btn--soon obra-edition-btn">
+                <span class="obra-edition-label">${ed.label}</span>${ed.buyLabel}
+              </span>`;
+            }).join('');
+            ctaHtml = `<div class="obra-editions">${editionBtns}</div>`;
+          } else if (item.status === 'available' && item.buyUrl) {
             ctaHtml = `<a href="${item.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy">${item.buyLabel}</a>`;
           } else if (item.status === 'countdown') {
             ctaHtml = `<div class="obra-countdown"><div class="countdown-timer" data-release="${item.releaseDate}"></div><span class="obra-btn obra-btn--locked">${item.buyLabel}</span></div>`;
@@ -364,7 +377,13 @@ export class ArchiveDOM {
             ? `<div class="reading-obra-cover"><img src="${item.img}" alt="${item.title}" loading="lazy" decoding="async" /></div>`
             : `<div class="reading-obra-cover"><div class="reading-obra-cover-empty">${item.type==='anthology'?'Antología':'—'}</div></div>`;
           let ctaHtml = '';
-          if (item.status === 'available' && item.buyUrl)
+          if (item.editions) {
+            const edBtns = item.editions.map(ed => ed.status === 'available' && ed.buyUrl
+              ? `<a href="${ed.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy obra-edition-btn"><span class="obra-edition-label">${ed.label}</span>${ed.buyLabel}</a>`
+              : `<span class="obra-btn obra-btn--soon obra-edition-btn"><span class="obra-edition-label">${ed.label}</span>${ed.buyLabel}</span>`
+            ).join('');
+            ctaHtml = `<div class="obra-editions">${edBtns}</div>`;
+          } else if (item.status === 'available' && item.buyUrl)
             ctaHtml = `<a href="${item.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy">${item.buyLabel}</a>`;
           else if (item.status === 'countdown')
             ctaHtml = `<div class="obra-countdown"><div class="countdown-timer" data-release="${item.releaseDate}"></div><span class="obra-btn obra-btn--locked">${item.buyLabel}</span></div>`;
