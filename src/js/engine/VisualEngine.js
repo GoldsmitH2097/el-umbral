@@ -248,8 +248,13 @@ export class VisualEngine {
 
   _tick(timestamp) {
     requestAnimationFrame((ts) => this._tick(ts));
-    const elapsed = timestamp - this._lastFrameTime;
-    if (elapsed < 14) return; // 144Hz guard
+
+    // Delta-time: clamp to 16-32ms to handle tab-switch pauses and 144Hz screens.
+    // This ensures physics are frame-rate independent without ever blocking the render.
+    // No early return — canvas always redraws so there's no stale frame flicker.
+    const rawDelta = timestamp - this._lastFrameTime;
+    if (rawDelta < 8) return; // Absolute minimum: skip only at >125Hz to save CPU
+    const dt = Math.min(rawDelta, 32) / 16.67; // Normalize to 60fps = 1.0
     this._lastFrameTime = timestamp;
     this._frameCount++;
 
@@ -258,10 +263,11 @@ export class VisualEngine {
     // Scene 4+ — clear canvas and return (no spotlight needed)
     if(state.activeScene>=4){ ctx.clearRect(0,0,W,H); return; }
 
-    // ── Cursor lerp ──────────────────────────────────────────────────────────
-    const lf=state.isAwakening?0.05:0.1;
-    this._currentX+=(this._targetX-this._currentX)*lf;
-    this._currentY+=(this._targetY-this._currentY)*lf;
+    // ── Cursor lerp — scaled by dt so speed is frame-rate independent ────────
+    const lf = state.isAwakening ? 0.05 : 0.1;
+    const lfDt = 1 - Math.pow(1 - lf, dt); // Exponential decay corrected for dt
+    this._currentX+=(this._targetX-this._currentX)*lfDt;
+    this._currentY+=(this._targetY-this._currentY)*lfDt;
     const vx=this._currentX-this._lastX, vy=this._currentY-this._lastY;
     const speed=Math.sqrt(vx*vx+vy*vy);
     this._lastX=this._currentX; this._lastY=this._currentY;
@@ -311,17 +317,17 @@ export class VisualEngine {
       this._dustParticles[i].draw(ctx,dustFade);
     }
 
-    if(state.activeScene===1) this._updateScene1(ctx,vx,vy,speed);
+    if(state.activeScene===1) this._updateScene1(ctx,vx,vy,speed,dt);
     if(state.activeScene===2||state.activeScene===3) this._updateScene2(ctx);
   }
 
-  _updateScene1(ctx,vx,vy,speed) {
+  _updateScene1(ctx,vx,vy,speed,dt=1) {
     const wx=-vx*1.2, wy=-vy*1.2;
     const oxygenScale=state.isIgnited?Math.max(0.05,1-speed*0.025):0;
     this._audio.setFireVolume(oxygenScale,this._audio.isReady&&(state.isPressed||state.isIgnited)&&!state.hasFinishedGallery);
     if(state.isIgnited&&!state.hasFinishedGallery) this._audio.emitCrackle();
     if(state.isPressed&&!state.isIgnited&&!state.hasFinishedGallery){
-      state.ignitionProgress+=4.0; const sc=state.ignitionProgress/150;
+      state.ignitionProgress+=4.0*dt; const sc=state.ignitionProgress/150;
       this._radioInt=state.ignitionProgress*1.2;
       this._radioExt=state.ignitionProgress*4.5;
       if(!this._autoAdvanceMode) {
@@ -338,7 +344,7 @@ export class VisualEngine {
         window._onIgnitionComplete?.();
       }
     } else if(!state.isPressed&&!state.isIgnited&&state.ignitionProgress>0){
-      state.ignitionProgress-=4.0;
+      state.ignitionProgress-=4.0*dt;
       if(state.ignitionProgress<=0){ state.ignitionProgress=0; if(state.isSwapping) this._swapToNextCharacter(); }
       const sc=state.ignitionProgress/150;
       this._radioInt=state.ignitionProgress*1.2;
@@ -352,7 +358,6 @@ export class VisualEngine {
       this._radioExt=Math.max(120,(480+fl*2)*oxygenScale);
       if(!this._autoAdvanceMode) {
         this._intensidad=0.85*oxygenScale;
-        // Raised caps + spawn rate — sprite makes this affordable again
         const pts=speed>10?1:Math.floor(Math.random()*3+3);
         if(this._flameParticles.length < 50) for(let i=0;i<pts;i++) this._flameParticles.push(new FlameParticle(this._currentX,this._currentY,wx,wy,oxygenScale));
         if(this._smokeParticles.length < 85) {
