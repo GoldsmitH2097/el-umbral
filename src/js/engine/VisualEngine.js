@@ -7,24 +7,38 @@ class FlameParticle {
   draw(ctx) { const r=255,g=Math.floor(Math.max(0,190*(this.life*this.life))),b=this.life>0.92?80:Math.floor(Math.max(0,30*(this.life-0.7)*3)),a=this.life*0.5; const gr=ctx.createRadialGradient(this.x,this.y,0,this.x,this.y,Math.max(0.1,this.size)); gr.addColorStop(0,`rgba(${r},${g},${b},${a})`);gr.addColorStop(0.4,`rgba(${r},${g},${b},${a*0.6})`);gr.addColorStop(1,`rgba(${r},${g},${b},0)`); ctx.beginPath();ctx.arc(this.x,this.y,Math.max(0.1,this.size),0,Math.PI*2);ctx.fillStyle=gr;ctx.fill(); }
 }
 
-// Pre-rendered smoke sprite — 15% padding so gradient reaches true zero at edges
-// (without padding the outermost pixel has alpha ~0.01, visible when 85 sprites overlap)
-const _smokeSprite = new OffscreenCanvas(80, 80);
-const _sCtx = _smokeSprite.getContext('2d');
-const _sGr = _sCtx.createRadialGradient(40, 40, 0, 40, 40, 36); // radius 36 of 40 = padding
-_sGr.addColorStop(0,   'rgba(140,150,160,0.20)');
-_sGr.addColorStop(0.5, 'rgba(140,150,160,0.09)');
-_sGr.addColorStop(1,   'rgba(140,150,160,0)');
-_sCtx.fillStyle = _sGr;
-_sCtx.beginPath(); _sCtx.arc(40,40,40,0,Math.PI*2); _sCtx.fill();
+// Pre-rendered smoke sprite removed — gradient per-frame avoids Z-axis scaling artefact
+// (OffscreenCanvas sprite was causing particles to appear as if zooming toward the viewer)
 
 class SmokeParticle {
-  constructor(x,y,vx,vy) { this.x=x;this.y=y;this.life=1.0;this.size=Math.random()*8+4;this.vx=vx*0.1+(Math.random()-0.5)*0.25;this.vy=vy*0.1-Math.random()*0.8-0.3;this.decay=Math.random()*0.008+0.006;this.angle=Math.random()*Math.PI*2;this.spin=(Math.random()-0.5)*0.08;this.cr=Math.random()*0.6+0.1; }
-  update() { this.vx*=0.96;this.vy*=0.97;this.vy-=0.03;this.angle+=this.spin;const c=this.cr*(1.2-this.life);this.x+=this.vx+Math.cos(this.angle)*c;this.y+=this.vy+Math.sin(this.angle)*c;if(this.size<45)this.size+=0.22;this.life-=this.decay; }
+  constructor(x,y,vx,vy) {
+    this.x=x; this.y=y; this.life=1.0;
+    this.size=Math.random()*8+4;
+    this.vx=vx*0.15+(Math.random()-0.5)*0.5;
+    this.vy=vy*0.15-Math.random()*1.0-0.5;
+    this.decay=Math.random()*0.003+0.0015;  // slow — particles live long like Vela7
+    this.angle=Math.random()*Math.PI*2;
+    this.spin=(Math.random()-0.5)*0.15;
+    this.cr=Math.random()*1.5+0.5;          // curl radius restored to Vela7 range
+  }
+  update() {
+    this.vx*=0.96; this.vy*=0.97; this.vy-=0.03;
+    this.angle+=this.spin;
+    const c=this.cr*(1.2-this.life);
+    this.x+=this.vx+Math.cos(this.angle)*c;
+    this.y+=this.vy+Math.sin(this.angle)*c;
+    this.size+=0.25;
+    this.life-=this.decay;
+  }
   draw(ctx) {
-    ctx.globalAlpha = this.life * 0.13;
-    ctx.drawImage(_smokeSprite, (this.x-this.size)|0, (this.y-this.size)|0, (this.size*2)|0, (this.size*2)|0);
-    ctx.globalAlpha = 1;
+    // Gradient per-frame (not sprite) — avoids Z-axis zoom artefact when scaling
+    const alpha = this.life * 0.12;
+    const gr = ctx.createRadialGradient(this.x,this.y,0,this.x,this.y,Math.max(0.1,this.size));
+    gr.addColorStop(0,   `rgba(140,150,160,${alpha})`);
+    gr.addColorStop(0.5, `rgba(140,150,160,${alpha*0.5})`);
+    gr.addColorStop(1,   'rgba(140,150,160,0)');
+    ctx.beginPath(); ctx.arc(this.x,this.y,Math.max(0.1,this.size),0,Math.PI*2);
+    ctx.fillStyle=gr; ctx.fill();
   }
 }
 
