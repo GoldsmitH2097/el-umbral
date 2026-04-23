@@ -25,9 +25,13 @@ export class AudioEngine {
     if (this.initialized || this._initializing) return;
     this._initializing = true;
     try {
-      // iOS 17+: tell Safari to treat Web Audio as 'playback' (media category),
-      // not 'ambient' (ringer category). This bypasses the physical mute switch.
-      // On older iOS or non-Safari browsers this property doesn't exist — safe to ignore.
+      // iOS mute-switch bypass — play the hidden <audio> element on first gesture.
+      // iOS treats <audio> playback as 'media' session even before AudioContext resumes,
+      // which forces the category to 'playback' and bypasses the hardware ringer switch.
+      // This works reliably on iOS 15+ regardless of navigator.audioSession support.
+      const iosUnlock = document.getElementById('ios-audio-unlock');
+      if (iosUnlock) iosUnlock.play().catch(() => {});
+
       if ('audioSession' in navigator) {
         navigator.audioSession.type = 'playback';
       }

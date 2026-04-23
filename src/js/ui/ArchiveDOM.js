@@ -655,7 +655,7 @@ export class ArchiveDOM {
 
     // Contact form submit (Netlify)
     document.addEventListener('submit', async e => {
-      if (!e.target.matches('#contact-form, #tizno-contact-form')) return;
+      if (!e.target.matches('#contact-form, #tizno-contact-form, #tizno-pacto-form')) return;
       e.preventDefault();
       const btn = e.target.querySelector('button[type="submit"]');
       const original = btn.textContent;

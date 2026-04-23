@@ -155,7 +155,8 @@
   font-size: 11px; color: #555; letter-spacing: 2px;
   font-style: italic; margin: 0 0 12px;
 }
-.tizno-pacto-form { display: flex; gap: 8px; }
+.tizno-pacto-form { display: flex; flex-direction: column; gap: 8px; }
+.tizno-pacto-row { display: flex; gap: 8px; }
 .tizno-pacto-form input[type="email"] {
   flex: 1; min-width: 0;
   background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.12);
@@ -165,3 +166,14 @@
 .tizno-pacto-form input[type="email"]:focus { border-color: rgba(200,146,42,0.5); }
 .tizno-pacto-form input[type="email"]::placeholder { color: #3a3a3a; }
 .tizno-pacto-btn { margin-top: 0 !important; white-space: nowrap; flex-shrink: 0; }
+.tizno-pacto-consent {
+  display: flex; gap: 8px; align-items: flex-start; cursor: pointer;
+}
+.tizno-pacto-consent input[type="checkbox"] {
+  margin-top: 2px; flex-shrink: 0; accent-color: #c8922a; cursor: pointer;
+}
+.tizno-pacto-consent span {
+  font-size: 10px; color: #444; letter-spacing: 1px; line-height: 1.5;
+}
+.tizno-pacto-consent a { color: #666; text-decoration: none; }
+.tizno-pacto-consent a:hover { color: #c8922a; }

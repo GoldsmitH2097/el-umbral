@@ -47,6 +47,7 @@ setTimeout(()=>{ if(state.activeScene < 4) skipBtn.classList.add('visible'); }, 
 skipBtn?.addEventListener('click', ()=>{
   skipBtn.classList.remove('visible');
   _stopHaptics();
+  localStorage.setItem('sw_crossed', '1');
   skipIntroAndEnterArchive();
 });
 
@@ -145,7 +146,14 @@ window._onIgnitionComplete = () => {
 };
 
 const isDeepLink = router.init();
-if (!isDeepLink) visual.start();
+if (!isDeepLink) {
+  // Returning visitor — skip cinematic intro entirely
+  if (localStorage.getItem('sw_crossed') === '1') {
+    skipIntroAndEnterArchive();
+  } else {
+    visual.start();
+  }
+}
 
 function skipIntroAndEnterArchive() {
   transitionTo(4);
@@ -196,6 +204,7 @@ function triggerAwakening() {
 }
 
 function enterMainSite() {
+  localStorage.setItem('sw_crossed', '1'); // mark as visited — future loads skip intro
   const s3=document.getElementById('scene-3'); s3.style.opacity='0'; s3.style.pointerEvents='none';
   document.getElementById('scene-2').style.display='none';
   s3.style.display='none';

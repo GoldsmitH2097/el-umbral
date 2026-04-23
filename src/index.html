@@ -206,7 +206,7 @@
   <div id="char-text"><h3 id="char-title">Cargando...</h3><p id="char-desc">Cargando...</p></div>
 </div>
 <div id="ambient-light"></div>
-<div id="ui"><div id="instruccion">Toca y mantén pulsado<br>para encender la llama<br><span style="font-size:10px;opacity:0.5;letter-spacing:2px;">(Desactiva el silencio)</span></div></div>
+<div id="ui"><div id="instruccion">Haz clic y mantén pulsado<br>para encender la llama</div></div>
 <div id="editorial-watermark">Soulware — Editorial Independiente</div>
 <button id="umbral-btn" aria-label="Cruzar El Umbral">EL UMBRAL<span class="cruzar-txt">CRUZAR</span></button>
 
@@ -376,11 +376,17 @@
       <!-- El Pacto — email capture -->
       <div class="tizno-pacto">
         <p class="tizno-pacto-label">Recibe los ecos antes de que se extingan.</p>
-        <form class="tizno-pacto-form" name="el-pacto" data-netlify="true" netlify-honeypot="bot-field2">
+        <form class="tizno-pacto-form" id="tizno-pacto-form" name="el-pacto" data-netlify="true" netlify-honeypot="bot-field2">
           <input type="hidden" name="form-name" value="el-pacto" />
           <input type="text" name="bot-field2" style="display:none" aria-hidden="true" />
-          <input type="email" name="email" placeholder="tu@email.com" required autocomplete="email" />
-          <button type="submit" class="obra-btn obra-btn--buy tizno-pacto-btn">Firmar el Pacto</button>
+          <div class="tizno-pacto-row">
+            <input type="email" name="email" placeholder="tu@email.com" required autocomplete="email" />
+            <button type="submit" class="obra-btn obra-btn--buy tizno-pacto-btn">Firmar el Pacto</button>
+          </div>
+          <label class="tizno-pacto-consent">
+            <input type="checkbox" name="consent" required />
+            <span>Acepto recibir comunicaciones de Soulware. <a href="/privacidad.html" target="_blank" rel="noopener">Privacidad</a>.</span>
+          </label>
         </form>
       </div>
     </div>
@@ -400,6 +406,10 @@
 </div>
 
 <canvas id="vfx-canvas" aria-hidden="true"></canvas>
+<!-- iOS mute-switch bypass: playing a real <audio> element forces Safari to treat
+     Web Audio as media playback (not ambient), bypassing the hardware ringer switch.
+     The src is a minimal silent WAV (44 bytes). Must exist in DOM before first gesture. -->
+<audio id="ios-audio-unlock" src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=" preload="auto" aria-hidden="true" style="display:none"></audio>
 <script type="module" src="/js/main.js"></script>
 </body>
 </html>
