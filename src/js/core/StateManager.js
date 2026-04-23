@@ -69,9 +69,9 @@ export const CATALOGUE = [
     status: 'coming-soon',
     img: '/assets/alicia-cover.webp',
     vision: 'El reino cayó. La voz, no. Una tragedia lírica sobre lo que queda cuando se derrumba lo que creíste que eras — y descubres que algo más duro, más frío, más tuyo, sobrevivía debajo.',
-    desc: 'Una tragedia lírica personal. El reino cayó. La voz, no.',
+    desc: 'El reino cayó. La voz, no. Una tragedia lírica personal.',
     buyUrl: null,
-    buyLabel: 'Próximamente',
+    buyLabel: 'Entrar en la Corte',
   },
   {
     id: 'la-corte',
@@ -84,11 +84,10 @@ export const CATALOGUE = [
     format: 'Antología',
     status: 'coming-soon',
     img: null,
-    vision: 'La historia oficial es el relato de los que ganaron. Totalis Libertas es el de los que perdieron, dudaron, traicionaron y sobrevivieron. Voces distintas. Un mismo umbral de verdad que nadie quiere cruzar.',
-    desc: 'Antología de relatos breves e intensos sobre la Historia de España. Voces distintas, un mismo umbral de verdad.',
+    vision: 'La historia oficial es el relato de los que ganaron. Totalis Libertas es el de los que perdieron, dudaron, traicionaron y sobrevivieron. Voces distintas. Un mismo umbral de verdad que nadie quiere cruzar. Salón de los reconocidos — la Emperatriz exige testigos.',
+    desc: 'Antología de relatos breves e intensos sobre la Historia de España. Cruza el umbral. Conoce a los nuevos arquitectos de la palabra.',
     buyUrl: null,
-    buyLabel: 'Próximamente',
-    relatos: [],
+    buyLabel: 'Cruza el Umbral',
   },
   {
     id: 'pulso-blanda',
@@ -103,7 +102,7 @@ export const CATALOGUE = [
     vision: 'El mundo se quebró hace tanto que nadie recuerda cómo era antes del silencio. Pero el pulso sigue. Bajo las ruinas, en la sangre de los que no saben rendirse, en cuatro artefactos que no deberían existir — algo late. Primera de tres novelas. La trilogía Núcleo Eterno.',
     desc: 'Primera de tres novelas. Fantasía oscura épica. El mundo quebrado por la catástrofe, cuatro artefactos ancestrales y un destino que no pide permiso.',
     buyUrl: 'https://www.amazon.es/Pulso-del-N%C3%BAcleo-Parte-Eterno/dp/8409810344/',
-    buyLabel: 'Comprar en Amazon',
+    buyLabel: 'Reclamar mi Ejemplar',
   },
   {
     id: 'pulso-dura',
@@ -118,7 +117,7 @@ export const CATALOGUE = [
     vision: 'La misma historia. Otro peso en las manos. Encuadernación en tela, papel de alto gramaje, maquetación depurada. Para quienes entienden que un libro también se revela en su forma.',
     desc: 'Encuadernación premium, papel de alto gramaje, ilustraciones exclusivas.',
     buyUrl: null,
-    buyLabel: 'Próximamente',
+    buyLabel: 'Reclamar la Edición',
   },
   {
     id: 'filamentos',
@@ -134,7 +133,7 @@ export const CATALOGUE = [
     vision: 'Hay hilos que no deberían tocarse. Cuando lo hacen, la percepción deja de obedecerte. Solo la duda, fina y persistente, hasta que ya no sabes qué parte de lo que ves es real y qué parte llevaba tiempo esperándote. Primera de dos novelas.',
     desc: 'Primera de dos novelas. Cuando los hilos que no deberían conectarse se tensan, la percepción se convierte en trampa. Disponible el 12 de mayo.',
     buyUrl: null,
-    buyLabel: 'Disponible el 12 de mayo',
+    buyLabel: 'Entrar en la Sombra',
   },
   {
     id: 'anatomia',
@@ -149,7 +148,7 @@ export const CATALOGUE = [
     vision: 'No entras a leer un relato. Entras para ser diseccionado por él. Terror psicológico frase a frase, en tiempo real — sin páginas, sin narración de voz, sin mapa de salida. Solo el descenso. Solo tu silencio.',
     desc: 'No entras a leer un relato. Entras para ser diseccionado por él.',
     buyUrl: null,
-    buyLabel: 'Próximamente',
+    buyLabel: 'Iniciar mi Disección',
   },
   // ── Boutique placeholder — architecture ready for Phase 4 commerce ──
   // {

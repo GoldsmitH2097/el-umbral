@@ -19,7 +19,7 @@ _sCtx.fillStyle = _sGr;
 _sCtx.beginPath(); _sCtx.arc(40,40,40,0,Math.PI*2); _sCtx.fill();
 
 class SmokeParticle {
-  constructor(x,y,vx,vy) { this.x=x;this.y=y;this.life=1.0;this.size=Math.random()*8+4;this.vx=vx*0.15+(Math.random()-0.5)*0.5;this.vy=vy*0.15-Math.random()*1.0-0.5;this.decay=Math.random()*0.005+0.003;this.angle=Math.random()*Math.PI*2;this.spin=(Math.random()-0.5)*0.15;this.cr=Math.random()*1.5+0.5; }
+  constructor(x,y,vx,vy) { this.x=x;this.y=y;this.life=1.0;this.size=Math.random()*8+4;this.vx=vx*0.1+(Math.random()-0.5)*0.25;this.vy=vy*0.1-Math.random()*0.8-0.3;this.decay=Math.random()*0.008+0.006;this.angle=Math.random()*Math.PI*2;this.spin=(Math.random()-0.5)*0.08;this.cr=Math.random()*0.6+0.1; }
   update() { this.vx*=0.96;this.vy*=0.97;this.vy-=0.03;this.angle+=this.spin;const c=this.cr*(1.2-this.life);this.x+=this.vx+Math.cos(this.angle)*c;this.y+=this.vy+Math.sin(this.angle)*c;if(this.size<45)this.size+=0.22;this.life-=this.decay; }
   draw(ctx) {
     ctx.globalAlpha = this.life * 0.13;

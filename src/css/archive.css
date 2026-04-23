@@ -292,8 +292,10 @@
 
 /* ── Mobile Responsiveness ────────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  /* Allow horizontal scroll for archive-grid — parent must not clip it */
-  #main-site { overflow-x: auto !important; }
+  /* archive-grid scrolls internally — main-site must NOT overflow horizontally */
+  #main-site { overflow-x: hidden !important; overflow-y: auto !important; }
+  /* Contain grid to exactly viewport width so it never bleeds out */
+  .archive-grid { max-width: 100vw; }
   .site-hero h2 { font-size: 22px; letter-spacing: 5px; }
   .site-hero p { letter-spacing: 1px; font-size: 14px; }
   .site-nav .links span { margin-left: 20px; letter-spacing: 2px; }

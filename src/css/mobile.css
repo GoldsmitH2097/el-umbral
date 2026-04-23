@@ -1,41 +1,42 @@
 
 /* ── MOBILE SCENE 2: Sequential vertical whispers ─────────────────────────── */
 @media (max-width: 768px) {
-  /* Scene 2: whispers stacked vertically, centered, tap mechanic */
-  #scene-2 { flex-direction: column; gap: 0; justify-content: center; align-items: center; }
+  /* Scene 2 MOBILE — typewriter mode: one whisper at a time, fixed center */
+  #scene-2 { flex-direction: column; justify-content: center; align-items: center; }
 
-  /* On mobile whispers are positioned in flow (not absolute) */
+  /* All whispers hidden by default — JS controls visibility */
   .whisper {
-    position: static !important; /* override inline style top/left */
-    top: auto !important; left: auto !important;
-    font-size: 22px; letter-spacing: 1px;
-    text-align: center; white-space: normal;
-    width: 80%; padding: 20px 0;
-    pointer-events: auto; /* tappable on mobile */
-    display: none; /* hidden until activated by JS */
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-  }
-  .whisper:last-child { border-bottom: none; }
-  .whisper.mobile-active { display: block; }
-  .whisper.mobile-found {
-    display: block;
-    color: rgba(220,240,255,0.35) !important;
-    text-shadow: 0 0 10px rgba(150,200,255,0.2) !important;
+    display: none;
+    position: fixed !important;
+    top: 50vh !important;
+    left: 50vw !important;
+    transform: translate(-50%, -50%) !important;
+    font-size: 22px; letter-spacing: 2px;
+    text-align: center; white-space: normal; width: 80%;
     pointer-events: none;
+    color: rgba(255,255,255,0) !important;
   }
+  /* Current whisper waiting to be tapped */
   .whisper.mobile-pending {
-    display: block;
-    color: rgba(255,255,255,0.8) !important;
-    text-shadow: 0 0 20px rgba(180,220,255,0.5) !important;
-    cursor: pointer !important;
+    display: block !important;
+    pointer-events: auto !important;
+    color: rgba(255,255,255,0.85) !important;
+    text-shadow: 0 0 30px rgba(180,220,255,0.5) !important;
     animation: whisperPulse 2s ease-in-out infinite;
   }
-  @keyframes whisperPulse {
-    0%, 100% { opacity: 0.8; }
-    50% { opacity: 1; }
+  /* Just found — brief fade, no interaction */
+  .whisper.mobile-found {
+    display: block !important;
+    pointer-events: none !important;
+    color: rgba(220,240,255,0.15) !important;
+    text-shadow: none !important;
+    animation: none;
   }
-
-  #voces-title { font-size: 16px; letter-spacing: 10px; margin-bottom: 40px; }
+  @keyframes whisperPulse {
+    0%, 100% { opacity: 0.85; }
+    50%       { opacity: 1; }
+  }
+  #voces-title { font-size: 16px; letter-spacing: 10px; position: relative; z-index: 7; }
 }
 
 /* ── MOBILE ARCHIVE: Character cards expandable ───────────────────────────── */

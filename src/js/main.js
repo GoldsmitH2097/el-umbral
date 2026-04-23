@@ -228,7 +228,8 @@ document.addEventListener('touchmove',e=>{ if(state.activeScene<4) e.preventDefa
 document.addEventListener('touchend',handleUp);
 document.getElementById('umbral-btn').addEventListener('click', function(e) {
   e.stopPropagation();
-  this.style.pointerEvents = 'none'; // spam protection — disable immediately on first click
+  this.style.pointerEvents = 'none';
+  this.style.opacity = '0'; // hide immediately — don't wait for enterScene2 callback (900ms delay)
   audio.resumeIfSuspended();
   archive.openPacto(() => enterScene2());
 });

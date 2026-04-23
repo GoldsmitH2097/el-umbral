@@ -34,7 +34,11 @@ export function initMobileScene2(onAllFound) {
     if (currentIndex >= whispers.length) {
       setTimeout(onAllFound, 800);
     } else {
-      setTimeout(showNext, 500);
+      // Hide found whisper after 600ms, then show next
+      setTimeout(() => {
+        w.style.display = 'none';
+        setTimeout(showNext, 200);
+      }, 600);
     }
   };
 
@@ -48,16 +52,11 @@ export function initMobileScene2(onAllFound) {
     });
   });
 
-  // Show first whisper when scene 2 becomes active — with a short delay
-  const observer = new MutationObserver(() => {
-    const scene2 = document.getElementById('scene-2');
-    if (scene2 && getComputedStyle(scene2).opacity > 0.5) {
-      setTimeout(showNext, 1000);
-      observer.disconnect();
-    }
-  });
-  const scene2 = document.getElementById('scene-2');
-  if (scene2) observer.observe(scene2, { attributes: true, attributeFilter: ['style'] });
+  // Show first whisper when scene 2 is visible — use setTimeout, NOT MutationObserver.
+  // initMobileScene2 is called AFTER scene-2.style.opacity is already set in main.js,
+  // so the observer would never fire (attribute change already happened).
+  // The scene-2 fade-in is 4s (transition: opacity 4s ease-in), wait 1s then show first.
+  setTimeout(showNext, 1200);
 }
 
 // ── ARCHIVE MOBILE: Tap character to open full detail view ─────────────────
