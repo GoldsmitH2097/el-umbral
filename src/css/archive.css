@@ -19,7 +19,7 @@
 /* Start invisible — animations trigger via .archive-visible class added by ArchiveDOM.showArchive() */
 .site-hero h2 { font-size: 4vw; font-weight: normal; letter-spacing: 15px; margin: 0 0 20px 0; text-transform: uppercase; opacity: 0; }
 .site-hero p { font-size: 16px; color: #888; letter-spacing: 2px; font-style: italic; max-width: 600px; margin: 0 auto; line-height: 1.8; opacity: 0; }
-.site-hero-sub { color: #999; max-width: 900px; white-space: nowrap; }
+.site-hero-sub { color: #999; max-width: 900px; }
 .site-hero-editorial { font-size: 10px; color: #666; letter-spacing: 3px; text-transform: uppercase; margin: 8px auto 0; max-width: 600px; }
 #editorial-watermark {
   position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
@@ -309,6 +309,8 @@
   text-align: center; padding: 6vh 5vw 5vh;
   font-size: 10px; color: #333; letter-spacing: 4px; text-transform: uppercase;
   border-top: 1px solid rgba(255,255,255,0.04);
+  /* Mobile: prevent Tizno overlap, allow text wrap */
+  word-break: break-word;
 }
 .footer-logo { height: 36px; width: 36px; object-fit: contain; opacity: 0.55; margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto; /* no filter — show original golden logo */ }
 .site-footer p { margin: 0 0 14px; }

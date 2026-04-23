@@ -72,7 +72,7 @@ body, html {
 
 #scene-3 h1 {
   color: #0a0a0a; font-size: 36px; letter-spacing: 30px; text-transform: uppercase;
-  margin-bottom: 60px; font-weight: 900;
+  margin-bottom: 60px; font-weight: 900; text-align: center; padding: 0 20px;
 }
 
 #final-btn {
@@ -86,3 +86,10 @@ body, html {
 
 /* Mobile-only overlays — hidden by default, shown by mobile.css on ≤768px */
 #mobile-char-detail { display: none; }
+
+/* ── Mobile overrides for intro scenes ───────────────────────────────────── */
+@media (max-width: 768px) {
+  #scene-3 h1 { font-size: 20px; letter-spacing: 12px; margin-bottom: 40px; }
+  #final-btn { padding: 16px 30px; font-size: 12px; letter-spacing: 5px; }
+  #voces-title { font-size: 14px; letter-spacing: 8px; }
+}

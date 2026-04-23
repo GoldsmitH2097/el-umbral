@@ -155,8 +155,8 @@ function triggerAwakening() {
     const s3=document.getElementById('scene-3'); s3.style.opacity='1'; s3.style.pointerEvents='auto';
     document.body.style.cursor='auto';
     document.querySelectorAll('*').forEach(el=>el.style.setProperty('cursor','auto','important'));
-    // Auto-advance to archive after 7s if user hasn't clicked ADENTRARSE (was 4s — too fast)
-    setTimeout(()=>{ if(state.activeScene===3) enterMainSite(); }, 7000);
+    // Auto-advance to archive after 12s if user hasn't clicked ADENTRARSE
+    setTimeout(()=>{ if(state.activeScene===3) enterMainSite(); }, 12000);
   },3000);
 }
 

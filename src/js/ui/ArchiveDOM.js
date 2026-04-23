@@ -120,7 +120,7 @@ export class ArchiveDOM {
           } else if (item.status === 'countdown') {
             ctaHtml = `<div class="obra-countdown"><div class="countdown-timer" data-release="${item.releaseDate}"></div><span class="obra-btn obra-btn--locked">${item.buyLabel}</span></div>`;
           } else {
-            ctaHtml = `<span class="obra-btn obra-btn--soon">Próximamente</span>`;
+            ctaHtml = `<span class="obra-btn obra-btn--soon">${item.buyLabel || 'Próximamente'}</span>`;
           }
 
           const statusLabels = { 'available': 'Disponible', 'coming-soon': 'Próximamente', 'countdown': 'Preventa' };
@@ -369,7 +369,7 @@ export class ArchiveDOM {
           else if (item.status === 'countdown')
             ctaHtml = `<div class="obra-countdown"><div class="countdown-timer" data-release="${item.releaseDate}"></div><span class="obra-btn obra-btn--locked">${item.buyLabel}</span></div>`;
           else
-            ctaHtml = `<span class="obra-btn obra-btn--soon">Próximamente</span>`;
+            ctaHtml = `<span class="obra-btn obra-btn--soon">${item.buyLabel || 'Próximamente'}</span>`;
           return `<div class="reading-obra-card">
             ${coverHtml}
             <div class="reading-obra-info">
@@ -535,7 +535,7 @@ export class ArchiveDOM {
         if (timer) this._initSingleCountdown(timer);
       }, 50);
     } else {
-      ctaHtml = `<span class="obra-btn obra-btn--soon">Próximamente</span>`;
+      ctaHtml = `<span class="obra-btn obra-btn--soon">${item.buyLabel || 'Próximamente'}</span>`;
     }
     document.getElementById('obra-modal-cta').innerHTML = ctaHtml;
 

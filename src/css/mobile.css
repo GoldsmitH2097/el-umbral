@@ -4,6 +4,14 @@
   /* Scene 2 MOBILE — typewriter mode: one whisper at a time, fixed center */
   #scene-2 { flex-direction: column; justify-content: center; align-items: center; }
 
+  /* Title moves to top so whispers don't overlap it */
+  #voces-title {
+    position: fixed !important; top: 18vh !important;
+    font-size: 14px; letter-spacing: 8px;
+    left: 50%; transform: translateX(-50%);
+    width: 90%; text-align: center; z-index: 7;
+  }
+
   /* All whispers hidden by default — JS controls visibility */
   .whisper {
     display: none;
@@ -36,7 +44,7 @@
     0%, 100% { opacity: 0.85; }
     50%       { opacity: 1; }
   }
-  #voces-title { font-size: 16px; letter-spacing: 10px; position: relative; z-index: 7; }
+}
 }
 
 /* ── MOBILE ARCHIVE: Character cards expandable ───────────────────────────── */
@@ -78,9 +86,10 @@
     height: 50dvh !important; min-height: unset !important;
     padding: 20px 5vw 20px !important;
   }
-  /* Books flow naturally below pillar — NO sub-scroll */
+  /* Books flow naturally below pillar — NO sub-scroll, NO flex expansion */
   .archive-books {
     height: auto !important; overflow-y: visible !important;
+    flex: none !important;
     border-top: 1px solid rgba(255,255,255,0.05);
   }
   .archive-pillar video { opacity: 0.5 !important; }
@@ -115,3 +124,9 @@
 }
 
 /* archive-grid horizontal swipe handled in archive.css */
+
+/* ── Tizno — hide on mobile (no hover mechanic, covers footer) ───────────── */
+@media (max-width: 768px) {
+  #tizno-tease { display: none !important; }
+  #tizno-backdrop { display: none !important; }
+}
