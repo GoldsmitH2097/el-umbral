@@ -3,6 +3,11 @@ body { cursor: crosshair; }
 /* Intro scenes get crosshair; archive/reading get default (overridden per element) */
 #gallery-container, #scene-2, #scene-3 { cursor: crosshair; }
 
+/* Scene 2 + 3: minimal custom crosshair — 3px white lines, amber center dot */
+#scene-2, #scene-3 {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cline x1='10' y1='0' x2='10' y2='8' stroke='rgba(255,255,255,0.6)' stroke-width='1'/%3E%3Cline x1='10' y1='12' x2='10' y2='20' stroke='rgba(255,255,255,0.6)' stroke-width='1'/%3E%3Cline x1='0' y1='10' x2='8' y2='10' stroke='rgba(255,255,255,0.6)' stroke-width='1'/%3E%3Cline x1='12' y1='10' x2='20' y2='10' stroke='rgba(255,255,255,0.6)' stroke-width='1'/%3E%3Ccircle cx='10' cy='10' r='1.5' fill='rgba(200,146,42,0.9)'/%3E%3C/svg%3E") 10 10, crosshair;
+}
+
 /* Widow / orphan prevention — scoped to ARCHIVE only, NOT Scene 1 (text-wrap on animated
    elements forces layout reflow every frame and kills canvas performance) */
 .site-hero h2, .pillar-content h4, .obra-title,

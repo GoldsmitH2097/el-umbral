@@ -95,7 +95,11 @@ export class ArchiveDOM {
 
           if (item.type === 'anthology') {
             card.className = `obra-book obra-book--anthology obra-book--${item.status}`;
+            const anthologyCover = item.img
+              ? `<div class="obra-cover obra-cover--anthology"><img src="${item.img}" alt="${item.title}" loading="lazy" decoding="async" /></div>`
+              : '';
             card.innerHTML = `
+              ${anthologyCover}
               <div class="obra-anthology-header">
                 <span class="obra-anthology-tag">Antología</span>
                 <h3 class="obra-title">${item.title}</h3>

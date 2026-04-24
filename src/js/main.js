@@ -74,6 +74,12 @@ audioToggle?.addEventListener('click', () => {
   _updateAudioToggle();
 });
 
+// Replay intro — clear sw_crossed flag and reload
+document.getElementById('replay-intro-btn')?.addEventListener('click', () => {
+  localStorage.removeItem('sw_crossed');
+  window.location.href = '/';
+});
+
 // Skip button — visible after 3s, persistent through all intro scenes until archive
 const skipBtn = document.getElementById('skip-btn');
 setTimeout(()=>{ if(state.activeScene < 4) skipBtn.classList.add('visible'); }, 3000);
@@ -240,6 +246,9 @@ function skipIntroAndEnterArchive() {
 function enterScene2() {
   audio.playTransitionEcho(); transitionTo(0);
   state.isIgnited=false; visual.clearFlame(); audio.setFireVolume(0,false);
+  // Restore crosshair cursor — was hidden during ignition
+  document.body.style.cursor = '';
+  document.querySelectorAll('*').forEach(el => el.style.removeProperty('cursor'));
   document.getElementById('ambient-light').style.opacity='0';
   document.getElementById('gallery-container').style.opacity='0';
   const btn=document.getElementById('umbral-btn');

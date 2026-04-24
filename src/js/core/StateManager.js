@@ -98,7 +98,7 @@ export const CATALOGUE = [
     seriesInfo: 'Primera de tres novelas',
     format: 'Novela',
     status: 'available',
-    img: '/assets/pulso-soft-cover-es.webp',
+    img: '/assets/pulso-hard-cover-es.webp',
     vision: 'El mundo se quebró hace tanto que nadie recuerda cómo era antes del silencio. Pero el pulso sigue. Bajo las ruinas, en la sangre de los que no saben rendirse, en cuatro artefactos que no deberían existir — algo late. Primera de tres novelas. La trilogía Núcleo Eterno.',
     desc: 'Primera de tres novelas. Fantasía oscura épica. El mundo quebrado por la catástrofe, cuatro artefactos ancestrales y un destino que no pide permiso.',
     editions: [
@@ -106,6 +106,7 @@ export const CATALOGUE = [
         id: 'pulso-blanda',
         label: 'Tapa Blanda',
         status: 'available',
+        img: '/assets/pulso-soft-cover-es.webp',
         buyUrl: 'https://www.amazon.es/Pulso-del-N%C3%BAcleo-Parte-Eterno/dp/8409810344/',
         buyLabel: 'Reclamar mi Ejemplar',
       },

@@ -134,7 +134,7 @@ export function initMobileArchive() {
 
     // Show overlay with proper transition — needs RAF between display:block and .open
     // Otherwise browser batches both changes and opacity transition never fires
-    detail.style.display = 'block';
+    detail.style.display = 'flex';
     detail.style.opacity = '0';
     detail.style.pointerEvents = 'none';
     requestAnimationFrame(() => {
