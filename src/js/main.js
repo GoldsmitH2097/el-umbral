@@ -246,8 +246,10 @@ function skipIntroAndEnterArchive() {
   archive.showArchive({skipIntro:true});
   document.body.style.cursor='auto';
   document.querySelectorAll('*').forEach(el=>el.style.setProperty('cursor','auto','important'));
+  initMobileArchive(); // was missing — mobile pillar taps never wired for returning visitors
   fireflies.init();
   tizno.init();
+  setTimeout(() => document.dispatchEvent(new Event('archiveReady')), 400);
 }
 function enterScene2() {
   audio.playTransitionEcho(); transitionTo(0);
