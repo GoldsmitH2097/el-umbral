@@ -125,6 +125,12 @@
 
   .archive-books { border-top: 1px solid rgba(255,255,255,0.04); }
   .obra-book { flex-direction: row; align-items: flex-start; gap: 18px; }
+  /* Row layout needs left-aligned meta (not centered — that's for desktop vertical stack) */
+  .obra-meta {
+    align-items: flex-start !important;
+    text-align: left !important;
+  }
+  .obra-badges { justify-content: flex-start !important; }
   .obra-cover { max-width: 80px; min-width: 80px; }
   .obra-cover img { filter: brightness(1) !important; }
   .obra-title { font-size: 13px; letter-spacing: 2px; color: #ddd; }
