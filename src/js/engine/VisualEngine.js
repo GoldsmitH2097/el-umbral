@@ -284,7 +284,7 @@ export class VisualEngine {
     const ctx=this._ctx, W=this._canvas.width, H=this._canvas.height;
 
     // Scene 4+ — clear canvas and return (no spotlight needed)
-    if(state.activeScene>=4){ ctx.clearRect(0,0,W,H); return; }
+    if(state.activeScene>=4){ ctx.clearRect(0,0,W,H); this._applyScrollImpulse(); return; }
 
     // ── Cursor lerp — scaled by dt so speed is frame-rate independent ────────
     const lf = state.isAwakening ? 0.05 : 0.1;
@@ -438,5 +438,39 @@ export class VisualEngine {
       });
       } // end desktop-only whisper detection
     }
+  }
+
+  /**
+   * Scroll impulse — called from main.js on scroll events.
+   * Nudges dust and firefly particles in the scroll direction with inertia decay.
+   * dx/dy are raw scroll deltas in pixels.
+   */
+  addScrollImpulse(dx, dy) {
+    this._scrollImpulseX = (this._scrollImpulseX || 0) + dx * 0.35;
+    this._scrollImpulseY = (this._scrollImpulseY || 0) + dy * 0.35;
+    // Apply immediately to particles for snappy feel
+    this._applyScrollImpulse();
+  }
+
+  _applyScrollImpulse() {
+    const ix = this._scrollImpulseX || 0;
+    const iy = this._scrollImpulseY || 0;
+    if (Math.abs(ix) < 0.05 && Math.abs(iy) < 0.05) {
+      this._scrollImpulseX = 0; this._scrollImpulseY = 0;
+      return;
+    }
+    // Dust particles — light, float easily
+    for (const p of this._dustParticles) {
+      p.vx = (p.vx || 0) + ix * 0.04 * (p.z || 0.5);
+      p.vy = (p.vy || 0) + iy * 0.04 * (p.z || 0.5);
+    }
+    // Firefly — heavier, more inertia
+    for (const f of this._fireflies) {
+      f.wanderX = (f.wanderX || 0) + ix * 0.25;
+      f.wanderY = (f.wanderY || 0) + iy * 0.25;
+    }
+    // Decay — inertia fades over ~20 frames
+    this._scrollImpulseX *= 0.85;
+    this._scrollImpulseY *= 0.85;
   }
 }

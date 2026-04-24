@@ -146,23 +146,9 @@
   transition: background 0.4s ease;
 }
 
-/* Wrapper needed for mobile gradient overlay — transparent on desktop */
-#obras-section-wrapper { position: relative; }
+/* Mobile carousel — full-width snap, no peek */
 @media (max-width: 768px) {
-  /* Wrapper to hold grid + gradient overlay */
-  #obras-section-wrapper {
-    position: relative; overflow: hidden;
-  }
-  /* Right-edge gradient dims the peeking next card — atmospheric, not harsh */
-  #obras-section-wrapper::after {
-    content: ''; pointer-events: none; z-index: 10;
-    position: absolute; top: 0; right: 0;
-    width: 14vw; height: 100%;
-    background: linear-gradient(to left,
-      rgba(2,2,2,0.75) 0%,
-      rgba(2,2,2,0.0) 100%
-    );
-  }
+  #obras-section-wrapper { position: relative; }
   .archive-grid {
     overflow-x: scroll; scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
@@ -170,29 +156,50 @@
   }
   .archive-grid::-webkit-scrollbar { display: none; }
   .archive-col {
-    /* 88vw = card; remaining 12vw = peek of next card */
-    min-width: 88vw; width: 88vw; flex-shrink: 0;
+    min-width: 100vw; width: 100vw; flex-shrink: 0;
     scroll-snap-align: start;
     border-bottom: none;
   }
-  .archive-col::after { display: none; } /* no dividers on mobile */
+  .archive-col::after { display: none; }
   .archive-pillar { min-height: 40vh; }
   .archive-pillar .pillar-content h4 { letter-spacing: 3px; font-size: 13px; }
   .archive-books { padding: 20px 16px; gap: 20px; }
 
-  /* Scroll indicator dots — above the grid, amber, more visible */
+  /* ── Scroll indicator dots — magical breathing animation ── */
   .archive-scroll-dots {
-    display: flex; justify-content: center; gap: 10px;
-    padding: 16px 0 10px;
+    display: flex; justify-content: center; align-items: center;
+    gap: 10px; padding: 18px 0 12px;
+    /* Gooey filter makes dots visually melt together when close */
+    filter: url('#goo-filter');
   }
   .archive-scroll-dot {
-    width: 5px; height: 5px; border-radius: 50%;
-    background: rgba(200,146,42,0.2);
-    transition: background 0.3s, transform 0.3s;
+    border-radius: 50%;
+    width: 5px; height: 5px;
+    background: rgba(200,146,42,0.25);
+    transition: width 0.5s cubic-bezier(0.34,1.56,0.64,1),
+                height 0.5s cubic-bezier(0.34,1.56,0.64,1),
+                background 0.4s ease,
+                box-shadow 0.4s ease;
+    animation: dotBreath 4s ease-in-out infinite;
   }
+  .archive-scroll-dot:nth-child(1) { animation-delay: 0s; }
+  .archive-scroll-dot:nth-child(2) { animation-delay: 1s; }
+  .archive-scroll-dot:nth-child(3) { animation-delay: 2s; }
+  .archive-scroll-dot:nth-child(4) { animation-delay: 3s; }
   .archive-scroll-dot.active {
-    background: rgba(200,146,42,0.85);
-    transform: scale(1.4);
+    width: 14px; height: 5px;
+    border-radius: 3px;
+    background: rgba(200,146,42,0.9);
+    box-shadow: 0 0 8px rgba(200,146,42,0.5), 0 0 16px rgba(200,146,42,0.2);
+    animation: dotActivePulse 2s ease-in-out infinite;
+  }
+  @keyframes dotBreath {
+    0%, 100% { opacity: 0.2; transform: scale(0.9); }
+    50%       { opacity: 0.5; transform: scale(1.1); }
+  }
+  @keyframes dotActivePulse {
+    0%, 100% { box-shadow: 0 0 6px rgba(200,146,42,0.4), 0 0 12px rgba(200,146,42,0.15); }
+    50%       { box-shadow: 0 0 12px rgba(200,146,42,0.7), 0 0 24px rgba(200,146,42,0.3); }
   }
 }
 /* ── Site footer (old rules below, new rules at end of file) */
@@ -310,17 +317,14 @@
 
 /* ── Mobile Responsiveness ────────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  /* archive-grid scrolls internally — main-site must NOT overflow horizontally */
   #main-site { overflow-x: hidden !important; overflow-y: auto !important; }
-  /* Clip grid to viewport — peek works via 88vw cols, not overflow */
-  .archive-grid { max-width: 100vw; overflow: hidden; }
-  .archive-grid { overflow-x: scroll !important; } /* re-enable scroll */
+  .archive-grid { max-width: 100vw; }
   .site-hero h2 { font-size: 22px; letter-spacing: 5px; }
   .site-hero p { letter-spacing: 1px; font-size: 14px; }
-  .site-hero-sub { white-space: normal; }
+  .site-hero-sub { white-space: normal; font-size: 12px; }
   .site-nav .links span { margin-left: 20px; letter-spacing: 2px; }
-  /* Remove tap delay on pillars */
   .archive-pillar { touch-action: manipulation; }
+  .site-footer p { white-space: normal; }
 }
 
 /* ── Site footer ─────────────────────────────────────────────────────────── */
@@ -328,11 +332,8 @@
   text-align: center; padding: 6vh 5vw 5vh;
   font-size: 10px; color: #333; letter-spacing: 4px; text-transform: uppercase;
   border-top: 1px solid rgba(255,255,255,0.04);
-  /* Mobile: prevent Tizno overlap, allow text wrap */
-  word-break: break-word;
 }
-.footer-logo { height: 36px; width: 36px; object-fit: contain; opacity: 0.55; margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto; /* no filter — show original golden logo */ }
-.site-footer p { margin: 0 0 14px; }
+.site-footer p { margin: 0 0 14px; white-space: nowrap; }
 #replay-intro-btn {
   display: block; margin: 0 auto 20px;
   background: transparent; border: none; color: #2a2a2a;

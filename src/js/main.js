@@ -313,6 +313,8 @@ function enterMainSite() {
   initMobileArchive();
   fireflies.init();
   tizno.init();
+  // Wire carousel scroll impulse after archive grid is built
+  setTimeout(() => document.dispatchEvent(new Event('archiveReady')), 400);
 }
 
 function handleDown(e) {
@@ -373,6 +375,23 @@ function handleUp() {
 document.addEventListener('mobileWhisperFound', e => {
   audio.resumeIfSuspended();
   audio.playCharacterSignature(e.detail.index);
+});
+
+// Scroll impulse — particles react to vertical scroll in archive and horizontal swipe in carousel
+let _lastScrollTop = 0;
+let _lastScrollLeft = 0;
+document.getElementById('main-site')?.addEventListener('scroll', e => {
+  const dy = e.target.scrollTop - _lastScrollTop;
+  _lastScrollTop = e.target.scrollTop;
+  if (Math.abs(dy) > 0.5) visual.addScrollImpulse(0, dy * 0.4);
+}, { passive: true });
+// Wire after archive builds (carousel exists at that point)
+document.addEventListener('archiveReady', () => {
+  document.getElementById('obras-section')?.addEventListener('scroll', e => {
+    const dx = e.target.scrollLeft - _lastScrollLeft;
+    _lastScrollLeft = e.target.scrollLeft;
+    if (Math.abs(dx) > 0.5) visual.addScrollImpulse(dx * 0.4, 0);
+  }, { passive: true });
 });
 
 document.addEventListener('mousemove',e=>{

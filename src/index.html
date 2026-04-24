@@ -418,6 +418,15 @@
 </div>
 
 <canvas id="vfx-canvas" aria-hidden="true"></canvas>
+<!-- SVG filter for gooey dot animation — invisible, DOM-only -->
+<svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+  <defs>
+    <filter id="goo-filter">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur"/>
+      <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="goo"/>
+    </filter>
+  </defs>
+</svg>
 <!-- iOS mute-switch bypass: playing a real <audio> element forces Safari to treat
      Web Audio as media playback (not ambient), bypassing the hardware ringer switch.
      The src is a minimal silent WAV (44 bytes). Must exist in DOM before first gesture. -->
