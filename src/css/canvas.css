@@ -61,4 +61,7 @@
   color: rgba(255,255,255,0); transition: color 2s ease;
   pointer-events: none; white-space: nowrap; z-index: 6;
 }
+@media (max-width: 768px) {
+  #scene-2-hint { font-size: 9px; letter-spacing: 4px; bottom: 8vh; }
+}
 #scene-2-hint.visible { color: rgba(255,255,255,0.25); }

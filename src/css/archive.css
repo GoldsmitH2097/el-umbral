@@ -146,13 +146,27 @@
   transition: background 0.4s ease;
 }
 
-/* Mobile carousel — peek reveals next card edge */
+/* Wrapper needed for mobile gradient overlay — transparent on desktop */
+#obras-section-wrapper { position: relative; }
 @media (max-width: 768px) {
+  /* Wrapper to hold grid + gradient overlay */
+  #obras-section-wrapper {
+    position: relative; overflow: hidden;
+  }
+  /* Right-edge gradient dims the peeking next card — atmospheric, not harsh */
+  #obras-section-wrapper::after {
+    content: ''; pointer-events: none; z-index: 10;
+    position: absolute; top: 0; right: 0;
+    width: 14vw; height: 100%;
+    background: linear-gradient(to left,
+      rgba(2,2,2,0.75) 0%,
+      rgba(2,2,2,0.0) 100%
+    );
+  }
   .archive-grid {
     overflow-x: scroll; scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    /* No padding — let the 88vw columns + scroll handle peeking */
   }
   .archive-grid::-webkit-scrollbar { display: none; }
   .archive-col {
