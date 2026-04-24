@@ -107,7 +107,6 @@ export class ArchiveDOM {
                 </div>
                 <h3 class="obra-title">${item.title}</h3>
                 ${item.subtitle ? `<p class="obra-subtitle">${item.subtitle}</p>` : ''}
-                <p class="obra-desc">${item.desc}</p>
                 <span class="obra-btn obra-btn--soon">${item.buyLabel || 'Próximamente'}</span>
               </div>`;
             books.appendChild(card); return;
@@ -152,7 +151,6 @@ export class ArchiveDOM {
               </div>
               <h3 class="obra-title">${item.title}</h3>
               ${item.subtitle ? `<p class="obra-subtitle">${item.subtitle}</p>` : ''}
-              <p class="obra-desc">${item.desc}</p>
               ${ctaHtml}
             </div>`;
           books.appendChild(card);
@@ -414,7 +412,6 @@ export class ArchiveDOM {
               <p class="reading-obra-vision">${item.vision || item.desc}</p>
               <div class="reading-obra-meta">
                 ${item.format ? `<span class="reading-obra-format">${item.format}</span>` : ''}
-                ${item.seriesInfo ? `<span class="reading-obra-format">${item.seriesInfo}</span>` : ''}
                 ${ctaHtml}
               </div>
             </div>
