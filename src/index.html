@@ -207,7 +207,7 @@
   <video id="char-video-preload" muted playsinline preload="none" style="display:none"></video>
   <div id="char-text"><h3 id="char-title">Cargando...</h3><p id="char-desc">Cargando...</p></div>
 </div>
-<div id="ambient-light"></div>
+<div id="ambient-light" aria-hidden="true"></div>
 <div id="ui">
   <div id="instruccion">Haz clic y mantén pulsado<br>para encender la llama</div>
   <div id="instruccion-mobile">Toca para revelar</div>
@@ -224,7 +224,7 @@
   <div class="whisper" data-index="2" data-found="false" style="top:30%;left:70%;">Lo que la carne olvida</div>
   <div class="whisper" data-index="3" data-found="false" style="top:80%;left:65%;">Ya cruzaste la línea</div>
 </div>
-<div id="scene-2-light"></div>
+<div id="scene-2-light" aria-hidden="true"></div>
 
 <!-- SCENE 3: THE AWAKENING -->
 <div id="scene-3">
@@ -266,7 +266,7 @@
 </div>
 
 <!-- SCENE 5: READING VIEW — Author + Books tabs -->
-<div id="reading-view">
+<div id="reading-view" role="dialog" aria-modal="true" aria-labelledby="read-title" inert aria-hidden="true">
   <video id="reading-bg-video" loop muted playsinline preload="none"></video>
   <nav class="reading-tabs" role="tablist" aria-label="Secciones">
     <button class="reading-tab reading-tab--active" data-tab="autor" role="tab" aria-selected="true">Autor</button>
@@ -286,7 +286,7 @@
 </div>
 
 <!-- MOBILE CHARACTER DETAIL OVERLAY — flex column, no fixed children -->
-<div id="mobile-char-detail">
+<div id="mobile-char-detail" role="dialog" aria-modal="true" aria-labelledby="mobile-detail-title" inert aria-hidden="true">
   <!-- Sticky header: video + tabs + close — does NOT scroll -->
   <div class="mobile-detail-header">
     <video id="mobile-char-video-bg" loop muted playsinline preload="none"></video>
@@ -310,7 +310,7 @@
 </div><!-- #mobile-char-detail -->
 
 <!-- BOOK CARD MODAL -->
-<div id="obra-modal" role="dialog" aria-modal="true" aria-labelledby="obra-modal-title">
+<div id="obra-modal" role="dialog" aria-modal="true" aria-labelledby="obra-modal-title" inert aria-hidden="true">
   <button id="obra-modal-close" aria-label="Cerrar">&#215;</button>
   <div id="obra-modal-inner">
     <div id="obra-modal-cover"></div>
@@ -340,14 +340,14 @@
 </div>
 
 <!-- PACTO MODAL -->
-<div id="pacto-modal">
-  <h2>El Pacto</h2>
+<div id="pacto-modal" role="dialog" aria-modal="true" aria-labelledby="pacto-modal-title" inert aria-hidden="true">
+  <h2 id="pacto-modal-title">El Pacto</h2>
   <p>Al cruzar este umbral, aceptas que las historias aquí contenidas no están diseñadas para consolarte. Eres un espectador en la oscuridad. No hay devoluciones, no hay garantías, y la verdad es una carga que deberás soportar solo.</p>
   <button id="btn-cerrar-pacto">Acepto</button>
 </div>
 
 <!-- LEGAL MODAL — content fetched on demand, never navigate away -->
-<div id="legal-modal" role="dialog" aria-modal="true" aria-labelledby="legal-modal-title">
+<div id="legal-modal" role="dialog" aria-modal="true" aria-labelledby="legal-modal-title" inert aria-hidden="true">
   <button id="legal-modal-close" aria-label="Cerrar">&#215;</button>
   <div id="legal-modal-inner">
     <h2 id="legal-modal-title"></h2>
@@ -367,7 +367,7 @@
 </div>
 
 <!-- TIZNO PANEL — slides up from below -->
-<div id="tizno-panel" role="dialog" aria-modal="true" aria-label="Contacto Soulware">
+<div id="tizno-panel" role="dialog" aria-modal="true" aria-label="Contacto Soulware" inert aria-hidden="true">
   <button id="tizno-panel-close" aria-label="Cerrar">&#215;</button>
   <div id="tizno-panel-inner">
     <!-- Left: social, email, then Tizno identity -->

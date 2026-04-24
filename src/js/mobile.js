@@ -139,6 +139,8 @@ export function initMobileArchive() {
     detail.style.display = 'flex';
     detail.style.opacity = '0';
     detail.style.pointerEvents = 'none';
+    detail.removeAttribute('inert');
+    detail.removeAttribute('aria-hidden');
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         detail.classList.add('open');
@@ -162,7 +164,11 @@ export function initMobileArchive() {
     mainSite.style.overflow = '';
     detailVideo.pause(); detailVideo.src = '';
     // Wait for fade-out transition before hiding
-    setTimeout(() => { detail.style.display = 'none'; }, 400);
+    setTimeout(() => {
+      detail.style.display = 'none';
+      detail.setAttribute('inert', '');
+      detail.setAttribute('aria-hidden', 'true');
+    }, 400);
   };
 
   const switchMobileTab = (tab) => {

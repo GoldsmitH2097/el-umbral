@@ -426,6 +426,8 @@ export class ArchiveDOM {
     setTimeout(()=>{
       this._readingView.style.display='block';
       this._readingView.style.opacity='1'; this._readingView.style.pointerEvents='auto';
+      this._readingView.removeAttribute('inert');
+      this._readingView.removeAttribute('aria-hidden');
       this._readingView.scrollTo(0,0); this._onSceneChange(5);
       // Switch to requested tab
       this._switchReadingTab(activeTab);
@@ -461,6 +463,8 @@ export class ArchiveDOM {
     this._readingView.style.opacity='0'; this._readingView.style.pointerEvents='none';
     setTimeout(()=>{
       this._readingView.style.display='none';
+      this._readingView.setAttribute('inert', '');
+      this._readingView.setAttribute('aria-hidden', 'true');
       this._gridView.style.transform='scale(1)'; this._gridView.style.opacity='1';
       this._readingBgVideo.pause(); this._readingBgVideo.src=''; this._onSceneChange(4);
       // Return focus to the pillar that triggered reading view
@@ -471,8 +475,11 @@ export class ArchiveDOM {
 
   openPacto(cb) {
     this._pactoCallback = cb || null;
+    this._pactoModal.style.display = '';
     this._pactoModal.style.opacity='1';
     this._pactoModal.style.pointerEvents='auto';
+    this._pactoModal.removeAttribute('inert');
+    this._pactoModal.removeAttribute('aria-hidden');
     setTimeout(()=>{ document.getElementById('btn-cerrar-pacto')?.focus(); }, 100);
   }
   closePacto() {
@@ -493,6 +500,8 @@ export class ArchiveDOM {
     // Step 3: hide completely after fade (display:none prevents Safari compositing ghost)
     setTimeout(() => {
       this._pactoModal.style.display='none';
+      this._pactoModal.setAttribute('inert', '');
+      this._pactoModal.setAttribute('aria-hidden', 'true');
     }, 1100);
 
     // Step 3: callback fires after full fade (0.8s transition + 200ms offset)
@@ -572,6 +581,8 @@ export class ArchiveDOM {
     document.getElementById('obra-modal-cta').innerHTML = ctaHtml;
 
     modal.classList.add('open');
+    modal.removeAttribute('inert');
+    modal.removeAttribute('aria-hidden');
     document.body.style.overflow = 'hidden';
     setTimeout(()=>{ document.getElementById('obra-modal-close')?.focus(); }, 50);
   }
@@ -590,6 +601,8 @@ export class ArchiveDOM {
   _closeObraModal() {
     const modal = document.getElementById('obra-modal');
     modal?.classList.remove('open');
+    modal?.setAttribute('inert', '');
+    modal?.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
     // Return focus to the cover that triggered the modal
     setTimeout(()=>{ this._lastObraFocus?.focus(); this._lastObraFocus = null; }, 50);
@@ -631,6 +644,8 @@ export class ArchiveDOM {
       legalTitle.textContent = title;
       legalBody.innerHTML = '<p style="color:#444;letter-spacing:2px;">Cargando...</p>';
       legalModal.classList.add('open');
+      legalModal.removeAttribute('inert');
+      legalModal.removeAttribute('aria-hidden');
       document.body.style.overflow = 'hidden';
       try {
         const res = await fetch(`/${slug}.html`);
@@ -654,6 +669,8 @@ export class ArchiveDOM {
     };
     const closeLegal = () => {
       legalModal?.classList.remove('open');
+      legalModal?.setAttribute('inert', '');
+      legalModal?.setAttribute('aria-hidden', 'true');
       document.body.style.overflow = '';
     };
     document.querySelectorAll('[data-legal]').forEach(a => {

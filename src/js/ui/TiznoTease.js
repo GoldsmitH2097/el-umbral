@@ -80,6 +80,8 @@ export class TiznoTease {
   open() {
     this._open = true;
     this._panel?.classList.add('open');
+    this._panel?.removeAttribute('inert');
+    this._panel?.removeAttribute('aria-hidden');
     this._backdrop?.classList.add('active');
     this._tease.style.animationPlayState = 'paused';
     document.body.style.overflow = 'hidden';
@@ -90,6 +92,8 @@ export class TiznoTease {
   close() {
     this._open = false;
     this._panel?.classList.remove('open');
+    this._panel?.setAttribute('inert', '');
+    this._panel?.setAttribute('aria-hidden', 'true');
     this._backdrop?.classList.remove('active');
     this._tease.style.animationPlayState = '';
     document.body.style.overflow = '';
