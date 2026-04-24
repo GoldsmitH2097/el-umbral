@@ -177,8 +177,8 @@ export class ArchiveDOM {
       dotsBar.appendChild(dot);
     });
 
-    // Append dots after grid (mobile only, hidden on desktop via CSS)
-    grid.insertAdjacentElement('afterend', dotsBar);
+    // Dots above the grid — better scroll affordance on mobile
+    grid.insertAdjacentElement('beforebegin', dotsBar);
 
     // Mobile: update dots on scroll
     // Mobile: mark first column active by default

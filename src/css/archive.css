@@ -146,17 +146,18 @@
   transition: background 0.4s ease;
 }
 
-/* Mobile carousel — one full-width slide per character */
+/* Mobile carousel — peek reveals next card edge */
 @media (max-width: 768px) {
   .archive-grid {
     overflow-x: scroll; scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
-    /* Hide scrollbar but keep functionality */
     scrollbar-width: none;
+    /* No padding — let the 88vw columns + scroll handle peeking */
   }
   .archive-grid::-webkit-scrollbar { display: none; }
   .archive-col {
-    min-width: 100vw; width: 100vw; flex-shrink: 0;
+    /* 88vw = card; remaining 12vw = peek of next card */
+    min-width: 88vw; width: 88vw; flex-shrink: 0;
     scroll-snap-align: start;
     border-bottom: none;
   }
@@ -165,16 +166,20 @@
   .archive-pillar .pillar-content h4 { letter-spacing: 3px; font-size: 13px; }
   .archive-books { padding: 20px 16px; gap: 20px; }
 
-  /* Scroll indicator dots */
+  /* Scroll indicator dots — above the grid, amber, more visible */
   .archive-scroll-dots {
-    display: flex; justify-content: center; gap: 8px;
-    padding: 12px 0 4px;
+    display: flex; justify-content: center; gap: 10px;
+    padding: 16px 0 10px;
   }
   .archive-scroll-dot {
-    width: 4px; height: 4px; border-radius: 50%;
-    background: rgba(200,146,42,0.3); transition: background 0.3s;
+    width: 5px; height: 5px; border-radius: 50%;
+    background: rgba(200,146,42,0.2);
+    transition: background 0.3s, transform 0.3s;
   }
-  .archive-scroll-dot.active { background: #c8922a; }
+  .archive-scroll-dot.active {
+    background: rgba(200,146,42,0.85);
+    transform: scale(1.4);
+  }
 }
 /* ── Site footer (old rules below, new rules at end of file) */
 .site-footer p { margin: 0 0 16px; }
@@ -293,13 +298,13 @@
 @media (max-width: 768px) {
   /* archive-grid scrolls internally — main-site must NOT overflow horizontally */
   #main-site { overflow-x: hidden !important; overflow-y: auto !important; }
-  /* Contain grid to exactly viewport width so it never bleeds out */
-  .archive-grid { max-width: 100vw; }
+  /* Clip grid to viewport — peek works via 88vw cols, not overflow */
+  .archive-grid { max-width: 100vw; overflow: hidden; }
+  .archive-grid { overflow-x: scroll !important; } /* re-enable scroll */
   .site-hero h2 { font-size: 22px; letter-spacing: 5px; }
   .site-hero p { letter-spacing: 1px; font-size: 14px; }
   .site-hero-sub { white-space: normal; }
   .site-nav .links span { margin-left: 20px; letter-spacing: 2px; }
-  .archive-col { min-width: 100vw; }
   /* Remove tap delay on pillars */
   .archive-pillar { touch-action: manipulation; }
 }
