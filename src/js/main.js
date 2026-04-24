@@ -53,7 +53,10 @@ let _audioMuted = false;
 
 function _showAudioToggle() {
   if (!audioToggle) return;
-  audioToggle.textContent = 'SND ON'; // default: sound is on
+  // Start in muted/bright state — draws attention so user knows to click for sound
+  _audioMuted = true;
+  audioToggle.textContent = 'SND OFF';
+  audioToggle.classList.add('muted');
   audioToggle.classList.add('visible');
 }
 function _updateAudioToggle() {
