@@ -29,6 +29,8 @@ export function initMobileScene2(onAllFound) {
     w.classList.add('mobile-found');
     w.dataset.found = 'true';
     state.whispersFound++;
+    // Fire the whisper-found audio — dispatch event picked up by main.js AudioEngine
+    document.dispatchEvent(new CustomEvent('mobileWhisperFound', { detail: { index: currentIndex - 1 } }));
     currentIndex++;
 
     // Reset idle timer — next auto-advance waits another 4s

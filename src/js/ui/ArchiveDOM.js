@@ -181,11 +181,23 @@ export class ArchiveDOM {
     grid.insertAdjacentElement('afterend', dotsBar);
 
     // Mobile: update dots on scroll
+    // Mobile: mark first column active by default
+    if (window.innerWidth <= 768) {
+      const firstCol = grid.querySelector('.archive-col');
+      firstCol?.classList.add('archive-col--active');
+    }
+
     grid.addEventListener('scroll', () => {
       const idx = Math.round(grid.scrollLeft / grid.offsetWidth);
       dotsBar.querySelectorAll('.archive-scroll-dot').forEach((d, i) => {
         d.classList.toggle('active', i === idx);
       });
+      // Mobile: active column = full-color video
+      if (window.innerWidth <= 768) {
+        document.querySelectorAll('.archive-col').forEach((col, i) => {
+          col.classList.toggle('archive-col--active', i === idx);
+        });
+      }
     }, { passive: true });
 
     this._initCountdowns();

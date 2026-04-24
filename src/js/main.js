@@ -175,6 +175,28 @@ _autoTimer = setTimeout(() => {
 // Replaces press-and-hold on touch devices. One tap = instant reveal for 3s,
 // then spotlight closes and moves to next character.
 let _mobileTapLock = false;
+let _mobileHolding = false;
+let _mobileTapMaxTimer = null;
+
+function _endMobileHold() {
+  if (!_mobileHolding) return;
+  _mobileHolding = false;
+  clearTimeout(_mobileTapMaxTimer);
+  if (state.hasFinishedGallery) { _mobileTapLock = false; return; }
+  state.isIgnited = false;
+  state.isSwapping = true;
+  visual.primeNextVideo();
+  setTimeout(() => {
+    _mobileTapLock = false;
+    if (!state.hasFinishedGallery) {
+      _autoTimer = setTimeout(() => {
+        if (state.activeScene === 1 && !state.hasFinishedGallery && !_mobileTapLock) {
+          _doMobileTap();
+        }
+      }, 4000);
+    }
+  }, 900);
+}
 
 function _doMobileTap() {
   if (_mobileTapLock || state.isIgnited || state.isSwapping || state.hasFinishedGallery) return;
@@ -183,25 +205,9 @@ function _doMobileTap() {
   if(_isAutoAdvancing) { _isAutoAdvancing = false; visual.setAutoAdvanceMode(false); }
 
   visual.forceIgnite();
-
-  // Hold character visible for 3s, then swap to next
-  setTimeout(() => {
-    if (state.hasFinishedGallery) { _mobileTapLock = false; return; }
-    state.isIgnited = false;
-    state.isSwapping = true;
-    visual.primeNextVideo();
-    setTimeout(() => {
-      _mobileTapLock = false;
-      // Resume auto-advance 4s after tap if user doesn't tap again
-      if (!state.hasFinishedGallery) {
-        _autoTimer = setTimeout(() => {
-          if (state.activeScene === 1 && !state.hasFinishedGallery && !_mobileTapLock) {
-            _doMobileTap();
-          }
-        }, 4000);
-      }
-    }, 900);
-  }, 3000);
+  _mobileHolding = true;
+  // Safety max: 8s hold without releasing
+  _mobileTapMaxTimer = setTimeout(_endMobileHold, 8000);
 }
 
 // Haptic feedback — iOS/Android only, silently ignored on desktop
@@ -332,6 +338,11 @@ function handleDown(e) {
 
 function handleUp() {
   _stopHaptics();
+  // Mobile Scene 1: user lifted finger — end the hold, start swap
+  if (isMobile() && state.activeScene === 1 && _mobileHolding) {
+    _endMobileHold();
+    return;
+  }
   if(state.activeScene===1 && !isMobile()){
     state.isPressed=false;
     if(state.isIgnited&&!state.hasFinishedGallery&&!state.isSwapping){
@@ -352,6 +363,12 @@ function handleUp() {
     }
   }
 }
+
+// Mobile Scene 2: play whisper audio when a whisper is found via tap
+document.addEventListener('mobileWhisperFound', e => {
+  audio.resumeIfSuspended();
+  audio.playCharacterSignature(e.detail.index);
+});
 
 document.addEventListener('mousemove',e=>{
   visual.updateTarget(e.clientX,e.clientY);
