@@ -182,6 +182,15 @@ export function initMobileArchive() {
   if (grid) {
     grid.addEventListener('click', (e) => {
       if (!isMobile()) return;
+      // Book cover click → open character detail (same as pillar tap)
+      const cover = e.target.closest('.obra-cover--clickable');
+      if (cover) {
+        const col = cover.closest('.archive-col');
+        const i = col ? parseInt(col.dataset.index, 10) : -1;
+        if (i >= 0) { e.stopPropagation(); openDetail(i); }
+        return;
+      }
+      // Pillar tap
       const pillar = e.target.closest('.archive-pillar');
       if (!pillar) return;
       const pillars = Array.from(document.querySelectorAll('.archive-pillar'));

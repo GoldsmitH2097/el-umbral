@@ -273,12 +273,14 @@
     <button class="reading-tab" data-tab="libros" role="tab" aria-selected="false">Libros</button>
   </nav>
   <div class="reading-content">
-    <div id="reading-panel-autor" class="reading-panel reading-panel--active">
-      <h1 id="read-title" tabindex="-1"></h1>
-      <div class="read-body" id="read-body-content"></div>
-    </div>
-    <div id="reading-panel-libros" class="reading-panel">
-      <div id="reading-obras-list"></div>
+    <h1 id="read-title" tabindex="-1"></h1>
+    <div class="reading-panels">
+      <div id="reading-panel-libros" class="reading-panel">
+        <div id="reading-obras-list"></div>
+      </div>
+      <div id="reading-panel-autor" class="reading-panel reading-panel--active">
+        <div class="read-body" id="read-body-content"></div>
+      </div>
     </div>
   </div>
 </div>
