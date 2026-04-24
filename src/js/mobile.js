@@ -31,11 +31,14 @@ export function initMobileScene2(onAllFound) {
     state.whispersFound++;
     currentIndex++;
 
+    // Reset idle timer — next auto-advance waits another 4s
+    resetIdleTimer();
+
     if (currentIndex >= whispers.length) {
-      // Longer delay on last whisper — give user time to read it before awakening
+      clearTimeout(idleTimer);
+      // 3s pause on last whisper — let user read before awakening
       setTimeout(onAllFound, 3000);
     } else {
-      // Hide found whisper after 600ms, then show next
       setTimeout(() => {
         w.style.display = 'none';
         setTimeout(showNext, 200);
@@ -43,21 +46,27 @@ export function initMobileScene2(onAllFound) {
     }
   };
 
+  // Idle autoplay — if user hasn't tapped for 4s, advance one step automatically
+  let idleTimer = null;
+  const resetIdleTimer = () => {
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => {
+      if (currentIndex < whispers.length) findCurrent();
+    }, 4000);
+  };
+
   whispers.forEach(w => {
     w.addEventListener('touchstart', (e) => {
       e.stopPropagation();
-      if (w.classList.contains('mobile-pending')) findCurrent();
+      if (w.classList.contains('mobile-pending')) { resetIdleTimer(); findCurrent(); }
     }, { passive: true });
     w.addEventListener('click', () => {
-      if (w.classList.contains('mobile-pending')) findCurrent();
+      if (w.classList.contains('mobile-pending')) { resetIdleTimer(); findCurrent(); }
     });
   });
 
-  // Show first whisper when scene 2 is visible — use setTimeout, NOT MutationObserver.
-  // initMobileScene2 is called AFTER scene-2.style.opacity is already set in main.js,
-  // so the observer would never fire (attribute change already happened).
-  // The scene-2 fade-in is 4s (transition: opacity 4s ease-in), wait 1s then show first.
-  setTimeout(showNext, 1200);
+  // Show first whisper, then start idle timer
+  setTimeout(() => { showNext(); resetIdleTimer(); }, 1200);
 }
 
 // ── ARCHIVE MOBILE: Tap character to open full detail view ─────────────────

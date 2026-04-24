@@ -37,9 +37,9 @@ const router = new Router({
 });
 archive._router = router;
 
-// Show instruction hint after 2.5s if user hasn't touched anything
+// Show instruction hint after 0.5s — appears near-immediately on first load
 const inst = document.getElementById('instruccion');
-setTimeout(()=>{ if(!state.isPressed&&!state.hasFinishedGallery) inst.style.opacity='0.6'; }, 2500);
+setTimeout(()=>{ if(!state.isPressed&&!state.hasFinishedGallery) inst.style.opacity='0.6'; }, 500);
 
 // Skip button — visible after 3s, persistent through all intro scenes until archive
 const skipBtn = document.getElementById('skip-btn');
@@ -50,6 +50,46 @@ skipBtn?.addEventListener('click', ()=>{
   localStorage.setItem('sw_crossed', '1');
   skipIntroAndEnterArchive();
 });
+
+// ── Scene 2 idle autoplay ───────────────────────────────────────────────────
+// Tracks last user activity in Scene 2. After 4s of inactivity, the hint
+// light sweeps toward the next unfound whisper for 2.5s, revealing it naturally
+// via the VisualEngine proximity detector. Resets after each reveal.
+let _s2LastActivity = 0;
+let _s2HintInterval = null;
+
+function _startScene2IdleWatch() {
+  _s2LastActivity = Date.now();
+  if (_s2HintInterval) clearInterval(_s2HintInterval);
+  _s2HintInterval = setInterval(() => {
+    if (state.activeScene !== 2 || state.isAwakening) { clearInterval(_s2HintInterval); return; }
+    if (Date.now() - _s2LastActivity < 4000) return;
+    // Find the first unfound whisper and aim the hint light at it
+    const whispers = Array.from(document.querySelectorAll('.whisper'));
+    const unfound = whispers.find(w => w.dataset.found !== 'true');
+    if (!unfound) return;
+    const rect = unfound.getBoundingClientRect();
+    visual.setWhisperHint(rect.left + rect.width / 2, rect.top + rect.height / 2, 2500);
+    _s2LastActivity = Date.now(); // wait another 4s before next auto-reveal
+  }, 500);
+}
+
+// ── Scene 3 inactivity auto-advance ────────────────────────────────────────
+// Replaces the old unconditional 12s timer. Only fires after 5s of NO interaction.
+let _s3LastActivity = 0;
+let _s3IdleInterval = null;
+
+function _startScene3IdleWatch() {
+  _s3LastActivity = Date.now();
+  if (_s3IdleInterval) clearInterval(_s3IdleInterval);
+  _s3IdleInterval = setInterval(() => {
+    if (state.activeScene !== 3) { clearInterval(_s3IdleInterval); return; }
+    if (Date.now() - _s3LastActivity >= 5000) {
+      clearInterval(_s3IdleInterval);
+      enterMainSite();
+    }
+  }, 500);
+}
 
 // Auto-advance — simulates the ignition cycle so characters reveal without user interaction.
 // Starts after 5s. Holds for ~1s to ignite, then releases to swap to next character.
@@ -175,6 +215,7 @@ function enterScene2() {
     transitionTo(2); document.getElementById('scene-2').style.opacity='1';
     audio.setWindVolume(0.04); visual.enterScene2();
     initMobileScene2(() => triggerAwakening());
+    _startScene2IdleWatch(); // desktop idle autoplay — reveals one whisper every 4s of inactivity
     setTimeout(()=>{ document.getElementById('scene-2-light').style.opacity='1'; },2000);
     // Idle hint — fades in after 5s if no whisper found yet
     setTimeout(()=>{
@@ -198,8 +239,8 @@ function triggerAwakening() {
     const s3=document.getElementById('scene-3'); s3.style.opacity='1'; s3.style.pointerEvents='auto';
     document.body.style.cursor='auto';
     document.querySelectorAll('*').forEach(el=>el.style.setProperty('cursor','auto','important'));
-    // Auto-advance to archive after 12s if user hasn't clicked ADENTRARSE
-    setTimeout(()=>{ if(state.activeScene===3) enterMainSite(); }, 12000);
+    // Auto-advance only after 5s of INACTIVITY — resets on any interaction
+    _startScene3IdleWatch();
   },3000);
 }
 
@@ -256,23 +297,27 @@ function handleUp() {
       // RAF-based _swapToNextCharacter() runs later and is outside gesture context
       visual.primeNextVideo();
     }
-    // Resume auto-advance 3s after user stops — keeps experience on rails
+    // Resume auto-advance 5s after user stops — keeps experience on rails
     if(!state.hasFinishedGallery && !_isAutoAdvancing) {
       if(_autoTimer) clearTimeout(_autoTimer);
       _autoTimer = setTimeout(() => {
         if(state.activeScene===1 && !state.hasFinishedGallery && !state.isPressed) {
           _autoAdvanceNext();
         }
-      }, 3000);
+      }, 5000);
     }
   }
 }
 
-document.addEventListener('mousemove',e=>visual.updateTarget(e.clientX,e.clientY));
+document.addEventListener('mousemove',e=>{
+  visual.updateTarget(e.clientX,e.clientY);
+  if (state.activeScene === 2) _s2LastActivity = Date.now();
+  if (state.activeScene === 3) _s3LastActivity = Date.now();
+});
 document.addEventListener('mousedown',handleDown);
 document.addEventListener('mouseup',handleUp);
-document.addEventListener('touchstart',e=>{ visual.updateTarget(e.touches[0].clientX,e.touches[0].clientY); handleDown(e); },{passive:false});
-document.addEventListener('touchmove',e=>{ if(state.activeScene<4) e.preventDefault(); visual.updateTarget(e.touches[0].clientX,e.touches[0].clientY); },{passive:false});
+document.addEventListener('touchstart',e=>{ visual.updateTarget(e.touches[0].clientX,e.touches[0].clientY); handleDown(e); if(state.activeScene===3) _s3LastActivity=Date.now(); },{passive:false});
+document.addEventListener('touchmove',e=>{ if(state.activeScene<4) e.preventDefault(); visual.updateTarget(e.touches[0].clientX,e.touches[0].clientY); if(state.activeScene===3) _s3LastActivity=Date.now(); },{passive:false});
 document.addEventListener('touchend',handleUp);
 const _umbralBtn = document.getElementById('umbral-btn');
 _umbralBtn.addEventListener('click', function(e) {

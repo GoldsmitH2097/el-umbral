@@ -160,10 +160,16 @@ export class VisualEngine {
   }
 
   _startWhisperHint() {
-    // Only show the TEXT hint — do NOT move the light cursor toward whispers.
-    // Moving the light toward whispers revealed them automatically (user reported it).
-    // The text hint in canvas.css handles the nudge: "Busca las voces en la oscuridad".
-    // This method now does nothing beyond what main.js already handles via the CSS hint.
+    // No-op — idle hint is now driven from main.js via setWhisperHint() after inactivity
+  }
+
+  /**
+   * Called by main.js after detecting idle in Scene 2.
+   * Temporarily moves the detection light to a specific whisper position so it
+   * gets naturally revealed by _updateScene2, then releases back to cursor.
+   */
+  setWhisperHint(x, y, duration = 2000) {
+    this._hintTarget = { x, y, until: Date.now() + duration };
   }
   clearFlame() {
     this._flameParticles=[]; this._smokeParticles=[]; state.isIgnited=false;
@@ -384,6 +390,10 @@ export class VisualEngine {
     if(this._frameCount%2===0&&this._fireflies.length>0&&!state.isAwakening){
       const f=this._fireflies[0];
       const detectionRadius = window.innerWidth < 768 ? 300 : 220;
+
+      // Mobile: whisper detection is handled exclusively by tap handlers in mobile.js.
+      // Skip proximity detection here to avoid the firefly triggering whispers on its own.
+      if (window.innerWidth >= 768) {
       // Use hint target position if active (autonomous sweep) — falls back to cursor
       const hintActive = this._hintTarget && Date.now() < this._hintTarget.until;
       const lightX = hintActive ? this._hintTarget.x : this._currentX;
@@ -401,13 +411,15 @@ export class VisualEngine {
             w.dataset.found='true'; state.whispersFound++;
             this._onWhisperFound(parseInt(w.dataset.index));
             document.dispatchEvent(new Event('whisperFound'));
-            if(state.whispersFound>=this._whispers.length) setTimeout(()=>this._onAllWhispersFound(),1000);
+            // 2.5s pause after last whisper — let user read it before awakening fires
+            if(state.whispersFound>=this._whispers.length) setTimeout(()=>this._onAllWhispersFound(),2500);
           }
         } else {
           if(w.dataset.found!=='true'){w.style.color='rgba(255,255,255,0)';w.style.textShadow='none';}
           else{w.style.color='rgba(220,240,255,0.3)';w.style.textShadow='0 0 10px rgba(150,200,255,0.2)';}
         }
       });
+      } // end desktop-only whisper detection
     }
   }
 }
