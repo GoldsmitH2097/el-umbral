@@ -39,7 +39,13 @@ archive._router = router;
 
 // Show instruction hint after 0.5s — appears near-immediately on first load
 const inst = document.getElementById('instruccion');
-setTimeout(()=>{ if(!state.isPressed&&!state.hasFinishedGallery) inst.style.opacity='0.6'; }, 500);
+const instMobile = document.getElementById('instruccion-mobile');
+setTimeout(()=>{
+  if(!state.isPressed&&!state.hasFinishedGallery) {
+    inst.style.opacity='0.6';
+    instMobile?.classList.add('visible');
+  }
+}, 500);
 
 // Audio toggle — appears after first audio init, persists through all scenes
 const audioToggle = document.getElementById('audio-toggle');
@@ -302,6 +308,7 @@ function handleDown(e) {
   _showAudioToggle(); // reveal toggle once audio is initialized
   if (state.activeScene >= 4) { audio.setFireVolume(0, false); audio.setWindVolume(0, 1); }
   inst.style.opacity='0';
+  instMobile?.classList.remove('visible');
   const btn=document.getElementById('umbral-btn');
   if(state.activeScene===1&&e.target!==btn&&!state.hasFinishedGallery) {
     if (isMobile()) {

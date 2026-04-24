@@ -86,6 +86,7 @@ body, html {
 
 /* Mobile-only overlays — hidden by default, shown by mobile.css on ≤768px */
 #mobile-char-detail { display: none; }
+#instruccion-mobile { display: none; } /* shown only on mobile via mobile.css */
 
 /* ── Mobile overrides for intro scenes ───────────────────────────────────── */
 @media (max-width: 768px) {

@@ -208,7 +208,10 @@
   <div id="char-text"><h3 id="char-title">Cargando...</h3><p id="char-desc">Cargando...</p></div>
 </div>
 <div id="ambient-light"></div>
-<div id="ui"><div id="instruccion">Haz clic y mantén pulsado<br>para encender la llama</div></div>
+<div id="ui">
+  <div id="instruccion">Haz clic y mantén pulsado<br>para encender la llama</div>
+  <div id="instruccion-mobile">Toca para revelar</div>
+</div>
 <div id="editorial-watermark">Soulware — Editorial Independiente</div>
 <button id="umbral-btn" aria-label="Cruzar El Umbral">EL UMBRAL<span class="cruzar-txt">CRUZAR</span></button>
 
@@ -249,7 +252,8 @@
     <footer class="site-footer">
       <img src="/assets/soulware-logo.webp" alt="Soulware" class="footer-logo" />
       <p>Soulware &copy; MMXXVI. Nada es lo que parece.</p>
-      <nav class="footer-legal">
+        <button id="replay-intro-btn" aria-label="Volver al inicio del umbral">← Volver al Umbral</button>
+        <nav class="footer-legal">
         <a href="/aviso-legal.html" data-legal="aviso-legal" data-legal-title="Aviso Legal">Aviso Legal</a>
         <a href="/privacidad.html" data-legal="privacidad" data-legal-title="Privacidad">Privacidad</a>
         <a href="/cookies.html" data-legal="cookies" data-legal-title="Cookies">Cookies</a>
@@ -276,14 +280,18 @@
   </div>
 </div>
 
-<!-- MOBILE CHARACTER DETAIL OVERLAY — same tabs -->
+<!-- MOBILE CHARACTER DETAIL OVERLAY — flex column, no fixed children -->
 <div id="mobile-char-detail">
-  <video id="mobile-char-video-bg" loop muted playsinline preload="none"></video>
-  <button id="mobile-char-close">← Volver</button>
-  <nav class="reading-tabs reading-tabs--mobile" role="tablist">
-    <button class="reading-tab reading-tab--active" data-tab="autor">Autor</button>
-    <button class="reading-tab" data-tab="libros">Libros</button>
-  </nav>
+  <!-- Sticky header: video + tabs + close — does NOT scroll -->
+  <div class="mobile-detail-header">
+    <video id="mobile-char-video-bg" loop muted playsinline preload="none"></video>
+    <button id="mobile-char-close">← Volver</button>
+    <nav class="reading-tabs reading-tabs--mobile" role="tablist">
+      <button class="reading-tab reading-tab--active" data-tab="autor">Autor</button>
+      <button class="reading-tab" data-tab="libros">Libros</button>
+    </nav>
+  </div>
+  <!-- Scrollable content — below the header -->
   <div class="mobile-detail-content">
     <div id="mobile-panel-autor" class="mobile-panel mobile-panel--active">
       <h2 class="mobile-detail-title" id="mobile-detail-title"></h2>
@@ -293,8 +301,8 @@
     <div id="mobile-panel-libros" class="mobile-panel">
       <div class="mobile-detail-obras" id="mobile-detail-obras"></div>
     </div>
-  </div>
-</div>
+  </div><!-- .mobile-detail-content -->
+</div><!-- #mobile-char-detail -->
 
 <!-- BOOK CARD MODAL -->
 <div id="obra-modal" role="dialog" aria-modal="true" aria-labelledby="obra-modal-title">

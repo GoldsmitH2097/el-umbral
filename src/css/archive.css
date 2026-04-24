@@ -223,14 +223,12 @@
 /* Desktop reading view doesn't use tabs — side-by-side layout */
 .reading-tabs:not(.reading-tabs--mobile) { display: none !important; }
 
-/* Mobile detail tabs — visible and fixed below the video */
+/* Mobile detail tabs — base style, positioning handled by mobile.css */
 .reading-tabs--mobile {
-  position: fixed; left: 0; width: 100%;
-  top: 40vh; /* sits just below the video (40vh tall) */
   display: flex; justify-content: center;
   background: rgba(2,2,2,0.95);
   border-bottom: 1px solid rgba(255,255,255,0.08);
-  z-index: 36;
+  width: 100%;
 }
 .reading-tab {
   background: transparent; border: none;
@@ -316,6 +314,14 @@
 }
 .footer-logo { height: 36px; width: 36px; object-fit: contain; opacity: 0.55; margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto; /* no filter — show original golden logo */ }
 .site-footer p { margin: 0 0 14px; }
+#replay-intro-btn {
+  display: block; margin: 0 auto 20px;
+  background: transparent; border: none; color: #2a2a2a;
+  font-family: 'Times New Roman', serif; font-size: 9px;
+  letter-spacing: 3px; text-transform: uppercase;
+  cursor: pointer; transition: color 0.3s; padding: 4px 0;
+}
+#replay-intro-btn:hover { color: #666; }
 .footer-legal { display: flex; gap: 30px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
 .footer-legal a, .footer-legal a:visited { color: #333; text-decoration: none; font-size: 9px; letter-spacing: 3px; transition: color 0.3s; font-family: 'Times New Roman', serif; }
 .footer-legal a:hover { color: #777; }

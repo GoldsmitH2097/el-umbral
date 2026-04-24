@@ -48,30 +48,49 @@
 
 /* ── MOBILE ARCHIVE: Character cards expandable ───────────────────────────── */
 @media (max-width: 768px) {
-  /* Mobile character detail overlay */
+  /* Flex column — header sticky at top, content scrolls below */
   #mobile-char-detail {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh;
-    background: #020202; z-index: 35; overflow-y: auto;
-    display: none; opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
+    background: #020202; z-index: 35;
+    display: none; flex-direction: column; overflow: hidden;
+    opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
   }
-  #mobile-char-detail.open { display: block; opacity: 1; pointer-events: auto; }
+  #mobile-char-detail.open { display: flex; opacity: 1; pointer-events: auto; }
+
+  /* Header: video + tabs. Stays put, never scrolls */
+  .mobile-detail-header {
+    position: relative; flex-shrink: 0; z-index: 2;
+  }
 
   #mobile-char-video-bg {
-    position: fixed; top: 0; left: 0; width: 100vw; height: 40vh;
+    display: block; width: 100%; height: 40vh;
     object-fit: cover; opacity: 0.5; filter: grayscale(100%);
-    pointer-events: none; z-index: 1;
+    pointer-events: none;
   }
+
   #mobile-char-close {
-    position: fixed; top: 20px; left: 5vw; z-index: 40;
+    position: absolute; top: 20px; left: 5vw; z-index: 4;
     background: transparent; border: none; color: #888;
     font-size: 12px; letter-spacing: 4px; text-transform: uppercase;
     font-family: 'Times New Roman', serif; cursor: pointer;
   }
 
-  .mobile-detail-content {
-    position: relative; z-index: 2;
-    padding: 46vh 6vw 15vh; /* 40vh video + ~6vh for tabs height */
+  /* Tabs sit directly below the video — in normal flow, not fixed */
+  .reading-tabs--mobile {
+    position: relative !important; top: auto !important;
+    width: 100%; display: flex; justify-content: center;
+    background: rgba(2,2,2,0.97);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    z-index: 3;
   }
+
+  /* Scrollable content area */
+  .mobile-detail-content {
+    flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+    padding: 24px 6vw 80px;
+    position: relative; z-index: 1;
+  }
+
   .mobile-detail-title {
     font-size: 20px; letter-spacing: 6px; text-transform: uppercase;
     font-weight: normal; margin: 0 0 24px; color: #e8ecef;
@@ -79,13 +98,12 @@
   .mobile-detail-lore { font-size: 16px; line-height: 2; color: #c0c0c0; }
   .mobile-detail-lore p { margin-bottom: 20px; }
 
-  /* archive-col on mobile — full natural height, no artificial 50/50 split */
+  /* archive-col on mobile — full natural height */
   .archive-col { min-height: auto; height: auto; }
   .archive-pillar {
     height: 50dvh !important; min-height: unset !important;
     padding: 20px 5vw 20px !important;
   }
-  /* Books flow naturally below pillar — NO sub-scroll, NO flex expansion */
   .archive-books {
     height: auto !important; overflow-y: visible !important;
     flex: none !important;
@@ -96,7 +114,6 @@
   .archive-pillar .pillar-content h4 { margin: 0 0 10px !important; font-size: 14px; letter-spacing: 4px; }
   .archive-pillar .pillar-content p { opacity: 1 !important; font-size: 12px; margin: 0; max-width: none; line-height: 1.7; }
 
-  /* Obras section on mobile */
   .archive-books { border-top: 1px solid rgba(255,255,255,0.04); }
   .obra-book { flex-direction: row; align-items: flex-start; gap: 18px; }
   .obra-cover { max-width: 80px; min-width: 80px; }
@@ -127,4 +144,15 @@
 /* ── Tizno — reposition on mobile so it clears the footer + iOS home indicator ── */
 @media (max-width: 768px) {
   #tizno-tease { bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* ── Mobile Scene 1 instruction ───────────────────────────────────────────── */
+@media (max-width: 768px) {
+  #instruccion { display: none !important; }
+  #instruccion-mobile {
+    display: block;
+    font-size: 11px; letter-spacing: 5px; color: rgba(255,255,255,0.3);
+    text-transform: uppercase; opacity: 0; transition: opacity 1.5s ease;
+  }
+  #instruccion-mobile.visible { opacity: 0.6; }
 }
