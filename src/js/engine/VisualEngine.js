@@ -397,6 +397,45 @@ export class VisualEngine {
     for(let i=this._smokeParticles.length-1;i>=0;i--){const p=this._smokeParticles[i];p.update();p.draw(ctx);if(p.life<=0)this._smokeParticles.splice(i,1);}
     ctx.globalCompositeOperation='lighter';
     for(let i=this._flameParticles.length-1;i>=0;i--){const p=this._flameParticles[i];p.update(wx);p.draw(ctx);if(p.life<=0)this._flameParticles.splice(i,1);}
+    // Ember burst — Option C progress indicator
+    this._drawEmberBurst(ctx, this._currentX, this._currentY);
+  }
+
+  /**
+   * Ember burst — progress feedback for flame hold interaction.
+   * No ring, no ticks. 8 amber dots orbit the cursor slowly, appearing and growing
+   * as ignitionProgress builds 0→150. Organic, not mechanical.
+   */
+  _drawEmberBurst(ctx, cx, cy) {
+    const progress = state.ignitionProgress / 150; // 0→1
+    if (progress <= 0.02) return; // invisible until meaningful
+    const N = 8;
+    const rotation = this._frameCount * 0.012; // slow steady orbit
+    ctx.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < N; i++) {
+      const baseAngle = (i / N) * Math.PI * 2;
+      // Each dot has a unique wobble phase so they feel alive, not mechanical
+      const wobble = Math.sin(this._frameCount * 0.04 + i * 1.57) * 0.18;
+      const angle = baseAngle + rotation + wobble;
+      // Radius: tight at start, opens outward as ignition builds
+      const radius = 12 + progress * 24;
+      const dotX = cx + Math.cos(angle) * radius;
+      const dotY = cy + Math.sin(angle) * radius;
+      // Size and alpha grow with progress — dots are barely there at first
+      const size = 1.0 + progress * 2.0;
+      const alpha = Math.pow(progress, 0.6) * 0.8; // eased — appears fast, stays bright
+      // Core ember
+      ctx.beginPath();
+      ctx.arc(dotX, dotY, size, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(232,168,50,${alpha.toFixed(2)})`;
+      ctx.fill();
+      // Soft outer glow — same dot, bigger, dimmer
+      ctx.beginPath();
+      ctx.arc(dotX, dotY, size * 2.8, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(200,120,20,${(alpha * 0.25).toFixed(2)})`;
+      ctx.fill();
+    }
+    ctx.globalCompositeOperation = 'source-over';
   }
 
   _updateScene2(ctx) {
