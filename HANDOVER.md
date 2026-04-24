@@ -8,7 +8,7 @@
 **Live:** https://soulware.live
 **Repo:** github.com/GoldsmitH2097/el-umbral
 **Local:** `/Users/ruben/Developer/el-umbral`
-**Last commit:** `5a8ef8d` — feat(seo): individual obra routes, email capture, Tizno mobile, sitemap obra URLs
+**Last commit:** `70e7974` — fix(ux): autoplay rework — Scene 2 mobile bug, idle-based advance, instruction timing
 **Build:** ✅ Clean (no warnings)
 **Deploy:** ✅ Netlify auto-deploy from `main`
 
@@ -54,7 +54,32 @@ Paste this file fresh at the start of every new chat.
 
 ---
 
-## What was completed — Session 2 (April 23, 2026)
+## What was completed — Session 3 (April 24, 2026)
+
+### Autoplay / UX timing overhaul
+- **Scene 2 mobile bug fixed** — VisualEngine's proximity detection was running alongside mobile.js tap detection. Firefly wandering near whispers was triggering `dataset.found` independently of taps → caused early Scene 3 transition. Now mobile detection is disabled in `_updateScene2` (guard: `window.innerWidth >= 768`).
+- **Scene 2 idle autoplay — desktop** — `_startScene2IdleWatch()` in main.js: polls every 500ms; after 4s of no mousemove, aims hint light at first unfound whisper for 2.5s. Natural proximity detection handles reveal. `mousemove` resets timer.
+- **Scene 2 idle autoplay — mobile** — `initMobileScene2` now has a 4s idle timer. Auto-advances one whisper if no tap. Resets on every tap.
+- **Scene 2 → Scene 3 pause** — `setTimeout 2500ms` (was 1000ms) after last whisper found. User reads last phrase before awakening.
+- **Scene 3 auto-advance** — removed unconditional 12s. Replaced with `_startScene3IdleWatch()`: fires `enterMainSite()` after 5s of no mouse/touch. Resets on `mousemove`, `touchstart`, `touchmove`.
+- **Instruction hint** — appears at 0.5s (was 2.5s).
+- **Scene 1 resume** — auto-advance resumes 5s after user stops (was 3s).
+
+### Catalogue
+- **Pulso del Núcleo editions merged** — `pulso-blanda` + `pulso-dura` → single catalogue entry with `editions[]` array. One cover, two stacked CTAs: "Tapa Blanda — Comprar" (amber) + "Tapa Dura — Próximamente" (grey). Adding the hardcover later = just add `buyUrl` to editions[1] in StateManager.js.
+
+### Other fixes
+- **Desktop instruction** — "Haz clic y mantén pulsado" (was "Toca y mantén pulsado" — wrong on desktop)
+- **iOS audio mute switch** — silent `<audio>` element with WAV data URI forces Safari to treat session as media playback → bypasses hardware ringer switch. Works iOS 15+.
+- **Tizno safe-area** — `bottom: calc(64px + env(safe-area-inset-bottom))` on mobile
+- **GDPR on Firma el Pacto** — required checkbox with link to privacy policy
+- **localStorage `sw_crossed`** — returning visitors skip intro entirely
+- **"Bienvenido al Archivo de Soulware"** — `white-space: nowrap` on `.site-hero-sub` (one line on desktop, wraps normally on mobile)
+- **SEO: individual obra routes** — `/obras/pulso-del-nucleo` etc. with per-book meta
+- **Sitemap** — 4 new obra URLs (12 total)
+- **Ghost DOM** — 4 book articles for Googlebot
+- **`_redirects`** — SPA catch-all for `/obras/*`
+- **CLAUDE.md** — sitemap status updated
 
 ### SEO — Individual obra routes
 - **Router.js** — `/obras/:slug` deep links with per-book meta (title, desc, canonical, OG)
