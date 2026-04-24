@@ -75,16 +75,12 @@
 #tizno-panel.open { transform: translateY(0); }
 
 #tizno-panel-close {
-  position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+  position: absolute; top: 16px; right: 20px;
   background: transparent; border: none; cursor: pointer !important;
-  width: 40px; height: 20px; padding: 0;
-  display: flex; align-items: center; justify-content: center;
+  color: rgba(255,255,255,0.25); font-size: 22px; line-height: 1;
+  padding: 4px 8px; transition: color 0.3s; z-index: 2;
 }
-#tizno-panel-close::before {
-  content: ''; display: block; width: 32px; height: 2px;
-  background: rgba(255,255,255,0.15); border-radius: 2px; transition: background 0.3s;
-}
-#tizno-panel-close:hover::before { background: rgba(200,146,42,0.6); }
+#tizno-panel-close:hover { color: rgba(255,255,255,0.8); }
 
 /* 2-column grid: left=info, right=form */
 #tizno-panel-inner {

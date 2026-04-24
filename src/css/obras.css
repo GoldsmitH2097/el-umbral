@@ -367,7 +367,7 @@
 .obra-modal-relatos li:last-child { border-bottom: none; }
 
 /* ── Status pills + format badges ────────────────────────────────────────── */
-.obra-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.obra-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; justify-content: center; }
 
 .obra-status-pill {
   font-size: 8px; letter-spacing: 3px; text-transform: uppercase;
