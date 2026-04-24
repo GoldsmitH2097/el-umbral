@@ -52,13 +52,21 @@ const audioToggle = document.getElementById('audio-toggle');
 let _audioMuted = false;
 
 function _showAudioToggle() {
-  audioToggle?.classList.add('visible');
+  if (!audioToggle) return;
+  audioToggle.textContent = 'SND ON'; // default: sound is on
+  audioToggle.classList.add('visible');
 }
 function _updateAudioToggle() {
   if (!audioToggle) return;
-  audioToggle.setAttribute('aria-label', _audioMuted ? 'Activar audio' : 'Silenciar audio');
-  audioToggle.innerHTML = _audioMuted ? '&#9834;&#x0338;' : '&#9834;';
-  audioToggle.classList.toggle('muted', _audioMuted);
+  if (_audioMuted) {
+    audioToggle.setAttribute('aria-label', 'Activar audio');
+    audioToggle.textContent = 'SND OFF';
+    audioToggle.classList.add('muted');
+  } else {
+    audioToggle.setAttribute('aria-label', 'Silenciar audio');
+    audioToggle.textContent = 'SND ON';
+    audioToggle.classList.remove('muted');
+  }
 }
 audioToggle?.addEventListener('click', () => {
   _audioMuted = !_audioMuted;

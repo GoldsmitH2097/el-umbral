@@ -171,6 +171,8 @@ export function initMobileArchive() {
     });
     document.getElementById('mobile-panel-autor')?.classList.toggle('mobile-panel--active', tab === 'autor');
     document.getElementById('mobile-panel-libros')?.classList.toggle('mobile-panel--active', tab === 'libros');
+    // Scroll content area to top when switching tabs
+    document.querySelector('.mobile-detail-content')?.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   closeBtn?.addEventListener('click', closeDetail);

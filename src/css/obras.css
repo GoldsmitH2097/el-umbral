@@ -18,19 +18,28 @@
   image-rendering: auto;
 }
 
-/* ── Audio toggle — visible after first audio init ───────────────────────── */
+/* ── Audio toggle — prominent by default (sound on), subtle when muted ─────── */
 #audio-toggle {
   position: fixed; top: 30px; left: 30px; z-index: 7;
-  background: transparent; border: 1px solid rgba(255,255,255,0.12);
-  color: rgba(255,255,255,0.35); font-size: 13px; letter-spacing: 2px;
-  padding: 8px 14px; cursor: pointer; transition: all 0.4s ease;
-  opacity: 0; pointer-events: none; font-family: 'Times New Roman', serif;
+  background: transparent;
+  border: 1px solid rgba(200,146,42,0.5);
+  color: rgba(200,146,42,0.85);
+  font-size: 13px; letter-spacing: 3px;
+  padding: 8px 16px; cursor: pointer;
+  transition: all 0.4s ease;
+  opacity: 0; pointer-events: none;
+  font-family: 'Times New Roman', serif;
+  text-transform: uppercase;
 }
 #audio-toggle.visible { opacity: 1; pointer-events: auto; }
-#audio-toggle.muted { color: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.06); }
-#audio-toggle:hover { color: rgba(255,255,255,0.8); border-color: rgba(255,255,255,0.4); }
+/* Muted state — subtle, doesn't distract */
+#audio-toggle.muted {
+  color: rgba(255,255,255,0.2);
+  border-color: rgba(255,255,255,0.08);
+}
+#audio-toggle:hover { color: #fff; border-color: rgba(255,255,255,0.5); }
 @media (max-width: 768px) {
-  #audio-toggle { left: 20px; top: 20px; font-size: 11px; padding: 6px 10px; }
+  #audio-toggle { left: 20px; top: 20px; font-size: 10px; padding: 6px 12px; }
 }
 
 /* ── Skip Button ──────────────────────────────────────────────────────────── */
