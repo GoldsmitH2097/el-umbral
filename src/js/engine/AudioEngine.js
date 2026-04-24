@@ -74,6 +74,7 @@ export class AudioEngine {
   }
 
   // Restart looping noise sources — called after iOS resume() in case they were dropped
+  // Also public so audio toggle can restore sources after unmute
   _restartNoiseSources() {
     try {
       const ctx = this.audioCtx;

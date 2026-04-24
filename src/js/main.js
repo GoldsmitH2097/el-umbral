@@ -41,6 +41,33 @@ archive._router = router;
 const inst = document.getElementById('instruccion');
 setTimeout(()=>{ if(!state.isPressed&&!state.hasFinishedGallery) inst.style.opacity='0.6'; }, 500);
 
+// Audio toggle — appears after first audio init, persists through all scenes
+const audioToggle = document.getElementById('audio-toggle');
+let _audioMuted = false;
+
+function _showAudioToggle() {
+  audioToggle?.classList.add('visible');
+}
+function _updateAudioToggle() {
+  if (!audioToggle) return;
+  audioToggle.setAttribute('aria-label', _audioMuted ? 'Activar audio' : 'Silenciar audio');
+  audioToggle.innerHTML = _audioMuted ? '&#9834;&#x0338;' : '&#9834;';
+  audioToggle.classList.toggle('muted', _audioMuted);
+}
+audioToggle?.addEventListener('click', () => {
+  _audioMuted = !_audioMuted;
+  if (_audioMuted) {
+    audio.setFireVolume(0, false);
+    audio.setWindVolume(0, 0.3);
+    if (audio.audioCtx) audio.audioCtx.suspend().catch(() => {});
+  } else {
+    if (audio.audioCtx) audio.audioCtx.resume().then(() => audio._restartNoiseSources()).catch(() => {});
+    // Restore wind if in intro
+    if (state.activeScene === 2) audio.setWindVolume(0.04, 1);
+  }
+  _updateAudioToggle();
+});
+
 // Skip button — visible after 3s, persistent through all intro scenes until archive
 const skipBtn = document.getElementById('skip-btn');
 setTimeout(()=>{ if(state.activeScene < 4) skipBtn.classList.add('visible'); }, 3000);
@@ -272,6 +299,7 @@ function handleDown(e) {
   }
   audio.init();
   audio.resumeIfSuspended();
+  _showAudioToggle(); // reveal toggle once audio is initialized
   if (state.activeScene >= 4) { audio.setFireVolume(0, false); audio.setWindVolume(0, 1); }
   inst.style.opacity='0';
   const btn=document.getElementById('umbral-btn');

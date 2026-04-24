@@ -138,6 +138,7 @@
 
 <!-- SKIP BUTTON — first focusable element in DOM (WCAG 2.4.1) -->
 <button id="skip-btn" aria-label="Romper el trance — saltar experiencia">Romper el trance</button>
+<button id="audio-toggle" aria-label="Silenciar audio" title="Silenciar">&#9834;</button>
 
 <!-- ═══════════════════════════════════════════════════════════════
      GHOST DOM — .sr-only: invisible to eyes, fully readable by
@@ -163,6 +164,7 @@
     <p>Acero oscuro, óxido, firmeza absoluta. No hay honor, solo inminencia. Un golpe seco y la realidad se fractura en mil pedazos.</p>
     <p>Nadie sabe bajo qué bandera lucha, porque no ha dejado sobrevivientes para que cuenten el emblema de su escudo. Su armadura está picada por el óxido y la sangre seca de mil batallas olvidadas.</p>
     <p>Dicen que dentro de la armadura ya no hay un hombre, sino un concepto físico: el fin inminente.</p>
+    <p><strong>Pulso del Núcleo — Núcleo Eterno, primera de tres novelas.</strong> Disponible ahora en tapa blanda. <a href="https://www.amazon.es/Pulso-del-N%C3%BAcleo-Parte-Eterno/dp/8409810344/" rel="noopener">Comprar Pulso del Núcleo en Amazon España</a>. ISBN: 978-8409810345. Por WW. &amp; Eidon. Editorial Soulware.</p>
   </article>
   <article>
     <h2><a href="/sortilega">La Sortílega Sin Sombra</a></h2>
@@ -201,8 +203,8 @@
 
 <!-- SCENE 1: THE TOMB -->
 <div id="gallery-container">
-  <video id="char-video" loop muted playsinline autoplay preload="auto"></video>
-  <video id="char-video-preload" muted playsinline preload="auto" style="display:none"></video>
+  <video id="char-video" loop muted playsinline preload="none"></video>
+  <video id="char-video-preload" muted playsinline preload="none" style="display:none"></video>
   <div id="char-text"><h3 id="char-title">Cargando...</h3><p id="char-desc">Cargando...</p></div>
 </div>
 <div id="ambient-light"></div>
@@ -213,7 +215,7 @@
 <!-- SCENE 2: VOCES DEL UMBRAL -->
 <div id="scene-2">
   <h2 id="voces-title">Voces del Umbral</h2>
-  <div id="scene-2-hint">Busca las voces en la oscuridad</div>
+  <div id="scene-2-hint">Mueve el cursor hasta encontrar las voces</div>
   <div class="whisper" data-index="0" data-found="false" style="top:20%;left:15%;">La piedra recuerda</div>
   <div class="whisper" data-index="1" data-found="false" style="top:75%;left:25%;">El frío no perdona</div>
   <div class="whisper" data-index="2" data-found="false" style="top:30%;left:70%;">Lo que la carne olvida</div>
@@ -375,7 +377,7 @@
       </div>
       <!-- El Pacto — email capture -->
       <div class="tizno-pacto">
-        <p class="tizno-pacto-label">Recibe los ecos antes de que se extingan.</p>
+        <p class="tizno-pacto-label">Lanzamientos, relatos breves y muestras antes que nadie.</p>
         <form class="tizno-pacto-form" id="tizno-pacto-form" name="el-pacto" data-netlify="true" netlify-honeypot="bot-field2">
           <input type="hidden" name="form-name" value="el-pacto" />
           <input type="text" name="bot-field2" style="display:none" aria-hidden="true" />
