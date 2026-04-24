@@ -244,7 +244,7 @@
     </nav>
     <header class="site-hero">
       <h2 tabindex="-1">Las Crónicas</h2>
-      <p class="site-hero-sub">Cuatro arquetipos. Cuatro universos. Bienvenido al Archivo de Soulware.</p>
+      <p class="site-hero-sub">Cuatro arquetipos. Cuatro universos.<br>Bienvenido al Archivo de Soulware.</p>
       <p class="site-hero-editorial">Soulware es una editorial independiente de ficción oscura y universos de autor.</p>
     </header>
     <div id="obras-section-wrapper">
@@ -253,7 +253,8 @@
     <section class="contact-section" id="contact-section" style="display:none"></section>
     <footer class="site-footer">
       <img src="/assets/soulware-logo.webp" alt="Soulware" class="footer-logo" />
-      <p>Soulware &copy; MMXXVI. Nada es lo que parece.</p>
+      <p>Soulware &copy; MMXXVI.</p>
+      <p>Nada es lo que parece.</p>
         <button id="replay-intro-btn" aria-label="Volver al inicio del umbral">← Volver al Umbral</button>
         <nav class="footer-legal">
         <a href="/aviso-legal.html" data-legal="aviso-legal" data-legal-title="Aviso Legal">Aviso Legal</a>
@@ -418,15 +419,6 @@
 </div>
 
 <canvas id="vfx-canvas" aria-hidden="true"></canvas>
-<!-- SVG filter for gooey dot animation — invisible, DOM-only -->
-<svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
-  <defs>
-    <filter id="goo-filter">
-      <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur"/>
-      <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="goo"/>
-    </filter>
-  </defs>
-</svg>
 <!-- iOS mute-switch bypass: playing a real <audio> element forces Safari to treat
      Web Audio as media playback (not ambient), bypassing the hardware ringer switch.
      The src is a minimal silent WAV (44 bytes). Must exist in DOM before first gesture. -->
