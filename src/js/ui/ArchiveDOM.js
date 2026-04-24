@@ -94,21 +94,21 @@ export class ArchiveDOM {
           const card = document.createElement('div');
 
           if (item.type === 'anthology') {
-            card.className = `obra-book obra-book--anthology obra-book--${item.status}`;
-            const anthologyCover = item.img
-              ? `<div class="obra-cover obra-cover--anthology"><img src="${item.img}" alt="${item.title}" loading="lazy" decoding="async" /></div>`
-              : '';
+            card.className = `obra-book obra-book--${item.status}`;
+            const coverHtml = item.img
+              ? `<div class="obra-cover obra-cover--clickable obra-cover--anthology" data-id="${item.id}" role="button" tabindex="0" aria-label="Ver detalles de ${item.title}"><img src="${item.img}" alt="${item.title}" loading="lazy" decoding="async" /></div>`
+              : `<div class="obra-cover obra-cover--empty"></div>`;
             card.innerHTML = `
-              ${anthologyCover}
-              <div class="obra-anthology-header">
-                <span class="obra-anthology-tag">Antología</span>
+              ${coverHtml}
+              <div class="obra-meta">
+                <div class="obra-badges">
+                  <span class="obra-status-pill obra-status-pill--coming-soon">En preparación</span>
+                  <span class="obra-format-badge">Antología</span>
+                </div>
                 <h3 class="obra-title">${item.title}</h3>
                 ${item.subtitle ? `<p class="obra-subtitle">${item.subtitle}</p>` : ''}
-              </div>
-              <div class="obra-meta">
-                <p class="obra-series-info">${item.seriesInfo || ''}</p>
                 <p class="obra-desc">${item.desc}</p>
-                <span class="obra-btn obra-btn--soon">${item.buyLabel}</span>
+                <span class="obra-btn obra-btn--soon">${item.buyLabel || 'Próximamente'}</span>
               </div>`;
             books.appendChild(card); return;
           }

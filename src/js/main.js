@@ -252,9 +252,14 @@ function skipIntroAndEnterArchive() {
 function enterScene2() {
   audio.playTransitionEcho(); transitionTo(0);
   state.isIgnited=false; visual.clearFlame(); audio.setFireVolume(0,false);
-  // Restore crosshair cursor — was hidden during ignition
+  // Restore crosshair cursor
   document.body.style.cursor = '';
   document.querySelectorAll('*').forEach(el => el.style.removeProperty('cursor'));
+  // On mobile: reset cursor position to center so Scene 2 light starts centered,
+  // not at whatever top position the finger last touched during Scene 1
+  if (isMobile()) {
+    visual.updateTarget(window.innerWidth / 2, window.innerHeight / 2);
+  }
   document.getElementById('ambient-light').style.opacity='0';
   document.getElementById('gallery-container').style.opacity='0';
   const btn=document.getElementById('umbral-btn');
