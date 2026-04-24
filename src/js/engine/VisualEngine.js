@@ -74,10 +74,11 @@ class DustParticle {
     if(this.x<-40) this.x=cW+40;
   }
   draw(ctx, fade=1) {
-    if(fade<=0) return; // Already invisible — skip draw entirely
+    if(fade<=0) return;
     ctx.beginPath(); ctx.arc(this.x,this.y,this.size,0,Math.PI*2);
-    const op = this.opacity * fade; // Apply awakening fade multiplier
+    const op = this.opacity * fade;
     if(this.isMacro){
+      // Macro particles (~4%) keep gradient — they're large and need soft falloff
       ctx.shadowBlur=this.blur;
       ctx.shadowColor=this.isLit?`rgba(255,160,50,${op*2})`:`rgba(180,200,255,${op})`;
       const gr=ctx.createRadialGradient(this.x,this.y,0,this.x,this.y,this.size);
@@ -85,9 +86,15 @@ class DustParticle {
       else{gr.addColorStop(0,`rgba(220,240,255,${op*0.6})`);gr.addColorStop(0.5,`rgba(180,200,255,${op*0.2})`);gr.addColorStop(1,`rgba(150,180,255,0)`);}
       ctx.fillStyle=gr;
     } else {
-      if(this.blur>0){ctx.shadowBlur=this.blur;ctx.shadowColor=this.isLit?`rgba(255,180,80,${op})`:`rgba(200,210,230,${op})`;}
-      else ctx.shadowBlur=0;
-      // During awakening: fade toward invisible (no white boost — that was making them pop)
+      // Micro particles (~96%): shadowBlur only — no gradient allocation.
+      // Replaces createRadialGradient per particle, eliminating ~6000 gradient
+      // objects/second at 60fps. shadowBlur achieves the same soft-glow look.
+      if(this.blur>0){
+        ctx.shadowBlur=this.blur;
+        ctx.shadowColor=this.isLit?`rgba(255,180,80,${op})`:`rgba(200,210,230,${op})`;
+      } else {
+        ctx.shadowBlur=0;
+      }
       ctx.fillStyle=this.isLit?`rgba(255,180,80,${op*2.5})`:`rgba(200,210,230,${op})`;
     }
     ctx.fill(); ctx.shadowBlur=0;
@@ -155,8 +162,17 @@ export class VisualEngine {
   }
   enterScene2() {
     this._fireflies.push(new FireflyParticle(this._currentX,this._currentY));
-    // Start autonomous hint sweep after 5s — drifts near each whisper in sequence
+    // Cache whisper positions once — getBoundingClientRect every 2 frames was costly.
+    // Positions only change on resize; we re-cache there too.
+    this._cacheWhisperPositions();
     this._startWhisperHint();
+  }
+
+  _cacheWhisperPositions() {
+    this._whisperPos = Array.from(this._whispers).map(w => {
+      const r = w.getBoundingClientRect();
+      return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+    });
   }
 
   _startWhisperHint() {
@@ -245,11 +261,10 @@ export class VisualEngine {
     }
   }
   _resizeCanvas() {
-    // Keep canvas at 1:1 CSS pixels — the original code was already optimal.
-    // DPR scaling would draw MORE pixels on retina/mobile, increasing TBT.
-    // Atmospheric smoke/fire at 1:1 looks fine. Sharp text/shapes would need DPR scaling; fire does not.
     this._canvas.width = window.innerWidth;
     this._canvas.height = window.innerHeight;
+    // Re-cache whisper positions — they shift on resize
+    if (this._whisperPos) this._cacheWhisperPositions();
   }
   start() { this._lastFrameTime = 0; this._tick(0); }
   setAutoAdvanceMode(v) { this._autoAdvanceMode = v; }
@@ -398,8 +413,11 @@ export class VisualEngine {
       const hintActive = this._hintTarget && Date.now() < this._hintTarget.until;
       const lightX = hintActive ? this._hintTarget.x : this._currentX;
       const lightY = hintActive ? this._hintTarget.y : this._currentY;
-      this._whispers.forEach(w=>{
-        const rect=w.getBoundingClientRect(), wx=rect.left+rect.width/2, wy=rect.top+rect.height/2;
+      // Use cached positions — avoids getBoundingClientRect() every frame (layout thrash)
+      const pos = this._whisperPos || [];
+      this._whispers.forEach((w, idx) => {
+        const p = pos[idx]; if (!p) return;
+        const wx = p.x, wy = p.y;
         const dc=Math.hypot(wx-lightX,wy-lightY), df=Math.hypot(wx-f.x,wy-f.y);
         const cl=dc<df?{x:lightX,y:lightY,dist:dc}:{x:f.x,y:f.y,dist:df};
         if(cl.dist<detectionRadius){
@@ -411,7 +429,6 @@ export class VisualEngine {
             w.dataset.found='true'; state.whispersFound++;
             this._onWhisperFound(parseInt(w.dataset.index));
             document.dispatchEvent(new Event('whisperFound'));
-            // 2.5s pause after last whisper — let user read it before awakening fires
             if(state.whispersFound>=this._whispers.length) setTimeout(()=>this._onAllWhispersFound(),2500);
           }
         } else {
