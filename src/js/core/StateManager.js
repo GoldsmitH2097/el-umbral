@@ -46,7 +46,7 @@ export const CHARACTERS = [
     title: 'El Arlequín Sin Flores',
     author: 'Germán Ferri',
     status: 'active',
-    desc: 'Una risa seca en una cámara vacía. La disrupción pura.',
+    desc: 'Una risa seca en una cámara vacía. La grieta que aprende a reír.',
     src: '/arlequin-sin-flores.mp4',
     social: [
       { platform: 'threads', url: 'https://www.threads.com/@germyto', handle: '@germyto' }
@@ -85,7 +85,7 @@ export const CATALOGUE = [
     status: 'coming-soon',
     img: '/assets/totalis-libertas.webp',
     vision: 'La historia oficial es el relato de los que ganaron. Totalis Libertas es el de los que perdieron, dudaron, traicionaron y sobrevivieron. Voces distintas. Un mismo umbral de verdad que nadie quiere cruzar. Salón de los reconocidos — la Emperatriz exige testigos.',
-    desc: 'Antología de relatos breves e intensos sobre la Historia de España. Cruza el umbral. Conoce a los nuevos arquitectos de la palabra.',
+    desc: 'Ficción histórica oscura. Antología de relatos breves e intensos sobre la Historia de España. Cruza el umbral. Conoce a los nuevos arquitectos de la palabra.',
     buyUrl: null,
     buyLabel: 'Cruza el Umbral',
   },
@@ -100,7 +100,7 @@ export const CATALOGUE = [
     status: 'available',
     img: '/assets/pulso-hard-cover-es.webp',
     vision: 'El mundo se quebró hace tanto que nadie recuerda cómo era antes del silencio. Pero el pulso sigue. Bajo las ruinas, en la sangre de los que no saben rendirse, en cuatro artefactos que no deberían existir — algo late. Primera de tres novelas. La trilogía Núcleo Eterno.',
-    desc: 'Primera de tres novelas. Fantasía oscura épica. El mundo quebrado por la catástrofe, cuatro artefactos ancestrales y un destino que no pide permiso.',
+    desc: 'Primera de tres novelas. Fantasía oscura épica. El mundo quebrado por la catástrofe, cuatro artefactos ancestrales y un poder antiguo que no concede victoria: exige precio.',
     editions: [
       {
         id: 'pulso-blanda',
