@@ -61,6 +61,10 @@ function _showAudioToggle() {
   audioToggle.innerHTML = _iconSoundOff;
   audioToggle.setAttribute('aria-label', 'Activar audio');
   audioToggle.classList.add('muted', 'visible');
+  // Match audio reality to muted visual: zero volumes until user opts in.
+  // Without this, faint wind plays while the icon claims silence.
+  audio.setFireVolume(0, false);
+  audio.setWindVolume(0, 0.5);
 }
 function _updateAudioToggle() {
   if (!audioToggle) return;
@@ -81,9 +85,14 @@ audioToggle?.addEventListener('click', () => {
     audio.setWindVolume(0, 0.3);
     if (audio.audioCtx) audio.audioCtx.suspend().catch(() => {});
   } else {
+    // Resume context (browsers may have auto-suspended on inactivity)
     if (audio.audioCtx) audio.audioCtx.resume().then(() => audio._restartNoiseSources()).catch(() => {});
-    // Restore wind if in intro
-    if (state.activeScene === 2) audio.setWindVolume(0.04, 1);
+    // Restore wind to scene-appropriate level. Fire is driven by gestures, not toggle.
+    const scene = state.activeScene;
+    if (scene === 1)      audio.setWindVolume(0.015, 1);   // tomb — faint
+    else if (scene === 2) audio.setWindVolume(0.04, 1);    // voces — louder, present
+    else if (scene === 3) audio.setWindVolume(0.005, 1);   // awakening — barely there
+    // Scene 4+ (archive) intentionally silent — character signatures play one-shot
   }
   _updateAudioToggle();
 });
@@ -100,7 +109,6 @@ setTimeout(()=>{ if(state.activeScene < 4) skipBtn.classList.add('visible'); }, 
 skipBtn?.addEventListener('click', ()=>{
   skipBtn.classList.remove('visible');
   _stopHaptics();
-  localStorage.setItem('sw_crossed', '1');
   skipIntroAndEnterArchive();
 });
 
@@ -246,12 +254,9 @@ window._onIgnitionComplete = () => {
 
 const isDeepLink = router.init();
 if (!isDeepLink) {
-  // Returning visitor — skip cinematic intro entirely
-  if (localStorage.getItem('sw_crossed') === '1') {
-    skipIntroAndEnterArchive();
-  } else {
-    visual.start();
-  }
+  // Always show the cinematic intro on every visit.
+  // Returning visitors can press 'Romper el trance' to skip.
+  visual.start();
 }
 
 function skipIntroAndEnterArchive() {
@@ -314,7 +319,6 @@ function triggerAwakening() {
 }
 
 function enterMainSite() {
-  localStorage.setItem('sw_crossed', '1'); // mark as visited — future loads skip intro
   const s3=document.getElementById('scene-3'); s3.style.opacity='0'; s3.style.pointerEvents='none';
   document.getElementById('scene-2').style.display='none';
   s3.style.display='none';
