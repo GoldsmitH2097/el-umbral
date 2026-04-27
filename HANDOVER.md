@@ -1,5 +1,5 @@
 # HANDOVER.md — El Umbral / Soulware
-*Last updated: April 24, 2026 — Session 4 (long polishing + docs session)*
+*Last updated: April 27, 2026 — Session 5 (a11y + Javier copy + GA mess + audio still broken)*
 
 ---
 
@@ -8,10 +8,10 @@
 **Live:** https://soulware.live
 **Repo:** github.com/GoldsmitH2097/el-umbral
 **Local:** `/Users/ruben/Developer/el-umbral`
-**Last commit:** `58c53f4` — fix: remove desc from grid cards, fix broken format badges
+**Last commit:** `758010e` — chore(analytics): revert GA4 tag to G-VC5QW7C1CQ
 **Build:** ✅ Clean (no warnings)
 **Deploy:** ✅ Netlify auto-deploy from `main`
-**GA4:** G-G3Y9ZSRZY9 (Soulware account, Javier added as Admin)
+**GA4:** `G-VC5QW7C1CQ` (Soulware property in **Ruben Websites** account, restored from trash; Javier shared as Admin). The earlier `G-G3Y9ZSRZY9` (separate SoulWare account) was retired — see Session 5 notes.
 
 ---
 
@@ -22,6 +22,55 @@
 ```
 
 Paste this file fresh at the start of every new chat.
+
+---
+
+## What was completed — Session 5 (April 27, 2026)
+
+### Accessibility hardening (commit `94fc790`)
+- 6 modal dialogs are now `inert` + `aria-hidden="true"` by default and toggled on open/close: `#obra-modal`, `#pacto-modal`, `#legal-modal`, `#tizno-panel`, `#reading-view`, `#mobile-char-detail`.
+- Fixes empty headings (`#obra-modal-title`, `#read-title`, `#mobile-detail-title`) leaking to screen readers when modals were closed.
+- Fixes tab labels (Autor/Libros, La Visión/La Ficha) being exposed outside of dialog context.
+- `#pacto-modal` gained the missing `role="dialog"` + `aria-modal="true"` + `aria-labelledby="pacto-modal-title"`.
+- `#ambient-light` and `#scene-2-light` marked `aria-hidden="true"` (decorative layers).
+- Symmetric open/close: `openPacto` now resets `style.display = ''` so a second open works after a prior close.
+
+### Javier copy decisions — partial application (commit `d3dd6b0`)
+Applied items **2, 4, 5, 6, 7, 8, 9** from the copy decisions PDF Javier returned:
+- **#2** Book modal tab labels: `El Manuscrito` → `La Ficha`
+- **#4** Arlequín: `La disrupción pura` → `La grieta que aprende a reír`
+- **#5** Whispers fourth line: `Ya cruzaste la línea` → `La sombra ya sabe tu nombre`
+- **#6** Pulso atmospheric line in Caballero ghost DOM: added *"Veinte años después de la Catástrofe, los artefactos vuelven a llamar a quienes nunca debieron tocarlos. Y cuando el Núcleo despierta, ningún reino permanece inocente."*
+- **#7** Removed redundant `CRUZAR` span from `#umbral-btn`; kept `ADENTRARSE` as the single passage verb.
+- **#8** Totalis Libertas: prepended `Ficción histórica oscura.` genre tag.
+- **#9** Pulso teaser: `un destino que no pide permiso` → `un poder antiguo que no concede victoria: exige precio`.
+
+**NOT applied yet (Session 6):**
+- **#1** Editorial tagline + "Ver libros" shortcut button on Scene 1 — Javier picked B (Medium). Watermark text is updated; the second skip button (`#skip-to-books-btn`) is not yet in the DOM, no CSS, no JS handler.
+- **#3** Pacto scope (B): keep at threshold only, remove from conversion contexts. No code action yet — needs audit of Pacto references near forms / Tizno.
+- **#10** Notify CTAs ("Recibir la señal") for all coming-soon obras — full feature, not started. See pending Code list below.
+
+### Intro + audio fixes (commits `91b2cae`, `68ba5eb`)
+- `localStorage.sw_crossed` skip-on-revisit logic removed. Intro now runs every visit; returning users use `Romper el trance` to skip. Comment in `main.js:280` makes this explicit.
+- Audio toggle event handler hardened: `stopPropagation` on click + idempotent `_showAudioToggle` so repeat ignitions don't re-show the toggle and re-mute.
+- **STILL BROKEN per Rubén** — see Outstanding bugs below. The toggle UI flips correctly (icon swap from amber-X to dim-waves) but no actual sound plays on desktop, and mobile remains silent. Needs investigation Session 6.
+
+### Google Analytics — long story, short finale (commit `758010e`)
+**TL;DR: site is back on `G-VC5QW7C1CQ`, Javier added as Admin, working again.**
+
+Full sequence of events:
+1. Original tag `G-VC5QW7C1CQ` was in *Ruben Websites* GA account from day one.
+2. On Apr 24 commit `3ea7dc0` swapped the site to `G-G3Y9ZSRZY9` in a fresh dedicated *SoulWare* account, intending a clean separation from Rubén's personal portfolio.
+3. The fresh property's Google Tag at the account level remained pinned to `G-VC5QW7C1CQ` (an alias setup), so GA's "Install instructions" panel kept showing the OLD ID even though the stream's Measurement ID was `G-G3Y9ZSRZY9`. Mismatch → GA's tag detector said "tag not detected" → "Data collection isn't active" warning → no data ever landed.
+4. Decision: revert. Restored the original `G-VC5QW7C1CQ` property from trash, trashed the SoulWare-account property, shared the restored one with Javier as Admin, reverted the site code to use `G-VC5QW7C1CQ`.
+5. Site verified live with `G-VC5QW7C1CQ` after deploy.
+
+**Lesson learned, do not repeat:** when "swapping GA accounts", don't change the Measurement ID in code — just add/remove destinations on the existing Google Tag. Changing the ID requires that the new ID actually be a Measurement ID OR a configured Google Tag alias on the receiving property; otherwise the tag tester rejects it. We learned this the hard way.
+
+### GA cleanup status
+- Old SoulWare-account property (`G-G3Y9ZSRZY9`, ID `534455162`) — moved to trash this session.
+- Original Ruben Websites property (`G-VC5QW7C1CQ`, ID `534064149`) — restored.
+- Javier (`franjacasanova@gmail.com`) — added as Admin to the restored property.
 
 ---
 
@@ -42,7 +91,7 @@ Paste this file fresh at the start of every new chat.
 - Archive grid cards: removed `<p class="obra-desc">` — description only visible in detail view
 - Reading view obra cards: removed `seriesInfo` from format badge area — long strings like "Experiencia de relato inmersivo e interactivo" were wrapping and looking like broken buttons
 
-### Audio toggle
+### Audio toggle (Session 4 baseline — see Session 5 for status)
 - Inverted logic: **bright amber = muted** (prompts user to enable), **dim = sound on** (stays out of way)
 - Starts in muted/bright state (`_audioMuted = true` on first show)
 - SVG speaker icons replace "SND ON/OFF" text
@@ -92,6 +141,14 @@ Paste this file fresh at the start of every new chat.
 
 ---
 
+## Outstanding bugs (priority for Session 6)
+
+| Bug | Severity | Notes |
+|---|---|---|
+| **Audio toggle plays no sound** | 🔥 P0 | Toggle UI flips correctly. `audio.audioCtx.resume()` and `_restartNoiseSources()` are called on click but no audible output, both desktop + mobile. Investigate: is `audioCtx.state` actually `running` after resume? Are the noise BufferSourceNodes alive after restart? Console-log inside `_restartNoiseSources` to verify. |
+
+---
+
 ## Current architecture decisions — DO NOT REVERSE
 
 | Decision | Reason |
@@ -108,6 +165,8 @@ Paste this file fresh at the start of every new chat.
 | `public/_redirects` with `/* /index.html 200` | SPA routing for /obras/* deep links |
 | `#mobile-char-detail { display: none }` in global.css | Must be outside media query or bleeds onto desktop |
 | `.mobile-panel { display: none }` in mobile.css | Without this, both Autor/Libros tabs show simultaneously |
+| All 6 modal dialogs default to `inert aria-hidden="true"` in HTML | Without this, empty headings + tab labels leak to screen readers when modals are closed |
+| Site uses GA Measurement ID `G-VC5QW7C1CQ` (not the stream-level alias) | The Google Tag at the account level expects `G-VC5QW7C1CQ`. Changing the site to a stream-level Measurement ID breaks GA's tag detector and stops data collection. Lesson from Session 5. |
 
 ---
 
@@ -116,6 +175,7 @@ Paste this file fresh at the start of every new chat.
 | File | Purpose |
 |------|---------|
 | `src/js/engine/VisualEngine.js` | Flame/smoke/dust/firefly + spotlight + scroll impulse |
+| `src/js/engine/AudioEngine.js` | Web Audio: Cm7 leitmotif, cave ambience, iOS unlock, fire/wind gains |
 | `src/js/main.js` | Scene transitions, audio toggle, skip, scroll impulse wiring |
 | `src/js/mobile.js` | Scene 1 tap, Scene 2 typewriter, archive overlay (openDetail/switchTab) |
 | `src/js/core/StateManager.js` | CHARACTERS[], CATALOGUE[], lore, vision, desc, CTAs |
@@ -127,6 +187,7 @@ Paste this file fresh at the start of every new chat.
 | `src/css/obras.css` | Audio toggle, skip btn, obra cards, modal, badges |
 | `src/css/tizno.css` | Tizno peek, eyes, panel, close button |
 | `src/css/typography.css` | Reading view body text, social links |
+| `scripts/generate-og-pages.js` | Postbuild: writes per-route HTML with custom title/desc/canonical/OG |
 | `public/_redirects` | SPA catch-all |
 | `public/google8ac032f1f6add1da.html` | Search Console verification — KEEP FOREVER |
 
@@ -149,15 +210,20 @@ Paste this file fresh at the start of every new chat.
 | **Emperatriz obra title** | TBD — Alicia Sarel |
 | **Totalis Libertas relatos** | Content for anthology relatos list |
 
-### Code (next session)
+### Code (Session 6)
 | Item | Priority | Notes |
 |------|----------|-------|
-| **Reading view refinement** | P1 | Desktop layout was overhauled. May need further polish after seeing it in context |
-| **Anatomía del Vacío build-out** | P2 | Prologue + ep.1 content from Germán exists. See ANATOMIA.md |
-| **Tizno full implementation** | P2 | System prompt + Claude API + Stripe. See TIZNO.md |
-| **OffscreenCanvas worker** | P3 | TBT 18K→~0ms. 2-3h. Safari fallback needed |
-| **Cinematic Amazon handoff** | P3 | Fade to black → "Abriendo pasaje seguro..." → redirect |
-| **Whispers as real book quotes** | P4 | 4 lines from catalogue books |
+| **Audio toggle silent** | 🔥 P0 | See Outstanding bugs above |
+| **Item #1 — Editorial tagline + "Ver libros" button** | P1 | Watermark text done. Need: `#skip-to-books-btn` element next to `#skip-btn`, CSS to mirror skip-btn position (bottom-left vs bottom-right), JS handler that calls `skipIntroAndEnterArchive()` then scrolls to `#obras-section`. |
+| **Item #3 — Pacto copy scoping** | P2 | Audit Pacto references; remove "no devoluciones / no garantías" voice from anywhere near newsletter, Tizno, contact, purchase flows. Keep at threshold modal only. |
+| **Item #10 — "Recibir la señal" notify CTAs** | P2 | Full feature: new Netlify form `recibir-senal` with hidden `source` field per book; modify `openObraModal` so coming-soon/countdown statuses render an inline email form; per-book support lines (Pulso tapa dura, Filamentos, Anatomía, Totalis, Emperatriz obra); shared confirmation message. CSS for inline form. |
+| **Privacy policy update** | P1 | Javier-approved replacement text for `public/privacidad.html` is in chat thread (Core Soulware S.L., NIF B26896795, Valladolid address, Netlify Forms reference, 72h/30d retention promises). Just needs HTML drop-in. |
+| **Reading view refinement** | P3 | Desktop layout was overhauled in Session 4. May still need polish. |
+| **Anatomía del Vacío build-out** | P3 | Prologue + ep.1 content from Germán exists. See ANATOMIA.md |
+| **Tizno full implementation** | P3 | System prompt + Claude API + Stripe. See TIZNO.md |
+| **OffscreenCanvas worker** | P4 | TBT 18K→~0ms. 2-3h. Safari fallback needed |
+| **Cinematic Amazon handoff** | P4 | Fade to black → "Abriendo pasaje seguro..." → redirect |
+| **Whispers as real book quotes** | P4 | 4 lines from catalogue books — supersedes the Session 5 placeholder |
 
 ---
 
@@ -181,3 +247,4 @@ Paste this file fresh at the start of every new chat.
 | 2 | Apr 23 | Autoplay rework, catalogue editions, SEO obra routes, email capture |
 | 3 | Apr 24 | Archive grid, reading view, mobile polish, bug hunt |
 | 4 | Apr 24 | Carousel, audio toggle, reading layout, mobile fixes, docs |
+| 5 | Apr 27 | a11y inert modals, Javier copy decisions (7 of 10 applied), GA mess + revert, audio toggle still broken |
