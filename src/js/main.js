@@ -108,14 +108,19 @@ audioToggle?.addEventListener('click', e => {
     audio.setWindVolume(0, 0.3);
     if (audio.audioCtx) audio.audioCtx.suspend().catch(() => {});
   } else {
-    // Resume context (browsers may have auto-suspended on inactivity)
-    if (audio.audioCtx) audio.audioCtx.resume().then(() => audio._restartNoiseSources()).catch(() => {});
-    // Restore wind to scene-appropriate level. Fire is driven by gestures, not toggle.
-    const scene = state.activeScene;
-    if (scene === 1)      audio.setWindVolume(0.015, 1);   // tomb — faint
-    else if (scene === 2) audio.setWindVolume(0.04, 1);    // voces — louder, present
-    else if (scene === 3) audio.setWindVolume(0.005, 1);   // awakening — barely there
-    else                  audio.setWindVolume(0.012, 1);   // archive — faint, present
+    // Resume context — set wind volume AFTER context is confirmed running.
+    // Calling setWindVolume while suspended uses frozen currentTime; the
+    // ramp may silently never fire. Sources from _buildGraph() persist through
+    // explicit suspend/resume, so _restartNoiseSources() is not needed here.
+    if (audio.audioCtx) {
+      audio.audioCtx.resume().then(() => {
+        const scene = state.activeScene;
+        if (scene === 1)      audio.setWindVolume(0.015, 0.5);
+        else if (scene === 2) audio.setWindVolume(0.04,  0.5);
+        else if (scene === 3) audio.setWindVolume(0.005, 0.5);
+        else                  audio.setWindVolume(0.04,  0.5); // archive — audible ambient
+      }).catch(() => {});
+    }
   }
   _updateAudioToggle();
 });
@@ -181,7 +186,7 @@ let _autoTimer = null;
 let _isAutoAdvancing = false;
 
 function _autoAdvanceNext() {
-  if(state.activeScene !== 1 || state.hasFinishedGallery || state.isPressed) return;
+  if(state.activeScene !== 1 || state.hasFinishedGallery || state.isPressed || state.isSwapping) return;
   _isAutoAdvancing = true;
   inst.style.opacity = '0'; // hide "press and hold" before first character appears
   visual.setAutoAdvanceMode(true); // suppress flame + glow — reveal only through mask
@@ -201,7 +206,7 @@ function _autoAdvanceNext() {
       setTimeout(() => {
         visual.setAutoAdvanceMode(false);
         _isAutoAdvancing = false;
-        if(!state.hasFinishedGallery && !state.isPressed && state.activeScene === 1) {
+        if(!state.hasFinishedGallery && !state.isPressed && !state.isSwapping && state.activeScene === 1) {
           _autoTimer = setTimeout(_autoAdvanceNext, 1200); // was 500 — breathe between chars
         }
       }, 800);
@@ -222,9 +227,14 @@ _autoTimer = setTimeout(() => {
 let _mobileTapLock = false;
 let _mobileHolding = false;
 let _mobileTapMaxTimer = null;
+let _mobileTapStartTime = 0;
 
 function _endMobileHold() {
   if (!_mobileHolding) return;
+  // Minimum 3s display: character stays visible long enough to be seen.
+  // A quick tap+release would otherwise dismiss in ~50ms.
+  const elapsed = Date.now() - _mobileTapStartTime;
+  if (elapsed < 3000) { setTimeout(_endMobileHold, 3000 - elapsed); return; }
   _mobileHolding = false;
   clearTimeout(_mobileTapMaxTimer);
   if (state.hasFinishedGallery) { _mobileTapLock = false; return; }
@@ -235,7 +245,7 @@ function _endMobileHold() {
     _mobileTapLock = false;
     if (!state.hasFinishedGallery) {
       _autoTimer = setTimeout(() => {
-        if (state.activeScene === 1 && !state.hasFinishedGallery && !_mobileTapLock) {
+        if (state.activeScene === 1 && !state.hasFinishedGallery && !_mobileTapLock && !state.isSwapping) {
           _doMobileTap();
         }
       }, 4000);
@@ -251,6 +261,7 @@ function _doMobileTap() {
 
   visual.forceIgnite();
   _mobileHolding = true;
+  _mobileTapStartTime = Date.now();
   // Safety max: 8s hold without releasing
   _mobileTapMaxTimer = setTimeout(_endMobileHold, 8000);
 }

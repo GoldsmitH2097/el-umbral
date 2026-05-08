@@ -256,6 +256,7 @@ export class VisualEngine {
       state.isSwapping=false;
     } else {
       state.hasFinishedGallery=true; state.isSwapping=false;
+      state.isIgnited=false; state.isPressed=false; // clear held state — flame must not persist
       setTimeout(()=>{const b=document.getElementById('umbral-btn');b.style.opacity='1';b.style.pointerEvents='auto';},500);
     }
   }
