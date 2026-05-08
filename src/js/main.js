@@ -288,6 +288,11 @@ function skipIntroAndEnterArchive() {
   archive.showArchive({skipIntro:true});
   document.body.style.cursor='auto';
   document.querySelectorAll('*').forEach(el=>el.style.setProperty('cursor','auto','important'));
+  // Release body overflow lock — intro needs it, archive scrolls itself
+  document.documentElement.style.overflow = '';
+  document.documentElement.style.height = '';
+  document.body.style.overflow = '';
+  document.body.style.height = '';
   initMobileArchive(); // was missing — mobile pillar taps never wired for returning visitors
   fireflies.init();
   tizno.init();
@@ -347,6 +352,11 @@ function enterMainSite() {
   s3.style.display='none';
   document.getElementById('editorial-watermark').style.display='none';
   document.getElementById('skip-btn')?.classList.remove('visible');
+  // Release body overflow lock for archive scroll
+  document.documentElement.style.overflow = '';
+  document.documentElement.style.height = '';
+  document.body.style.overflow = '';
+  document.body.style.height = '';
   archive.showArchive(); audio.playTransitionEcho(); audio.stopAwakening();
   audio.setAwakening(false); state.isAwakening=false;
   // Silence everything — fire and wind should be inaudible in the archive

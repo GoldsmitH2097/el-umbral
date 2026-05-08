@@ -70,10 +70,13 @@
   }
 
   #mobile-char-close {
-    position: absolute; top: 20px; left: 5vw; z-index: 4;
-    background: transparent; border: none; color: #888;
+    position: absolute; top: 16px; left: 5vw; z-index: 4;
+    background: rgba(2,2,2,0.55); border: none; color: rgba(255,255,255,0.75);
     font-size: 12px; letter-spacing: 4px; text-transform: uppercase;
     font-family: 'Times New Roman', serif; cursor: pointer;
+    padding: 10px 14px; border-radius: 2px;
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    min-width: 44px; min-height: 44px; /* iOS tap target minimum */
   }
 
   /* Tabs sit directly below the video — in normal flow, not fixed */
@@ -170,4 +173,10 @@
     text-transform: uppercase; opacity: 0; transition: opacity 1.5s ease;
   }
   #instruccion-mobile.visible { opacity: 0.6; }
+}
+
+/* ── iOS safe area — ensure footer is reachable past home indicator ──────── */
+@media (max-width: 768px) {
+  #main-site { padding-bottom: max(20px, env(safe-area-inset-bottom, 20px)); }
+  .site-footer { padding-bottom: max(24px, env(safe-area-inset-bottom, 24px)); }
 }

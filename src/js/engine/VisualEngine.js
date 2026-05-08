@@ -204,7 +204,6 @@ export class VisualEngine {
     this._radioExt = 680;
     this._intensidad = 0.85;
     this._instEl.style.opacity = '0';
-    document.body.style.cursor = 'none';
     this._audio.playCharacterSignature(state.currentCharIndex);
     window._onIgnitionComplete?.();
   }
@@ -362,7 +361,6 @@ export class VisualEngine {
       if(state.ignitionProgress>=150){
         state.isIgnited=true;
         this._instEl.style.opacity='0';
-        document.body.style.cursor='none';
         this._audio.playCharacterSignature(state.currentCharIndex);
         window._onIgnitionComplete?.();
       }
