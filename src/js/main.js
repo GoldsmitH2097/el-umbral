@@ -417,7 +417,18 @@ document.addEventListener('mousemove',e=>{
 });
 document.addEventListener('mousedown',handleDown);
 document.addEventListener('mouseup',handleUp);
-document.addEventListener('touchstart',e=>{ visual.updateTarget(e.touches[0].clientX,e.touches[0].clientY); handleDown(e); if(state.activeScene===3) _s3LastActivity=Date.now(); },{passive:false});
+document.addEventListener('touchstart', e => {
+  // iOS audio: init context + resume() HERE at shallowest possible depth
+  // (not inside handleDown → audio.init() which is 3 levels deep).
+  // iOS gesture window can expire before a deeply-nested resume() fires.
+  audio.init();
+  if (audio.audioCtx && audio.audioCtx.state !== 'running') {
+    audio.audioCtx.resume().catch(() => {});
+  }
+  visual.updateTarget(e.touches[0].clientX, e.touches[0].clientY);
+  handleDown(e);
+  if (state.activeScene === 3) _s3LastActivity = Date.now();
+}, {passive: false});
 document.addEventListener('touchmove',e=>{ if(state.activeScene<4) e.preventDefault(); visual.updateTarget(e.touches[0].clientX,e.touches[0].clientY); if(state.activeScene===3) _s3LastActivity=Date.now(); },{passive:false});
 document.addEventListener('touchend',handleUp);
 const _umbralBtn = document.getElementById('umbral-btn');

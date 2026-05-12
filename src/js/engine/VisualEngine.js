@@ -197,9 +197,16 @@ export class VisualEngine {
    * Skips the ignitionProgress buildup, jumps directly to ignited state.
    */
   forceIgnite() {
-    // Play character signature HERE — still in the gesture handler stack (iOS-safe).
-    // If called from rAF (600ms later) iOS may block audio if context isn't yet running.
-    this._audio.playCharacterSignature(state.currentCharIndex);
+    // Play signature — if context is still suspended (first tap), wait for it to run.
+    // Oscillators created on a suspended context silently fail on some iOS versions.
+    const _sigIdx = state.currentCharIndex;
+    if (this._audio.audioCtx && this._audio.audioCtx.state !== 'running') {
+      this._audio.audioCtx.resume().then(() => {
+        this._audio.playCharacterSignature(_sigIdx);
+      }).catch(() => {});
+    } else {
+      this._audio.playCharacterSignature(_sigIdx);
+    }
     window._onIgnitionComplete?.();
     this._instEl.style.opacity = '0';
     const startTime = performance.now();
