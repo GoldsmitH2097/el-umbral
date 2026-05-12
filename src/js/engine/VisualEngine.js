@@ -231,6 +231,10 @@ export class VisualEngine {
   /** Mobile: suppress fire particles (tap = spotlight+glow only, hold = fire too) */
   setSilentFlame(v) { this._silentFlame = v; }
 
+  /** Instantly remove existing fire/smoke particles — called on finger release so
+   *  fire extinguishes immediately while spotlight continues its natural decay */
+  clearFireParticles() { this._flameParticles = []; this._smokeParticles = []; }
+
   /**
    * Called from touchend/mouseup gesture handler in main.js — inside gesture context.
    * Loads next video into the HIDDEN preload element so iOS unlocks play() permission,

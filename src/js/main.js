@@ -130,6 +130,7 @@ function _autoAdvanceNext() {
   if(state.activeScene !== 1 || state.hasFinishedGallery || state.isPressed || state.isSwapping) return;
   _isAutoAdvancing = true;
   inst.style.opacity = '0'; // hide "press and hold" before first character appears
+  instMobile?.classList.remove('visible'); // hide mobile instruction too
   visual.setAutoAdvanceMode(true); // suppress flame + glow — reveal only through mask
   visual.updateTarget(window.innerWidth / 2, window.innerHeight * 0.55);
   state.isPressed = true; // build ignitionProgress to 150
@@ -202,6 +203,7 @@ function _doMobileTap() {
   if(_autoTimer) { clearTimeout(_autoTimer); _autoTimer = null; }
   if(_isAutoAdvancing) { _isAutoAdvancing = false; visual.setAutoAdvanceMode(false); }
 
+  instMobile?.classList.remove('visible'); // ensure instruction is hidden on auto-tap
   visual.setSilentFlame(true); // tap = spotlight+glow, no fire by default
   visual.forceIgnite();
   _mobileHolding = true;
@@ -366,6 +368,10 @@ function handleUp() {
   _stopHaptics();
   // Mobile Scene 1: user lifted finger — end the hold, start swap
   if (isMobile() && state.activeScene === 1 && _mobileHolding) {
+    // Extinguish fire instantly on release — character reveal continues for 3s,
+    // but fire should disappear the moment the finger lifts
+    visual.setSilentFlame(true);
+    visual.clearFireParticles();
     _endMobileHold();
     return;
   }
