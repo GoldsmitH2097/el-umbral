@@ -107,7 +107,7 @@ export class ArchiveDOM {
                 </div>
                 <h3 class="obra-title">${item.title}</h3>
                 ${item.subtitle ? `<p class="obra-subtitle">${item.subtitle}</p>` : ''}
-                <span class="obra-btn obra-btn--soon">${item.buyLabel || 'Próximamente'}</span>
+                <span class="obra-btn obra-btn--soon">${item.buyLabel || 'Recibir señal'}</span>
               </div>`;
             books.appendChild(card); return;
           }
@@ -136,9 +136,11 @@ export class ArchiveDOM {
               const lbl = rest.length ? `<span class="obra-edition-label">${edLabel}</span>${rest.join(': ')}` : item.buyLabel;
               ctaHtml = `<a href="${item.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy${rest.length?' obra-edition-btn':''}">${lbl}</a>`; }
           } else if (item.status === 'countdown') {
-            ctaHtml = `<div class="obra-countdown"><div class="countdown-timer" data-release="${item.releaseDate}"></div><span class="obra-btn obra-btn--locked">${item.buyLabel}</span></div>`;
+            { const [edLabel, ...rest] = (item.buyLabel||'').split(': ');
+              const lbl = rest.length ? `<span class="obra-edition-label">${edLabel}</span>${rest.join(': ')}` : item.buyLabel;
+              ctaHtml = `<div class="obra-countdown"><div class="countdown-timer" data-release="${item.releaseDate}"></div><button class="obra-btn obra-btn--locked obra-btn--notify${rest.length?' obra-edition-btn':''}">${lbl}</button></div>`; }
           } else {
-            ctaHtml = `<span class="obra-btn obra-btn--soon">${item.buyLabel || 'Próximamente'}</span>`;
+            ctaHtml = `<span class="obra-btn obra-btn--soon">${item.buyLabel || 'Recibir señal'}</span>`;
           }
 
           const statusLabels = { 'available': 'Disponible', 'coming-soon': 'Próximamente', 'countdown': 'Preventa' };
@@ -186,6 +188,12 @@ export class ArchiveDOM {
       const firstCol = grid.querySelector('.archive-col');
       firstCol?.classList.add('archive-col--active');
     }
+
+    // Coming-soon / locked CTAs → open Tizno panel for email capture
+    grid.addEventListener('click', e => {
+      const btn = e.target.closest('.obra-btn--soon, .obra-btn--notify, .obra-btn--locked');
+      if (btn) { e.preventDefault(); this._tizno?.open(); }
+    });
 
     grid.addEventListener('scroll', () => {
       const idx = Math.round(grid.scrollLeft / grid.offsetWidth);
@@ -382,6 +390,11 @@ export class ArchiveDOM {
 
     // Populate Libros panel
     const obrasList = document.getElementById('reading-obras-list');
+    // Coming-soon CTAs in reading view → open Tizno panel for email capture
+    obrasList?.addEventListener('click', e => {
+      const btn = e.target.closest('.obra-btn--soon, .obra-btn--notify, .obra-btn--locked');
+      if (btn) { e.preventDefault(); this._tizno?.open(); }
+    });
     if (obrasList) {
       const obras = CATALOGUE.filter(c => c.archetype === char.slug);
       const librosLabel = '<p class="reading-section-label">Obras</p>';
@@ -404,9 +417,11 @@ export class ArchiveDOM {
               const lbl = rest.length ? `<span class="obra-edition-label">${edLabel}</span>${rest.join(': ')}` : item.buyLabel;
               ctaHtml = `<a href="${item.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy${rest.length?' obra-edition-btn':''}">${lbl}</a>`; }
           else if (item.status === 'countdown')
-            ctaHtml = `<div class="obra-countdown"><div class="countdown-timer" data-release="${item.releaseDate}"></div><span class="obra-btn obra-btn--locked">${item.buyLabel}</span></div>`;
+            { const [edLabel, ...rest] = (item.buyLabel||'').split(': ');
+              const lbl = rest.length ? `<span class="obra-edition-label">${edLabel}</span>${rest.join(': ')}` : item.buyLabel;
+              ctaHtml = `<div class="obra-countdown"><div class="countdown-timer" data-release="${item.releaseDate}"></div><button class="obra-btn obra-btn--locked obra-btn--notify${rest.length?' obra-edition-btn':''}">${lbl}</button></div>`; }
           else
-            ctaHtml = `<span class="obra-btn obra-btn--soon">${item.buyLabel || 'Próximamente'}</span>`;
+            ctaHtml = `<span class="obra-btn obra-btn--soon">${item.buyLabel || 'Recibir señal'}</span>`;
           return `<div class="reading-obra-card">
             ${coverHtml}
             <div class="reading-obra-info">
@@ -582,7 +597,7 @@ export class ArchiveDOM {
         if (timer) this._initSingleCountdown(timer);
       }, 50);
     } else {
-      ctaHtml = `<span class="obra-btn obra-btn--soon">${item.buyLabel || 'Próximamente'}</span>`;
+      ctaHtml = `<span class="obra-btn obra-btn--soon">${item.buyLabel || 'Recibir señal'}</span>`;
     }
     document.getElementById('obra-modal-cta').innerHTML = ctaHtml;
 

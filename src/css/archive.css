@@ -229,7 +229,7 @@
 #pacto-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.98); z-index: 50; opacity: 0; pointer-events: none; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.8s ease; text-align: center; padding: 0 5vw; }
 #pacto-modal h2 { font-size: 30px; letter-spacing: 15px; text-transform: uppercase; margin-bottom: 30px; color: #fff; }
 #pacto-modal p { max-width: 600px; line-height: 2; color: #888; font-size: 16px; font-style: italic; margin-bottom: 40px; }
-#btn-cerrar-pacto { background: transparent; border: 1px solid #333; color: #888; padding: 10px 30px; font-size: 10px; letter-spacing: 4px; text-transform: uppercase; cursor: pointer !important; transition: all 0.3s; font-family: 'Times New Roman', serif; outline: none; }
+#btn-cerrar-pacto { background: transparent; border: 1px solid #333; color: #888; padding: 10px 30px; font-size: 10px; letter-spacing: 4px; text-transform: uppercase; cursor: pointer !important; transition: color 0.3s, border-color 0.3s, background 0.3s; font-family: 'Times New Roman', serif; outline: none; }
 #btn-cerrar-pacto:hover { border-color: #fff; color: #fff; }
 #btn-cerrar-pacto:focus-visible { border-color: rgba(200,146,42,0.5); }
 
@@ -335,6 +335,13 @@
   .site-nav .links span { margin-left: 20px; letter-spacing: 2px; }
   .archive-pillar { touch-action: manipulation; }
   .site-footer p { white-space: normal; }
+  /* Reading view on mobile (deep links): tighter cover, safe-area btn-volver */
+  .reading-obra-cover { width: 80px !important; }
+  .reading-obra-card { gap: 14px; }
+  #btn-volver { top: max(12px, env(safe-area-inset-top, 12px)); font-size: 10px; letter-spacing: 2px; }
+  /* Archive grid book card: reduce button letter-spacing so text fits on narrow screens */
+  .obra-btn { letter-spacing: 2px !important; }
+  .obra-edition-label { letter-spacing: 2px; }
 }
 
 /* ── Site footer ─────────────────────────────────────────────────────────── */
