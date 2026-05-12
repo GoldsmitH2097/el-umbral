@@ -295,6 +295,9 @@ function enterScene2() {
 function triggerAwakening() {
   if(state.isAwakening) return;
   state.isAwakening=true; audio.setAwakening(true); transitionTo(3);
+  // Mobile: no mousemove during awakening, so spotlight never gets re-centered by the
+  // normal updateTarget path. Snap directly so the expanding circle is always centered.
+  visual.snapCenter();
   const vt=document.getElementById('voces-title'); if(vt) vt.style.opacity='0';
   document.querySelectorAll('.whisper').forEach(w=>w.style.opacity='0');
   audio.playSpinningAwakening();

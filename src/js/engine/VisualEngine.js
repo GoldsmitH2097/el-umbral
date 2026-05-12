@@ -292,6 +292,14 @@ export class VisualEngine {
   start() { this._lastFrameTime = 0; this._tick(0); }
   setAutoAdvanceMode(v) { this._autoAdvanceMode = v; }
 
+  /** Mobile awakening: snap spotlight to center immediately (no lerp drift) */
+  snapCenter() {
+    this._currentX = window.innerWidth / 2;
+    this._currentY = window.innerHeight / 2;
+    this._targetX = this._currentX;
+    this._targetY = this._currentY;
+  }
+
   _tick(timestamp) {
     requestAnimationFrame((ts) => this._tick(ts));
 
