@@ -103,6 +103,13 @@
   justify-content: flex-end; padding: 40px 20px;
   border-bottom: 1px solid rgba(255,255,255,0.04);
 }
+/* Dark gradient behind text — ensures readability regardless of video content.
+   Critical for Emperatriz whose video has warm amber tones exactly at text position. */
+.archive-pillar::before {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 65%;
+  background: linear-gradient(to top, rgba(2,2,2,0.88) 0%, rgba(2,2,2,0.4) 50%, transparent 100%);
+  z-index: 1; pointer-events: none;
+}
 .archive-pillar video {
   position: absolute; top: -2%; left: -2%; width: 104%; height: 104%;
   object-fit: cover; opacity: 0.22;
