@@ -32,7 +32,7 @@ export const CHARACTERS = [
     title: 'La Sortílega Sin Sombra',
     author: 'Irina M.',
     status: 'active',
-    desc: 'Humo, alteración, luz temblorosa. Lo que crees ver está siempre un paso detrás de la verdad.',
+    desc: 'Humo, alteración, luz temblorosa.<br>Lo que crees ver está siempre un paso detrás de la verdad.',
     src: '/sortilega-sin-sombra.mp4',
     social: [
       { platform: 'instagram', url: 'https://www.instagram.com/irina_mlk_', handle: '@irina_mlk_' },

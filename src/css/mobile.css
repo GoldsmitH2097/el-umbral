@@ -122,6 +122,12 @@
     opacity: 0.75 !important;
     filter: grayscale(0%) brightness(0.9) contrast(1.1) !important;
   }
+  /* Active carousel column: amber title + full-opacity desc (matches desktop hover) */
+  .archive-col--active .archive-pillar .pillar-content h4 {
+    color: #e8c87a !important;
+    text-shadow: 0 0 20px rgba(200,146,42,0.4) !important;
+  }
+  .archive-col--active .archive-pillar .pillar-content p { opacity: 1 !important; }
   .archive-pillar .pillar-content { text-align: left !important; }
   .archive-pillar .pillar-content h4 { margin: 0 0 10px !important; font-size: 14px; letter-spacing: 4px; }
   .archive-pillar .pillar-content p { opacity: 1 !important; font-size: 12px; margin: 0; max-width: none; line-height: 1.7; }

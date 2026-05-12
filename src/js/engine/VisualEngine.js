@@ -197,8 +197,10 @@ export class VisualEngine {
    * Skips the ignitionProgress buildup, jumps directly to ignited state.
    */
   forceIgnite() {
-    // Mobile tap: animate spotlight open over 600ms (smoothstep) instead of
-    // jumping to full values instantly. Mimics the desktop press-and-hold feel.
+    // Play character signature HERE — still in the gesture handler stack (iOS-safe).
+    // If called from rAF (600ms later) iOS may block audio if context isn't yet running.
+    this._audio.playCharacterSignature(state.currentCharIndex);
+    window._onIgnitionComplete?.();
     this._instEl.style.opacity = '0';
     const startTime = performance.now();
     const DURATION = 600;
@@ -214,8 +216,6 @@ export class VisualEngine {
       } else {
         state.isIgnited = true;
         state.isPressed = false;
-        this._audio.playCharacterSignature(state.currentCharIndex);
-        window._onIgnitionComplete?.();
       }
     };
     requestAnimationFrame(grow);
@@ -245,7 +245,7 @@ export class VisualEngine {
     const c=CHARACTERS[index];
     this._liveEl.src=c.src; this._liveEl.load(); this._liveEl.play().catch(()=>{});
     if (window.innerWidth <= 768) this._liveEl.style.objectFit = 'cover';
-    this._titleEl.innerText=c.title; this._descEl.innerText=c.desc;
+    this._titleEl.innerText=c.title; this._descEl.innerHTML=c.desc;
   }
   _swapToNextCharacter() {
     state.currentCharIndex++;
@@ -268,7 +268,7 @@ export class VisualEngine {
       this._liveEl = nextEl;
       // Update text
       this._titleEl.innerText = char.title;
-      this._descEl.innerText = char.desc;
+      this._descEl.innerHTML = char.desc;
       state.isSwapping=false; this._silentFlame=false;
     } else {
       state.hasFinishedGallery=true; state.isSwapping=false;

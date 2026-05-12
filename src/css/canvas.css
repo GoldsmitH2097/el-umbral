@@ -36,7 +36,7 @@
 }
 
 #char-title { margin: 0 0 15px 0; color: #fff; font-size: 32px; letter-spacing: 8px; font-weight: 300; text-transform: uppercase; text-shadow: 0 2px 10px rgba(0,0,0,1); }
-#char-desc { font-size: 16px; line-height: 2; font-weight: 300; margin: 0 auto; max-width: 480px; display: block; color: #eee; text-shadow: 0 2px 5px rgba(0,0,0,1); }
+#char-desc { font-size: 16px; line-height: 2; font-weight: 300; margin: 0 auto; max-width: 480px; display: block; color: #eee; text-shadow: 0 2px 5px rgba(0,0,0,1); min-height: 4em; }
 
 /* #ambient-light no longer needed for Scene 1 — glow is drawn on canvas */
 /* Kept only for Scene 2 light effect (scene-2-light uses --x --y vars) */
