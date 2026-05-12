@@ -1,5 +1,8 @@
 * { box-sizing: border-box; }
 body { cursor: crosshair; }
+/* Show focus rings only for keyboard navigation (not mouse/touch) */
+:focus:not(:focus-visible) { outline: none; }
+
 /* Intro scenes get crosshair; archive/reading get default (overridden per element) */
 #gallery-container, #scene-2, #scene-3 { cursor: crosshair; }
 
