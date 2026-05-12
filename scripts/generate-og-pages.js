@@ -32,7 +32,7 @@ const ROUTES = [
   {
     path: 'sortilega',
     title: 'La Sortílega Sin Sombra — Soulware Editorial',
-    desc: 'Humo, alteración, luz temblorosa. Filamentos de Oscuridad — primera novela de Irina M. Disponible el 12 de mayo de 2026. Soulware Editorial.',
+    desc: 'Humo, alteración, luz temblorosa. Filamentos de Oscuridad — primera novela de Irina M. Ya disponible. Soulware Editorial.',
     image: `${BASE}/assets/filamentos-de-oscuridad.webp`,
   },
   {
@@ -46,12 +46,14 @@ const ROUTES = [
     title: 'Pulso del Núcleo — Núcleo Eterno · Soulware',
     desc: 'Primera de tres novelas de fantasía oscura épica. Por WW. & Eidon. Disponible ahora en tapa blanda en Amazon España. Editorial Soulware.',
     image: `${BASE}/assets/pulso-soft-cover-es.webp`,
+    bookSchema: { name: 'Pulso del Núcleo', author: 'WW. & Eidon', isbn: '978-8409810345', buyUrl: 'https://www.amazon.es/dp/B0CQPCRCXP', path: 'obras/pulso-del-nucleo' },
   },
   {
     path: 'obras/filamentos-de-oscuridad',
-    title: 'Filamentos de Oscuridad — Resonancia de la Penumbra · Soulware',
-    desc: 'Primera de dos novelas de terror psicológico. Por Irina M. Disponible el 12 de mayo de 2026. Editorial Soulware.',
+    title: 'Filamentos de Oscuridad — Irina M. · Soulware',
+    desc: 'Primera de dos novelas de terror psicológico. Por Irina M. Disponible ahora en Amazon España. Editorial Soulware.',
     image: `${BASE}/assets/filamentos-de-oscuridad.webp`,
+    bookSchema: { name: 'Filamentos de Oscuridad', author: 'Irina M.', buyUrl: 'https://amzn.eu/d/0asS9y3l', path: 'obras/filamentos-de-oscuridad' },
   },
   {
     path: 'obras/anatomia-del-vacio',
@@ -67,9 +69,9 @@ const ROUTES = [
   },
 ];
 
-function patch(html, path, { title, desc, image }) {
+function patch(html, path, { title, desc, image, bookSchema }) {
   const canonical = `${BASE}/${path}`;
-  return html
+  let out = html
     .replace(/<title>[^<]*<\/title>/,                                        `<title>${title}</title>`)
     .replace(/(<link rel="canonical" href=")[^"]*(")/,                       `$1${canonical}$2`)
     .replace(/(<meta name="description" content=")[^"]*(")/,                 `$1${esc(desc)}$2`)
@@ -80,6 +82,22 @@ function patch(html, path, { title, desc, image }) {
     .replace(/(<meta name="twitter:title" content=")[^"]*(")/,               `$1${esc(title)}$2`)
     .replace(/(<meta name="twitter:description" content=")[^"]*(")/,         `$1${esc(desc)}$2`)
     .replace(/(<meta name="twitter:url" content=")[^"]*(")/,                 `$1${canonical}$2`);
+  if (bookSchema) {
+    const schema = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Book",
+      "name": bookSchema.name,
+      "author": { "@type": "Person", "name": bookSchema.author },
+      ...(bookSchema.isbn ? { "isbn": bookSchema.isbn } : {}),
+      "inLanguage": "es",
+      "publisher": { "@type": "Organization", "name": "Soulware", "url": "https://soulware.live" },
+      "url": `${BASE}/${bookSchema.path}`,
+      "offers": { "@type": "Offer", "url": bookSchema.buyUrl, "availability": "https://schema.org/InStock", "priceCurrency": "EUR" }
+    }, null, 2);
+    out = out.replace('</head>', `  <script type="application/ld+json">${schema}</script>
+</head>`);
+  }
+  return out;
 }
 
 const esc = s => s.replace(/"/g, '&quot;');
