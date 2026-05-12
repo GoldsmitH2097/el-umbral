@@ -433,7 +433,19 @@ document.addEventListener('touchstart', e => {
   if (state.activeScene === 3) _s3LastActivity = Date.now();
 }, {passive: false});
 document.addEventListener('touchmove',e=>{ if(state.activeScene<4) e.preventDefault(); visual.updateTarget(e.touches[0].clientX,e.touches[0].clientY); if(state.activeScene===3) _s3LastActivity=Date.now(); },{passive:false});
-document.addEventListener('touchend',handleUp);
+document.addEventListener('touchend', e => {
+  // iOS: touchend IS a valid user gesture — call resume() here too.
+  // Long presses don't fire synthetic mousedown/click after touchend,
+  // so touchstart alone may not fully commit the audio session on some iOS versions.
+  // touchstart + touchend = two unlock attempts = matches what quick taps got
+  // accidentally via the synthetic mousedown.
+  if (audio.audioCtx && audio.audioCtx.state !== 'running') {
+    audio.audioCtx.resume().catch(() => {});
+  }
+  const iosUnlock = document.getElementById('ios-audio-unlock');
+  if (iosUnlock && iosUnlock.paused) iosUnlock.play().catch(() => {});
+  handleUp();
+});
 const _umbralBtn = document.getElementById('umbral-btn');
 _umbralBtn.addEventListener('click', function(e) {
   e.stopPropagation();
