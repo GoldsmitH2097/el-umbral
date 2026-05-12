@@ -32,8 +32,12 @@ export class AudioEngine {
       // iOS treats <audio> playback as 'media' session even before AudioContext resumes,
       // which forces the category to 'playback' and bypasses the hardware ringer switch.
       // This works reliably on iOS 15+ regardless of navigator.audioSession support.
+      // iOS mute switch bypass: keep the silent <audio> looping after first gesture.
+      // A looping <audio> holds AVAudioSession in Playback category for the whole
+      // WebView lifetime — WebAudio inherits it, bypassing the mute switch on ALL
+      // iOS versions (not just 17+ where navigator.audioSession works).
       const iosUnlock = document.getElementById('ios-audio-unlock');
-      if (iosUnlock) iosUnlock.play().catch(() => {});
+      if (iosUnlock) { iosUnlock.loop = true; iosUnlock.volume = 0; iosUnlock.play().catch(() => {}); }
 
       if ('audioSession' in navigator) {
         navigator.audioSession.type = 'playback';
