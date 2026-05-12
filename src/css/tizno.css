@@ -100,6 +100,8 @@
 .tizno-social-link:hover { color: #c8922a; }
 
 .tizno-email { font-size: 11px; color: #555; letter-spacing: 2px; margin: 0 0 28px; text-transform: uppercase; }
+.tizno-email--highlight a { color: #888 !important; }
+.tizno-email--highlight a:hover { color: #e8c87a !important; }
 .tizno-email a { color: inherit; text-decoration: none; transition: color 0.3s; }
 .tizno-email a:hover { color: #e8ecef; }
 
@@ -152,7 +154,7 @@
   font-style: italic; margin: 0 0 12px;
 }
 .tizno-pacto-form { display: flex; flex-direction: column; gap: 8px; }
-.tizno-pacto-row { display: flex; gap: 8px; }
+.tizno-pacto-row { display: flex; gap: 8px; align-items: stretch; }
 .tizno-pacto-form input[type="email"] {
   flex: 1; min-width: 0;
   background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.12);
@@ -161,15 +163,30 @@
 }
 .tizno-pacto-form input[type="email"]:focus { border-color: rgba(200,146,42,0.5); }
 .tizno-pacto-form input[type="email"]::placeholder { color: #3a3a3a; }
-.tizno-pacto-btn { margin-top: 0 !important; white-space: nowrap; flex-shrink: 0; }
+.tizno-pacto-btn { margin-top: 0 !important; white-space: nowrap; flex-shrink: 0; display: flex; align-items: center; justify-content: center; padding-top: 0; padding-bottom: 0; }
 .tizno-pacto-consent {
   display: flex; gap: 8px; align-items: flex-start; cursor: pointer;
 }
 .tizno-pacto-consent input[type="checkbox"] {
-  margin-top: 2px; flex-shrink: 0; accent-color: #c8922a; cursor: pointer;
+  appearance: none; -webkit-appearance: none;
+  width: 14px; height: 14px; flex-shrink: 0; margin-top: 2px; cursor: pointer;
+  background: #111; border: 1px solid rgba(255,255,255,0.2);
+  transition: background 0.2s, border-color 0.2s;
+  position: relative; display: inline-block;
+}
+.tizno-pacto-consent input[type="checkbox"]:checked {
+  background: #c8922a; border-color: #c8922a;
+}
+.tizno-pacto-consent input[type="checkbox"]:checked::after {
+  content: ''; position: absolute; top: 2px; left: 4px;
+  width: 4px; height: 7px;
+  border-right: 1.5px solid #000; border-bottom: 1.5px solid #000;
+  transform: rotate(45deg);
 }
 .tizno-pacto-consent span {
   font-size: 10px; color: #444; letter-spacing: 1px; line-height: 1.5;
 }
 .tizno-pacto-consent a { color: #666; text-decoration: none; }
 .tizno-pacto-consent a:hover { color: #c8922a; }
+
+.tizno-mailto-btn { display: block; text-align: center; margin-top: 0 !important; }
