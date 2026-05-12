@@ -348,3 +348,6 @@
 .footer-legal { display: flex; gap: 30px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
 .footer-legal a, .footer-legal a:visited { color: #333; text-decoration: none; font-size: 9px; letter-spacing: 3px; transition: color 0.3s; font-family: 'Times New Roman', serif; }
 .footer-legal a:hover { color: #777; }
+
+/* Suppress focus ring on programmatically focused heading */
+#read-title:focus { outline: none; }

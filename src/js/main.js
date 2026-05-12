@@ -47,83 +47,24 @@ setTimeout(()=>{
   }
 }, 500);
 
-// Audio toggle — appears after first audio init, persists through all scenes
-const audioToggle = document.getElementById('audio-toggle');
-let _audioMuted = false;
-let _audioToggleShown = false;
-
-// Speaker SVG icons — compact, clear at small size
-const _iconSoundOn  = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>`;
-const _iconSoundOff = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>`;
-
-function _showAudioToggle() {
-  if (!audioToggle) return;
-  // First call only: paint muted state and zero volumes. Subsequent calls
-  // (from later mousedowns) must NOT reset _audioMuted — that would undo any
-  // unmute the user just made by clicking the toggle.
-  if (_audioToggleShown) {
-    audioToggle.classList.add('visible'); // keep visible if removed somehow
-    return;
-  }
-  _audioToggleShown = true;
-  _audioMuted = true;
-  audioToggle.innerHTML = _iconSoundOff;
-  audioToggle.setAttribute('aria-label', 'Activar audio');
-  audioToggle.classList.add('muted', 'visible');
-  // Match audio reality to muted visual: zero volumes until user opts in.
-  audio.setFireVolume(0, false);
-  audio.setWindVolume(0, 0.5);
-}
-function _updateAudioToggle() {
-  if (!audioToggle) return;
-  if (_audioMuted) {
-    audioToggle.innerHTML = _iconSoundOff;
-    audioToggle.setAttribute('aria-label', 'Activar audio');
-    audioToggle.classList.add('muted');
-  } else {
-    audioToggle.innerHTML = _iconSoundOn;
-    audioToggle.setAttribute('aria-label', 'Silenciar audio');
-    audioToggle.classList.remove('muted');
+// ── Audio: first-interaction unmute ────────────────────────────────────────
+// No toggle button. Audio initialises muted (autoplay policy), then unmutes
+// automatically on the user's first gesture — fire press, tap, or skip click.
+// Users who want silence can use browser/device controls.
+let _firstInteraction = true;
+function _handleFirstAudio() {
+  if (!_firstInteraction) return;
+  _firstInteraction = false;
+  if (audio.audioCtx) {
+    audio.audioCtx.resume().then(() => {
+      const scene = state.activeScene;
+      if (scene <= 1)       audio.setWindVolume(0.015, 1);
+      else if (scene === 2) audio.setWindVolume(0.04,  1);
+      else if (scene === 3) audio.setWindVolume(0.005, 1);
+      else                  audio.setWindVolume(0.04,  1);
+    }).catch(() => {});
   }
 }
-// Stop the toggle's own events from bubbling up to the document-level
-// mousedown/touchstart listeners that drive flame ignition. Without this,
-// every click on the toggle would also fire handleDown — which re-runs
-// _showAudioToggle() and (in archive) zeros the wind volume, making the
-// toggle appear broken.
-audioToggle?.addEventListener('mousedown', e => e.stopPropagation());
-audioToggle?.addEventListener('touchstart', e => e.stopPropagation(), { passive: true });
-
-audioToggle?.addEventListener('click', e => {
-  e.stopPropagation();
-
-  // The toggle click IS a user gesture — sufficient to initialize audio
-  // even if the user never pressed-and-held Scene 1 (e.g., they hit
-  // 'Romper el trance' first and now want sound from the archive).
-  if (!audio.initialized) audio.init();
-
-  _audioMuted = !_audioMuted;
-  if (_audioMuted) {
-    audio.setFireVolume(0, false);
-    audio.setWindVolume(0, 0.3);
-    if (audio.audioCtx) audio.audioCtx.suspend().catch(() => {});
-  } else {
-    // Resume context — set wind volume AFTER context is confirmed running.
-    // Calling setWindVolume while suspended uses frozen currentTime; the
-    // ramp may silently never fire. Sources from _buildGraph() persist through
-    // explicit suspend/resume, so _restartNoiseSources() is not needed here.
-    if (audio.audioCtx) {
-      audio.audioCtx.resume().then(() => {
-        const scene = state.activeScene;
-        if (scene === 1)      audio.setWindVolume(0.015, 0.5);
-        else if (scene === 2) audio.setWindVolume(0.04,  0.5);
-        else if (scene === 3) audio.setWindVolume(0.005, 0.5);
-        else                  audio.setWindVolume(0.04,  0.5); // archive — audible ambient
-      }).catch(() => {});
-    }
-  }
-  _updateAudioToggle();
-});
 
 // Replay intro — clear sw_crossed flag and reload
 document.getElementById('replay-intro-btn')?.addEventListener('click', () => {
@@ -391,10 +332,7 @@ function handleDown(e) {
   }
   audio.init();
   audio.resumeIfSuspended();
-  _showAudioToggle(); // reveal toggle once audio is initialized
-  // In archive scenes, only force silence when the toggle is muted.
-  // Without this guard, every mousedown undoes a user-initiated unmute.
-  if (state.activeScene >= 4 && _audioMuted) { audio.setFireVolume(0, false); audio.setWindVolume(0, 1); }
+  _handleFirstAudio(); // unmute on first user gesture
   inst.style.opacity='0';
   instMobile?.classList.remove('visible');
   const btn=document.getElementById('umbral-btn');

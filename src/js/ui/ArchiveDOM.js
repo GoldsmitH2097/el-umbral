@@ -132,7 +132,9 @@ export class ArchiveDOM {
             }).join('');
             ctaHtml = `<div class="obra-editions">${editionBtns}</div>`;
           } else if (item.status === 'available' && item.buyUrl) {
-            ctaHtml = `<a href="${item.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy">${item.buyLabel}</a>`;
+            { const [edLabel, ...rest] = (item.buyLabel||'').split(': ');
+              const lbl = rest.length ? `<span class="obra-edition-label">${edLabel}</span>${rest.join(': ')}` : item.buyLabel;
+              ctaHtml = `<a href="${item.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy${rest.length?' obra-edition-btn':''}">${lbl}</a>`; }
           } else if (item.status === 'countdown') {
             ctaHtml = `<div class="obra-countdown"><div class="countdown-timer" data-release="${item.releaseDate}"></div><span class="obra-btn obra-btn--locked">${item.buyLabel}</span></div>`;
           } else {
@@ -398,7 +400,9 @@ export class ArchiveDOM {
             ).join('');
             ctaHtml = `<div class="obra-editions">${edBtns}</div>`;
           } else if (item.status === 'available' && item.buyUrl)
-            ctaHtml = `<a href="${item.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy">${item.buyLabel}</a>`;
+            { const [edLabel, ...rest] = (item.buyLabel||'').split(': ');
+              const lbl = rest.length ? `<span class="obra-edition-label">${edLabel}</span>${rest.join(': ')}` : item.buyLabel;
+              ctaHtml = `<a href="${item.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy${rest.length?' obra-edition-btn':''}">${lbl}</a>`; }
           else if (item.status === 'countdown')
             ctaHtml = `<div class="obra-countdown"><div class="countdown-timer" data-release="${item.releaseDate}"></div><span class="obra-btn obra-btn--locked">${item.buyLabel}</span></div>`;
           else
@@ -565,7 +569,9 @@ export class ArchiveDOM {
         : `<p style="font-size:12px;color:#444;letter-spacing:2px;font-style:italic;">Relatos en preparación.</p>`;
       ctaHtml = relatosHtml;
     } else if (item.status === 'available' && item.buyUrl) {
-      ctaHtml = `<a href="${item.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy">${item.buyLabel}</a>`;
+      { const [edLabel, ...rest] = (item.buyLabel||'').split(': ');
+              const lbl = rest.length ? `<span class="obra-edition-label">${edLabel}</span>${rest.join(': ')}` : item.buyLabel;
+              ctaHtml = `<a href="${item.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy${rest.length?' obra-edition-btn':''}">${lbl}</a>`; }
     } else if (item.status === 'countdown') {
       ctaHtml = `<div class="obra-countdown">
         <div class="countdown-timer" data-release="${item.releaseDate}"></div>
