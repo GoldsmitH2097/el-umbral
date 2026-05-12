@@ -329,6 +329,11 @@ function enterMainSite() {
 }
 
 function handleDown(e) {
+  // Init audio on every gesture — must happen before any early-return so that
+  // a first tap during a character swap (isSwapping=true) still unlocks audio.
+  audio.init();
+  audio.resumeIfSuspended();
+  _handleFirstAudio(); // unmute on first user gesture
   if(state.isSwapping||state.isAwakening) return;
   if(_autoTimer) { clearTimeout(_autoTimer); _autoTimer = null; }
   if(_isAutoAdvancing) {
@@ -336,9 +341,6 @@ function handleDown(e) {
     visual.setAutoAdvanceMode(false);
     state.isPressed = false;
   }
-  audio.init();
-  audio.resumeIfSuspended();
-  _handleFirstAudio(); // unmute on first user gesture
   inst.style.opacity='0';
   instMobile?.classList.remove('visible');
   const btn=document.getElementById('umbral-btn');

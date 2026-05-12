@@ -17,8 +17,12 @@ body { cursor: crosshair; }
 #obra-modal-title, #legal-modal-title, .reading-content h1,
 .reading-content h2, .reading-content h3 { text-wrap: balance; }
 
+/* Intro screen: balance prevents orphaned words in short display text */
+#char-title, #char-desc { text-wrap: balance; }
+
 .reading-content p, .obra-desc, .site-hero-sub, .contact-sub,
-#obra-modal-vision, #pacto-modal p, .tizno-panel-sub { text-wrap: pretty; }
+#obra-modal-vision, #pacto-modal p, .tizno-panel-sub,
+.read-body p, .mobile-detail-lore p, .site-hero-sub { text-wrap: pretty; }
 
 body, html {
   margin: 0; padding: 0; background-color: #020202; height: 100vh; overflow: hidden;
