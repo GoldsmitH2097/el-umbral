@@ -370,8 +370,8 @@ function handleUp() {
   if (isMobile() && state.activeScene === 1 && _mobileHolding) {
     // Extinguish fire instantly on release — character reveal continues for 3s,
     // but fire should disappear the moment the finger lifts
-    visual.setSilentFlame(true);
-    visual.clearFireParticles();
+    visual.setSilentFlame(true); // stop new particles immediately
+    setTimeout(() => visual.clearFireParticles(), 200); // clear existing after 200ms natural fade
     _endMobileHold();
     return;
   }
