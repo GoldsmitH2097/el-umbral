@@ -134,7 +134,7 @@ export const CATALOGUE = [
     releaseDate: '2026-05-12T00:00:00',
     vision: 'Hay hilos que no deberían tocarse. Cuando lo hacen, la percepción deja de obedecerte. Solo la duda, fina y persistente, hasta que ya no sabes qué parte de lo que ves es real y qué parte llevaba tiempo esperándote. Primera de dos novelas.',
     desc: 'Primera de dos novelas. Cuando los hilos que no deberían conectarse se tensan, la percepción se convierte en trampa.',
-    buyUrl: 'https://amzn.eu/d/0asS9y3l',
+    buyUrl: 'https://www.amazon.es/dp/8409861771',
     buyLabel: 'Reclamar mi Ejemplar',
   },
   {

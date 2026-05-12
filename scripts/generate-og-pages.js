@@ -53,7 +53,7 @@ const ROUTES = [
     title: 'Filamentos de Oscuridad — Irina M. · Soulware',
     desc: 'Primera de dos novelas de terror psicológico. Por Irina M. Disponible ahora en Amazon España. Editorial Soulware.',
     image: `${BASE}/assets/filamentos-de-oscuridad.webp`,
-    bookSchema: { name: 'Filamentos de Oscuridad', author: 'Irina M.', buyUrl: 'https://amzn.eu/d/0asS9y3l', path: 'obras/filamentos-de-oscuridad' },
+    bookSchema: { name: 'Filamentos de Oscuridad', author: 'Irina M.', buyUrl: 'https://www.amazon.es/dp/8409861771', path: 'obras/filamentos-de-oscuridad' },
   },
   {
     path: 'obras/anatomia-del-vacio',
