@@ -222,7 +222,7 @@ export class AudioEngine {
     this.awakeningOscillators.forEach(n => { n.gain.gain.setTargetAtTime(0,now,1.5); setTimeout(()=>{try{n.osc.stop();}catch(_){}},2000); });
     this.awakeningOscillators = [];
     if (this.awakeningLFO) setTimeout(()=>{try{this.awakeningLFO.stop();}catch(_){}},2000);
-    if (this.windGain&&this.windFilter) { this.windFilter.frequency.setValueAtTime(60,now); this.windGain.gain.setTargetAtTime(0.008,now,2); // settle at archive ambient }
+    if (this.windGain&&this.windFilter) { this.windFilter.frequency.setValueAtTime(60,now); this.windGain.gain.setTargetAtTime(0.008,now,2); } // settle at archive ambient
     if (this._windInterval) { clearInterval(this._windInterval); this._windInterval = null; }
   }
 
