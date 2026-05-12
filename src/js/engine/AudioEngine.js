@@ -1,6 +1,9 @@
 import { state } from '../core/StateManager.js';
 
-const CHAR_FREQUENCIES = [130.81, 155.56, 196.00, 233.08];
+// Random chord per session — Am/maj7 high or grave octave
+const _CHORD_HIGH = [220.00, 261.63, 329.63, 415.30]; // Am/maj7
+const _CHORD_LOW  = [110.00, 130.815, 164.815, 207.65]; // Am/maj7 grave
+const CHAR_FREQUENCIES = Math.random() < 0.5 ? _CHORD_HIGH : _CHORD_LOW;
 
 export class AudioEngine {
   constructor() {
@@ -48,24 +51,21 @@ export class AudioEngine {
       unlockSrc.connect(this.audioCtx.destination);
       unlockSrc.start(0);
 
-      // Step 2: Build graph and start looping sources SYNCHRONOUSLY.
-      // BufferSourceNodes started while context is 'suspended' queue up correctly
-      // and play the moment resume() resolves. They must NOT be started in a Promise
-      // callback — that runs outside the gesture window and iOS silently drops them.
+      // Step 2: resume() FIRST — iOS gesture window closes fast.
+      // _createPinkNoise() allocates a large buffer synchronously; doing that work
+      // before resume() can consume the gesture window and leave the context locked.
+      // Call resume() immediately, then do the heavy sync work while it resolves.
+      const _rp = this.audioCtx.resume().catch(() => {});
+
+      // Step 3: Build graph synchronously (context starts running in parallel)
       this._buildGraph();
       this._scheduleDroplet();
       this._scheduleWhisperBreath();
       this.initialized = true;
       this._initializing = false;
 
-      // Step 3: Resume — then restart looping sources if iOS dropped them
-      if (this.audioCtx.state !== 'running') {
-        this.audioCtx.resume().then(() => {
-          // iOS sometimes silently drops looping BufferSourceNodes started while suspended.
-          // Restart them after context is confirmed running.
-          this._restartNoiseSources();
-        }).catch(() => {});
-      }
+      // Step 4: After resume confirms running, restart any sources iOS may have dropped
+      _rp.then(() => this._restartNoiseSources()).catch(() => {});
 
     } catch(e) {
       console.warn('[AudioEngine] blocked', e);
@@ -101,7 +101,7 @@ export class AudioEngine {
     const fireSrc = ctx.createBufferSource(); fireSrc.buffer = noise; fireSrc.loop = true;
     fireSrc.connect(fireFilter); fireFilter.connect(this.fireGain); this.fireGain.connect(ctx.destination); fireSrc.start();
     this.windFilter = ctx.createBiquadFilter(); this.windFilter.type = 'bandpass'; this.windFilter.frequency.value = 120; this.windFilter.Q.value = 0.8;
-    this.windGain = ctx.createGain(); this.windGain.gain.value = 0.015;
+    this.windGain = ctx.createGain(); this.windGain.gain.value = 0.04;
     const windSrc = ctx.createBufferSource(); windSrc.buffer = noise; windSrc.loop = true;
     windSrc.connect(this.windFilter); this.windFilter.connect(this.windGain);
     this.windGain.connect(ctx.destination); this.windGain.connect(this.masterDelay); windSrc.start();
@@ -116,7 +116,7 @@ export class AudioEngine {
   }
 
   _scheduleDroplet() {
-    if (this.audioCtx && !this._awakeningActive && state.activeScene < 4) {
+    if (this.audioCtx && !this._awakeningActive) {
       try {
         const osc = this.audioCtx.createOscillator(), g = this.audioCtx.createGain(), now = this.audioCtx.currentTime;
         osc.type = 'sine'; osc.frequency.setValueAtTime(400+Math.random()*200, now); osc.frequency.exponentialRampToValueAtTime(100, now+0.08);
@@ -164,9 +164,11 @@ export class AudioEngine {
       [1,2].forEach(h => {
         const osc = this.audioCtx.createOscillator(), g = this.audioCtx.createGain();
         osc.type = h===1?'triangle':'sine'; osc.frequency.setValueAtTime(freq*h, now);
-        const vol = h===1?0.08:0.04;
+        const vol = h===1?0.14:0.07; // raised for audibility on first tap
         g.gain.setValueAtTime(0,now); g.gain.linearRampToValueAtTime(vol,now+0.4); g.gain.exponentialRampToValueAtTime(0.001,now+3.5);
-        osc.connect(g); g.connect(this.audioCtx.destination); g.connect(this.masterDelay); osc.start(); osc.stop(now+4);
+        osc.connect(g); g.connect(this.audioCtx.destination);
+        if (this.masterDelay) g.connect(this.masterDelay); // null-safe: graph may not be ready
+        osc.start(); osc.stop(now+4);
       });
     } catch(_) {}
   }
@@ -220,7 +222,7 @@ export class AudioEngine {
     this.awakeningOscillators.forEach(n => { n.gain.gain.setTargetAtTime(0,now,1.5); setTimeout(()=>{try{n.osc.stop();}catch(_){}},2000); });
     this.awakeningOscillators = [];
     if (this.awakeningLFO) setTimeout(()=>{try{this.awakeningLFO.stop();}catch(_){}},2000);
-    if (this.windGain&&this.windFilter) { this.windFilter.frequency.setValueAtTime(60,now); this.windGain.gain.setTargetAtTime(0.005,now,2); }
+    if (this.windGain&&this.windFilter) { this.windFilter.frequency.setValueAtTime(60,now); this.windGain.gain.setTargetAtTime(0.008,now,2); // settle at archive ambient }
     if (this._windInterval) { clearInterval(this._windInterval); this._windInterval = null; }
   }
 
@@ -234,5 +236,18 @@ export class AudioEngine {
     }
     return Promise.resolve();
   }
+  /** Start archive ambient: occasional crackle every 3-7s */
+  startArchiveAmbient() {
+    if (this._archiveAmbientStarted) return;
+    this._archiveAmbientStarted = true;
+    const tick = () => {
+      if (this.audioCtx && state.activeScene >= 4) {
+        if (Math.random() < 0.5) this.emitCrackle();
+      }
+      this._archiveTimer = setTimeout(tick, 3000 + Math.random() * 4000);
+    };
+    this._archiveTimer = setTimeout(tick, 2500);
+  }
+
   get isReady() { return this.initialized; }
 }

@@ -251,6 +251,9 @@ function skipIntroAndEnterArchive() {
   document.documentElement.style.height = '';
   document.body.style.overflow = '';
   document.body.style.height = '';
+  audio.setFireVolume(0, false); // silence intro sounds on skip
+  audio.setWindVolume(0.008, 0.5); // fast settle to archive ambient
+  audio.startArchiveAmbient();
   initMobileArchive(); // was missing — mobile pillar taps never wired for returning visitors
   fireflies.init();
   tizno.init();
@@ -319,7 +322,8 @@ function enterMainSite() {
   audio.setAwakening(false); state.isAwakening=false;
   // Silence everything — fire and wind should be inaudible in the archive
   audio.setFireVolume(0, false);
-  audio.setWindVolume(0, 0.8); // fast fade to silence
+  audio.setWindVolume(0.008, 2); // settle at archive ambient
+  audio.startArchiveAmbient();
   transitionTo(4);
   initMobileArchive();
   fireflies.init();
