@@ -22,7 +22,7 @@
 .site-hero-sub { color: #999; max-width: none; white-space: nowrap; }
 .site-hero-editorial { font-size: 10px; color: #666; letter-spacing: 3px; text-transform: uppercase; margin: 8px auto 0; max-width: 600px; }
 #editorial-watermark {
-  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+  position: fixed; bottom: max(16px, env(safe-area-inset-bottom, 16px)); left: 50%; transform: translateX(-50%);
   font-size: 9px; letter-spacing: 4px; text-transform: uppercase;
   color: rgba(255,255,255,0.12); pointer-events: none; z-index: 3;
   white-space: normal; text-align: center;

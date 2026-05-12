@@ -197,15 +197,28 @@ export class VisualEngine {
    * Skips the ignitionProgress buildup, jumps directly to ignited state.
    */
   forceIgnite() {
-    state.isIgnited = true;
-    state.isPressed = false;
-    state.ignitionProgress = 150;
-    this._radioInt = 180;
-    this._radioExt = 680;
-    this._intensidad = 0.85;
+    // Mobile tap: animate spotlight open over 600ms (smoothstep) instead of
+    // jumping to full values instantly. Mimics the desktop press-and-hold feel.
     this._instEl.style.opacity = '0';
-    this._audio.playCharacterSignature(state.currentCharIndex);
-    window._onIgnitionComplete?.();
+    const startTime = performance.now();
+    const DURATION = 600;
+    const grow = (ts) => {
+      const t = Math.min(1, (ts - startTime) / DURATION);
+      const e = t * t * (3 - 2 * t); // smoothstep
+      state.ignitionProgress = e * 150;
+      this._radioInt = e * 180;
+      this._radioExt = e * 680;
+      this._intensidad = e * 0.85;
+      if (t < 1) {
+        requestAnimationFrame(grow);
+      } else {
+        state.isIgnited = true;
+        state.isPressed = false;
+        this._audio.playCharacterSignature(state.currentCharIndex);
+        window._onIgnitionComplete?.();
+      }
+    };
+    requestAnimationFrame(grow);
   }
 
   /**
