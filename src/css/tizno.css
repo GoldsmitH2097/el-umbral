@@ -163,7 +163,7 @@
 }
 .tizno-pacto-form input[type="email"]:focus { border-color: rgba(200,146,42,0.5); }
 .tizno-pacto-form input[type="email"]::placeholder { color: #3a3a3a; }
-.tizno-pacto-btn { margin-top: 0 !important; flex-shrink: 0; display: flex; align-items: center; justify-content: center; width: 44px; padding: 0; }
+.tizno-pacto-btn { margin-top: 0 !important; flex-shrink: 0; display: flex; align-items: center; justify-content: center; align-self: stretch !important; width: 52px; padding: 0; }
 .tizno-pacto-consent {
   display: flex; gap: 8px; align-items: flex-start; cursor: pointer;
 }
