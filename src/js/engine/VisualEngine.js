@@ -221,6 +221,9 @@ export class VisualEngine {
     requestAnimationFrame(grow);
   }
 
+  /** Mobile: suppress fire particles (tap = spotlight+glow only, hold = fire too) */
+  setSilentFlame(v) { this._silentFlame = v; }
+
   /**
    * Called from touchend/mouseup gesture handler in main.js — inside gesture context.
    * Loads next video into the HIDDEN preload element so iOS unlocks play() permission,
@@ -266,10 +269,10 @@ export class VisualEngine {
       // Update text
       this._titleEl.innerText = char.title;
       this._descEl.innerText = char.desc;
-      state.isSwapping=false;
+      state.isSwapping=false; this._silentFlame=false;
     } else {
       state.hasFinishedGallery=true; state.isSwapping=false;
-      state.isIgnited=false; state.isPressed=false; // clear held state — flame must not persist
+      state.isIgnited=false; state.isPressed=false; this._silentFlame=false; // clear held state — flame must not persist
       setTimeout(()=>{const b=document.getElementById('umbral-btn');b.style.opacity='1';b.style.pointerEvents='auto';},500);
     }
   }
@@ -393,11 +396,13 @@ export class VisualEngine {
       this._radioExt=Math.max(120,(480+fl*2)*oxygenScale);
       if(!this._autoAdvanceMode) {
         this._intensidad=0.85*oxygenScale;
-        const pts=speed>10?1:Math.floor(Math.random()*3+3);
-        if(this._flameParticles.length < 50) for(let i=0;i<pts;i++) this._flameParticles.push(new FlameParticle(this._currentX,this._currentY,wx,wy,oxygenScale));
-        if(this._smokeParticles.length < 85) {
-          if(speed>3&&this._frameCount%2===0) this._smokeParticles.push(new SmokeParticle(this._currentX,this._currentY-20,vx,vy));
-          else if(this._frameCount%4===0) this._smokeParticles.push(new SmokeParticle(this._currentX+(Math.random()-0.5)*5,this._currentY-50,0,0));
+        if(!this._silentFlame) {  // silentFlame=true on mobile tap — show glow but no fire
+          const pts=speed>10?1:Math.floor(Math.random()*3+3);
+          if(this._flameParticles.length < 50) for(let i=0;i<pts;i++) this._flameParticles.push(new FlameParticle(this._currentX,this._currentY,wx,wy,oxygenScale));
+          if(this._smokeParticles.length < 85) {
+            if(speed>3&&this._frameCount%2===0) this._smokeParticles.push(new SmokeParticle(this._currentX,this._currentY-20,vx,vy));
+            else if(this._frameCount%4===0) this._smokeParticles.push(new SmokeParticle(this._currentX+(Math.random()-0.5)*5,this._currentY-50,0,0));
+          }
         }
       } else {
         this._intensidad=0;

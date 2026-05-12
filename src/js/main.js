@@ -169,6 +169,7 @@ let _mobileTapLock = false;
 let _mobileHolding = false;
 let _mobileTapMaxTimer = null;
 let _mobileTapStartTime = 0;
+let _mobileHoldTimer = null; // 300ms timer: if still holding, enable fire
 
 function _endMobileHold() {
   if (!_mobileHolding) return;
@@ -178,6 +179,7 @@ function _endMobileHold() {
   if (elapsed < 3000) { setTimeout(_endMobileHold, 3000 - elapsed); return; }
   _mobileHolding = false;
   clearTimeout(_mobileTapMaxTimer);
+  if (_mobileHoldTimer) { clearTimeout(_mobileHoldTimer); _mobileHoldTimer = null; }
   if (state.hasFinishedGallery) { _mobileTapLock = false; return; }
   state.isIgnited = false;
   state.isSwapping = true;
@@ -200,9 +202,13 @@ function _doMobileTap() {
   if(_autoTimer) { clearTimeout(_autoTimer); _autoTimer = null; }
   if(_isAutoAdvancing) { _isAutoAdvancing = false; visual.setAutoAdvanceMode(false); }
 
+  visual.setSilentFlame(true); // tap = spotlight+glow, no fire by default
   visual.forceIgnite();
   _mobileHolding = true;
   _mobileTapStartTime = Date.now();
+  // After 300ms of holding: add fire (distinguishes tap from press-and-hold)
+  if (_mobileHoldTimer) clearTimeout(_mobileHoldTimer);
+  _mobileHoldTimer = setTimeout(() => { if (_mobileHolding) visual.setSilentFlame(false); }, 300);
   // Safety max: 8s hold without releasing
   _mobileTapMaxTimer = setTimeout(_endMobileHold, 8000);
 }
