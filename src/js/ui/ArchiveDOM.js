@@ -649,7 +649,18 @@ export class ArchiveDOM {
   }
 
   _bindEvents() {
-    document.getElementById('final-btn')?.addEventListener('click',()=>this._onSceneChange('enterMainSite'));
+    // Adentrarse — stylized 1.3s transition (CSS choreography), THEN actually enter the Archive
+    document.getElementById('final-btn')?.addEventListener('click', () => {
+      const s3 = document.getElementById('scene-3');
+      if (!s3 || s3.classList.contains('scene-3--departing')) return; // ignore double-click
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      s3.classList.add('scene-3--departing');
+      // Optional sonic cue at the moment the visual flicker happens — a brief
+      // tonal "rupture". Only fires once the audio engine is running.
+      this._audio?.playTransitionEcho?.();
+      const delay = reducedMotion ? 0 : 1300;
+      setTimeout(() => this._onSceneChange('enterMainSite'), delay);
+    });
     document.getElementById('btn-cerrar-pacto')?.addEventListener('click',()=>this.closePacto());
     document.querySelectorAll('[data-action]').forEach(el=>{
       el.addEventListener('click',()=>{
