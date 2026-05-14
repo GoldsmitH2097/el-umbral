@@ -1,4 +1,5 @@
 import { CHARACTERS, CATALOGUE, state, Events } from '../core/StateManager.js';
+import { pickVideoSrc } from '../core/videoVariant.js';
 
 // Social platform SVG icons
 const ICONS = {
@@ -61,7 +62,10 @@ export class ArchiveDOM {
       video.loop = true; video.muted = true; video.playsInline = true; video.preload = 'none';
       video.poster = char.src.replace(/^\/(.+)\.mp4$/, '/posters/$1.webp');
       video.setAttribute('aria-hidden', 'true'); // decorative ambient — no captions needed
-      video.src = char.src;
+      // pickVideoSrc returns /720/<slug>.mp4 on mobile or slow connection,
+      // /<slug>.mp4 on desktop with a decent network. Same URL the gallery
+      // (Scene 1) used, so the browser's HTTP cache serves it on Scene 4 entry.
+      video.src = pickVideoSrc(char.src);
 
       // Social links only in reading/detail view — NOT on the grid pillar
       const content = document.createElement('div');
@@ -216,6 +220,27 @@ export class ArchiveDOM {
       this._initCoverTilt();
     }
     this._initScrollReveal();
+    this._initPillarPreloadOnScroll();
+  }
+
+  // Belt-and-suspenders for pillar video preloading. The primary trigger is
+  // the sceneChange→4 listener in _bindEvents(), which fires on the normal
+  // Adentrarse flow. But skip-intro paths (Router deep-link, /skip-btn click,
+  // prefers-reduced-motion) and any future entry point that doesn't fire that
+  // event could leave pillar videos stuck at preload='none'. This observer
+  // catches that: as soon as a pillar enters the viewport (200 px ahead), if
+  // its video is still 'none', flip it to 'auto'. One-shot per pillar.
+  _initPillarPreloadOnScroll() {
+    if (typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const v = entry.target.querySelector('video');
+        if (v && v.preload !== 'auto') v.preload = 'auto';
+        io.unobserve(entry.target);
+      });
+    }, { rootMargin: '200px 0px' });
+    document.querySelectorAll('.archive-pillar').forEach(p => io.observe(p));
   }
 
   _initScrollReveal() {
@@ -671,9 +696,10 @@ export class ArchiveDOM {
   _bindEvents() {
     // Pillar videos init with preload='none' to keep the mobile initial-load
     // payload light (Lighthouse never reaches Scene 4 → its score is unaffected).
-    // Once a REAL user lands in Scene 4 they've committed to engaging with the
-    // site, so upgrade to preload='auto' — the videos buffer in the background
-    // while the user reads the archive, so hover/tap plays without a load delay.
+    // Once a REAL user reaches Scene 4 (Adentrarse / skip-btn / deep-link),
+    // upgrade to preload='auto' — the videos buffer in the background, so
+    // hover/tap plays without any load wait. Same URL as the gallery video, so
+    // the HTTP cache typically serves it instantly (no re-download).
     Events.on('sceneChange', ({ to }) => {
       if (to !== 4) return;
       document.querySelectorAll('.archive-pillar video').forEach(v => {
