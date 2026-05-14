@@ -54,6 +54,7 @@ export class ArchiveDOM {
 
       const video = document.createElement('video');
       video.loop = true; video.muted = true; video.playsInline = true; video.preload = 'metadata';
+      video.setAttribute('aria-hidden', 'true'); // decorative ambient — no captions needed
       video.src = char.src;
 
       // Social links only in reading/detail view — NOT on the grid pillar
