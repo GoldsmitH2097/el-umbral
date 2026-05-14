@@ -34,6 +34,12 @@
        serialized into the mobile critical path on slow 4G and hurting LCP. -->
   <meta name="theme-color" content="#020202" />
 
+  <!-- LCP image: the Emperatriz poster shows behind #char-video while Scene 1's
+       video buffers. Preloading it (and hardcoding the poster attr on the video
+       below) makes the LCP request discoverable from the initial HTML document
+       and lets the browser fetch it at high priority. -->
+  <link rel="preload" as="image" href="/posters/reina-sin-corona.webp" fetchpriority="high" />
+
   <!-- JSON-LD Structured Data -->
   <script type="application/ld+json">
   {
@@ -203,7 +209,7 @@
 
 <!-- SCENE 1: THE TOMB -->
 <div id="gallery-container">
-  <video id="char-video" loop muted playsinline preload="none" aria-hidden="true"></video>
+  <video id="char-video" loop muted playsinline preload="none" poster="/posters/reina-sin-corona.webp" fetchpriority="high" aria-hidden="true"></video>
   <video id="char-video-preload" muted playsinline preload="none" style="display:none" aria-hidden="true"></video>
   <div id="char-text"><h3 id="char-title" class="loading-state">Despertando<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span></h3><p id="char-desc"></p></div>
 </div>

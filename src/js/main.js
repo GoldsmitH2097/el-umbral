@@ -246,6 +246,9 @@ if (!isDeepLink) {
 }
 
 function skipIntroAndEnterArchive() {
+  // Mark before transitionTo so pickVideoSrc (called by the sceneChange→4
+  // listener via runtime re-pick) returns the 720p variant for the pillars.
+  state.skippedIntro = true;
   transitionTo(4);
   visual.start();
   archive.showArchive({skipIntro:true});

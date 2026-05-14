@@ -4,10 +4,13 @@
 //   /<slug>.mp4       — 1080p, ~1 MB,   the cinematic full-quality file
 //   /720/<slug>.mp4   — 720p,  ~400 KB, smaller variant for mobile / slow networks
 //
-// Decision:
-//   - saveData on, OR effectiveType is 2g / slow-2g / 3g → 720p
-//   - viewport width ≤ 768 (mobile)                       → 720p
-//   - otherwise (desktop + decent connection)             → 1080p
+// Decision (first match wins):
+//   - state.skippedIntro = true                            → 720p (skip-intro users
+//                                                            didn't earn the heavy
+//                                                            variant by watching)
+//   - saveData on, OR effectiveType is 2g / slow-2g / 3g  → 720p
+//   - viewport width ≤ 768 (mobile)                        → 720p
+//   - otherwise (desktop + decent connection + full intro) → 1080p
 //
 // On iOS Safari `navigator.connection` is undefined; the slow-network branch
 // is skipped, and we fall through to the viewport-width check. iOS mobile
@@ -18,7 +21,12 @@
 // even on extreme slow connections the visual experience never degrades to
 // pure black — just a frozen first-frame portrait until enough bytes arrive.
 
+import { state } from './StateManager.js';
+
 export function pickVideoSrc(originalSrc) {
+  if (state.skippedIntro) {
+    return originalSrc.replace(/^\/(?!720\/)([^/]+\.mp4)$/, '/720/$1');
+  }
   const c = typeof navigator !== 'undefined' ? navigator.connection : null;
   const slowConn = !!c && (
     c.saveData === true ||
