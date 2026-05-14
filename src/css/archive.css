@@ -39,12 +39,45 @@
 }
 
 .archive-visible .site-hero h2 {
-  animation: heroTitleReveal 2.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  animation-delay: 0.4s;
+  animation: heroTitleReveal 2.4s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards;
 }
 .archive-visible .site-hero p {
   animation: heroSubReveal 2s ease forwards;
   animation-delay: 1.6s;
+}
+
+/* ── Las Crónicas — per-letter drift (vector only) ──────────────────────── */
+/* Spans are injected by JS (see main.js). Each gets --i = its position index,
+   used to phase-offset the drift so the letters wander out of sync. */
+.cronicas-letter {
+  display: inline-block;
+  /* Wait until after the reveal animation (2.4s + 0.4s delay = 2.8s) then drift forever */
+  animation: cronicasDrift 6.5s ease-in-out infinite;
+  animation-delay: calc(2.8s + var(--i) * 0.32s);
+  animation-fill-mode: both;
+}
+/* The space between LAS and CRÓNICAS — give it real width to read as a gap */
+.cronicas-letter--space {
+  animation: none;
+  width: 0.45em;
+}
+/* The Ó drifts like every other letter — no extra animation. */
+.cronicas-letter--accent {
+  animation: cronicasDrift 6.5s ease-in-out infinite;
+  animation-delay: calc(2.8s + var(--i) * 0.32s);
+}
+
+/* Subtle position drift — ±1.5px Y, ±0.5px X, slow (transform-only) */
+@keyframes cronicasDrift {
+  0%, 100% { transform: translateY(0) translateX(0); }
+  33%      { transform: translateY(-1.5px) translateX(0.5px); }
+  66%      { transform: translateY(1.2px) translateX(-0.4px); }
+}
+
+/* Disable per-letter drift on lower-end hardware to save CPU.
+   prefers-reduced-motion is the standard signal. */
+@media (prefers-reduced-motion: reduce) {
+  .cronicas-letter, .cronicas-letter--accent { animation: none; }
 }
 /* ── Unified archive grid — replaces .pillar-grid + .obras-grid ─────────── */
 /* Each .archive-col contains [pillar section] + [books section] for one archetype.
@@ -59,13 +92,11 @@
 
 .archive-col {
   flex: 1; display: flex; flex-direction: column;
-  position: relative; background: #050505;
+  position: relative; background: #000;
   box-shadow: 1px 0 0 0 rgba(255,255,255,0.04);
-  transition: background 0.5s ease;
   min-height: 60vh;
 }
 .archive-col:last-child { box-shadow: none; }
-.archive-col:hover, .archive-col--highlighted { background: #080808; }
 
 /* Vertical amber divider — thin, organic staggered pulse */
 .archive-col::after {
@@ -102,6 +133,13 @@
   min-height: 45vh; display: flex; flex-direction: column;
   justify-content: flex-end; padding: 40px 20px;
   border-bottom: 1px solid rgba(255,255,255,0.04);
+  background: #000; /* pure-black floor; video on top inherits opacity */
+}
+/* On-brand keyboard focus — replaces the default browser blue outline */
+.archive-pillar:focus { outline: none; }
+.archive-pillar:focus-visible {
+  outline: 1px solid rgba(200,146,42,0.45);
+  outline-offset: -2px;
 }
 /* Dark gradient behind text — ensures readability regardless of video content.
    Critical for Emperatriz whose video has warm amber tones exactly at text position. */
@@ -124,19 +162,25 @@
 .archive-pillar .pillar-content {
   position: relative; z-index: 2; text-align: center; padding-bottom: 8px;
 }
-.archive-pillar .pillar-content h4 {
+.archive-pillar .pillar-content h3 {
   font-size: 14px; letter-spacing: 4px; margin: 0 0 10px 0;
   text-transform: uppercase; line-height: 1.5;
   transition: color 0.5s ease, text-shadow 0.5s ease;
 }
-.archive-col:hover .archive-pillar .pillar-content h4,
-.archive-col--highlighted .archive-pillar .pillar-content h4 {
+.archive-col:hover .archive-pillar .pillar-content h3,
+.archive-col--highlighted .archive-pillar .pillar-content h3 {
   color: #e8c87a;
   text-shadow: 0 0 20px rgba(200,146,42,0.4);
 }
 .archive-pillar .pillar-content p {
   font-size: 13px; color: #aaa; line-height: 1.7; margin: 0 auto; max-width: 250px;
   opacity: 0.75; transition: opacity 0.4s ease;
+  /* Reserve space for tallest description (3 lines) so all character titles
+     above align at the same vertical position regardless of blurb length. */
+  min-height: 5.1em;
+  display: flex; align-items: flex-start; justify-content: center;
+  /* Prevent widow words at the end (e.g. lone "verdad." on its own line) */
+  text-wrap: balance;
 }
 .archive-col:hover .archive-pillar .pillar-content p,
 .archive-col--highlighted .archive-pillar .pillar-content p { opacity: 1; }
@@ -170,7 +214,7 @@
   }
   .archive-col::after { display: none; }
   .archive-pillar { min-height: 40vh; }
-  .archive-pillar .pillar-content h4 { letter-spacing: 3px; font-size: 13px; }
+  .archive-pillar .pillar-content h3 { letter-spacing: 3px; font-size: 13px; }
   .archive-books { padding: 20px 16px; gap: 20px; }
 
   /* ── Scroll indicator dots ── */

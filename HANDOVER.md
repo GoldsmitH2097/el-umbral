@@ -1,5 +1,5 @@
 # HANDOVER.md — El Umbral / Soulware
-*Last updated: May 12, 2026 — Session 6 (long polishing + audio + mobile + Tizno)*
+*Last updated: May 14, 2026 — Session 7 (SEO cleanup, GSC indexing nudge)*
 
 ---
 
@@ -8,10 +8,60 @@
 **Live:** https://soulware.live
 **Repo:** github.com/GoldsmitH2097/el-umbral
 **Local:** `/Users/Ruben/Developer/el-umbral`
-**Last commit:** `fabbb44` — fix(tizno): button full height + checkmark icon
-**Build:** ✅ Clean (no warnings)
+**Last commit:** `3f18030` — seo: ghost URL redirects + sitemap/CLAUDE.md cleanup
+**Build:** ✅ Clean
 **Deploy:** ✅ Netlify auto-deploy from `main`
 **GA4:** G-VC5QW7C1CQ (Ruben Websites account, Javier admin)
+
+---
+
+## What was completed — Session 7 (May 14, 2026)
+
+### SEO diagnosis
+- GSC dashboard showed 1 indexed / 15 not indexed → investigated each of 4 error buckets
+- **All 15 non-indexed URLs are ghosts from a pre-Vite site**, not current routes (`/read`, `/saga`, `/contact`, `/map`, `/universo`, `/thanks.html`, `/privacy`, `/terms`, `/?brand=`, `/?titulo=`)
+- Confirmed per-route prerendering (`scripts/generate-og-pages.js`) is already working — live `/caballero/` serves unique title and `canonical → /caballero`
+
+### Code changes (PR #1, merged)
+- `public/sitemap.xml`: dropped `/aviso-legal`, `/privacidad`, `/cookies` (they carry `noindex` — contradictory to sitemap inclusion). Now 9 URLs.
+- `public/_redirects`: 10 explicit `301` redirects for legacy ghost paths, ahead of SPA catch-all
+- `CLAUDE.md`: refreshed SEO status section with accurate state; fixed stale Filamentos status (`countdown` → `available`)
+
+### Google Search Console actions (May 14)
+- "Validate Fix" submitted for 3 of 4 error buckets:
+  - Server error (5xx)
+  - Alternate page with proper canonical tag
+  - Crawled - currently not indexed
+- **Skipped** "Excluded by noindex" — the 3 legal pages are intentionally noindexed; validation would fail
+- "Request Indexing" submitted for all 8 real routes via URL Inspection:
+  - `/caballero` (was already indexed)
+  - `/emperatriz`, `/sortilega`, `/arlequin` (not yet indexed)
+  - `/obras/pulso-del-nucleo`, `/obras/filamentos-de-oscuridad`, `/obras/anatomia-del-vacio`, `/obras/totalis-libertas` (not yet indexed)
+
+### Expected outcome
+- Ghost URLs should drop from GSC reports over the next 1–2 weeks as Google re-crawls and sees the 301s
+- Real routes should appear in indexed count over the next 1–4 weeks as Google processes the priority crawl queue
+- Indexed count should climb from 1/9 toward 9/9. Re-check GSC weekly.
+
+---
+
+## Captured ideas (not yet scoped)
+
+### Archetype-keyed ambient drone (Scene 4)
+**Idea:** When focusing on one of the four character columns in the Archive, the ambient sound should subtly retune to that character's tonal signature (using the existing `CHAR_FREQUENCIES` chord set).
+
+**Why it's interesting:** `playCharacterSignature` already exists for transitions. Extending the *continuous* ambient to also respond to focus would deepen the immersive feedback — each column gains a sonic identity, not just a visual one. Since `CHAR_FREQUENCIES` alternates per session (high vs grave), the same hover gesture sounds different across visits.
+
+**Implementation sketch:**
+- New ambient drone (fundamental + perfect 5th, gain ~0.005, slow LFO pulsation 6–12s)
+- `audio.setArchetypeFocus(i | null)` — smooth pitch glide over 1–2s
+- Desktop: pillar mouseenter/mouseleave; Mobile: carousel `.archive-col--active` detection
+- Effort: ~1.5–2h, low risk (additive to AudioEngine)
+
+**Open design questions:**
+- Drone timbre (sine / filtered saw / resonant noise)
+- Volume floor (atmospheric vs noticeable)
+- Pulsation pattern (synced vs pseudo-random)
 
 ---
 

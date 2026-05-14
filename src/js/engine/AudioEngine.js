@@ -72,7 +72,6 @@ export class AudioEngine {
       _rp.then(() => this._restartNoiseSources()).catch(() => {});
 
     } catch(e) {
-      console.warn('[AudioEngine] blocked', e);
       this._initializing = false;
     }
   }
@@ -94,22 +93,41 @@ export class AudioEngine {
 
   _buildGraph() {
     const ctx = this.audioCtx;
+    // Master output bus — everything routes through here so we can muffle the whole mix
+    // (e.g. when the reading view opens — like a club door closing).
+    this.masterOut = ctx.createGain(); this.masterOut.gain.value = 1.0;
+    this.masterFilter = ctx.createBiquadFilter();
+    this.masterFilter.type = 'lowpass'; this.masterFilter.frequency.value = 22050; this.masterFilter.Q.value = 0.7;
+    this.masterOut.connect(this.masterFilter); this.masterFilter.connect(ctx.destination);
+
     this.masterDelay = ctx.createDelay(); this.masterDelay.delayTime.value = 0.5;
     this.masterFeedback = ctx.createGain(); this.masterFeedback.gain.value = 0.6;
     const caveFilter = ctx.createBiquadFilter(); caveFilter.type = 'lowpass'; caveFilter.frequency.value = 800;
     this.masterDelay.connect(caveFilter); caveFilter.connect(this.masterFeedback);
-    this.masterFeedback.connect(this.masterDelay); this.masterDelay.connect(ctx.destination);
+    this.masterFeedback.connect(this.masterDelay); this.masterDelay.connect(this.masterOut);
     const noise = this._createPinkNoise(ctx);
     const fireFilter = ctx.createBiquadFilter(); fireFilter.type = 'lowpass'; fireFilter.frequency.value = 250;
     this.fireGain = ctx.createGain(); this.fireGain.gain.value = 0;
     const fireSrc = ctx.createBufferSource(); fireSrc.buffer = noise; fireSrc.loop = true;
-    fireSrc.connect(fireFilter); fireFilter.connect(this.fireGain); this.fireGain.connect(ctx.destination); fireSrc.start();
+    fireSrc.connect(fireFilter); fireFilter.connect(this.fireGain); this.fireGain.connect(this.masterOut); fireSrc.start();
     this.windFilter = ctx.createBiquadFilter(); this.windFilter.type = 'bandpass'; this.windFilter.frequency.value = 120; this.windFilter.Q.value = 0.8;
     this.windGain = ctx.createGain(); this.windGain.gain.value = 0.04;
     const windSrc = ctx.createBufferSource(); windSrc.buffer = noise; windSrc.loop = true;
     windSrc.connect(this.windFilter); this.windFilter.connect(this.windGain);
-    this.windGain.connect(ctx.destination); this.windGain.connect(this.masterDelay); windSrc.start();
+    this.windGain.connect(this.masterOut); this.windGain.connect(this.masterDelay); windSrc.start();
     this._windInterval = setInterval(() => { if (this.windGain.gain.value > 0 && !this._awakeningActive) this.windFilter.frequency.setTargetAtTime(80 + Math.random()*200, ctx.currentTime, 4); }, 3000);
+  }
+
+  /**
+   * Muffle the entire ambient mix as if a heavy door has closed.
+   * Used when the reading view opens — atmosphere stays present but recedes.
+   * @param {boolean} open  true = muffle (lowpass to ~700Hz), false = clear
+   */
+  setReadingViewMuffle(open) {
+    if (!this.audioCtx || !this.masterFilter) return;
+    const now = this.audioCtx.currentTime;
+    const target = open ? 700 : 22050;
+    this.masterFilter.frequency.setTargetAtTime(target, now, 0.15);
   }
 
   _createPinkNoise(ctx) {
@@ -125,7 +143,7 @@ export class AudioEngine {
         const osc = this.audioCtx.createOscillator(), g = this.audioCtx.createGain(), now = this.audioCtx.currentTime;
         osc.type = 'sine'; osc.frequency.setValueAtTime(400+Math.random()*200, now); osc.frequency.exponentialRampToValueAtTime(100, now+0.08);
         g.gain.setValueAtTime(0, now); g.gain.linearRampToValueAtTime(0.03+Math.random()*0.02, now+0.01); g.gain.exponentialRampToValueAtTime(0.001, now+0.15);
-        osc.connect(g); g.connect(this.audioCtx.destination); g.connect(this.masterDelay); osc.start(); osc.stop(now+0.2);
+        osc.connect(g); g.connect(this.masterOut || this.audioCtx.destination); g.connect(this.masterDelay); osc.start(); osc.stop(now+0.2);
       } catch(_) {}
     }
     setTimeout(() => this._scheduleDroplet(), 4000 + Math.random()*6000);
@@ -140,7 +158,7 @@ export class AudioEngine {
       const f = this.audioCtx.createBiquadFilter(); f.type='highpass'; f.frequency.value = 6000+Math.random()*2000;
       const g = this.audioCtx.createGain(), now = this.audioCtx.currentTime;
       g.gain.value = 0.01+Math.random()*0.015; g.gain.exponentialRampToValueAtTime(0.001, now+0.02);
-      src.connect(f); f.connect(g); g.connect(this.audioCtx.destination); src.start();
+      src.connect(f); f.connect(g); g.connect(this.masterOut || this.audioCtx.destination); src.start();
     } catch(_) {}
   }
 
@@ -155,7 +173,7 @@ export class AudioEngine {
         f.frequency.setValueAtTime(800+Math.random()*1500, now); f.frequency.exponentialRampToValueAtTime(300, now+2);
         const g = ctx.createGain(); g.gain.setValueAtTime(0, now);
         g.gain.linearRampToValueAtTime(0.02, now+0.5); g.gain.linearRampToValueAtTime(0, now+2);
-        noise.connect(f); f.connect(g); g.connect(ctx.destination); g.connect(this.masterDelay); noise.start();
+        noise.connect(f); f.connect(g); g.connect(this.masterOut || ctx.destination); g.connect(this.masterDelay); noise.start();
       } catch(_) {}
     }
     setTimeout(() => this._scheduleWhisperBreath(), 7000+Math.random()*12000);
@@ -170,10 +188,70 @@ export class AudioEngine {
         osc.type = h===1?'triangle':'sine'; osc.frequency.setValueAtTime(freq*h, now);
         const vol = h===1?0.14:0.07; // raised for audibility on first tap
         g.gain.setValueAtTime(0,now); g.gain.linearRampToValueAtTime(vol,now+0.4); g.gain.exponentialRampToValueAtTime(0.001,now+3.5);
-        osc.connect(g); g.connect(this.audioCtx.destination);
+        osc.connect(g); g.connect(this.masterOut || this.audioCtx.destination);
         if (this.masterDelay) g.connect(this.masterDelay); // null-safe: graph may not be ready
         osc.start(); osc.stop(now+4);
       });
+    } catch(_) {}
+  }
+
+  /**
+   * Brief character-tuned chime on book-cover hover.
+   * @param {number} charIndex 0=emperatriz, 1=caballero, 2=sortilega, 3=arlequin
+   */
+  playCoverHover(charIndex) {
+    if (!this.audioCtx || this.audioCtx.state !== 'running') return;
+    // Independent throttle so a cover hover doesn't suppress a button hover that
+    // immediately follows when the cursor moves from cover to its buy button.
+    const t = performance.now();
+    if (t - (this._lastCoverHoverT || 0) < 180) return;
+    this._lastCoverHoverT = t;
+    try {
+      const ctx = this.audioCtx, now = ctx.currentTime;
+      const freq = CHAR_FREQUENCIES[charIndex];
+      if (!freq) return;
+      [1, 2].forEach(h => {
+        const osc = ctx.createOscillator(), g = ctx.createGain();
+        osc.type = h === 1 ? 'sine' : 'triangle';
+        osc.frequency.setValueAtTime(freq * h, now);
+        const vol = h === 1 ? 0.04 : 0.018;
+        g.gain.setValueAtTime(0, now);
+        g.gain.linearRampToValueAtTime(vol, now + 0.015);
+        g.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+        osc.connect(g); g.connect(this.masterOut || ctx.destination);
+        if (this.masterDelay) g.connect(this.masterDelay);
+        osc.start(); osc.stop(now + 0.7);
+      });
+    } catch(_) {}
+  }
+
+  /**
+   * Soft metallic shimmer on active buy-button hover.
+   * Filtered noise sweep — like a sword catching light.
+   */
+  playButtonHover() {
+    if (!this.audioCtx || this.audioCtx.state !== 'running') return;
+    const t = performance.now();
+    if (t - (this._lastBtnHoverT || 0) < 180) return;
+    this._lastBtnHoverT = t;
+    try {
+      const ctx = this.audioCtx, now = ctx.currentTime;
+      // Short white-noise burst → bandpass filter sweeping high-to-low → quick decay
+      const size = Math.floor(ctx.sampleRate * 0.25);
+      const buf = ctx.createBuffer(1, size, ctx.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < size; i++) data[i] = Math.random() * 2 - 1;
+      const src = ctx.createBufferSource(); src.buffer = buf;
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'bandpass'; filter.Q.value = 4;
+      filter.frequency.setValueAtTime(5200, now);
+      filter.frequency.exponentialRampToValueAtTime(1800, now + 0.22);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(0.025, now + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+      src.connect(filter); filter.connect(g); g.connect(this.masterOut || ctx.destination);
+      src.start(); src.stop(now + 0.35);
     } catch(_) {}
   }
 
@@ -188,13 +266,13 @@ export class AudioEngine {
         this.awakeningLFO = ctx.createOscillator(); this.awakeningLFO.type='sine';
         this.awakeningLFO.frequency.setValueAtTime(0.5,now); this.awakeningLFO.frequency.exponentialRampToValueAtTime(12,now+3);
         this.awakeningLFO.connect(pan.pan); this.awakeningLFO.start();
-        pan.connect(ctx.destination); pan.connect(this.masterDelay);
+        pan.connect(this.masterOut || ctx.destination); pan.connect(this.masterDelay);
       }
       CHAR_FREQUENCIES.forEach(f => [1,2].forEach(h => {
         const osc=ctx.createOscillator(), g=ctx.createGain();
         osc.type=h===1?'triangle':'sine'; osc.frequency.setValueAtTime(f*h,now);
         g.gain.setValueAtTime(0,now); g.gain.linearRampToValueAtTime(0.06,now+2);
-        osc.connect(g); pan ? g.connect(pan) : (g.connect(ctx.destination),g.connect(this.masterDelay));
+        osc.connect(g); pan ? g.connect(pan) : (g.connect(this.masterOut || ctx.destination),g.connect(this.masterDelay));
         osc.start(); this.awakeningOscillators.push({osc,gain:g});
       }));
     } catch(_) {}

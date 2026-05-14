@@ -3,12 +3,12 @@ import { CHARACTERS, CATALOGUE, state } from '../core/StateManager.js';
 // Social platform SVG icons
 const ICONS = {
   instagram: `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>`,
-  threads: `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.03-3.579.879-6.43 2.525-8.482C5.845 1.205 8.6.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.589 12c.027 3.086.718 5.496 2.057 7.164 1.43 1.783 3.631 2.698 6.54 2.717 2.623-.02 4.358-.631 5.8-2.045 1.647-1.613 1.618-3.593 1.09-4.798-.31-.71-.873-1.3-1.634-1.75-.192 1.352-.622 2.446-1.284 3.272-.886 1.102-2.14 1.704-3.73 1.79-1.202.065-2.361-.218-3.259-.801-1.063-.689-1.685-1.74-1.752-2.964-.065-1.19.408-2.285 1.33-3.082.88-.76 2.119-1.207 3.583-1.291a13.853 13.853 0 0 1 3.02.142c-.126-.742-.375-1.332-.75-1.757-.513-.586-1.308-.883-2.378-.887h-.018c-.852 0-1.953.254-2.692 1.61L7.436 8.98c.904-1.672 2.498-2.598 4.48-2.598h.023c3.019.014 4.822 1.913 5.153 5.33.17.056.34.117.508.183 1.305.52 2.297 1.338 2.869 2.37.77 1.397.982 3.552-.24 5.856-1.713 3.148-4.507 4.789-7.93 4.885H12.186z"/></svg>`
+  threads: `<svg width="16" height="16" viewBox="0 0 192 192" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M141.537 88.9883C140.71 88.5919 139.87 88.2104 139.019 87.8451C137.537 60.5382 122.616 44.905 97.5619 44.745C97.4484 44.7443 97.3355 44.7443 97.222 44.7443C82.2364 44.7443 69.7731 51.1409 62.102 62.7807L75.881 72.2328C81.6116 63.5383 90.6052 61.6848 97.2286 61.6848C97.3051 61.6848 97.3819 61.6848 97.4576 61.6855C105.707 61.7381 111.932 64.1366 115.961 68.814C118.893 72.2193 120.854 76.925 121.825 82.8638C114.511 81.6207 106.601 81.2385 98.145 81.7233C74.3247 83.0954 59.0111 96.9879 60.0396 116.292C60.5615 126.084 65.4397 134.508 73.775 140.011C80.8224 144.663 89.899 146.938 99.3323 146.423C111.79 145.74 121.563 140.987 128.381 132.296C133.559 125.696 136.834 117.143 138.28 106.366C144.217 109.949 148.617 114.664 151.047 120.332C155.179 129.967 155.42 145.8 142.501 158.708C131.182 170.016 117.576 174.908 97.0135 175.059C74.2042 174.89 56.9538 167.575 45.7381 153.317C35.2355 139.966 29.8077 120.682 29.6052 96C29.8077 71.3178 35.2355 52.0336 45.7381 38.6827C56.9538 24.4249 74.2039 17.1095 97.0132 16.9405C119.988 17.1108 137.539 24.4614 149.184 38.788C154.894 45.8136 159.199 54.6488 162.037 64.9503L178.184 60.6422C174.744 47.9622 169.331 37.0357 161.965 27.974C147.036 9.60668 125.202 0.195148 97.0695 0H96.9569C68.8816 0.19447 47.2921 9.6418 32.7883 28.0793C19.8819 44.4864 13.2244 67.3157 13.0007 95.9325L13 96L13.0007 96.0675C13.2244 124.684 19.8819 147.514 32.7883 163.921C47.2921 182.358 68.8816 191.806 96.9569 192H97.0695C122.03 191.827 139.624 185.292 154.118 170.811C173.081 151.866 172.51 128.119 166.26 113.541C161.776 103.087 153.227 94.5962 141.537 88.9883ZM98.4405 129.507C88.0005 130.095 77.1544 125.409 76.6196 115.372C76.2232 107.93 81.9158 99.626 99.0812 98.6368C101.047 98.5234 102.976 98.468 104.871 98.468C111.106 98.468 116.939 99.0737 122.242 100.233C120.264 124.935 108.662 128.946 98.4405 129.507Z"/></svg>`
 };
 
 export class ArchiveDOM {
-  constructor({router, onSceneChange, tizno=null}) {
-    this._router=router; this._onSceneChange=onSceneChange; this._tizno=tizno;
+  constructor({router, onSceneChange, tizno=null, audio=null}) {
+    this._router=router; this._onSceneChange=onSceneChange; this._tizno=tizno; this._audio=audio;
     this._mainSite=document.getElementById('main-site');
     this._gridView=document.getElementById('grid-view');
     this._readingView=document.getElementById('reading-view');
@@ -20,12 +20,12 @@ export class ArchiveDOM {
     this._lastObraFocus = null;
     this._lastReadingFocus = null;
     this._pactoCallback = null; // called when user accepts El Pacto
+    this._countdownTimers = new Set(); // track setInterval handles for cleanup
     this._build(); this._bindEvents();
   }
 
   _build() {
     this._buildArchiveGrid();
-    this._buildContact();
     this._bindObraModal();
   }
 
@@ -54,12 +54,12 @@ export class ArchiveDOM {
 
       const video = document.createElement('video');
       video.loop = true; video.muted = true; video.playsInline = true; video.preload = 'metadata';
-      video.src = char.src; video.load();
+      video.src = char.src;
 
       // Social links only in reading/detail view — NOT on the grid pillar
       const content = document.createElement('div');
       content.className = 'pillar-content';
-      content.innerHTML = `<h4>${['I','II','III','IV'][i]}. ${char.label}</h4><p>${char.desc}</p>`;
+      content.innerHTML = `<h3>${['I','II','III','IV'][i]}. ${char.label}</h3><p>${char.desc}</p>`;
 
       pillar.appendChild(video);
       pillar.appendChild(content);
@@ -325,33 +325,9 @@ export class ArchiveDOM {
         el.innerHTML = `<span>${d}<em>d</em></span><span>${h}<em>h</em></span><span>${m}<em>m</em></span><span class="countdown-seconds${slide}">${s}<em>s</em></span>`;
       };
       update();
-      setInterval(update, 1000);
+      const handle = setInterval(update, 1000);
+      this._countdownTimers.add(handle);
     });
-  }
-
-  _buildContact() {
-    const section = document.getElementById('contact-section');
-    if (!section) return;
-    section.innerHTML = `
-      <div class="contact-inner">
-        <h2 class="contact-title">Contacto</h2>
-        <p class="contact-sub">Prensa, colaboraciones y preguntas sobre el universo Soulware.</p>
-        <form class="contact-form" id="contact-form" name="contacto-soulware" data-netlify="true" netlify-honeypot="bot-field">
-          <input type="hidden" name="form-name" value="contacto-soulware" />
-          <input type="text" name="bot-field" style="display:none" aria-hidden="true" />
-          <input type="text" name="name" placeholder="Nombre" required autocomplete="name" />
-          <input type="email" name="email" placeholder="Email" required autocomplete="email" />
-          <textarea name="message" placeholder="Mensaje" rows="4" required></textarea>
-          <button type="submit" class="obra-btn obra-btn--buy">Enviar</button>
-        </form>
-        <div class="contact-footer">
-          <p class="contact-email"><a href="mailto:editorial@soulware.live">editorial@soulware.live</a></p>
-          <a href="https://www.instagram.com/core.soulware" target="_blank" rel="noopener" class="contact-social-link">
-            ${ICONS.instagram} <span>@core.soulware</span>
-          </a>
-        </div>
-      </div>
-    `;
   }
 
   showArchive({skipIntro=false}={}) {
@@ -376,6 +352,9 @@ export class ArchiveDOM {
   openReading(index, activeTab = 'autor') {
     const char=CHARACTERS[index]; if(!char) return;
     this._lastReadingFocus = document.activeElement;
+    this._currentReadingIndex = index; // used by hover-sound handler for reading-view covers
+    // "Door closes" — muffle the ambient while the user reads
+    this._audio?.setReadingViewMuffle(true);
     this._readTitle.innerText=char.title;
     // Add section label above bio
     const sectionLabel = '<p class="reading-section-label">Autor</p>';
@@ -390,11 +369,6 @@ export class ArchiveDOM {
 
     // Populate Libros panel
     const obrasList = document.getElementById('reading-obras-list');
-    // Coming-soon CTAs in reading view → open Tizno panel for email capture
-    obrasList?.addEventListener('click', e => {
-      const btn = e.target.closest('.obra-btn--soon, .obra-btn--notify, .obra-btn--locked');
-      if (btn) { e.preventDefault(); this._tizno?.open(); }
-    });
     if (obrasList) {
       const obras = CATALOGUE.filter(c => c.archetype === char.slug);
       const librosLabel = '<p class="reading-section-label">Obras</p>';
@@ -479,6 +453,8 @@ export class ArchiveDOM {
   closeReading() {
     // Remove button from DOM entirely — no CSS hiding, no ghost rendering
     document.getElementById('btn-volver')?.remove();
+    // "Door reopens" — restore ambient brightness
+    this._audio?.setReadingViewMuffle(false);
     this._readingView.style.opacity='0'; this._readingView.style.pointerEvents='none';
     setTimeout(()=>{
       this._readingView.style.display='none';
@@ -537,11 +513,46 @@ export class ArchiveDOM {
     if (!modal) return;
     closeBtn?.addEventListener('click', () => this._closeObraModal());
     modal.addEventListener('click', (e) => { if (e.target === modal) this._closeObraModal(); });
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') this._closeObraModal(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.classList.contains('open')) this._closeObraModal(); });
     // Tab switching
     document.querySelectorAll('.obra-tab').forEach(btn => {
       btn.addEventListener('click', () => this._switchModalTab(btn.dataset.tab));
     });
+    // Reading-view obras list — delegated once. Coming-soon CTAs open the Tizno panel.
+    document.getElementById('reading-obras-list')?.addEventListener('click', e => {
+      const btn = e.target.closest('.obra-btn--soon, .obra-btn--notify, .obra-btn--locked');
+      if (btn) { e.preventDefault(); this._tizno?.open(); }
+    });
+
+    // Hover sounds — character-tuned chime on book covers, soft metallic
+    // shimmer on active buy buttons. Uses mouseover + relatedTarget check
+    // so each fires exactly once per element entry (mouseenter doesn't bubble).
+    document.addEventListener('mouseover', e => {
+      // Archive-grid cover → look up archetype from data-id
+      const gridCover = e.target.closest('.obra-cover--clickable');
+      if (gridCover && !gridCover.contains(e.relatedTarget)) {
+        const item = CATALOGUE.find(c => c.id === gridCover.dataset.id);
+        if (item) {
+          const charIndex = CHARACTERS.findIndex(c => c.slug === item.archetype);
+          if (charIndex >= 0) this._audio?.playCoverHover(charIndex);
+        }
+        return;
+      }
+      // Reading-view cover → use the currently-open character's archetype
+      const readCover = e.target.closest('.reading-obra-cover');
+      if (readCover && !readCover.contains(e.relatedTarget)) {
+        if (this._currentReadingIndex >= 0) {
+          this._audio?.playCoverHover(this._currentReadingIndex);
+        }
+        return;
+      }
+      // Active buy button hover → metallic shimmer (real links only)
+      const btn = e.target.closest('a.obra-btn--buy[href]');
+      if (btn && !btn.contains(e.relatedTarget)) {
+        this._audio?.playButtonHover();
+      }
+    });
+
     window._openObraModal = (id) => this.openObraModal(id);
   }
 
@@ -641,17 +652,35 @@ export class ArchiveDOM {
       prevS = s;
       el.innerHTML = `<span>${d}<em>d</em></span><span>${h}<em>h</em></span><span>${m}<em>m</em></span><span class="countdown-seconds${slide}">${s}<em>s</em></span>`;
     };
-    update(); setInterval(update, 1000);
+    update();
+    const handle = setInterval(update, 1000);
+    this._countdownTimers.add(handle);
   }
 
   _bindEvents() {
-    document.getElementById('final-btn')?.addEventListener('click',()=>this._onSceneChange('enterMainSite'));
+    // Adentrarse — stylized 1.4s transition (CSS choreography), THEN actually enter the Archive
+    document.getElementById('final-btn')?.addEventListener('click', () => {
+      const s3 = document.getElementById('scene-3');
+      if (!s3 || s3.classList.contains('scene-3--departing')) return; // ignore double-click
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      s3.classList.add('scene-3--departing');
+      // Explicitly fade the VFX canvas in JS as a belt-and-suspenders alongside
+      // the CSS sibling rule — guarantees the awakening spotlight doesn't linger
+      // behind the fading scene regardless of stylesheet cascade quirks.
+      const vfx = document.getElementById('vfx-canvas');
+      if (vfx && !reducedMotion) {
+        requestAnimationFrame(() => { vfx.style.opacity = '0'; });
+      }
+      this._audio?.playTransitionEcho?.();
+      const delay = reducedMotion ? 0 : 1400;
+      setTimeout(() => this._onSceneChange('enterMainSite'), delay);
+    });
     document.getElementById('btn-cerrar-pacto')?.addEventListener('click',()=>this.closePacto());
     document.querySelectorAll('[data-action]').forEach(el=>{
       el.addEventListener('click',()=>{
         if(el.dataset.action==='scroll-top') document.getElementById('main-site').scrollTo({top:0,behavior:'smooth'});
         if(el.dataset.action==='scroll-obras') document.getElementById('obras-section')?.scrollIntoView({behavior:'smooth'});
-        if(el.dataset.action==='scroll-contact') this._tizno ? this._tizno.toggle() : document.getElementById('contact-section')?.scrollIntoView({behavior:'smooth'});
+        if(el.dataset.action==='scroll-contact') this._tizno?.toggle();
         if(el.dataset.action==='open-pacto') this.openPacto();
       });
     });
@@ -661,6 +690,7 @@ export class ArchiveDOM {
     const legalClose  = document.getElementById('legal-modal-close');
     const legalTitle  = document.getElementById('legal-modal-title');
     const legalBody   = document.getElementById('legal-modal-body');
+    const legalCache = new Map();
     const openLegal = async (slug, title) => {
       legalTitle.textContent = title;
       legalBody.innerHTML = '<p style="color:#444;letter-spacing:2px;">Cargando...</p>';
@@ -669,8 +699,8 @@ export class ArchiveDOM {
       legalModal.removeAttribute('aria-hidden');
       document.body.style.overflow = 'hidden';
       try {
-        const res = await fetch(`/${slug}.html`);
-        const html = await res.text();
+        let html = legalCache.get(slug);
+        if (!html) { html = await (await fetch(`/${slug}.html`)).text(); legalCache.set(slug, html); }
         const doc = new DOMParser().parseFromString(html, 'text/html');
         // Strip elements that don't belong in the modal overlay
         doc.querySelectorAll('img, .legal-logo, .legal-back, nav, header, style, script').forEach(el => el.remove());
@@ -704,9 +734,9 @@ export class ArchiveDOM {
     legalModal?.addEventListener('click', e => { if(e.target===legalModal) closeLegal(); });
     document.addEventListener('keydown', e => { if(e.key==='Escape' && legalModal?.classList.contains('open')) closeLegal(); });
 
-    // Contact form submit (Netlify)
+    // Tizno pacto form submit (Netlify)
     document.addEventListener('submit', async e => {
-      if (!e.target.matches('#contact-form, #tizno-pacto-form')) return;
+      if (!e.target.matches('#tizno-pacto-form')) return;
       e.preventDefault();
       const btn = e.target.querySelector('button[type="submit"]');
       const original = btn.textContent;

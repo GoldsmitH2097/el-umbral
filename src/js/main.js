@@ -28,6 +28,7 @@ const visual = new VisualEngine({
 const archive = new ArchiveDOM({
   router: null,
   tizno: tizno,
+  audio: audio,
   onSceneChange: (target) => { target==='enterMainSite' ? enterMainSite() : transitionTo(target); },
 });
 
@@ -66,9 +67,8 @@ function _handleFirstAudio() {
   }
 }
 
-// Replay intro — clear sw_crossed flag and reload
+// Replay intro — reload from the home route
 document.getElementById('replay-intro-btn')?.addEventListener('click', () => {
-  localStorage.removeItem('sw_crossed');
   window.location.href = '/';
 });
 
@@ -114,9 +114,12 @@ function _startScene3IdleWatch() {
   if (_s3IdleInterval) clearInterval(_s3IdleInterval);
   _s3IdleInterval = setInterval(() => {
     if (state.activeScene !== 3) { clearInterval(_s3IdleInterval); return; }
-    if (Date.now() - _s3LastActivity >= 5000) {
+    if (Date.now() - _s3LastActivity >= 7000) {
       clearInterval(_s3IdleInterval);
-      enterMainSite();
+      // Trigger the same stylized departure choreography as an explicit click,
+      // so auto-advancing visitors see the cinematic transition too.
+      const btn = document.getElementById('final-btn');
+      if (btn) btn.click(); else enterMainSite();
     }
   }, 500);
 }
@@ -247,7 +250,7 @@ function skipIntroAndEnterArchive() {
   visual.start();
   archive.showArchive({skipIntro:true});
   document.body.style.cursor='auto';
-  document.querySelectorAll('*').forEach(el=>el.style.setProperty('cursor','auto','important'));
+  document.querySelectorAll('[style*="cursor"]').forEach(el=>el.style.removeProperty('cursor'));
   // Release body overflow lock — intro needs it, archive scrolls itself
   document.documentElement.style.overflow = '';
   document.documentElement.style.height = '';
@@ -305,8 +308,10 @@ function triggerAwakening() {
   audio.playSpinningAwakening();
   setTimeout(()=>{
     const s3=document.getElementById('scene-3'); s3.style.opacity='1'; s3.style.pointerEvents='auto';
+    // Trigger the staggered h1 + button "smoke condensing" entrance
+    s3.classList.add('scene-3--awakened');
     document.body.style.cursor='auto';
-    document.querySelectorAll('*').forEach(el=>el.style.setProperty('cursor','auto','important'));
+    document.querySelectorAll('[style*="cursor"]').forEach(el=>el.style.removeProperty('cursor'));
     // Auto-advance only after 5s of INACTIVITY — resets on any interaction
     _startScene3IdleWatch();
   },3000);
@@ -471,3 +476,31 @@ _umbralBtn.addEventListener('touchend', function(e) {
   audio.resumeIfSuspended();
   archive.openPacto(() => enterScene2());
 }, { passive: false });
+
+// ── Las Crónicas — split into letter spans for per-letter drift + accent blink
+// (kept accessible: h2 carries aria-label, spans aria-hidden)
+(() => {
+  const init = () => {
+    const h2 = document.querySelector('.site-hero h2');
+    if (!h2 || h2.dataset.split === '1') return;
+    const text = h2.textContent;
+    h2.setAttribute('aria-label', text);
+    h2.dataset.split = '1';
+    h2.innerHTML = '';
+    [...text].forEach((ch, i) => {
+      const span = document.createElement('span');
+      span.className = 'cronicas-letter';
+      if (ch === ' ') span.classList.add('cronicas-letter--space');
+      else if (ch === 'ó' || ch === 'Ó') span.classList.add('cronicas-letter--accent');
+      span.style.setProperty('--i', i);
+      span.textContent = ch;
+      span.setAttribute('aria-hidden', 'true');
+      h2.appendChild(span);
+    });
+  };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init, { once: true });
+  } else {
+    init();
+  }
+})();

@@ -70,28 +70,49 @@
   background: #050505; border-top: 1px solid rgba(200,146,42,0.2);
   z-index: 44; transform: translateY(100%);
   transition: transform 0.55s cubic-bezier(0.25, 1, 0.5, 1);
-  padding: 44px 5vw 48px; max-height: 85vh; overflow-y: auto;
+  padding: 32px 5vw 36px; overflow-y: auto;
 }
 #tizno-panel.open { transform: translateY(0); }
 
 #tizno-panel-close {
-  position: absolute; top: 16px; right: 20px;
+  position: absolute; top: 12px; right: 16px;
   background: transparent; border: none; cursor: pointer !important;
   color: rgba(255,255,255,0.25); font-size: 22px; line-height: 1;
   padding: 4px 8px; transition: color 0.3s; z-index: 2;
 }
 #tizno-panel-close:hover { color: rgba(255,255,255,0.8); }
+#tizno-panel-close:focus { outline: none; }
+#tizno-panel-close:focus-visible { outline: 1px solid rgba(200,146,42,0.5); outline-offset: 2px; }
 
-/* 2-column grid: left=info, right=form */
+/* 3-column grid on desktop — wide and shallow */
 #tizno-panel-inner {
-  max-width: 960px; margin: 0 auto;
-  display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start;
+  max-width: 1100px; margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 1.2fr;
+  gap: 48px;
+  align-items: start;
 }
 
-/* Left column — social, email, then Tizno identity below */
-.tizno-info-col { display: flex; flex-direction: column; gap: 0; }
+.tizno-col { display: flex; flex-direction: column; gap: 12px; }
 
-.tizno-social-row { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+/* Column 1: Contact CTA — vertically centered for visual weight */
+.tizno-col--contact {
+  align-items: center; justify-content: center; text-align: center;
+  border-right: 1px solid rgba(255,255,255,0.04);
+  padding-right: 24px; min-height: 100%;
+}
+.tizno-form-title {
+  font-size: 10px; letter-spacing: 5px; text-transform: uppercase;
+  color: #c8922a; margin: 0;
+}
+
+/* Column 2: Brand — social, email, identity */
+.tizno-col--brand {
+  border-right: 1px solid rgba(255,255,255,0.04);
+  padding-right: 24px;
+}
+
+.tizno-social-row { display: flex; gap: 18px; flex-wrap: wrap; margin: 0 0 4px; }
 .tizno-social-link {
   display: flex; align-items: center; gap: 8px; color: #666;
   text-decoration: none; font-size: 11px; letter-spacing: 3px;
@@ -99,16 +120,16 @@
 }
 .tizno-social-link:hover { color: #c8922a; }
 
-.tizno-email { font-size: 11px; color: #555; letter-spacing: 2px; margin: 0 0 28px; text-transform: uppercase; }
+.tizno-email { font-size: 11px; color: #555; letter-spacing: 2px; margin: 0; text-transform: uppercase; }
 .tizno-email--highlight a { color: #888 !important; }
 .tizno-email--highlight a:hover { color: #e8c87a !important; }
 .tizno-email a { color: inherit; text-decoration: none; transition: color 0.3s; }
 .tizno-email a:hover { color: #e8ecef; }
 
-/* Tizno identity block — below social/email */
 .tizno-identity {
-  padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.04);
-  display: flex; flex-direction: column; gap: 6px;
+  padding-top: 16px; margin-top: 8px;
+  border-top: 1px solid rgba(255,255,255,0.04);
+  display: flex; flex-direction: column; gap: 4px;
 }
 .tizno-identity-name {
   font-size: 10px; letter-spacing: 8px; text-transform: uppercase;
@@ -117,37 +138,30 @@
 .tizno-identity-sub  { font-size: 11px; letter-spacing: 2px; color: #444; font-style: italic; margin: 0; }
 .tizno-identity-soon {
   font-size: 9px; letter-spacing: 4px; color: #2a2a2a;
-  text-transform: uppercase; font-style: italic; margin: 8px 0 0;
+  text-transform: uppercase; font-style: italic; margin: 4px 0 0;
 }
 
-/* Right column — contact form */
-.tizno-form-col { display: flex; flex-direction: column; align-items: center; text-align: center; }
-.tizno-form-title {
-  font-size: 10px; letter-spacing: 5px; text-transform: uppercase;
-  color: #c8922a; margin: 0 0 16px; /* amber, as requested */
+/* Tablet: collapse to 2 columns (Pacto wraps to its own row) */
+@media (max-width: 1024px) {
+  #tizno-panel-inner { grid-template-columns: 1fr 1fr; gap: 32px; }
+  .tizno-col--contact { border-right: 1px solid rgba(255,255,255,0.04); padding-right: 24px; }
+  .tizno-col--brand   { border-right: none; padding-right: 0; }
+  .tizno-col--pacto   { grid-column: 1 / -1; border-top: 1px solid rgba(255,255,255,0.04); padding-top: 24px; }
 }
-.tizno-contact-form { display: flex; flex-direction: column; gap: 10px; }
-.tizno-contact-form input,
-.tizno-contact-form textarea {
-  background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.12);
-  color: #e8ecef; font-family: 'Times New Roman', serif; font-size: 13px;
-  padding: 11px 14px; outline: none; transition: border-color 0.3s;
-  letter-spacing: 1px; resize: none;
-}
-.tizno-contact-form input:focus,
-.tizno-contact-form textarea:focus { border-color: rgba(200,146,42,0.5); }
-.tizno-contact-form input::placeholder,
-.tizno-contact-form textarea::placeholder { color: #3a3a3a; }
 
+/* Mobile: single column */
 @media (max-width: 768px) {
-  #tizno-panel-inner { grid-template-columns: 1fr; gap: 32px; }
-  #tizno-panel { padding: 36px 5vw 40px; }
+  #tizno-panel { padding: 24px 5vw 28px; max-height: 80vh; }
+  #tizno-panel-inner { grid-template-columns: 1fr; gap: 20px; max-width: 100%; }
+  .tizno-col--contact { align-items: center; text-align: center; border-right: none; padding-right: 0; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .tizno-col--brand   { border-right: none; padding-right: 0; }
+  .tizno-col--pacto   { padding-top: 0; border-top: none; }
 }
 
 /* ── El Pacto — email capture ────────────────────────────────────────────── */
 .tizno-pacto {
-  padding-top: 24px; margin-top: 24px;
-  border-top: 1px solid rgba(255,255,255,0.04);
+  width: 100%;
+  text-align: left;
 }
 .tizno-pacto-label {
   font-size: 11px; color: #555; letter-spacing: 2px;
@@ -189,4 +203,8 @@
 .tizno-pacto-consent a { color: #666; text-decoration: none; }
 .tizno-pacto-consent a:hover { color: #c8922a; }
 
-.tizno-mailto-btn { display: block; text-align: center; margin-top: 0 !important; width: 100%; padding: 12px 20px; letter-spacing: 3px; }
+.tizno-mailto-btn {
+  display: inline-block; text-align: center; margin-top: 0 !important;
+  padding: 12px 28px; letter-spacing: 3px;
+  cursor: pointer !important; user-select: none;
+}

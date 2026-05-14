@@ -1,10 +1,19 @@
 * { box-sizing: border-box; }
-body { cursor: crosshair; }
+body { cursor: default; }
 /* Show focus rings only for keyboard navigation (not mouse/touch) */
 :focus:not(:focus-visible) { outline: none; }
 
-/* Intro scenes get crosshair; archive/reading get default (overridden per element) */
+/* Intro scenes get crosshair (custom SVG below); archive/reading inherit body default */
 #gallery-container, #scene-2, #scene-3 { cursor: crosshair; }
+
+/* Cursor consistency in archive/tizno/reading views:
+   default arrow everywhere, pointer on clickables, text ONLY in the email input. */
+a, button, [role="button"], label[for], input[type="checkbox"],
+.archive-pillar, .obra-cover--clickable, .obra-btn, .reading-tab, .obra-tab,
+#tizno-tease, .footer-legal a, .site-nav .links span,
+#skip-btn, #btn-volver, #replay-intro-btn { cursor: pointer; }
+
+input[type="text"]:not([readonly]), input[type="email"], textarea { cursor: text; }
 
 /* Scene 2 + 3: minimal custom crosshair — 3px white lines, amber center dot */
 #scene-2, #scene-3 {
@@ -13,7 +22,7 @@ body { cursor: crosshair; }
 
 /* Widow / orphan prevention — scoped to ARCHIVE only, NOT Scene 1 (text-wrap on animated
    elements forces layout reflow every frame and kills canvas performance) */
-.site-hero h2, .pillar-content h4, .obra-title,
+.site-hero h2, .pillar-content h3, .obra-title,
 #obra-modal-title, #legal-modal-title, .reading-content h1,
 .reading-content h2, .reading-content h3 { text-wrap: balance; }
 
@@ -85,16 +94,84 @@ body, html {
 #scene-3 h1 {
   color: #0a0a0a; font-size: 36px; letter-spacing: 30px; text-transform: uppercase;
   margin-bottom: 60px; font-weight: 900; text-align: center; padding: 0 20px;
+  /* Compensate for letter-spacing applied AFTER the last letter, which shifts
+     the visual center slightly right. Push text-indent half a letter-spacing. */
+  text-indent: 15px;
+  /* Start invisible — fades in when scene-3 gains the .scene-3--awakened class */
+  opacity: 0;
 }
 
 #final-btn {
   border: 1px solid rgba(0,0,0,0.2); padding: 20px 60px; background: transparent; color: #0a0a0a;
   font-size: 14px; letter-spacing: 8px; text-transform: uppercase; font-family: 'Times New Roman', serif;
-  transition: all 0.4s ease; cursor: pointer !important; outline: none;
+  transition: background 0.4s ease, color 0.4s ease, box-shadow 0.4s ease; cursor: pointer !important; outline: none;
+  /* Compensate for letter-spacing after last char shifting visual center left */
+  text-indent: 4px;
+  /* Start invisible — fades in slightly after the title */
+  opacity: 0;
 }
 #final-btn:hover { background: #0a0a0a; color: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
 
-#vfx-canvas { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 3; pointer-events: none; }
+/* ── Awakened state — simple staggered fade-in ─────────────────────────── */
+#scene-3.scene-3--awakened h1 {
+  animation: elementFadeIn 1.2s ease-in-out 0.3s forwards;
+}
+#scene-3.scene-3--awakened #final-btn {
+  animation: elementFadeIn 1.2s ease-in-out 2.2s forwards;
+}
+
+@keyframes elementFadeIn {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #scene-3 h1, #final-btn { opacity: 1 !important; }
+  #scene-3.scene-3--awakened h1,
+  #scene-3.scene-3--awakened #final-btn { animation: none; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ADENTRARSE — simple fade-out (per Ruben: "lets simplify to fades")
+   Single property animated: opacity. Cheap, smooth, no stepped/jittery feel.
+   ══════════════════════════════════════════════════════════════════════════ */
+#scene-3.scene-3--departing {
+  pointer-events: none;
+  animation: sceneFadeOut 1.4s ease-in-out forwards;
+}
+#scene-3.scene-3--departing #final-btn,
+#scene-3.scene-3--departing h1 {
+  animation: elementFadeOut 0.7s ease-in-out forwards;
+}
+/* Fade the VFX canvas at the same time so the awakening spotlight doesn't
+   linger behind the fading white scene. Sibling selector — works because
+   #scene-3 and #vfx-canvas are body-level siblings.
+   IMPORTANT: transition is set on the base #vfx-canvas rule below so that
+   adding the .scene-3--departing class only changes opacity. Transitions
+   only animate when the transition property is already in effect before
+   the value change. */
+#scene-3.scene-3--departing ~ #vfx-canvas { opacity: 0; }
+
+@keyframes sceneFadeOut {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes elementFadeOut {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #scene-3.scene-3--departing,
+  #scene-3.scene-3--departing #final-btn,
+  #scene-3.scene-3--departing h1 { animation: none; opacity: 0; }
+}
+
+#vfx-canvas {
+  position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+  z-index: 3; pointer-events: none;
+  transition: opacity 0.4s ease-out;
+}
 
 /* Mobile-only overlays — hidden by default, shown by mobile.css on ≤768px */
 #mobile-char-detail { display: none; }

@@ -11,7 +11,7 @@ const OBRA_META = {
   },
   'filamentos-de-oscuridad': {
     title: 'Filamentos de Oscuridad — Soulware',
-    desc: 'Primera de dos novelas. Cuando los hilos que no deberían conectarse se tensan, la percepción se convierte en trampa. Por Irina M. Disponible el 12 de mayo de 2026.',
+    desc: 'Primera de dos novelas. Cuando los hilos que no deberían conectarse se tensan, la percepción se convierte en trampa. Por Irina M. Ya disponible en Amazon España.',
     url: 'https://soulware.live/obras/filamentos-de-oscuridad',
   },
   'anatomia-del-vacio': {
