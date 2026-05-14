@@ -40,36 +40,54 @@ class Firefly {
     this.el.style.height = this.size + 'px';
   }
 
-  update(targetX, targetY, attraction, scrollDY = 0) {
+  update(targetX, targetY, attraction, scrollDY = 0, cursor = null) {
     this.phase += 0.018 + Math.random() * 0.006;
+    // Independent X/Y sine phases for less correlated horizontal/vertical drift
+    this._phaseX = (this._phaseX || (Math.random() * Math.PI * 2)) + 0.012;
+    this._phaseY = (this._phaseY || (Math.random() * Math.PI * 2)) + 0.014;
 
-    // Brownian drift — looser than before for more wandering feel
-    this.vx += (Math.random() - 0.5) * 0.12 * this.speedMult;
-    this.vy += (Math.random() - 0.5) * 0.10 * this.speedMult + Math.sin(this.phase) * 0.05;
+    // Erratic Brownian drift — equally weighted X and Y, like Scene 1 fireflies
+    this.vx += (Math.random() - 0.5) * 0.18 * this.speedMult + Math.sin(this._phaseX) * 0.06;
+    this.vy += (Math.random() - 0.5) * 0.16 * this.speedMult + Math.sin(this._phaseY) * 0.06;
 
     // Scroll-direction nudge — fireflies catch the wake of scroll like dust in air
     if (scrollDY !== 0) {
       this.vy += scrollDY * 0.04;
     }
 
-    // Attraction toward guide target
+    // Cursor REPULSION — fireflies flee from the mouse, fearful.
+    // Force falls off with distance² so they only react when the cursor is near.
+    if (cursor) {
+      const dx = this.x - cursor.x;
+      const dy = this.y - cursor.y;
+      const distSq = dx * dx + dy * dy + 1;
+      const repelRadius = 220;
+      if (distSq < repelRadius * repelRadius) {
+        const dist = Math.sqrt(distSq);
+        const strength = (1 - dist / repelRadius) * 1.4;
+        this.vx += (dx / dist) * strength;
+        this.vy += (dy / dist) * strength;
+      }
+    }
+
+    // Attraction toward guide target (Tizno orbit, obras section, etc.)
     if (attraction > 0) {
       this.vx += (targetX - this.x) * attraction;
       this.vy += (targetY - this.y) * attraction;
     }
 
     // Damping
-    this.vx *= 0.96;
-    this.vy *= 0.96;
+    this.vx *= 0.95;
+    this.vy *= 0.95;
 
-    // Speed cap (raised from 1.8 to 2.4 for livelier motion)
+    // Speed cap (let them flee fast when escaping the cursor)
     const spd = Math.hypot(this.vx, this.vy);
-    if (spd > 2.4) { this.vx = this.vx / spd * 2.4; this.vy = this.vy / spd * 2.4; }
+    if (spd > 3.2) { this.vx = this.vx / spd * 3.2; this.vy = this.vy / spd * 3.2; }
 
     this.x += this.vx;
     this.y += this.vy;
 
-    // Soft viewport boundary — keep them on screen (was 3000px bottom = off-screen)
+    // Soft viewport boundary — keep them on screen
     const W = window.innerWidth;
     const H = window.innerHeight;
     if (this.x < 40)       this.vx += 0.25;
@@ -257,19 +275,11 @@ export class ArchiveFireflies {
     this._scrollDY *= this._scrollDecay;
     if (Math.abs(this._scrollDY) < 0.01) this._scrollDY = 0;
 
+    // Cursor object passed to each firefly so they can flee from it
+    const cursor = this._cursorActive ? { x: this._cursorX, y: this._cursorY } : null;
+
     this._fireflies.forEach((ff, i) => {
       let tx = W2, ty = this._obrasY, att = 0;
-
-      // Vague cursor follow (always-on, very weak attraction)
-      // Each firefly drifts toward an offset position around the cursor,
-      // so they don't collapse onto one point. ~0.0005 = barely-there pull.
-      if (this._cursorActive) {
-        const offsetAngle = (i / FIREFLY_COUNT) * Math.PI * 2;
-        const offsetR = 60 + i * 12;
-        tx = this._cursorX + Math.cos(offsetAngle) * offsetR;
-        ty = this._cursorY + Math.sin(offsetAngle) * offsetR;
-        att = 0.0008;
-      }
 
       if (idle > INACTIVITY_TIZNO && this._tizno) {
         // Orbit Tizno tease — circular motion around its position
@@ -292,7 +302,7 @@ export class ArchiveFireflies {
         att = 0.0006;
       }
 
-      ff.update(tx, ty, att, scrollDY);
+      ff.update(tx, ty, att, scrollDY, cursor);
     });
 
     if (this._particles) this._particles.draw();

@@ -352,6 +352,7 @@ export class ArchiveDOM {
   openReading(index, activeTab = 'autor') {
     const char=CHARACTERS[index]; if(!char) return;
     this._lastReadingFocus = document.activeElement;
+    this._currentReadingIndex = index; // used by hover-sound handler for reading-view covers
     // "Door closes" — muffle the ambient while the user reads
     this._audio?.setReadingViewMuffle(true);
     this._readTitle.innerText=char.title;
@@ -527,17 +528,25 @@ export class ArchiveDOM {
     // shimmer on active buy buttons. Uses mouseover + relatedTarget check
     // so each fires exactly once per element entry (mouseenter doesn't bubble).
     document.addEventListener('mouseover', e => {
-      // Book cover hover → character-tuned chime
-      const cover = e.target.closest('.obra-cover--clickable');
-      if (cover && !cover.contains(e.relatedTarget)) {
-        const item = CATALOGUE.find(c => c.id === cover.dataset.id);
+      // Archive-grid cover → look up archetype from data-id
+      const gridCover = e.target.closest('.obra-cover--clickable');
+      if (gridCover && !gridCover.contains(e.relatedTarget)) {
+        const item = CATALOGUE.find(c => c.id === gridCover.dataset.id);
         if (item) {
           const charIndex = CHARACTERS.findIndex(c => c.slug === item.archetype);
           if (charIndex >= 0) this._audio?.playCoverHover(charIndex);
         }
         return;
       }
-      // Active buy button hover → metallic shimmer (only for real buy links)
+      // Reading-view cover → use the currently-open character's archetype
+      const readCover = e.target.closest('.reading-obra-cover');
+      if (readCover && !readCover.contains(e.relatedTarget)) {
+        if (this._currentReadingIndex >= 0) {
+          this._audio?.playCoverHover(this._currentReadingIndex);
+        }
+        return;
+      }
+      // Active buy button hover → metallic shimmer (real links only)
       const btn = e.target.closest('a.obra-btn--buy[href]');
       if (btn && !btn.contains(e.relatedTarget)) {
         this._audio?.playButtonHover();
