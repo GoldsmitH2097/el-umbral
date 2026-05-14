@@ -103,26 +103,17 @@ body, html {
 }
 #final-btn:hover { background: #0a0a0a; color: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
 
-/* ── Awakened state — h1 and button materialize, in sequence (vector only) ── */
+/* ── Awakened state — simple staggered fade-in ─────────────────────────── */
 #scene-3.scene-3--awakened h1 {
-  animation: titleAppear 1.6s cubic-bezier(0.22, 1, 0.36, 1) 0.3s forwards;
+  animation: elementFadeIn 1.2s ease-in-out 0.3s forwards;
 }
 #scene-3.scene-3--awakened #final-btn {
-  animation: btnAppear 1.4s cubic-bezier(0.22, 1, 0.36, 1) 1.2s forwards;
+  animation: elementFadeIn 1.2s ease-in-out 1.2s forwards;
 }
 
-/* Title — scale-down from wider letter-spacing + opacity fade-in. No blur, no text-shadow. */
-@keyframes titleAppear {
-  0%   { opacity: 0;    transform: scale(1.12); letter-spacing: 80px; }
-  60%  { opacity: 0.8;  transform: scale(1.03); letter-spacing: 45px; }
-  100% { opacity: 1;    transform: scale(1);    letter-spacing: 30px; }
-}
-
-/* Button — scale-up + letter-spacing tightens + opacity fade-in */
-@keyframes btnAppear {
-  0%   { opacity: 0;    transform: scale(0);    letter-spacing: 44px; }
-  60%  { opacity: 0.7;  transform: scale(0.9);  letter-spacing: 16px; }
-  100% { opacity: 1;    transform: scale(1);    letter-spacing: 8px; }
+@keyframes elementFadeIn {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -132,72 +123,31 @@ body, html {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   ADENTRARSE — vector-only transition (no blur, no filter, no mix-blend)
-   Compositor-only properties: transform + opacity. Smoothly accelerated dark
-   tide grows from center → archive emerges. ~1.6s total.
+   ADENTRARSE — simple fade-out (per Ruben: "lets simplify to fades")
+   Single property animated: opacity. Cheap, smooth, no stepped/jittery feel.
    ══════════════════════════════════════════════════════════════════════════ */
 #scene-3.scene-3--departing {
   pointer-events: none;
-  animation: sceneDepart 1.6s cubic-bezier(0.55, 0, 0.85, 0.7) forwards;
+  animation: sceneFadeOut 1.4s ease-in-out forwards;
 }
-#scene-3.scene-3--departing #final-btn {
-  animation: btnVanish 0.9s cubic-bezier(0.6, 0, 0.9, 0.5) forwards;
-  pointer-events: none;
-}
+#scene-3.scene-3--departing #final-btn,
 #scene-3.scene-3--departing h1 {
-  animation: titleDepart 1.6s cubic-bezier(0.6, 0, 0.9, 0.5) forwards;
-}
-/* Dark tide — pure-color radial gradient, no mix-blend (compositor cost matters) */
-#scene-3.scene-3--departing::after {
-  content: ''; position: absolute; inset: 0; z-index: 11;
-  background: radial-gradient(circle at 50% 50%,
-    rgba(0,0,0,0.95) 0%,
-    rgba(0,0,0,0.85) 30%,
-    rgba(0,0,0,0.55) 60%,
-    rgba(0,0,0,0) 100%);
-  opacity: 0;
-  transform: scale(0.3);
-  transform-origin: 50% 50%;
-  pointer-events: none;
-  animation: darkTide 1.6s cubic-bezier(0.55, 0, 0.85, 0.7) forwards;
-  will-change: transform, opacity;
+  animation: elementFadeOut 0.7s ease-in-out forwards;
 }
 
-/* Scene dissolution: just scale + opacity. No filter. */
-@keyframes sceneDepart {
-  0%   { transform: scale(1);    opacity: 1; }
-  50%  { transform: scale(1.04); opacity: 0.92; }
-  100% { transform: scale(1.12); opacity: 0; }
+@keyframes sceneFadeOut {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes elementFadeOut {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
 }
 
-/* Button: scale-down with letter-spacing dissolution. Vector only. */
-@keyframes btnVanish {
-  0%   { transform: scale(1);    opacity: 1;   letter-spacing: 8px; }
-  60%  { transform: scale(0.6);  opacity: 0.35; letter-spacing: 28px; }
-  100% { transform: scale(0);    opacity: 0;   letter-spacing: 44px; }
-}
-
-/* Title: scale-up + letter-spacing widens + opacity fade. No blur, no text-shadow blur. */
-@keyframes titleDepart {
-  0%   { transform: scale(1);    opacity: 1;   letter-spacing: 30px; }
-  60%  { transform: scale(1.06); opacity: 0.6; letter-spacing: 50px; }
-  100% { transform: scale(1.14); opacity: 0;  letter-spacing: 80px; }
-}
-
-/* Dark tide: pure transform + opacity, no mix-blend. Cheap. */
-@keyframes darkTide {
-  0%   { transform: scale(0.3); opacity: 0; }
-  40%  { transform: scale(1.1); opacity: 0.5; }
-  80%  { transform: scale(2.0); opacity: 0.9; }
-  100% { transform: scale(2.5); opacity: 1; }
-}
-
-/* Respect reduced-motion: skip the choreography */
 @media (prefers-reduced-motion: reduce) {
-  #scene-3.scene-3--departing { animation: none; opacity: 0; }
+  #scene-3.scene-3--departing,
   #scene-3.scene-3--departing #final-btn,
-  #scene-3.scene-3--departing h1,
-  #scene-3.scene-3--departing::after { animation: none; opacity: 0; }
+  #scene-3.scene-3--departing h1 { animation: none; opacity: 0; }
 }
 
 #vfx-canvas { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 3; pointer-events: none; }

@@ -201,10 +201,11 @@ export class AudioEngine {
    */
   playCoverHover(charIndex) {
     if (!this.audioCtx || this.audioCtx.state !== 'running') return;
-    // Light throttle — rapid mouse-overs across multiple covers shouldn't stack
+    // Independent throttle so a cover hover doesn't suppress a button hover that
+    // immediately follows when the cursor moves from cover to its buy button.
     const t = performance.now();
-    if (t - (this._lastHoverT || 0) < 180) return;
-    this._lastHoverT = t;
+    if (t - (this._lastCoverHoverT || 0) < 180) return;
+    this._lastCoverHoverT = t;
     try {
       const ctx = this.audioCtx, now = ctx.currentTime;
       const freq = CHAR_FREQUENCIES[charIndex];
@@ -231,8 +232,8 @@ export class AudioEngine {
   playButtonHover() {
     if (!this.audioCtx || this.audioCtx.state !== 'running') return;
     const t = performance.now();
-    if (t - (this._lastHoverT || 0) < 180) return;
-    this._lastHoverT = t;
+    if (t - (this._lastBtnHoverT || 0) < 180) return;
+    this._lastBtnHoverT = t;
     try {
       const ctx = this.audioCtx, now = ctx.currentTime;
       // Short white-noise burst → bandpass filter sweeping high-to-low → quick decay
