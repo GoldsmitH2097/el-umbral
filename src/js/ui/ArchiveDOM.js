@@ -228,16 +228,21 @@ export class ArchiveDOM {
     this._initPillarPreloadOnScroll();
   }
 
-  // Belt-and-suspenders for pillar video preloading. The primary trigger is
-  // the sceneChange→4 listener in _bindEvents(), which fires on the normal
-  // Adentrarse flow. But skip-intro paths (Router deep-link, /skip-btn click,
-  // prefers-reduced-motion) and any future entry point that doesn't fire that
-  // event could leave pillar videos stuck at preload='none'. This observer
-  // catches that: as soon as a pillar enters the viewport (200 px ahead), if
-  // its video is still 'none', flip it to 'auto'. One-shot per pillar.
+  // Belt-and-suspenders for pillar video preloading. Primary trigger is the
+  // sceneChange→4 listener in _bindEvents() (fires on Adentrarse / skip-btn /
+  // reduced-motion / deep-link). This observer catches any future path that
+  // might miss that event, by upgrading preload when a pillar approaches view.
+  //
+  // CRITICAL: gated on state.activeScene >= 4. Scene 4 is rendered in-flow
+  // BENEATH the fixed Scene 1 overlay at y ~1240 px — within IntersectionObserver
+  // range even on initial page load. Without the scene gate, the observer would
+  // start downloading pillar videos *during the intro*, on top of the gallery
+  // video. (Caught by Uptrends, May 14: 1080p Emperatriz + 720p Emperatriz both
+  // fetching in the same waterfall.)
   _initPillarPreloadOnScroll() {
     if (typeof IntersectionObserver === 'undefined') return;
     const io = new IntersectionObserver(entries => {
+      if (state.activeScene < 4) return;
       entries.forEach(entry => {
         if (!entry.isIntersecting) return;
         const v = entry.target.querySelector('video');
