@@ -103,6 +103,12 @@
   justify-content: flex-end; padding: 40px 20px;
   border-bottom: 1px solid rgba(255,255,255,0.04);
 }
+/* On-brand keyboard focus — replaces the default browser blue outline */
+.archive-pillar:focus { outline: none; }
+.archive-pillar:focus-visible {
+  outline: 1px solid rgba(200,146,42,0.45);
+  outline-offset: -2px;
+}
 /* Dark gradient behind text — ensures readability regardless of video content.
    Critical for Emperatriz whose video has warm amber tones exactly at text position. */
 .archive-pillar::before {
@@ -137,6 +143,10 @@
 .archive-pillar .pillar-content p {
   font-size: 13px; color: #aaa; line-height: 1.7; margin: 0 auto; max-width: 250px;
   opacity: 0.75; transition: opacity 0.4s ease;
+  /* Reserve space for tallest description (3 lines) so all character titles
+     above align at the same vertical position regardless of blurb length. */
+  min-height: 5.1em;
+  display: flex; align-items: flex-start; justify-content: center;
 }
 .archive-col:hover .archive-pillar .pillar-content p,
 .archive-col--highlighted .archive-pillar .pillar-content p { opacity: 1; }
