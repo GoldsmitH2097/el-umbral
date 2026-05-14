@@ -471,3 +471,31 @@ _umbralBtn.addEventListener('touchend', function(e) {
   audio.resumeIfSuspended();
   archive.openPacto(() => enterScene2());
 }, { passive: false });
+
+// ── Las Crónicas — split into letter spans for per-letter drift + accent blink
+// (kept accessible: h2 carries aria-label, spans aria-hidden)
+(() => {
+  const init = () => {
+    const h2 = document.querySelector('.site-hero h2');
+    if (!h2 || h2.dataset.split === '1') return;
+    const text = h2.textContent;
+    h2.setAttribute('aria-label', text);
+    h2.dataset.split = '1';
+    h2.innerHTML = '';
+    [...text].forEach((ch, i) => {
+      const span = document.createElement('span');
+      span.className = 'cronicas-letter';
+      if (ch === ' ') span.classList.add('cronicas-letter--space');
+      else if (ch === 'ó' || ch === 'Ó') span.classList.add('cronicas-letter--accent');
+      span.style.setProperty('--i', i);
+      span.textContent = ch;
+      span.setAttribute('aria-hidden', 'true');
+      h2.appendChild(span);
+    });
+  };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init, { once: true });
+  } else {
+    init();
+  }
+})();

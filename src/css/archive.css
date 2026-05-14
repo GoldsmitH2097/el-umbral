@@ -39,12 +39,50 @@
 }
 
 .archive-visible .site-hero h2 {
-  animation: heroTitleReveal 2.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  animation-delay: 0.4s;
+  animation:
+    heroTitleReveal 2.4s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards,
+    cronicasGlow 8s ease-in-out 3s infinite;
 }
 .archive-visible .site-hero p {
   animation: heroSubReveal 2s ease forwards;
   animation-delay: 1.6s;
+}
+
+/* ── Las Crónicas — per-letter breathing animation ────────────────────────── */
+/* Spans are injected by JS (see main.js). Each gets --i = its position index,
+   used to phase-offset the drift so the letters wander out of sync. */
+.cronicas-letter {
+  display: inline-block;
+  /* Wait until after the reveal animation (2.4s + 0.4s delay = 2.8s) then drift forever */
+  animation: cronicasDrift 6.5s ease-in-out infinite;
+  animation-delay: calc(2.8s + var(--i) * 0.32s);
+  animation-fill-mode: both;
+  will-change: transform, opacity;
+}
+.cronicas-letter--space { animation: none; }
+.cronicas-letter--accent {
+  /* Compose two animations: drift + occasional blink for the Ó */
+  animation:
+    cronicasDrift 6.5s ease-in-out infinite,
+    cronicasAccentBlink 14s ease-in-out infinite;
+  animation-delay: calc(2.8s + var(--i) * 0.32s), 6s;
+}
+
+/* Subtle position drift — ±1.5px Y, ±0.5px X, slow */
+@keyframes cronicasDrift {
+  0%, 100% { transform: translateY(0) translateX(0); }
+  33%      { transform: translateY(-1.5px) translateX(0.5px); }
+  66%      { transform: translateY(1.2px) translateX(-0.4px); }
+}
+/* The Ó blinks rarely — like an eye opening then closing again */
+@keyframes cronicasAccentBlink {
+  0%, 88%, 100% { opacity: 1; }
+  91%, 93%      { opacity: 0.25; }
+}
+/* Heading glow breath — amber halo that swells and recedes */
+@keyframes cronicasGlow {
+  0%, 100% { text-shadow: 0 0 8px rgba(232,200,122,0.05); }
+  50%      { text-shadow: 0 0 24px rgba(232,200,122,0.18), 0 0 50px rgba(200,146,42,0.08); }
 }
 /* ── Unified archive grid — replaces .pillar-grid + .obras-grid ─────────── */
 /* Each .archive-col contains [pillar section] + [books section] for one archetype.
