@@ -37,11 +37,9 @@
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 
-  <!-- Prefetch the legal modals so the first click feels instant.
-       The modal fetches /<slug>.html on demand; prefetching warms the cache. -->
-  <link rel="prefetch" href="/aviso-legal.html" />
-  <link rel="prefetch" href="/privacidad.html" />
-  <link rel="prefetch" href="/cookies.html" />
+  <!-- Legal modal HTMLs are warmed on idle from ArchiveDOM (requestIdleCallback)
+       instead of <link rel="prefetch"> in head — the prefetch hint was getting
+       serialized into the mobile critical path on slow 4G and hurting LCP. -->
   <meta name="theme-color" content="#020202" />
 
   <!-- JSON-LD Structured Data -->
@@ -246,7 +244,7 @@
 <main id="main-site">
   <div id="grid-view">
     <nav class="site-nav">
-      <div class="logo"><img src="/assets/soulware-logo.webp" alt="Soulware" class="site-logo" /></div>
+      <div class="logo"><img src="/assets/soulware-logo.webp" alt="Soulware" class="site-logo" width="120" height="120" /></div>
       <div class="links">
         <span role="button" tabindex="0" data-action="scroll-obras">LAS OBRAS</span>
         <span role="button" tabindex="0" data-action="scroll-contact">CONTACTO</span>
@@ -261,7 +259,7 @@
       <section class="archive-grid" id="obras-section"></section>
     </div>
     <footer class="site-footer">
-      <img src="/assets/soulware-logo.webp" alt="Soulware" class="footer-logo" />
+      <img src="/assets/soulware-logo.webp" alt="Soulware" class="footer-logo" width="120" height="120" />
       <p>Soulware &copy; MMXXVI.</p>
       <p>Nada es lo que parece.</p>
         <button id="replay-intro-btn" aria-label="Volver al inicio del umbral">← Volver al Umbral</button>
