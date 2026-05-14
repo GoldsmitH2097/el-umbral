@@ -266,7 +266,10 @@ export class ArchiveFireflies {
     this._lastFrame = t;
 
     const idle = Date.now() - this._lastActivity;
-    this._getTargets();
+    // Only refresh layout-reading targets when we're about to need them (idle approaching).
+    // Calling getBoundingClientRect every frame forces synchronous layout — verified as
+    // the main UpdateLayoutTree contributor in the 2026-05-14 perf trace.
+    if (idle > INACTIVITY_OBRAS - 1500) this._getTargets();
 
     const W2 = window.innerWidth / 2;
 

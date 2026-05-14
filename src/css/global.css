@@ -1,10 +1,19 @@
 * { box-sizing: border-box; }
-body { cursor: crosshair; }
+body { cursor: default; }
 /* Show focus rings only for keyboard navigation (not mouse/touch) */
 :focus:not(:focus-visible) { outline: none; }
 
-/* Intro scenes get crosshair; archive/reading get default (overridden per element) */
+/* Intro scenes get crosshair (custom SVG below); archive/reading inherit body default */
 #gallery-container, #scene-2, #scene-3 { cursor: crosshair; }
+
+/* Cursor consistency in archive/tizno/reading views:
+   default arrow everywhere, pointer on clickables, text ONLY in the email input. */
+a, button, [role="button"], label[for], input[type="checkbox"],
+.archive-pillar, .obra-cover--clickable, .obra-btn, .reading-tab, .obra-tab,
+#tizno-tease, .footer-legal a, .site-nav .links span,
+#skip-btn, #btn-volver, #replay-intro-btn { cursor: pointer; }
+
+input[type="text"]:not([readonly]), input[type="email"], textarea { cursor: text; }
 
 /* Scene 2 + 3: minimal custom crosshair — 3px white lines, amber center dot */
 #scene-2, #scene-3 {
@@ -108,7 +117,7 @@ body, html {
   animation: elementFadeIn 1.2s ease-in-out 0.3s forwards;
 }
 #scene-3.scene-3--awakened #final-btn {
-  animation: elementFadeIn 1.2s ease-in-out 1.2s forwards;
+  animation: elementFadeIn 1.2s ease-in-out 2.2s forwards;
 }
 
 @keyframes elementFadeIn {

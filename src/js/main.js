@@ -114,7 +114,7 @@ function _startScene3IdleWatch() {
   if (_s3IdleInterval) clearInterval(_s3IdleInterval);
   _s3IdleInterval = setInterval(() => {
     if (state.activeScene !== 3) { clearInterval(_s3IdleInterval); return; }
-    if (Date.now() - _s3LastActivity >= 5000) {
+    if (Date.now() - _s3LastActivity >= 7000) {
       clearInterval(_s3IdleInterval);
       // Trigger the same stylized departure choreography as an explicit click,
       // so auto-advancing visitors see the cinematic transition too.
@@ -250,7 +250,7 @@ function skipIntroAndEnterArchive() {
   visual.start();
   archive.showArchive({skipIntro:true});
   document.body.style.cursor='auto';
-  document.querySelectorAll('*').forEach(el=>el.style.setProperty('cursor','auto','important'));
+  document.querySelectorAll('[style*="cursor"]').forEach(el=>el.style.removeProperty('cursor'));
   // Release body overflow lock — intro needs it, archive scrolls itself
   document.documentElement.style.overflow = '';
   document.documentElement.style.height = '';
@@ -311,7 +311,7 @@ function triggerAwakening() {
     // Trigger the staggered h1 + button "smoke condensing" entrance
     s3.classList.add('scene-3--awakened');
     document.body.style.cursor='auto';
-    document.querySelectorAll('*').forEach(el=>el.style.setProperty('cursor','auto','important'));
+    document.querySelectorAll('[style*="cursor"]').forEach(el=>el.style.removeProperty('cursor'));
     // Auto-advance only after 5s of INACTIVITY — resets on any interaction
     _startScene3IdleWatch();
   },3000);
