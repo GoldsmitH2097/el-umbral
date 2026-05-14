@@ -133,7 +133,7 @@
 }
 .obra-btn--buy { border: 1px solid rgba(255,255,255,0.2); color: #e8ecef; }
 .obra-btn--buy:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.5); }
-.obra-btn--locked, .obra-btn--soon { border: 1px solid rgba(255,255,255,0.06); color: #3a3a3a; cursor: default; user-select: none; }
+.obra-btn--locked, .obra-btn--soon { border: 1px solid rgba(255,255,255,0.12); color: #707070; cursor: default; user-select: none; }
 
 /* ── Countdown — large, centered, timer above date label ─────────────────── */
 .obra-countdown { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 12px; width: 100%; }
@@ -457,12 +457,20 @@
 }
 .obra-cover--anthology img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .obra-editions {
-  display: flex; flex-direction: column; gap: 6px; width: 100%; align-items: center;
+  display: flex; flex-direction: column; gap: 14px; width: 100%; align-items: center;
 }
-.obra-edition-btn {
-  width: 100%; max-width: 180px; text-align: center;
-  display: flex; flex-direction: column; gap: 2px; align-items: center;
+.obra-edition-row {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  width: 100%;
 }
+.obra-edition-header {
+  font-size: 9px; letter-spacing: 4px; text-transform: uppercase;
+  color: rgba(255,255,255,0.45); margin: 0;
+}
+.obra-edition-row .obra-btn { width: 100%; max-width: 220px; }
+.obra-edition-row .obra-btn--soon { color: #707070; }
+/* Legacy classes from the old in-button label layout — kept for safety */
+.obra-edition-btn { width: 100%; max-width: 180px; text-align: center; }
 .obra-edition-label {
   display: block; font-size: 7px; letter-spacing: 3px;
   text-transform: uppercase; opacity: 0.6; margin-bottom: 2px;
