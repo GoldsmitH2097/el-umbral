@@ -62,9 +62,14 @@ export class ArchiveDOM {
       video.loop = true; video.muted = true; video.playsInline = true; video.preload = 'none';
       video.poster = char.src.replace(/^\/(.+)\.mp4$/, '/posters/$1.webp');
       video.setAttribute('aria-hidden', 'true'); // decorative ambient — no captions needed
-      // pickVideoSrc returns /720/<slug>.mp4 on mobile or slow connection,
-      // /<slug>.mp4 on desktop with a decent network. Same URL the gallery
-      // (Scene 1) used, so the browser's HTTP cache serves it on Scene 4 entry.
+      // pickVideoSrc returns /720/<slug>.mp4 on mobile / slow connection /
+      // skip-intro, otherwise /<slug>.mp4. Same URL the gallery (Scene 1) used,
+      // so the browser's HTTP cache serves it on Scene 4 entry — except in the
+      // skip-intro case, where the gallery never ran so the pillar fetch is
+      // the first one (and at 720p, ~400 KB instead of ~1 MB).
+      // Stash the canonical char.src on dataset so the sceneChange listener
+      // can re-pick if state.skippedIntro flipped AFTER construction.
+      video.dataset.charSrc = char.src;
       video.src = pickVideoSrc(char.src);
 
       // Social links only in reading/detail view — NOT on the grid pillar
@@ -703,6 +708,11 @@ export class ArchiveDOM {
     Events.on('sceneChange', ({ to }) => {
       if (to !== 4) return;
       document.querySelectorAll('.archive-pillar video').forEach(v => {
+        // Re-pick src in case state.skippedIntro flipped after construction.
+        // (Skip-btn fires between init and now; reduced-motion path beat us
+        // to it.) Swap to 720p BEFORE preload kicks off the fetch.
+        const want = pickVideoSrc(v.dataset.charSrc || v.src);
+        if (!v.src.endsWith(want)) v.src = want;
         if (v.preload !== 'auto') v.preload = 'auto';
       });
     });

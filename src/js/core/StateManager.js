@@ -164,6 +164,11 @@ export const CATALOGUE = [
 export const state = {
   activeScene: 1, currentCharIndex: 0, hasFinishedGallery: false, isSwapping: false,
   whispersFound: 0, isAwakening: false, isPressed: false, isIgnited: false, ignitionProgress: 0,
+  // True if the user skipped the intro (skip-btn, reduced-motion, or deep-link).
+  // Read by pickVideoSrc() to force the 720p pillar variant — these users
+  // didn't earn the heavy 1080p loop by watching the cinematic, and pillars
+  // render at smaller display size where 720p is visually indistinguishable.
+  skippedIntro: false,
 };
 
 const _listeners = {};
