@@ -116,7 +116,10 @@ function _startScene3IdleWatch() {
     if (state.activeScene !== 3) { clearInterval(_s3IdleInterval); return; }
     if (Date.now() - _s3LastActivity >= 5000) {
       clearInterval(_s3IdleInterval);
-      enterMainSite();
+      // Trigger the same stylized departure choreography as an explicit click,
+      // so auto-advancing visitors see the cinematic transition too.
+      const btn = document.getElementById('final-btn');
+      if (btn) btn.click(); else enterMainSite();
     }
   }, 500);
 }
