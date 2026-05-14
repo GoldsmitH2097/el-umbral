@@ -658,7 +658,7 @@ export class ArchiveDOM {
       // Optional sonic cue at the moment the visual flicker happens — a brief
       // tonal "rupture". Only fires once the audio engine is running.
       this._audio?.playTransitionEcho?.();
-      const delay = reducedMotion ? 0 : 1300;
+      const delay = reducedMotion ? 0 : 2000;
       setTimeout(() => this._onSceneChange('enterMainSite'), delay);
     });
     document.getElementById('btn-cerrar-pacto')?.addEventListener('click',()=>this.closePacto());

@@ -156,6 +156,10 @@ export class ArchiveFireflies {
     this._lastScrollY = 0;
     this._scrollDY = 0;
     this._scrollDecay = 0;
+    // Cursor tracking — fireflies gently drift toward where you're looking
+    this._cursorX = window.innerWidth / 2;
+    this._cursorY = window.innerHeight / 2;
+    this._cursorActive = false;
   }
 
   init() {
@@ -179,7 +183,14 @@ export class ArchiveFireflies {
     const mainSite = document.getElementById('main-site');
     if (!mainSite) return;
     const reset = () => { this._lastActivity = Date.now(); };
-    mainSite.addEventListener('mousemove', reset, { passive: true });
+    mainSite.addEventListener('mousemove', e => {
+      this._lastActivity = Date.now();
+      // Track cursor in viewport coords (container is position:fixed)
+      this._cursorX = e.clientX;
+      this._cursorY = e.clientY;
+      this._cursorActive = true;
+    }, { passive: true });
+    mainSite.addEventListener('mouseleave', () => { this._cursorActive = false; }, { passive: true });
     mainSite.addEventListener('touchstart',reset, { passive: true });
     mainSite.addEventListener('click',     reset, { passive: true });
     mainSite.addEventListener('scroll', () => {
@@ -248,6 +259,17 @@ export class ArchiveFireflies {
 
     this._fireflies.forEach((ff, i) => {
       let tx = W2, ty = this._obrasY, att = 0;
+
+      // Vague cursor follow (always-on, very weak attraction)
+      // Each firefly drifts toward an offset position around the cursor,
+      // so they don't collapse onto one point. ~0.0005 = barely-there pull.
+      if (this._cursorActive) {
+        const offsetAngle = (i / FIREFLY_COUNT) * Math.PI * 2;
+        const offsetR = 60 + i * 12;
+        tx = this._cursorX + Math.cos(offsetAngle) * offsetR;
+        ty = this._cursorY + Math.sin(offsetAngle) * offsetR;
+        att = 0.0008;
+      }
 
       if (idle > INACTIVITY_TIZNO && this._tizno) {
         // Orbit Tizno tease — circular motion around its position

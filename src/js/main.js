@@ -305,6 +305,8 @@ function triggerAwakening() {
   audio.playSpinningAwakening();
   setTimeout(()=>{
     const s3=document.getElementById('scene-3'); s3.style.opacity='1'; s3.style.pointerEvents='auto';
+    // Trigger the staggered h1 + button "smoke condensing" entrance
+    s3.classList.add('scene-3--awakened');
     document.body.style.cursor='auto';
     document.querySelectorAll('*').forEach(el=>el.style.setProperty('cursor','auto','important'));
     // Auto-advance only after 5s of INACTIVITY — resets on any interaction

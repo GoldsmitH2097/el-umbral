@@ -85,95 +85,128 @@ body, html {
 #scene-3 h1 {
   color: #0a0a0a; font-size: 36px; letter-spacing: 30px; text-transform: uppercase;
   margin-bottom: 60px; font-weight: 900; text-align: center; padding: 0 20px;
+  /* Compensate for letter-spacing applied AFTER the last letter, which shifts
+     the visual center slightly right. Push text-indent half a letter-spacing. */
+  text-indent: 15px;
+  /* Start invisible — fades in when scene-3 gains the .scene-3--awakened class */
+  opacity: 0;
 }
 
 #final-btn {
   border: 1px solid rgba(0,0,0,0.2); padding: 20px 60px; background: transparent; color: #0a0a0a;
   font-size: 14px; letter-spacing: 8px; text-transform: uppercase; font-family: 'Times New Roman', serif;
-  transition: all 0.4s ease; cursor: pointer !important; outline: none;
+  transition: background 0.4s ease, color 0.4s ease, box-shadow 0.4s ease; cursor: pointer !important; outline: none;
+  /* Compensate for letter-spacing after last char shifting visual center left */
+  text-indent: 4px;
+  /* Start invisible — fades in slightly after the title */
+  opacity: 0;
 }
 #final-btn:hover { background: #0a0a0a; color: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
 
+/* ── Awakened state — h1 and button materialize from smoke, in sequence ───── */
+#scene-3.scene-3--awakened h1 {
+  animation: titleAppear 1.8s cubic-bezier(0.22, 1, 0.36, 1) 0.3s forwards;
+  will-change: transform, filter, opacity;
+}
+#scene-3.scene-3--awakened #final-btn {
+  animation: btnAppear 1.6s cubic-bezier(0.22, 1, 0.36, 1) 1.4s forwards;
+  will-change: transform, filter, opacity;
+}
+
+/* Title appearance — like smoke condensing into letters */
+@keyframes titleAppear {
+  0%   { opacity: 0;    transform: scale(1.18); filter: blur(22px) saturate(0); letter-spacing: 80px; text-shadow: 0 0 30px rgba(200,146,42,0.3); }
+  20%  { opacity: 0.3;                          filter: blur(14px) saturate(0.4); letter-spacing: 65px; }
+  45%  { opacity: 0.7;  transform: scale(1.10); filter: blur(6px)  saturate(0.7); letter-spacing: 50px; text-shadow: 0 0 16px rgba(200,146,42,0.18); }
+  70%  { opacity: 0.95; transform: scale(1.03); filter: blur(2px)  saturate(0.95); letter-spacing: 36px; }
+  100% { opacity: 1;    transform: scale(1);    filter: blur(0)    saturate(1);    letter-spacing: 30px; text-shadow: none; }
+}
+
+/* Button: condenses out of smoke, mirrors btnVanish reversed */
+@keyframes btnAppear {
+  0%   { opacity: 0;    transform: scale(0)    rotate(-3deg);  filter: blur(16px); letter-spacing: 44px; }
+  25%  { opacity: 0.25; transform: scale(0.5)  rotate(-1.5deg); filter: blur(7px);  letter-spacing: 32px; }
+  55%  { opacity: 0.7;  transform: scale(0.85) rotate(-0.6deg); filter: blur(2.5px); letter-spacing: 18px; }
+  80%  { opacity: 0.95; transform: scale(0.97) rotate(-0.2deg); filter: blur(0.6px); letter-spacing: 11px; }
+  100% { opacity: 1;    transform: scale(1)    rotate(0);       filter: blur(0);    letter-spacing: 8px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #scene-3 h1, #final-btn { opacity: 1 !important; }
+  #scene-3.scene-3--awakened h1,
+  #scene-3.scene-3--awakened #final-btn { animation: none; }
+}
+
 /* ══════════════════════════════════════════════════════════════════════════
-   ADENTRARSE — stylized transition from Scene 3 → Archive
-   Choreography (1.3s total):
-     0–210ms  invert flash (negative flicker, two pulses)
-     0–600ms  button shrinks outward + letter-spacing expands as it blurs away
-     0–1300ms title gets RGB-split glitch bursts at 6%, 16%, 28% then blurs out
-     300–1300ms scene blur + hue-rotate + saturate creep up (the air thickens)
-     0–1300ms amber radial bleed grows from center, eventually goes black
+   ADENTRARSE — gradual atmospheric transition Scene 3 → Archive (~2s total)
+   No invert flickers. The air thickens; warmth bleeds in; everything dissolves.
    ══════════════════════════════════════════════════════════════════════════ */
 #scene-3.scene-3--departing {
-  animation: sceneDepart 1.3s cubic-bezier(0.7, 0, 0.95, 0.6) forwards;
+  animation: sceneDepart 2s cubic-bezier(0.55, 0, 0.85, 0.7) forwards;
   pointer-events: none;
 }
 #scene-3.scene-3--departing #final-btn {
-  animation: btnVanish 0.6s ease-in forwards;
+  animation: btnVanish 1s ease-in forwards;
   pointer-events: none;
 }
 #scene-3.scene-3--departing h1 {
-  animation: glitchTitle 1.3s linear forwards;
+  animation: titleDepart 2s ease-in-out forwards;
   will-change: transform, text-shadow, filter;
 }
 #scene-3.scene-3--departing::after {
   content: ''; position: absolute; inset: 0; z-index: 11;
   background: radial-gradient(circle at 50% 50%,
-    rgba(200,146,42,0.85) 0%,
-    rgba(100,50,20,0.6) 35%,
-    rgba(10,5,2,0.95) 85%,
+    rgba(200,146,42,0.9) 0%,
+    rgba(120,60,20,0.75) 30%,
+    rgba(30,15,5,0.95) 75%,
     rgba(0,0,0,1) 100%);
   opacity: 0; mix-blend-mode: multiply;
   pointer-events: none;
-  animation: amberBleed 1.3s ease-in forwards;
+  animation: amberBleed 2s ease-in forwards;
 }
 
-/* Note: ALL keyframes share the same filter function order
-   (invert / blur / saturate / hue-rotate / brightness) so browsers can
-   interpolate smoothly. Mismatched function sets cause keyframe-snap. */
+/* Scene dissolution — slow warmth + blur + saturate ramp, gradual brightness fade.
+   All keyframes share filter function order so browsers interpolate smoothly. */
 @keyframes sceneDepart {
-  0%   { filter: invert(0)    blur(0)     saturate(1)   hue-rotate(0deg)   brightness(1);   transform: scale(1);    opacity: 1; }
-  5%   { filter: invert(1)    blur(0)     saturate(1)   hue-rotate(0deg)   brightness(1);                            opacity: 1; }
-  8%   { filter: invert(0)    blur(0)     saturate(1)   hue-rotate(0deg)   brightness(1);                            opacity: 1; }
-  15%  { filter: invert(1)    blur(0)     saturate(1.4) hue-rotate(45deg)  brightness(1);                            opacity: 1; }
-  18%  { filter: invert(0)    blur(0)     saturate(1)   hue-rotate(0deg)   brightness(1);                            opacity: 1; }
-  30%  { filter: invert(0)    blur(1px)   saturate(1.4) hue-rotate(20deg)  brightness(1);   transform: scale(1.01); opacity: 1; }
-  60%  { filter: invert(0)    blur(4px)   saturate(2)   hue-rotate(30deg)  brightness(1);   transform: scale(1.04); opacity: 1; }
-  85%  { filter: invert(0)    blur(12px)  saturate(2.5) hue-rotate(30deg)  brightness(0.6); transform: scale(1.08); opacity: 0.6; }
-  100% { filter: invert(0)    blur(24px)  saturate(0)   hue-rotate(0deg)   brightness(0);   transform: scale(1.12); opacity: 0; }
+  0%   { filter: blur(0)     saturate(1)   hue-rotate(0deg)   brightness(1);    transform: scale(1);    opacity: 1; }
+  15%  { filter: blur(0.4px) saturate(1.15) hue-rotate(8deg)  brightness(0.99); transform: scale(1.005); opacity: 1; }
+  35%  { filter: blur(1.5px) saturate(1.5) hue-rotate(20deg)  brightness(0.96); transform: scale(1.015); opacity: 1; }
+  55%  { filter: blur(4px)   saturate(2)   hue-rotate(32deg)  brightness(0.88); transform: scale(1.03);  opacity: 0.95; }
+  75%  { filter: blur(9px)   saturate(2.4) hue-rotate(38deg)  brightness(0.65); transform: scale(1.06);  opacity: 0.75; }
+  90%  { filter: blur(16px)  saturate(2)   hue-rotate(38deg)  brightness(0.3);  transform: scale(1.10);  opacity: 0.35; }
+  100% { filter: blur(30px)  saturate(0)   hue-rotate(0deg)   brightness(0);    transform: scale(1.14);  opacity: 0; }
 }
 
-/* Button: scale down outward + letter-spacing expands like the word dissolving */
+/* Button: slow scale-down + letter-spacing expansion, like the word breathing apart */
 @keyframes btnVanish {
-  0%   { transform: scale(1); filter: none; opacity: 1; letter-spacing: 8px; }
-  20%  { transform: scale(0.95) translateY(2px); filter: blur(0.5px); letter-spacing: 12px; }
-  40%  { transform: scale(0.85); filter: blur(2px); opacity: 0.8; letter-spacing: 20px; }
-  70%  { transform: scale(0.5) rotate(-1.5deg); filter: blur(6px); opacity: 0.25; letter-spacing: 32px; }
-  100% { transform: scale(0) rotate(-3deg); filter: blur(14px); opacity: 0; letter-spacing: 40px; }
+  0%   { transform: scale(1)    rotate(0deg);    filter: blur(0);     opacity: 1;    letter-spacing: 8px; }
+  25%  { transform: scale(0.97) rotate(-0.3deg); filter: blur(0.6px); opacity: 0.95; letter-spacing: 14px; }
+  50%  { transform: scale(0.85) rotate(-0.8deg); filter: blur(2.5px); opacity: 0.75; letter-spacing: 22px; }
+  75%  { transform: scale(0.55) rotate(-1.5deg); filter: blur(7px);   opacity: 0.3;  letter-spacing: 34px; }
+  100% { transform: scale(0)    rotate(-3deg);   filter: blur(16px);  opacity: 0;    letter-spacing: 44px; }
 }
 
-/* Title: RGB-split glitch bursts at irregular intervals, then blurs out */
-@keyframes glitchTitle {
-  0%   { text-shadow: none; }
-  6%   { text-shadow: -3px 0 #ff0033, 3px 0 #00ffea; transform: translateX(2px); }
-  9%   { text-shadow: none; transform: translateX(0); }
-  16%  { text-shadow: 4px 0 #ff0033, -4px 0 #00ffea; transform: translateX(-2px); }
-  19%  { text-shadow: none; transform: translateX(0); }
-  28%  { text-shadow: -5px 0 #c8922a, 5px 0 #6a4a8a; transform: translateY(1px) skewX(0.5deg); }
-  32%  { text-shadow: none; transform: translateY(0) skewX(0); }
-  45%  { text-shadow: 0 0 8px rgba(200,146,42,0.5); transform: scale(1.02) skewX(-0.8deg); filter: blur(1px); }
-  70%  { text-shadow: 0 0 20px rgba(200,146,42,0.6); transform: scale(1.06) skewX(0.4deg); filter: blur(4px); opacity: 0.7; }
-  100% { transform: scale(1.12); filter: blur(20px); opacity: 0; }
+/* Title: slow amber glow swell + one gentle RGB-split pulse, then blur out.
+   Less flicker, more presence. Like the word is fading into smoke. */
+@keyframes titleDepart {
+  0%   { text-shadow: none;                                              transform: scale(1);                  filter: blur(0);     opacity: 1; }
+  18%  { text-shadow: 0 0 6px rgba(200,146,42,0.25);                     transform: scale(1.005);              filter: blur(0.3px); opacity: 1; }
+  32%  { text-shadow: -2px 0 rgba(200,146,42,0.6), 2px 0 rgba(106,74,138,0.6); transform: scale(1.015) skewX(0.4deg); filter: blur(0.6px); opacity: 1; }
+  38%  { text-shadow: 0 0 14px rgba(200,146,42,0.45);                    transform: scale(1.02) skewX(0);      filter: blur(0.8px); opacity: 1; }
+  55%  { text-shadow: 0 0 22px rgba(200,146,42,0.55);                    transform: scale(1.04) skewX(-0.3deg);filter: blur(2px);   opacity: 0.92; }
+  75%  { text-shadow: 0 0 30px rgba(200,146,42,0.5);                     transform: scale(1.07);               filter: blur(6px);   opacity: 0.6; }
+  100% { text-shadow: 0 0 0 transparent;                                  transform: scale(1.13);               filter: blur(22px);  opacity: 0; }
 }
 
-/* Amber bleed: radial overlay grows + transitions to black */
+/* Amber bleed: slow radial overlay growth, then turns to pure black */
 @keyframes amberBleed {
-  0%   { opacity: 0; transform: scale(0.5); }
-  20%  { opacity: 0.15; transform: scale(0.7); }
-  40%  { opacity: 0.45; transform: scale(0.9); }
-  65%  { opacity: 0.8; transform: scale(1.05); }
-  85%  { opacity: 1; transform: scale(1.15); }
-  100% { opacity: 1; transform: scale(1.25);
-         background: radial-gradient(circle, rgba(0,0,0,0.97) 0%, rgba(0,0,0,1) 100%); }
+  0%   { opacity: 0;    transform: scale(0.4); }
+  20%  { opacity: 0.1;  transform: scale(0.6); }
+  45%  { opacity: 0.35; transform: scale(0.85); }
+  65%  { opacity: 0.65; transform: scale(1.0); }
+  85%  { opacity: 0.9;  transform: scale(1.1); }
+  100% { opacity: 1;    transform: scale(1.2);
+         background: radial-gradient(circle, rgba(0,0,0,0.98) 0%, rgba(0,0,0,1) 100%); }
 }
 
 /* Respect reduced-motion: skip the choreography */
