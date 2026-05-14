@@ -1,4 +1,5 @@
 import { state, CHARACTERS } from '../core/StateManager.js';
+import { pickVideoSrc } from '../core/videoVariant.js';
 const root = document.documentElement;
 
 class FlameParticle {
@@ -255,14 +256,18 @@ export class VisualEngine {
     // Load into whichever element is currently hidden — keep the live element untouched.
     // This stays in gesture context so iOS grants play() permission.
     const hiddenEl = this._liveEl === this._videoEl ? this._preloadEl : this._videoEl;
-    hiddenEl.src = CHARACTERS[nextIndex].src;
+    hiddenEl.src = pickVideoSrc(CHARACTERS[nextIndex].src);
     hiddenEl.load();
     hiddenEl.play().catch(()=>{});
   }
   _loadCharacterVideo(index) {
     if(index>=CHARACTERS.length) return;
     const c=CHARACTERS[index];
-    this._liveEl.src=c.src; this._liveEl.load(); this._liveEl.play().catch(()=>{});
+    // Poster = the t=0 webp frame (~10-20 KB). Shows instantly while the ~1 MB
+    // video buffers, and matches the loop's first frame so the handoff is
+    // invisible. Critical for Lighthouse / slow-4G where the video takes ~3 s.
+    this._liveEl.poster = c.src.replace(/^\/(.+)\.mp4$/, '/posters/$1.webp');
+    this._liveEl.src=pickVideoSrc(c.src); this._liveEl.load(); this._liveEl.play().catch(()=>{});
     if (window.innerWidth <= 768) this._liveEl.style.objectFit = 'cover';
     this._titleEl.innerText=c.title; this._descEl.innerHTML=c.desc;
   }
