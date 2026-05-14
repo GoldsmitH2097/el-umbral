@@ -143,6 +143,14 @@ body, html {
 #scene-3.scene-3--departing h1 {
   animation: elementFadeOut 0.7s ease-in-out forwards;
 }
+/* Fade the VFX canvas at the same time so the awakening spotlight doesn't
+   linger behind the fading white scene. Sibling selector — works because
+   #scene-3 and #vfx-canvas are body-level siblings.
+   IMPORTANT: transition is set on the base #vfx-canvas rule below so that
+   adding the .scene-3--departing class only changes opacity. Transitions
+   only animate when the transition property is already in effect before
+   the value change. */
+#scene-3.scene-3--departing ~ #vfx-canvas { opacity: 0; }
 
 @keyframes sceneFadeOut {
   0%   { opacity: 1; }
@@ -159,7 +167,11 @@ body, html {
   #scene-3.scene-3--departing h1 { animation: none; opacity: 0; }
 }
 
-#vfx-canvas { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 3; pointer-events: none; }
+#vfx-canvas {
+  position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+  z-index: 3; pointer-events: none;
+  transition: opacity 0.4s ease-out;
+}
 
 /* Mobile-only overlays — hidden by default, shown by mobile.css on ≤768px */
 #mobile-char-detail { display: none; }

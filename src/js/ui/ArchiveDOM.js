@@ -658,14 +658,19 @@ export class ArchiveDOM {
   }
 
   _bindEvents() {
-    // Adentrarse — stylized 1.3s transition (CSS choreography), THEN actually enter the Archive
+    // Adentrarse — stylized 1.4s transition (CSS choreography), THEN actually enter the Archive
     document.getElementById('final-btn')?.addEventListener('click', () => {
       const s3 = document.getElementById('scene-3');
       if (!s3 || s3.classList.contains('scene-3--departing')) return; // ignore double-click
       const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       s3.classList.add('scene-3--departing');
-      // Optional sonic cue at the moment the visual flicker happens — a brief
-      // tonal "rupture". Only fires once the audio engine is running.
+      // Explicitly fade the VFX canvas in JS as a belt-and-suspenders alongside
+      // the CSS sibling rule — guarantees the awakening spotlight doesn't linger
+      // behind the fading scene regardless of stylesheet cascade quirks.
+      const vfx = document.getElementById('vfx-canvas');
+      if (vfx && !reducedMotion) {
+        requestAnimationFrame(() => { vfx.style.opacity = '0'; });
+      }
       this._audio?.playTransitionEcho?.();
       const delay = reducedMotion ? 0 : 1400;
       setTimeout(() => this._onSceneChange('enterMainSite'), delay);
