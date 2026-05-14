@@ -469,9 +469,10 @@
 }
 .obra-edition-row .obra-btn { width: 100%; max-width: 220px; }
 .obra-edition-row .obra-btn--soon { color: #707070; }
-/* Legacy classes from the old in-button label layout — kept for safety */
-.obra-edition-btn { width: 100%; max-width: 180px; text-align: center; }
+.obra-edition-row .obra-btn--soon.obra-edition-btn { padding-top: 10px; padding-bottom: 12px; line-height: 1; }
+/* In-button label — small dim sub-line above the main CTA text */
+.obra-edition-btn { width: 100%; max-width: 220px; text-align: center; }
 .obra-edition-label {
-  display: block; font-size: 7px; letter-spacing: 3px;
-  text-transform: uppercase; opacity: 0.6; margin-bottom: 2px;
+  display: block; font-size: 9px; letter-spacing: 4px;
+  text-transform: uppercase; opacity: 0.6; margin-bottom: 6px;
 }

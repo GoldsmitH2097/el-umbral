@@ -149,7 +149,7 @@ export const CATALOGUE = [
     vision: 'No entras a leer un relato. Entras para ser diseccionado por él. Terror psicológico frase a frase, en tiempo real — sin páginas, sin narración de voz, sin mapa de salida. Solo el descenso. Solo tu silencio.',
     desc: 'No entras a leer un relato. Entras para ser diseccionado por él.',
     buyUrl: null,
-    buyLabel: 'Iniciar mi Disección',
+    buyLabel: 'Próximamente',
   },
   // ── Boutique placeholder — architecture ready for Phase 4 commerce ──
   // {

@@ -120,14 +120,13 @@ export class ArchiveDOM {
 
           let ctaHtml = '';
           if (item.editions) {
-            // Multi-edition card — one cover, edition rows below
-            // Layout: header label ABOVE the button (cleaner than label inside).
+            // Available editions render as a plain buy button (no header).
+            // Coming-soon editions collapse the label into the button.
             const editionBtns = item.editions.map(ed => {
-              const header = `<p class="obra-edition-header">${ed.label}</p>`;
               if (ed.status === 'available' && ed.buyUrl) {
-                return `<div class="obra-edition-row">${header}<a href="${ed.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy">${ed.buyLabel}</a></div>`;
+                return `<div class="obra-edition-row"><a href="${ed.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy">${ed.buyLabel}</a></div>`;
               }
-              return `<div class="obra-edition-row">${header}<span class="obra-btn obra-btn--soon">${ed.buyLabel}</span></div>`;
+              return `<div class="obra-edition-row"><span class="obra-btn obra-btn--soon obra-edition-btn"><span class="obra-edition-label">${ed.label}</span>${ed.buyLabel}</span></div>`;
             }).join('');
             ctaHtml = `<div class="obra-editions">${editionBtns}</div>`;
           } else if (item.status === 'available' && item.buyUrl) {
@@ -381,10 +380,9 @@ export class ArchiveDOM {
           let ctaHtml = '';
           if (item.editions) {
             const edBtns = item.editions.map(ed => {
-              const header = `<p class="obra-edition-header">${ed.label}</p>`;
               return ed.status === 'available' && ed.buyUrl
-                ? `<div class="obra-edition-row">${header}<a href="${ed.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy">${ed.buyLabel}</a></div>`
-                : `<div class="obra-edition-row">${header}<span class="obra-btn obra-btn--soon">${ed.buyLabel}</span></div>`;
+                ? `<div class="obra-edition-row"><a href="${ed.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy">${ed.buyLabel}</a></div>`
+                : `<div class="obra-edition-row"><span class="obra-btn obra-btn--soon obra-edition-btn"><span class="obra-edition-label">${ed.label}</span>${ed.buyLabel}</span></div>`;
             }).join('');
             ctaHtml = `<div class="obra-editions">${edBtns}</div>`;
           } else if (item.status === 'available' && item.buyUrl)
@@ -595,6 +593,13 @@ export class ArchiveDOM {
           ).join('')}</ul>`
         : `<p style="font-size:12px;color:#444;letter-spacing:2px;font-style:italic;">Relatos en preparación.</p>`;
       ctaHtml = relatosHtml;
+    } else if (item.editions) {
+      const edBtns = item.editions.map(ed => {
+        return ed.status === 'available' && ed.buyUrl
+          ? `<div class="obra-edition-row"><a href="${ed.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy">${ed.buyLabel}</a></div>`
+          : `<div class="obra-edition-row"><span class="obra-btn obra-btn--soon obra-edition-btn"><span class="obra-edition-label">${ed.label}</span>${ed.buyLabel}</span></div>`;
+      }).join('');
+      ctaHtml = `<div class="obra-editions">${edBtns}</div>`;
     } else if (item.status === 'available' && item.buyUrl) {
       { const [edLabel, ...rest] = (item.buyLabel||'').split(': ');
               const lbl = rest.length ? `<span class="obra-edition-label">${edLabel}</span>${rest.join(': ')}` : item.buyLabel;
