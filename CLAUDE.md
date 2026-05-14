@@ -103,8 +103,7 @@ La Emperatriz is "en paradero desconocido" — this is narrative, not a bug.
 |----|-------|-----------|--------|-------|
 | emperatriz-obra | En preparación | emperatriz | coming-soon | Tragedia lírica, Alicia Sarel. Title TBD. |
 | la-corte | Totalis Libertas | emperatriz | coming-soon | Anthology. "Antología de la Verdad Histórica de España". `relatos[]` array ready to populate. |
-| pulso-blanda | Pulso del Núcleo (Tapa Blanda) | caballero | **available** | Amazon ES link live. Amber buy button. |
-| pulso-dura | Pulso del Núcleo (Tapa Dura) | caballero | coming-soon | — |
+| pulso | Pulso del Núcleo | caballero | **available** | Single CATALOGUE entry with nested `editions[]`: tapa blanda (Amazon ES, live) + tapa dura (coming-soon). Amber buy button. |
 | filamentos | Filamentos de Oscuridad | sortilega | **available** | Released 2026-05-12. Amazon ES: 8409861771 |
 | anatomia | Anatomía del Vacío | arlequin | coming-soon | Interactive web experience |
 

@@ -13,7 +13,7 @@ body { cursor: crosshair; }
 
 /* Widow / orphan prevention — scoped to ARCHIVE only, NOT Scene 1 (text-wrap on animated
    elements forces layout reflow every frame and kills canvas performance) */
-.site-hero h2, .pillar-content h4, .obra-title,
+.site-hero h2, .pillar-content h3, .obra-title,
 #obra-modal-title, #legal-modal-title, .reading-content h1,
 .reading-content h2, .reading-content h3 { text-wrap: balance; }
 

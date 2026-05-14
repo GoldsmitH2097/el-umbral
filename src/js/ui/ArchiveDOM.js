@@ -20,12 +20,12 @@ export class ArchiveDOM {
     this._lastObraFocus = null;
     this._lastReadingFocus = null;
     this._pactoCallback = null; // called when user accepts El Pacto
+    this._countdownTimers = new Set(); // track setInterval handles for cleanup
     this._build(); this._bindEvents();
   }
 
   _build() {
     this._buildArchiveGrid();
-    this._buildContact();
     this._bindObraModal();
   }
 
@@ -54,12 +54,12 @@ export class ArchiveDOM {
 
       const video = document.createElement('video');
       video.loop = true; video.muted = true; video.playsInline = true; video.preload = 'metadata';
-      video.src = char.src; video.load();
+      video.src = char.src;
 
       // Social links only in reading/detail view — NOT on the grid pillar
       const content = document.createElement('div');
       content.className = 'pillar-content';
-      content.innerHTML = `<h4>${['I','II','III','IV'][i]}. ${char.label}</h4><p>${char.desc}</p>`;
+      content.innerHTML = `<h3>${['I','II','III','IV'][i]}. ${char.label}</h3><p>${char.desc}</p>`;
 
       pillar.appendChild(video);
       pillar.appendChild(content);
@@ -325,33 +325,9 @@ export class ArchiveDOM {
         el.innerHTML = `<span>${d}<em>d</em></span><span>${h}<em>h</em></span><span>${m}<em>m</em></span><span class="countdown-seconds${slide}">${s}<em>s</em></span>`;
       };
       update();
-      setInterval(update, 1000);
+      const handle = setInterval(update, 1000);
+      this._countdownTimers.add(handle);
     });
-  }
-
-  _buildContact() {
-    const section = document.getElementById('contact-section');
-    if (!section) return;
-    section.innerHTML = `
-      <div class="contact-inner">
-        <h2 class="contact-title">Contacto</h2>
-        <p class="contact-sub">Prensa, colaboraciones y preguntas sobre el universo Soulware.</p>
-        <form class="contact-form" id="contact-form" name="contacto-soulware" data-netlify="true" netlify-honeypot="bot-field">
-          <input type="hidden" name="form-name" value="contacto-soulware" />
-          <input type="text" name="bot-field" style="display:none" aria-hidden="true" />
-          <input type="text" name="name" placeholder="Nombre" required autocomplete="name" />
-          <input type="email" name="email" placeholder="Email" required autocomplete="email" />
-          <textarea name="message" placeholder="Mensaje" rows="4" required></textarea>
-          <button type="submit" class="obra-btn obra-btn--buy">Enviar</button>
-        </form>
-        <div class="contact-footer">
-          <p class="contact-email"><a href="mailto:editorial@soulware.live">editorial@soulware.live</a></p>
-          <a href="https://www.instagram.com/core.soulware" target="_blank" rel="noopener" class="contact-social-link">
-            ${ICONS.instagram} <span>@core.soulware</span>
-          </a>
-        </div>
-      </div>
-    `;
   }
 
   showArchive({skipIntro=false}={}) {
@@ -390,11 +366,6 @@ export class ArchiveDOM {
 
     // Populate Libros panel
     const obrasList = document.getElementById('reading-obras-list');
-    // Coming-soon CTAs in reading view → open Tizno panel for email capture
-    obrasList?.addEventListener('click', e => {
-      const btn = e.target.closest('.obra-btn--soon, .obra-btn--notify, .obra-btn--locked');
-      if (btn) { e.preventDefault(); this._tizno?.open(); }
-    });
     if (obrasList) {
       const obras = CATALOGUE.filter(c => c.archetype === char.slug);
       const librosLabel = '<p class="reading-section-label">Obras</p>';
@@ -537,10 +508,15 @@ export class ArchiveDOM {
     if (!modal) return;
     closeBtn?.addEventListener('click', () => this._closeObraModal());
     modal.addEventListener('click', (e) => { if (e.target === modal) this._closeObraModal(); });
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') this._closeObraModal(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.classList.contains('open')) this._closeObraModal(); });
     // Tab switching
     document.querySelectorAll('.obra-tab').forEach(btn => {
       btn.addEventListener('click', () => this._switchModalTab(btn.dataset.tab));
+    });
+    // Reading-view obras list — delegated once. Coming-soon CTAs open the Tizno panel.
+    document.getElementById('reading-obras-list')?.addEventListener('click', e => {
+      const btn = e.target.closest('.obra-btn--soon, .obra-btn--notify, .obra-btn--locked');
+      if (btn) { e.preventDefault(); this._tizno?.open(); }
     });
     window._openObraModal = (id) => this.openObraModal(id);
   }
@@ -641,7 +617,9 @@ export class ArchiveDOM {
       prevS = s;
       el.innerHTML = `<span>${d}<em>d</em></span><span>${h}<em>h</em></span><span>${m}<em>m</em></span><span class="countdown-seconds${slide}">${s}<em>s</em></span>`;
     };
-    update(); setInterval(update, 1000);
+    update();
+    const handle = setInterval(update, 1000);
+    this._countdownTimers.add(handle);
   }
 
   _bindEvents() {
@@ -651,7 +629,7 @@ export class ArchiveDOM {
       el.addEventListener('click',()=>{
         if(el.dataset.action==='scroll-top') document.getElementById('main-site').scrollTo({top:0,behavior:'smooth'});
         if(el.dataset.action==='scroll-obras') document.getElementById('obras-section')?.scrollIntoView({behavior:'smooth'});
-        if(el.dataset.action==='scroll-contact') this._tizno ? this._tizno.toggle() : document.getElementById('contact-section')?.scrollIntoView({behavior:'smooth'});
+        if(el.dataset.action==='scroll-contact') this._tizno?.toggle();
         if(el.dataset.action==='open-pacto') this.openPacto();
       });
     });
@@ -704,9 +682,9 @@ export class ArchiveDOM {
     legalModal?.addEventListener('click', e => { if(e.target===legalModal) closeLegal(); });
     document.addEventListener('keydown', e => { if(e.key==='Escape' && legalModal?.classList.contains('open')) closeLegal(); });
 
-    // Contact form submit (Netlify)
+    // Tizno pacto form submit (Netlify)
     document.addEventListener('submit', async e => {
-      if (!e.target.matches('#contact-form, #tizno-pacto-form')) return;
+      if (!e.target.matches('#tizno-pacto-form')) return;
       e.preventDefault();
       const btn = e.target.querySelector('button[type="submit"]');
       const original = btn.textContent;

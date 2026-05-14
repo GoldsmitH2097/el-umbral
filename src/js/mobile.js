@@ -208,7 +208,11 @@ export function initMobileArchive() {
   }
 }
 
+const _mobileCountdownTimers = new WeakMap();
 function initCountdown(el) {
+  // Clear any prior timer attached to this element to avoid stacking on reopen
+  const prior = _mobileCountdownTimers.get(el);
+  if (prior) clearInterval(prior);
   const target = new Date(el.dataset.release).getTime();
   const update = () => {
     const diff = target - Date.now();
@@ -217,5 +221,6 @@ function initCountdown(el) {
     const m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
     el.innerHTML = `<span>${d}<em>d</em></span><span>${h}<em>h</em></span><span>${m}<em>m</em></span><span>${s}<em>s</em></span>`;
   };
-  update(); setInterval(update, 1000);
+  update();
+  _mobileCountdownTimers.set(el, setInterval(update, 1000));
 }

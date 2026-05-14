@@ -124,13 +124,13 @@
 .archive-pillar .pillar-content {
   position: relative; z-index: 2; text-align: center; padding-bottom: 8px;
 }
-.archive-pillar .pillar-content h4 {
+.archive-pillar .pillar-content h3 {
   font-size: 14px; letter-spacing: 4px; margin: 0 0 10px 0;
   text-transform: uppercase; line-height: 1.5;
   transition: color 0.5s ease, text-shadow 0.5s ease;
 }
-.archive-col:hover .archive-pillar .pillar-content h4,
-.archive-col--highlighted .archive-pillar .pillar-content h4 {
+.archive-col:hover .archive-pillar .pillar-content h3,
+.archive-col--highlighted .archive-pillar .pillar-content h3 {
   color: #e8c87a;
   text-shadow: 0 0 20px rgba(200,146,42,0.4);
 }
@@ -170,7 +170,7 @@
   }
   .archive-col::after { display: none; }
   .archive-pillar { min-height: 40vh; }
-  .archive-pillar .pillar-content h4 { letter-spacing: 3px; font-size: 13px; }
+  .archive-pillar .pillar-content h3 { letter-spacing: 3px; font-size: 13px; }
   .archive-books { padding: 20px 16px; gap: 20px; }
 
   /* ── Scroll indicator dots ── */

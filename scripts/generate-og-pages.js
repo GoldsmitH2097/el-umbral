@@ -46,7 +46,7 @@ const ROUTES = [
     title: 'Pulso del Núcleo — Núcleo Eterno · Soulware',
     desc: 'Primera de tres novelas de fantasía oscura épica. Por WW. & Eidon. Disponible ahora en tapa blanda en Amazon España. Editorial Soulware.',
     image: `${BASE}/assets/pulso-soft-cover-es.webp`,
-    bookSchema: { name: 'Pulso del Núcleo', author: 'WW. & Eidon', isbn: '978-8409810345', buyUrl: 'https://www.amazon.es/dp/B0CQPCRCXP', path: 'obras/pulso-del-nucleo' },
+    bookSchema: { name: 'Pulso del Núcleo', author: 'WW. & Eidon', isbn: '978-8409810345', buyUrl: 'https://www.amazon.es/Pulso-del-N%C3%BAcleo-Parte-Eterno/dp/8409810344/', path: 'obras/pulso-del-nucleo' },
   },
   {
     path: 'obras/filamentos-de-oscuridad',

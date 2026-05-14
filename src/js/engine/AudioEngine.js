@@ -72,7 +72,6 @@ export class AudioEngine {
       _rp.then(() => this._restartNoiseSources()).catch(() => {});
 
     } catch(e) {
-      console.warn('[AudioEngine] blocked', e);
       this._initializing = false;
     }
   }

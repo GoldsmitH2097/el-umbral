@@ -66,9 +66,8 @@ function _handleFirstAudio() {
   }
 }
 
-// Replay intro — clear sw_crossed flag and reload
+// Replay intro — reload from the home route
 document.getElementById('replay-intro-btn')?.addEventListener('click', () => {
-  localStorage.removeItem('sw_crossed');
   window.location.href = '/';
 });
 
