@@ -109,7 +109,6 @@ export class ArchiveDOM {
               ${coverHtml}
               <div class="obra-meta">
                 <div class="obra-badges">
-                  <span class="obra-status-pill obra-status-pill--coming-soon">En preparación</span>
                   <span class="obra-format-badge">Antología</span>
                 </div>
                 <h3 class="obra-title">${item.title}</h3>
@@ -154,7 +153,7 @@ export class ArchiveDOM {
             ${coverHtml}
             <div class="obra-meta">
               <div class="obra-badges">
-                <span class="obra-status-pill obra-status-pill--${item.status}">${statusLabels[item.status] || item.status}</span>
+                ${item.status === 'available' ? `<span class="obra-status-pill obra-status-pill--${item.status}">${statusLabels[item.status]}</span>` : ''}
                 ${item.format ? `<span class="obra-format-badge">${formatLabels[item.format] || item.format}</span>` : ''}
               </div>
               <h3 class="obra-title">${item.title}</h3>
