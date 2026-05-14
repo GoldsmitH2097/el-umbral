@@ -105,7 +105,7 @@ La Emperatriz is "en paradero desconocido" — this is narrative, not a bug.
 | la-corte | Totalis Libertas | emperatriz | coming-soon | Anthology. "Antología de la Verdad Histórica de España". `relatos[]` array ready to populate. |
 | pulso-blanda | Pulso del Núcleo (Tapa Blanda) | caballero | **available** | Amazon ES link live. Amber buy button. |
 | pulso-dura | Pulso del Núcleo (Tapa Dura) | caballero | coming-soon | — |
-| filamentos | Filamentos de Oscuridad | sortilega | countdown | Release: 2026-05-12 |
+| filamentos | Filamentos de Oscuridad | sortilega | **available** | Released 2026-05-12. Amazon ES: 8409861771 |
 | anatomia | Anatomía del Vacío | arlequin | coming-soon | Interactive web experience |
 
 To add a relato to La Corte: add entry to `relatos[]` array in StateManager.js. No code changes needed.
@@ -144,9 +144,11 @@ To add a relato to La Corte: add entry to `relatos[]` array in StateManager.js. 
 
 ## SEO status
 
-- **Google Search Console:** Registered ✅ Sitemap: submitted ✅ (8 URLs indexed, April 2026)
-- **Indexed:** Yes (crawled April 8 2026) ✅
-- **Sitemap:** `/sitemap.xml` ✅ includes all 4 character routes + legal pages
+- **Google Search Console:** Registered ✅ Sitemap: submitted ✅
+- **Indexed (as of May 14, 2026):** 1 of 9 sitemap URLs. Structure is correct (see below) — the gap is Google's indexing pace on a young site. After cleaning ghost URLs (below) and using GSC "Request indexing" per route, expect the count to climb.
+- **Sitemap:** `/sitemap.xml` ✅ 9 URLs (home + 4 characters + 4 obras). Legal pages intentionally excluded — they carry `noindex`.
+- **Per-route prerendering:** ✅ `scripts/generate-og-pages.js` runs as postbuild and writes `dist/<route>/index.html` for each of the 8 deep routes with unique `<title>`, `<meta description>`, `<link rel="canonical">`, OG/Twitter tags, and optional Book JSON-LD. Netlify serves these static files before applying the SPA catch-all.
+- **Ghost paths:** `/read`, `/saga`, `/contact`, `/map`, `/universo`, `/thanks.html`, `/privacy`, `/terms` (+ `.html` variants) → 301 to `/` via `public/_redirects`. These are remnants of a pre-Vite site that Google still crawls.
 - **robots.txt:** ✅
 - **JSON-LD:** Organization + 4 Book schemas ✅
 - **OG/Twitter meta:** ✅ with 1200×630 image
@@ -182,7 +184,7 @@ Accessible from footer. Serve without .html extension via Netlify pretty URLs.
 
 | Item | Owner | Status |
 |------|-------|--------|
-| Submit sitemap in Search Console | Javier | ✅ Done — 8 URLs indexed |
+| Submit sitemap in Search Console | Javier | ✅ Done — May 2026 |
 | Video CDN (Bunny.net) | Javier | Before marketing push |
 | Goodreads author page (WW. & Eidon) | Javier | Pending |
 | Amazon author page + publisher name | Javier | Pending |
