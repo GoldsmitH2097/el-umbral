@@ -195,6 +195,65 @@ export class AudioEngine {
     } catch(_) {}
   }
 
+  /**
+   * Brief character-tuned chime on book-cover hover.
+   * @param {number} charIndex 0=emperatriz, 1=caballero, 2=sortilega, 3=arlequin
+   */
+  playCoverHover(charIndex) {
+    if (!this.audioCtx || this.audioCtx.state !== 'running') return;
+    // Light throttle — rapid mouse-overs across multiple covers shouldn't stack
+    const t = performance.now();
+    if (t - (this._lastHoverT || 0) < 180) return;
+    this._lastHoverT = t;
+    try {
+      const ctx = this.audioCtx, now = ctx.currentTime;
+      const freq = CHAR_FREQUENCIES[charIndex];
+      if (!freq) return;
+      [1, 2].forEach(h => {
+        const osc = ctx.createOscillator(), g = ctx.createGain();
+        osc.type = h === 1 ? 'sine' : 'triangle';
+        osc.frequency.setValueAtTime(freq * h, now);
+        const vol = h === 1 ? 0.04 : 0.018;
+        g.gain.setValueAtTime(0, now);
+        g.gain.linearRampToValueAtTime(vol, now + 0.015);
+        g.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+        osc.connect(g); g.connect(this.masterOut || ctx.destination);
+        if (this.masterDelay) g.connect(this.masterDelay);
+        osc.start(); osc.stop(now + 0.7);
+      });
+    } catch(_) {}
+  }
+
+  /**
+   * Soft metallic shimmer on active buy-button hover.
+   * Filtered noise sweep — like a sword catching light.
+   */
+  playButtonHover() {
+    if (!this.audioCtx || this.audioCtx.state !== 'running') return;
+    const t = performance.now();
+    if (t - (this._lastHoverT || 0) < 180) return;
+    this._lastHoverT = t;
+    try {
+      const ctx = this.audioCtx, now = ctx.currentTime;
+      // Short white-noise burst → bandpass filter sweeping high-to-low → quick decay
+      const size = Math.floor(ctx.sampleRate * 0.25);
+      const buf = ctx.createBuffer(1, size, ctx.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < size; i++) data[i] = Math.random() * 2 - 1;
+      const src = ctx.createBufferSource(); src.buffer = buf;
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'bandpass'; filter.Q.value = 4;
+      filter.frequency.setValueAtTime(5200, now);
+      filter.frequency.exponentialRampToValueAtTime(1800, now + 0.22);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(0.025, now + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+      src.connect(filter); filter.connect(g); g.connect(this.masterOut || ctx.destination);
+      src.start(); src.stop(now + 0.35);
+    } catch(_) {}
+  }
+
   playSpinningAwakening() {
     if (!this.audioCtx) return;
     try {

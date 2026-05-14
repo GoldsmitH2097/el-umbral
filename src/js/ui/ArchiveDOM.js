@@ -522,6 +522,28 @@ export class ArchiveDOM {
       const btn = e.target.closest('.obra-btn--soon, .obra-btn--notify, .obra-btn--locked');
       if (btn) { e.preventDefault(); this._tizno?.open(); }
     });
+
+    // Hover sounds — character-tuned chime on book covers, soft metallic
+    // shimmer on active buy buttons. Uses mouseover + relatedTarget check
+    // so each fires exactly once per element entry (mouseenter doesn't bubble).
+    document.addEventListener('mouseover', e => {
+      // Book cover hover → character-tuned chime
+      const cover = e.target.closest('.obra-cover--clickable');
+      if (cover && !cover.contains(e.relatedTarget)) {
+        const item = CATALOGUE.find(c => c.id === cover.dataset.id);
+        if (item) {
+          const charIndex = CHARACTERS.findIndex(c => c.slug === item.archetype);
+          if (charIndex >= 0) this._audio?.playCoverHover(charIndex);
+        }
+        return;
+      }
+      // Active buy button hover → metallic shimmer (only for real buy links)
+      const btn = e.target.closest('a.obra-btn--buy[href]');
+      if (btn && !btn.contains(e.relatedTarget)) {
+        this._audio?.playButtonHover();
+      }
+    });
+
     window._openObraModal = (id) => this.openObraModal(id);
   }
 
