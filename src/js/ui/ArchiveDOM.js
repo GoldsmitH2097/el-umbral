@@ -734,19 +734,36 @@ export class ArchiveDOM {
     legalModal?.addEventListener('click', e => { if(e.target===legalModal) closeLegal(); });
     document.addEventListener('keydown', e => { if(e.key==='Escape' && legalModal?.classList.contains('open')) closeLegal(); });
 
-    // Tizno pacto form submit (Netlify)
+    // Tizno pacto form submit (Netlify) — icon button: up-arrow → check on success
+    const PACTO_ICON_UP = '<svg class="tizno-pacto-btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>';
+    const PACTO_ICON_CHECK = '<svg class="tizno-pacto-btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
     document.addEventListener('submit', async e => {
       if (!e.target.matches('#tizno-pacto-form')) return;
       e.preventDefault();
       const btn = e.target.querySelector('button[type="submit"]');
-      const original = btn.textContent;
-      btn.textContent = 'Enviando...'; btn.disabled = true;
+      btn.disabled = true;
+      btn.classList.add('tizno-pacto-btn--sending');
       try {
         const res = await fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(new FormData(e.target)).toString() });
-        btn.textContent = res.ok ? 'Enviado ✓' : 'Error — inténtalo de nuevo';
-        if (res.ok) e.target.reset();
-        else { btn.disabled = false; setTimeout(() => { btn.textContent = original; }, 3000); }
-      } catch { btn.textContent = 'Error'; btn.disabled = false; setTimeout(() => { btn.textContent = original; }, 3000); }
+        btn.classList.remove('tizno-pacto-btn--sending');
+        if (res.ok) {
+          btn.innerHTML = PACTO_ICON_CHECK;
+          btn.classList.add('tizno-pacto-btn--sent');
+          btn.setAttribute('aria-label', 'Pacto firmado');
+          e.target.reset();
+        } else {
+          btn.innerHTML = PACTO_ICON_UP;
+          btn.classList.add('tizno-pacto-btn--error');
+          btn.disabled = false;
+          setTimeout(() => btn.classList.remove('tizno-pacto-btn--error'), 3000);
+        }
+      } catch {
+        btn.classList.remove('tizno-pacto-btn--sending');
+        btn.innerHTML = PACTO_ICON_UP;
+        btn.classList.add('tizno-pacto-btn--error');
+        btn.disabled = false;
+        setTimeout(() => btn.classList.remove('tizno-pacto-btn--error'), 3000);
+      }
     });
   }
 }
