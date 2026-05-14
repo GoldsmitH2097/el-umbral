@@ -693,7 +693,7 @@ export class ArchiveDOM {
     const legalCache = new Map();
     const openLegal = async (slug, title) => {
       legalTitle.textContent = title;
-      legalBody.innerHTML = '<p style="color:#444;letter-spacing:2px;">Cargando...</p>';
+      legalBody.innerHTML = '<p class="loading-state" style="letter-spacing:2px;text-align:center;padding:24px 0;">Despertando<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span></p>';
       legalModal.classList.add('open');
       legalModal.removeAttribute('inert');
       legalModal.removeAttribute('aria-hidden');
