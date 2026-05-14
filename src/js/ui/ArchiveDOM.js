@@ -1,4 +1,4 @@
-import { CHARACTERS, CATALOGUE, state } from '../core/StateManager.js';
+import { CHARACTERS, CATALOGUE, state, Events } from '../core/StateManager.js';
 
 // Social platform SVG icons
 const ICONS = {
@@ -53,7 +53,9 @@ export class ArchiveDOM {
       pillar.setAttribute('tabindex', '0');
 
       const video = document.createElement('video');
-      video.loop = true; video.muted = true; video.playsInline = true; video.preload = 'metadata';
+      // preload='none' on init: defer ~4×100 KB of video metadata until the
+      // user actually reaches Scene 4. Switched to 'metadata' on sceneChange→4.
+      video.loop = true; video.muted = true; video.playsInline = true; video.preload = 'none';
       video.setAttribute('aria-hidden', 'true'); // decorative ambient — no captions needed
       video.src = char.src;
 
@@ -97,7 +99,7 @@ export class ArchiveDOM {
           if (item.type === 'anthology') {
             card.className = `obra-book obra-book--${item.status}`;
             const coverHtml = item.img
-              ? `<div class="obra-cover obra-cover--clickable obra-cover--anthology" data-id="${item.id}" role="button" tabindex="0" aria-label="Ver detalles de ${item.title}"><img src="${item.img}" alt="${item.title}" loading="lazy" decoding="async" /></div>`
+              ? `<div class="obra-cover obra-cover--clickable obra-cover--anthology" data-id="${item.id}" role="button" tabindex="0" aria-label="Ver detalles de ${item.title}"><img src="${item.img}" alt="${item.title}" width="600" height="900" loading="lazy" decoding="async" /></div>`
               : `<div class="obra-cover obra-cover--empty"></div>`;
             card.innerHTML = `
               ${coverHtml}
@@ -115,7 +117,7 @@ export class ArchiveDOM {
 
           card.className = `obra-book obra-book--${item.status}`;
           const coverHtml = item.img
-            ? `<div class="obra-cover obra-cover--clickable" data-id="${item.id}" role="button" tabindex="0" aria-label="Ver detalles de ${item.title}"><img src="${item.img}" alt="${item.title}" loading="lazy" decoding="async" /></div>`
+            ? `<div class="obra-cover obra-cover--clickable" data-id="${item.id}" role="button" tabindex="0" aria-label="Ver detalles de ${item.title}"><img src="${item.img}" alt="${item.title}" width="600" height="900" loading="lazy" decoding="async" /></div>`
             : `<div class="obra-cover obra-cover--clickable obra-cover--empty" data-id="${item.id}" role="button" tabindex="0" aria-label="Ver detalles de ${item.title}"></div>`;
 
           let ctaHtml = '';
@@ -375,7 +377,7 @@ export class ArchiveDOM {
       } else {
         obrasList.innerHTML = librosLabel + obras.map(item => {
           const coverHtml = item.img
-            ? `<div class="reading-obra-cover"><img src="${item.img}" alt="${item.title}" loading="lazy" decoding="async" /></div>`
+            ? `<div class="reading-obra-cover"><img src="${item.img}" alt="${item.title}" width="600" height="900" loading="lazy" decoding="async" /></div>`
             : `<div class="reading-obra-cover"><div class="reading-obra-cover-empty">${item.type==='anthology'?'Antología':'—'}</div></div>`;
           let ctaHtml = '';
           if (item.editions) {
@@ -582,7 +584,7 @@ export class ArchiveDOM {
 
     const coverEl = document.getElementById('obra-modal-cover');
     coverEl.innerHTML = item.img
-      ? `<img src="${item.img}" alt="${item.title}" />`
+      ? `<img src="${item.img}" alt="${item.title}" width="600" height="900" />`
       : `<div class="obra-modal-no-cover">${item.type === 'anthology' ? 'Antología' : 'Sin portada'}</div>`;
 
     let ctaHtml = '';
@@ -664,6 +666,16 @@ export class ArchiveDOM {
   }
 
   _bindEvents() {
+    // Pillar videos init with preload='none' to keep the mobile initial-load
+    // payload light. Once the user lands in Scene 4, switch to 'metadata' so
+    // pillar thumbnails are warm before any hover/tap.
+    Events.on('sceneChange', ({ to }) => {
+      if (to !== 4) return;
+      document.querySelectorAll('.archive-pillar video').forEach(v => {
+        if (v.preload !== 'metadata') v.preload = 'metadata';
+      });
+    });
+
     // Adentrarse — stylized 1.4s transition (CSS choreography), THEN actually enter the Archive
     document.getElementById('final-btn')?.addEventListener('click', () => {
       const s3 = document.getElementById('scene-3');
