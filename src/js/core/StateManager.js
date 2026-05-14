@@ -59,7 +59,7 @@ export const CHARACTERS = [
 export const CATALOGUE = [
   {
     id: 'emperatriz-obra',
-    title: 'En preparación',
+    title: 'Título Sellado',
     subtitle: 'Tragedia lírica',
     archetype: 'emperatriz',
     type: 'obra',
@@ -71,7 +71,7 @@ export const CATALOGUE = [
     vision: 'El reino cayó. La voz, no. Una tragedia lírica sobre lo que queda cuando se derrumba lo que creíste que eras — y descubres que algo más duro, más frío, más tuyo, sobrevivía debajo.',
     desc: 'El reino cayó. La voz, no. Una tragedia lírica personal.',
     buyUrl: null,
-    buyLabel: 'Entrar en la Corte',
+    buyLabel: 'Próximamente',
   },
   {
     id: 'la-corte',
@@ -87,7 +87,7 @@ export const CATALOGUE = [
     vision: 'La historia oficial es el relato de los que ganaron. Totalis Libertas es el de los que perdieron, dudaron, traicionaron y sobrevivieron. Voces distintas. Un mismo umbral de verdad que nadie quiere cruzar. Salón de los reconocidos — la Emperatriz exige testigos.',
     desc: 'Ficción histórica oscura. Antología de relatos breves e intensos sobre la Historia de España. Cruza el umbral. Conoce a los nuevos arquitectos de la palabra.',
     buyUrl: null,
-    buyLabel: 'Cruza el Umbral',
+    buyLabel: 'Próximamente',
   },
   {
     id: 'pulso',
