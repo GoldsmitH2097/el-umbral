@@ -119,16 +119,14 @@ export class ArchiveDOM {
 
           let ctaHtml = '';
           if (item.editions) {
-            // Multi-edition card — one cover, edition buttons below
+            // Multi-edition card — one cover, edition rows below
+            // Layout: header label ABOVE the button (cleaner than label inside).
             const editionBtns = item.editions.map(ed => {
+              const header = `<p class="obra-edition-header">${ed.label}</p>`;
               if (ed.status === 'available' && ed.buyUrl) {
-                return `<a href="${ed.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy obra-edition-btn">
-                  <span class="obra-edition-label">${ed.label}</span>${ed.buyLabel}
-                </a>`;
+                return `<div class="obra-edition-row">${header}<a href="${ed.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy">${ed.buyLabel}</a></div>`;
               }
-              return `<span class="obra-btn obra-btn--soon obra-edition-btn">
-                <span class="obra-edition-label">${ed.label}</span>${ed.buyLabel}
-              </span>`;
+              return `<div class="obra-edition-row">${header}<span class="obra-btn obra-btn--soon">${ed.buyLabel}</span></div>`;
             }).join('');
             ctaHtml = `<div class="obra-editions">${editionBtns}</div>`;
           } else if (item.status === 'available' && item.buyUrl) {
@@ -381,10 +379,12 @@ export class ArchiveDOM {
             : `<div class="reading-obra-cover"><div class="reading-obra-cover-empty">${item.type==='anthology'?'Antología':'—'}</div></div>`;
           let ctaHtml = '';
           if (item.editions) {
-            const edBtns = item.editions.map(ed => ed.status === 'available' && ed.buyUrl
-              ? `<a href="${ed.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy obra-edition-btn"><span class="obra-edition-label">${ed.label}</span>${ed.buyLabel}</a>`
-              : `<span class="obra-btn obra-btn--soon obra-edition-btn"><span class="obra-edition-label">${ed.label}</span>${ed.buyLabel}</span>`
-            ).join('');
+            const edBtns = item.editions.map(ed => {
+              const header = `<p class="obra-edition-header">${ed.label}</p>`;
+              return ed.status === 'available' && ed.buyUrl
+                ? `<div class="obra-edition-row">${header}<a href="${ed.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy">${ed.buyLabel}</a></div>`
+                : `<div class="obra-edition-row">${header}<span class="obra-btn obra-btn--soon">${ed.buyLabel}</span></div>`;
+            }).join('');
             ctaHtml = `<div class="obra-editions">${edBtns}</div>`;
           } else if (item.status === 'available' && item.buyUrl)
             { const [edLabel, ...rest] = (item.buyLabel||'').split(': ');

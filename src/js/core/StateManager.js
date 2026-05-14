@@ -108,7 +108,7 @@ export const CATALOGUE = [
         status: 'available',
         img: '/assets/pulso-soft-cover-es.webp',
         buyUrl: 'https://www.amazon.es/Pulso-del-N%C3%BAcleo-Parte-Eterno/dp/8409810344/',
-        buyLabel: 'Edición física: Reclamar mi Ejemplar',
+        buyLabel: 'Reclamar mi Ejemplar',
       },
       {
         id: 'pulso-dura',
