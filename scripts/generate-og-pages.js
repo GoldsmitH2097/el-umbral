@@ -46,14 +46,14 @@ const ROUTES = [
     title: 'Pulso del Núcleo — Núcleo Eterno · Soulware',
     desc: 'Primera de tres novelas de fantasía oscura épica. Por WW. & Eidon. Disponible ahora en tapa blanda en Amazon España. Editorial Soulware.',
     image: `${BASE}/assets/pulso-soft-cover-es.webp`,
-    bookSchema: { name: 'Pulso del Núcleo', author: 'WW. & Eidon', isbn: '978-8409810345', buyUrl: 'https://www.amazon.es/Pulso-del-N%C3%BAcleo-Parte-Eterno/dp/8409810344/', path: 'obras/pulso-del-nucleo' },
+    bookSchema: { name: 'Pulso del Núcleo', author: 'WW. & Eidon', isbn: '978-8409810345', buyUrl: 'https://www.amazon.es/Pulso-del-N%C3%BAcleo-Parte-Eterno/dp/8409810344/', path: 'obras/pulso-del-nucleo', price: '22.44' },
   },
   {
     path: 'obras/filamentos-de-oscuridad',
     title: 'Filamentos de Oscuridad — Irina M. · Soulware',
     desc: 'Primera de dos novelas de terror psicológico. Por Irina M. Disponible ahora en Amazon España. Editorial Soulware.',
     image: `${BASE}/assets/filamentos-de-oscuridad.webp`,
-    bookSchema: { name: 'Filamentos de Oscuridad', author: 'Irina M.', buyUrl: 'https://www.amazon.es/dp/8409861771', path: 'obras/filamentos-de-oscuridad' },
+    bookSchema: { name: 'Filamentos de Oscuridad', author: 'Irina M.', buyUrl: 'https://www.amazon.es/dp/8409861771', path: 'obras/filamentos-de-oscuridad', price: '17.95' },
   },
   {
     path: 'obras/anatomia-del-vacio',
@@ -92,7 +92,13 @@ function patch(html, path, { title, desc, image, bookSchema }) {
       "inLanguage": "es",
       "publisher": { "@type": "Organization", "name": "Soulware", "url": "https://soulware.live" },
       "url": `${BASE}/${bookSchema.path}`,
-      "offers": { "@type": "Offer", "url": bookSchema.buyUrl, "availability": "https://schema.org/InStock", "priceCurrency": "EUR" }
+      "offers": {
+        "@type": "Offer",
+        "url": bookSchema.buyUrl,
+        "availability": "https://schema.org/InStock",
+        ...(bookSchema.price ? { "price": bookSchema.price } : {}),
+        "priceCurrency": "EUR",
+      }
     }, null, 2);
     out = out.replace('</head>', `  <script type="application/ld+json">${schema}</script>
 </head>`);

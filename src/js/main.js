@@ -300,6 +300,7 @@ function enterScene2() {
 function triggerAwakening() {
   if(state.isAwakening) return;
   state.isAwakening=true; audio.setAwakening(true); transitionTo(3);
+  visual._resumeIfSuspended(); // wake canvas if it was idle-paused during scene 2
   // Mobile: no mousemove during awakening, so spotlight never gets re-centered by the
   // normal updateTarget path. Snap directly so the expanding circle is always centered.
   visual.snapCenter();
