@@ -7,8 +7,8 @@ const ICONS = {
 };
 
 export class ArchiveDOM {
-  constructor({router, onSceneChange, tizno=null}) {
-    this._router=router; this._onSceneChange=onSceneChange; this._tizno=tizno;
+  constructor({router, onSceneChange, tizno=null, audio=null}) {
+    this._router=router; this._onSceneChange=onSceneChange; this._tizno=tizno; this._audio=audio;
     this._mainSite=document.getElementById('main-site');
     this._gridView=document.getElementById('grid-view');
     this._readingView=document.getElementById('reading-view');
@@ -352,6 +352,8 @@ export class ArchiveDOM {
   openReading(index, activeTab = 'autor') {
     const char=CHARACTERS[index]; if(!char) return;
     this._lastReadingFocus = document.activeElement;
+    // "Door closes" — muffle the ambient while the user reads
+    this._audio?.setReadingViewMuffle(true);
     this._readTitle.innerText=char.title;
     // Add section label above bio
     const sectionLabel = '<p class="reading-section-label">Autor</p>';
@@ -450,6 +452,8 @@ export class ArchiveDOM {
   closeReading() {
     // Remove button from DOM entirely — no CSS hiding, no ghost rendering
     document.getElementById('btn-volver')?.remove();
+    // "Door reopens" — restore ambient brightness
+    this._audio?.setReadingViewMuffle(false);
     this._readingView.style.opacity='0'; this._readingView.style.pointerEvents='none';
     setTimeout(()=>{
       this._readingView.style.display='none';

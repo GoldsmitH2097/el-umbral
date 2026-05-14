@@ -4,12 +4,14 @@
  * Particles (C): sparse dust — only runs on capable hardware.
  */
 
-const FIREFLY_COUNT = 4;
+const FIREFLY_COUNT = 6;
 const INACTIVITY_OBRAS   = 18000;  // 18s → drift toward obras
 const INACTIVITY_CONTACT = 36000;  // 36s → drift toward contact
 const INACTIVITY_TIZNO   = 55000;  // 55s → orbit Tizno tease
-const CAPABLE = navigator.hardwareConcurrency >= 4
-  && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const CAPABLE = navigator.hardwareConcurrency >= 4 && !REDUCED_MOTION;
+// Throttle to ~30fps — halves CPU vs 60fps. Fireflies move slowly; you won't notice.
+const FRAME_MS = 33;
 
 // ── Firefly class ─────────────────────────────────────────────────────────────
 class Firefly {
@@ -24,22 +26,31 @@ class Firefly {
   _reset(index) {
     const W = window.innerWidth;
     const H = window.innerHeight;
-    this.x  = 80 + Math.random() * (W - 160);
-    this.y  = 200 + Math.random() * (H * 1.2);
-    this.vx = (Math.random() - 0.5) * 0.6;
-    this.vy = (Math.random() - 0.5) * 0.3;
+    // Spread across the full viewport (was clustered top-third with H*1.2 going off-screen)
+    this.x  = 60 + Math.random() * (W - 120);
+    this.y  = 80 + Math.random() * (H - 160);
+    // More dynamic motion than before
+    this.vx = (Math.random() - 0.5) * 1.0;
+    this.vy = (Math.random() - 0.5) * 0.6;
     this.phase = Math.random() * Math.PI * 2 + index * 1.3;
     this.size  = 2.5 + Math.random() * 1.5;
+    // Per-firefly speed multiplier — adds variance, some drift lazily, others wander faster
+    this.speedMult = 0.7 + Math.random() * 0.6;
     this.el.style.width  = this.size + 'px';
     this.el.style.height = this.size + 'px';
   }
 
-  update(targetX, targetY, attraction) {
+  update(targetX, targetY, attraction, scrollDY = 0) {
     this.phase += 0.018 + Math.random() * 0.006;
 
-    // Brownian drift
-    this.vx += (Math.random() - 0.5) * 0.08;
-    this.vy += (Math.random() - 0.5) * 0.06 + Math.sin(this.phase) * 0.04;
+    // Brownian drift — looser than before for more wandering feel
+    this.vx += (Math.random() - 0.5) * 0.12 * this.speedMult;
+    this.vy += (Math.random() - 0.5) * 0.10 * this.speedMult + Math.sin(this.phase) * 0.05;
+
+    // Scroll-direction nudge — fireflies catch the wake of scroll like dust in air
+    if (scrollDY !== 0) {
+      this.vy += scrollDY * 0.04;
+    }
 
     // Attraction toward guide target
     if (attraction > 0) {
@@ -51,19 +62,20 @@ class Firefly {
     this.vx *= 0.96;
     this.vy *= 0.96;
 
-    // Speed cap
+    // Speed cap (raised from 1.8 to 2.4 for livelier motion)
     const spd = Math.hypot(this.vx, this.vy);
-    if (spd > 1.8) { this.vx = this.vx / spd * 1.8; this.vy = this.vy / spd * 1.8; }
+    if (spd > 2.4) { this.vx = this.vx / spd * 2.4; this.vy = this.vy / spd * 2.4; }
 
     this.x += this.vx;
     this.y += this.vy;
 
-    // Soft boundary
+    // Soft viewport boundary — keep them on screen (was 3000px bottom = off-screen)
     const W = window.innerWidth;
+    const H = window.innerHeight;
     if (this.x < 40)       this.vx += 0.25;
     if (this.x > W - 40)   this.vx -= 0.25;
-    if (this.y < 80)        this.vy += 0.25;
-    if (this.y > 3000)      this.vy -= 0.25;
+    if (this.y < 60)       this.vy += 0.25;
+    if (this.y > H - 60)   this.vy -= 0.25;
 
     // Blink: slow organic pulse
     const blink = 0.3 + 0.7 * Math.abs(Math.sin(this.phase * 0.55));
@@ -140,6 +152,10 @@ export class ArchiveFireflies {
     this._obrasY    = 0;
     this._contactY  = 0;
     this._orbitAngle = 0;
+    this._lastFrame = 0;
+    this._lastScrollY = 0;
+    this._scrollDY = 0;
+    this._scrollDecay = 0;
   }
 
   init() {
@@ -159,17 +175,42 @@ export class ArchiveFireflies {
       this._particles = new AmbientParticles(this._container);
     }
 
-    // Track user activity on mainSite
+    // Track user activity + scroll velocity on mainSite
     const mainSite = document.getElementById('main-site');
     if (!mainSite) return;
     const reset = () => { this._lastActivity = Date.now(); };
     mainSite.addEventListener('mousemove', reset, { passive: true });
-    mainSite.addEventListener('scroll',    reset, { passive: true });
     mainSite.addEventListener('touchstart',reset, { passive: true });
     mainSite.addEventListener('click',     reset, { passive: true });
+    mainSite.addEventListener('scroll', () => {
+      this._lastActivity = Date.now();
+      const y = mainSite.scrollTop;
+      // Capture instantaneous delta — applied to fireflies as a "wake" force
+      this._scrollDY = (y - this._lastScrollY) * 0.5;
+      this._lastScrollY = y;
+      this._scrollDecay = 0.9; // ~20 frames of inertia decay
+    }, { passive: true });
+
+    // Page Visibility — pause when tab hidden, resume when visible (saves CPU)
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) this._pause();
+      else if (this._running === false) this._resume();
+    });
 
     this._running = true;
-    this._loop();
+    this._loop(0);
+  }
+
+  _pause() {
+    if (this._raf) cancelAnimationFrame(this._raf);
+    this._raf = null;
+    this._running = false;
+  }
+
+  _resume() {
+    this._running = true;
+    this._lastFrame = 0;
+    this._loop(0);
   }
 
   _getTargets() {
@@ -187,14 +228,23 @@ export class ArchiveFireflies {
     }
   }
 
-  _loop() {
+  _loop(t) {
     if (!this._running) return;
-    this._raf = requestAnimationFrame(() => this._loop());
+    this._raf = requestAnimationFrame((nt) => this._loop(nt));
+
+    // ~30fps throttle (FRAME_MS = 33ms)
+    if (t - this._lastFrame < FRAME_MS) return;
+    this._lastFrame = t;
 
     const idle = Date.now() - this._lastActivity;
     this._getTargets();
 
     const W2 = window.innerWidth / 2;
+
+    // Scroll-delta decay (the "wake" effect fades over ~20 frames)
+    const scrollDY = this._scrollDY;
+    this._scrollDY *= this._scrollDecay;
+    if (Math.abs(this._scrollDY) < 0.01) this._scrollDY = 0;
 
     this._fireflies.forEach((ff, i) => {
       let tx = W2, ty = this._obrasY, att = 0;
@@ -220,7 +270,7 @@ export class ArchiveFireflies {
         att = 0.0006;
       }
 
-      ff.update(tx, ty, att);
+      ff.update(tx, ty, att, scrollDY);
     });
 
     if (this._particles) this._particles.draw();

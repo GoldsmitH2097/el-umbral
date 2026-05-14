@@ -45,6 +45,26 @@
 
 ---
 
+## Captured ideas (not yet scoped)
+
+### Archetype-keyed ambient drone (Scene 4)
+**Idea:** When focusing on one of the four character columns in the Archive, the ambient sound should subtly retune to that character's tonal signature (using the existing `CHAR_FREQUENCIES` chord set).
+
+**Why it's interesting:** `playCharacterSignature` already exists for transitions. Extending the *continuous* ambient to also respond to focus would deepen the immersive feedback — each column gains a sonic identity, not just a visual one. Since `CHAR_FREQUENCIES` alternates per session (high vs grave), the same hover gesture sounds different across visits.
+
+**Implementation sketch:**
+- New ambient drone (fundamental + perfect 5th, gain ~0.005, slow LFO pulsation 6–12s)
+- `audio.setArchetypeFocus(i | null)` — smooth pitch glide over 1–2s
+- Desktop: pillar mouseenter/mouseleave; Mobile: carousel `.archive-col--active` detection
+- Effort: ~1.5–2h, low risk (additive to AudioEngine)
+
+**Open design questions:**
+- Drone timbre (sine / filtered saw / resonant noise)
+- Volume floor (atmospheric vs noticeable)
+- Pulsation pattern (synced vs pseudo-random)
+
+---
+
 ## How to start a session
 
 ```

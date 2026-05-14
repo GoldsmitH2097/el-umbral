@@ -28,6 +28,7 @@ const visual = new VisualEngine({
 const archive = new ArchiveDOM({
   router: null,
   tizno: tizno,
+  audio: audio,
   onSceneChange: (target) => { target==='enterMainSite' ? enterMainSite() : transitionTo(target); },
 });
 
