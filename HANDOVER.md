@@ -1,5 +1,5 @@
 # HANDOVER.md — El Umbral / Soulware
-*Last updated: May 14, 2026 — Session 8 (long polish + perf + video re-encode)*
+*Last updated: May 15, 2026 — Session 9 (mega perf/SEO/a11y overhaul + 720p variants + privacy)*
 
 ---
 
@@ -8,10 +8,98 @@
 **Live:** https://soulware.live
 **Repo:** github.com/GoldsmitH2097/el-umbral
 **Local:** `/Users/Ruben/Developer/el-umbral`
-**Last commit:** `0ff5732` — perf: re-encode character videos at half bitrate (~50% smaller) (#4)
+**Last commit:** `9d5b92a` — perf: hardcode LCP poster in HTML + force 720p pillars on skip-intro (#21)
 **Build:** ✅ Clean
 **Deploy:** ✅ Netlify auto-deploy from `main`
-**GA4:** G-VC5QW7C1CQ (Ruben Websites account, Javier admin)
+**GA4:** ❌ Removed (PR #16) — no third-party tracking, no cookie banner
+
+---
+
+## What was completed — Session 9 (May 14, 2026 — night → May 15)
+
+A mega session — 17 PRs merged (#5 through #21) covering performance, SEO, accessibility, content, UX polish, and privacy.
+
+### Headline numbers (before → after)
+| Metric | Before | After |
+|---|---|---|
+| WAVE errors | 6 (4 empty headings + 2 form labels) | **0** |
+| WAVE AIM | — | **9.8 / 10** |
+| DebugBear suggestions met | ~15/30 | **26/30** |
+| LCP (PSI mobile) | 3.6 s | **0.7 s** |
+| TBT (Lighthouse) | 11–19 s | **~2.1 s** |
+| CPU busy | 19 s | **5.96 s** |
+| Total initial payload | 5.5 MB | ~1.5 MB |
+| "Improve image delivery" flag | 1.57 MB savings | **114 KB savings** |
+| Forced reflow from gtag | 2 × 47 ms | **0** (GTM removed) |
+| Speed Index | 4.6 s | **0.9 s** |
+
+### Performance — JS / canvas (PRs #9, #12)
+- **Canvas RAF idle-pause** in Scenes 1–3: suspends after 3 s of no interaction. Wake-up listeners on `mousemove`/`mousedown`/`touchstart`/`touchmove`/`keydown`/`scroll`.
+- **Particle physics @ 30 fps simulation, 60 fps render** — halved TBT.
+- `_getTargets()` in ArchiveFireflies no longer fires `getBoundingClientRect()` every frame — gated to only fire near the idle threshold (120 reads/sec → ~10).
+- Removed `filter:blur`, `mix-blend-mode`, heavy `text-shadow`, `cronicasGlow` keyframe (caused Chrome crashes on weaker devices).
+
+### Performance — assets (PRs #13, #15, #17, #18, #20, #21)
+- **Cover webps resized to 900 px max** at q82 (1.4 MB saved across 7 covers).
+- **Mobile cover variants** at 318×450 in `/public/assets/mobile/` (-545 KB on mobile). All cover imgs ship `srcset="…/mobile/x.webp 320w, …/x.webp 600w" sizes="(max-width: 768px) 150px, 220px"`.
+- **720p video variants** at `/public/720/<slug>.mp4` (-60%, ~397 KB each).
+- **`pickVideoSrc()` helper** at `src/js/core/videoVariant.js` picks 1080p / 720p based on:
+  - `state.skippedIntro` (force 720p — these users didn't watch the cinematic)
+  - `navigator.connection.saveData` / `effectiveType` (2g / slow-2g / 3g → 720p)
+  - viewport ≤ 768 → 720p
+  - otherwise → 1080p
+- **Video posters** (`.webp` from t=0 frame, 9–20 KB each) in `/public/posters/`. Set as `<video poster=...>` on all pillars and on `#char-video` for the gallery. t=0 matches the video's loop entry point so the static→playing handoff is seamless.
+- **`width="600" height="900"`** explicitly set on every cover img + `width="120" height="120"` on the logos. CLS = 0.
+
+### Loading strategy (PRs #15, #17, #18, #20, #21)
+- All `<video>` start at `preload="none"` — Lighthouse never reaches Scene 4 so initial-load metrics are unaffected.
+- `sceneChange→4` listener upgrades pillars to `preload="auto"` AND re-picks src via `pickVideoSrc(dataset.charSrc)` (handles skip-intro flag flipping post-construction).
+- **IntersectionObserver belt-and-suspenders** in `_initPillarPreloadOnScroll()`: any pillar approaching viewport (`rootMargin: 200px`) with `preload="none"` is bumped to `auto`. Defense in depth for any future skip path that misses `sceneChange`.
+- **LCP poster discoverable from initial HTML** (PR #21): hardcoded `poster="/posters/reina-sin-corona.webp"` on `#char-video` + `<link rel="preload" as="image" href="..." fetchpriority="high">` in `<head>`. Lighthouse LCP audit now passes "Request is discoverable in initial document" and "fetchpriority=high should be applied".
+- Legal HTML cache warming (`requestIdleCallback`) moved to first user interaction (`pointerdown` / `touchstart` / `keydown` / `scroll`) or `sceneChange→4`. Was upstream of LCP in the critical chain on slow-4G.
+- Removed `<link rel="prefetch">` for legal HTMLs from `<head>` (was serializing into critical path).
+
+### SEO (PRs #12, #15)
+- Per-route prerender (`scripts/generate-og-pages.js` postbuild): 8 deep routes get unique `<title>`, description, canonical, OG/Twitter, JSON-LD `Book` schema with `offers.price` + `priceCurrency`.
+- Pulso JSON-LD: 22.44 EUR.
+- Filamentos JSON-LD: 17.95 EUR.
+
+### Accessibility (PRs #10, #11)
+- 4 empty headings → sr-only placeholder spans.
+- `<input id="contact-email">` → `aria-label="Email"`.
+- Honeypot `bot-field2` → `aria-label` + `tabindex="-1"` + `autocomplete="off"`.
+- All `<video>` decorative → `aria-hidden="true"`.
+
+### Privacy (PR #16)
+- **GA4 / GTM completely removed.** No `<script async src="googletagmanager.com/gtag/js">`, no `dataLayer`, no `gtag('config'...)`. No cookie banner required.
+- Killed the only cross-origin script the site loaded.
+
+### Catalogue + UI polish (PRs #6, #7, #8, #14, #19)
+- Pacto button (Tizno panel): icon-only with check-on-send swap.
+- "Cargando…" replaced with breathing **"Despertando…"** + cascading dots.
+- Legal modal: synchronous open when cache-hit (no loading flash).
+- Pulso del Núcleo card + modal + reading view: two editions render in a single stacked layout — buy CTA for Tapa Blanda (live), "Tapa Dura / Próximamente" combined button below.
+- All coming-soon CTAs unified to **"Próximamente"**.
+- Status pill removed on coming-soon cards (the button already says it).
+- Emperatriz obra: title "En preparación" → **"Título Sellado"**. CTA → "Próximamente". (Placeholder title — real title sealed.)
+- La Corte (Totalis Libertas) CTA: "Cruza el Umbral" → "Próximamente".
+- Anatomía CTA: "Iniciar mi Disección" → "Próximamente".
+
+### Audio (PR #3, continued)
+- Cover-hover sound + button-hover sound (independent throttles).
+- Reading view: master output goes through `BiquadFilter` lowpass at 22050 Hz baseline; muffles to ~800 Hz when reading view opens, restores on close.
+
+### Security headers (PR #3, continued, in `netlify.toml`)
+- `X-Content-Type-Options: nosniff`
+- `Referrer-Policy: strict-origin-when-cross-origin`
+- `X-Frame-Options: SAMEORIGIN`
+- `Permissions-Policy: geolocation=() microphone=() camera=()`
+
+### Files added this session
+- `public/720/{reina-sin-corona,caballero-sin-nombre,sortilega-sin-sombra,arlequin-sin-flores}.mp4` — 720p variants
+- `public/posters/{…}.webp` — t=0 frame posters
+- `public/assets/mobile/{…}.webp` — mobile cover variants
+- `src/js/core/videoVariant.js` — variant picker
 
 ---
 
@@ -313,13 +401,13 @@ Paste this file fresh at the start of every new chat.
 
 ## Catalogue summary
 
-| ID | Archetype | Status | CTA |
-|----|-----------|--------|-----|
-| `emperatriz-obra` | emperatriz | coming-soon | Entrar en la Corte → opens Tizno |
-| `la-corte` | emperatriz | coming-soon | Cruza el Umbral → opens Tizno |
-| `pulso` (with `editions[]`) | caballero | available | Tapa Blanda: Reclamar mi Ejemplar (live, Amazon ES) · Tapa Dura: Próximamente |
-| `filamentos` | sortilega | **available** (shipped 2026-05-12, Amazon ES 8409861771) | Reclamar mi Ejemplar |
-| `anatomia` | arlequin | coming-soon | Iniciar mi Disección → opens Tizno |
+| ID | Title | Archetype | Status | CTA |
+|----|-------|-----------|--------|-----|
+| `emperatriz-obra` | Título Sellado (placeholder) | emperatriz | coming-soon | Próximamente → opens Tizno |
+| `la-corte` | Totalis Libertas | emperatriz | coming-soon | Próximamente → opens Tizno |
+| `pulso` (with `editions[]`) | Pulso del Núcleo | caballero | available | Tapa Blanda: Reclamar mi Ejemplar (live, Amazon ES 8409810344) · Tapa Dura: combined "Próximamente" button |
+| `filamentos` | Filamentos de Oscuridad | sortilega | **available** (shipped 2026-05-12, Amazon ES 8409861771) | Reclamar mi Ejemplar |
+| `anatomia` | Anatomía del Vacío | arlequin | coming-soon | Próximamente → opens Tizno |
 
 ---
 
@@ -350,3 +438,4 @@ Chord test HTML file: shared with Javier + Diego. 5 options tested (Actual, Set1
 | 6 | May 12 | Audio redesign, mobile polish, chord test, Tizno panel, CSS audit, CTA wiring |
 | 7 | May 14 (afternoon) | SEO investigation, ghost URL cleanup, GSC validate fixes + request indexing, audit cleanup landed (#3) |
 | 8 | May 14 (evening) | Long polish: Tizno 3-col redesign, fireflies behavior + perf, transition simplified to fades, audio muffle + hover chimes, Threads icon fixed, video re-encode (-49%). PRs #3 (polish) and #4 (lighter videos) merged. |
+| 9 | May 14 (night) → May 15 | Mega perf/SEO/a11y/privacy overhaul. 17 PRs (#5–#21). GA4/GTM removed. WAVE 6→0 errors. LCP 3.6s→0.7s. TBT ~15s→~2s. 720p mobile video variants + `pickVideoSrc()` + skip-intro flag. Poster `.webp` t=0 frames. IntersectionObserver pillar preload fallback. Mobile cover variants + `srcset`. LCP poster hardcoded in HTML with `fetchpriority="high"`. Catalogue: "Título Sellado" placeholder, all coming-soon CTAs unified to "Próximamente", status pills hidden when redundant. |

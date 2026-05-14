@@ -135,24 +135,35 @@ To add a relato to La Corte: add entry to `relatos[]` array in StateManager.js. 
 - Page Visibility API: suspend on hidden, restart sources on resume
 
 **Video:**
-- 4 × ~2.4MB MP4s currently on Netlify — bandwidth risk at scale
-- Migrate to Bunny.net or Cloudflare R2 before any marketing push
-- Pillar videos: `preload="metadata"` loads first frame as static thumbnail
+- Two variants per character on Netlify:
+  - `/<slug>.mp4` — 1080p, ~979 KB (cinematic)
+  - `/720/<slug>.mp4` — 720p, ~397 KB (mobile / slow / skip-intro)
+- `src/js/core/videoVariant.js#pickVideoSrc()` selects between them based on:
+  - `state.skippedIntro` (force 720p — skip users didn't earn 1080p)
+  - `navigator.connection.saveData` / `effectiveType` (2g / slow-2g / 3g → 720p)
+  - viewport ≤ 768 (mobile → 720p)
+  - otherwise → 1080p
+- Pillar videos init with `preload="none"` + poster `.webp` (~20 KB t=0 frame)
+- `Events.on('sceneChange', {to:4}, ...)` upgrades to `preload="auto"` and re-picks src in case skip-intro flag flipped post-construction
+- `IntersectionObserver` belt-and-suspenders: any pillar approaching viewport with `preload="none"` is bumped to `auto` (one-shot per pillar)
+- Migrate to Bunny.net or Cloudflare R2 before any large marketing push
 
 ---
 
 ## SEO status
 
 - **Google Search Console:** Registered ✅ Sitemap: submitted ✅
-- **Indexed (as of May 14, 2026):** 1 of 9 sitemap URLs. Structure is correct (see below) — the gap is Google's indexing pace on a young site. After cleaning ghost URLs (below) and using GSC "Request indexing" per route, expect the count to climb.
+- **Indexed (as of May 15, 2026):** 1 of 9 sitemap URLs. Structure is fully correct — the gap is Google's indexing pace on a young site. After cleaning ghost URLs and using GSC "Request indexing" per route, expect the count to climb over the next few weeks.
 - **Sitemap:** `/sitemap.xml` ✅ 9 URLs (home + 4 characters + 4 obras). Legal pages intentionally excluded — they carry `noindex`.
-- **Per-route prerendering:** ✅ `scripts/generate-og-pages.js` runs as postbuild and writes `dist/<route>/index.html` for each of the 8 deep routes with unique `<title>`, `<meta description>`, `<link rel="canonical">`, OG/Twitter tags, and optional Book JSON-LD. Netlify serves these static files before applying the SPA catch-all.
-- **Ghost paths:** `/read`, `/saga`, `/contact`, `/map`, `/universo`, `/thanks.html`, `/privacy`, `/terms` (+ `.html` variants) → 301 to `/` via `public/_redirects`. These are remnants of a pre-Vite site that Google still crawls.
+- **Per-route prerendering:** ✅ `scripts/generate-og-pages.js` runs as postbuild and writes `dist/<route>/index.html` for each of the 8 deep routes with unique `<title>`, `<meta description>`, `<link rel="canonical">`, OG/Twitter tags, and optional Book JSON-LD with price/priceCurrency for merchant-listing eligibility. Netlify serves these static files before applying the SPA catch-all.
+- **Ghost paths:** `/read`, `/saga`, `/contact`, `/map`, `/universo`, `/thanks.html`, `/privacy`, `/terms` (+ `.html` variants) → 301 to `/` via `public/_redirects`. Remnants of a pre-Vite site that Google still crawls.
 - **robots.txt:** ✅
-- **JSON-LD:** Organization + 4 Book schemas ✅
+- **JSON-LD:** Organization + 4 Book schemas with `offers.price` + `priceCurrency` ✅
 - **OG/Twitter meta:** ✅ with 1200×630 image
 - **Favicons:** PNG 32px, 16px, Apple touch icon 180px ✅
 - **Ghost DOM:** semantic h1/h2/nav/article with .sr-only ✅
+- **No third-party tracking:** GA4 / GTM removed entirely (no `googletagmanager.com` script, no `dataLayer`, no cookie banner). If analytics are ever needed, prefer privacy-preserving alternatives (Plausible, Umami, Netlify Analytics).
+- **Performance (last PSI run, May 14):** LCP 0.7s · FCP 0.7s · TBT ~2.1s · CLS 0 · Speed Index 0.9s · WAVE 0 errors, AIM 9.8/10.
 
 ---
 
@@ -189,7 +200,7 @@ Accessible from footer. Serve without .html extension via Netlify pretty URLs.
 | Amazon author page + publisher name | Javier | Pending |
 | Editorial directories submission | Ruben | Pending |
 | @soulware.editorial branded social | Ruben | Pending |
-| La Emperatriz obra title | Ruben | TBD |
+| La Emperatriz obra title | Ruben | Placeholder "Título Sellado" — pending final |
 | La Corte author names + relatos | Ruben/Javier | TBD |
 | Book cover for La Emperatriz obra | Alicia Sarel | TBD |
 
