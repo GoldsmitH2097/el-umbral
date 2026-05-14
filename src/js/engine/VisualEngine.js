@@ -305,6 +305,19 @@ export class VisualEngine {
   }
 
   _tick(timestamp) {
+    // Scene 4+ — the canvas isn't drawing anything visible (just clearRect every
+    // frame). Stop scheduling RAFs entirely so the main thread can go idle.
+    // This fixes Lighthouse / GTmetrix tests that wait for an idle CPU window
+    // before declaring the page "loaded". Real-user experience is unchanged.
+    if (state.activeScene >= 4) {
+      if (!this._suspended) {
+        const ctx = this._ctx, W = this._canvas.width, H = this._canvas.height;
+        ctx.clearRect(0, 0, W, H);
+        this._suspended = true;
+      }
+      return;
+    }
+    this._suspended = false;
     requestAnimationFrame((ts) => this._tick(ts));
 
     // Delta-time: clamp to 16-32ms to handle tab-switch pauses and 144Hz screens.
@@ -317,9 +330,6 @@ export class VisualEngine {
     this._frameCount++;
 
     const ctx=this._ctx, W=this._canvas.width, H=this._canvas.height;
-
-    // Scene 4+ — clear canvas and return (no spotlight needed)
-    if(state.activeScene>=4){ ctx.clearRect(0,0,W,H); this._applyScrollImpulse(); return; }
 
     // ── Cursor lerp — scaled by dt so speed is frame-rate independent ────────
     const lf = state.isAwakening ? 0.05 : 0.1;

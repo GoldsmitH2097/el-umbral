@@ -691,30 +691,50 @@ export class ArchiveDOM {
     const legalTitle  = document.getElementById('legal-modal-title');
     const legalBody   = document.getElementById('legal-modal-body');
     const legalCache = new Map();
-    const openLegal = async (slug, title) => {
+    // Parse a fetched legal HTML page into the clean inner content we display.
+    const _parseLegal = (html) => {
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      doc.querySelectorAll('img, .legal-logo, .legal-back, nav, header, style, script').forEach(el => el.remove());
+      doc.querySelectorAll('a').forEach(a => {
+        const t = a.textContent.trim();
+        if (t === 'Soulware' || t.includes('Volver') || a.classList.contains('legal-logo') || a.classList.contains('legal-back')) {
+          a.remove();
+        }
+      });
+      const wrap = doc.querySelector('.legal-wrap, main, article, body');
+      return wrap ? wrap.innerHTML : '';
+    };
+    // Warm the cache at first paint — by the time the user clicks a legal link,
+    // the content is already in memory and the modal opens synchronously, no spinner.
+    requestIdleCallback?.(() => {
+      ['aviso-legal','privacidad','cookies'].forEach(slug => {
+        if (legalCache.has(slug)) return;
+        fetch(`/${slug}.html`).then(r => r.text()).then(html => {
+          legalCache.set(slug, _parseLegal(html));
+        }).catch(() => {});
+      });
+    }, { timeout: 3000 });
+
+    const _showLegal = (title, content) => {
       legalTitle.textContent = title;
-      legalBody.innerHTML = '<p class="loading-state" style="letter-spacing:2px;text-align:center;padding:24px 0;">Despertando<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span></p>';
+      legalBody.innerHTML = content;
       legalModal.classList.add('open');
       legalModal.removeAttribute('inert');
       legalModal.removeAttribute('aria-hidden');
       document.body.style.overflow = 'hidden';
+    };
+
+    const openLegal = async (slug, title) => {
+      // Cache hit → render synchronously. No loading flash.
+      if (legalCache.has(slug)) { _showLegal(title, legalCache.get(slug)); return; }
+      // Cache miss → fetch in the background, modal stays unopened until ready.
       try {
-        let html = legalCache.get(slug);
-        if (!html) { html = await (await fetch(`/${slug}.html`)).text(); legalCache.set(slug, html); }
-        const doc = new DOMParser().parseFromString(html, 'text/html');
-        // Strip elements that don't belong in the modal overlay
-        doc.querySelectorAll('img, .legal-logo, .legal-back, nav, header, style, script').forEach(el => el.remove());
-        // Remove the "← Volver" and "Soulware" navigation links
-        doc.querySelectorAll('a').forEach(a => {
-          const t = a.textContent.trim();
-          if (t === 'Soulware' || t.includes('Volver') || a.classList.contains('legal-logo') || a.classList.contains('legal-back')) {
-            a.remove();
-          }
-        });
-        const wrap = doc.querySelector('.legal-wrap, main, article, body');
-        legalBody.innerHTML = wrap ? wrap.innerHTML : '';
+        const html = await (await fetch(`/${slug}.html`)).text();
+        const content = _parseLegal(html);
+        legalCache.set(slug, content);
+        _showLegal(title, content);
       } catch {
-        legalBody.innerHTML = '<p style="color:#555;">No se pudo cargar el contenido.</p>';
+        _showLegal(title, '<p style="color:#555;">No se pudo cargar el contenido.</p>');
       }
       setTimeout(()=>{ legalClose?.focus(); }, 100);
     };
