@@ -55,7 +55,11 @@ export class ArchiveDOM {
       const video = document.createElement('video');
       // preload='none' on init: defer ~4×100 KB of video metadata until the
       // user actually reaches Scene 4. Switched to 'metadata' on sceneChange→4.
+      // poster = the t≈1.5s character reveal frame (~10-20 KB webp). Gives the
+      // pillar a beautiful frozen-portrait look on mobile / slow connections
+      // before any video bytes load, instead of pure-black panels.
       video.loop = true; video.muted = true; video.playsInline = true; video.preload = 'none';
+      video.poster = char.src.replace(/^\/(.+)\.mp4$/, '/posters/$1.webp');
       video.setAttribute('aria-hidden', 'true'); // decorative ambient — no captions needed
       video.src = char.src;
 
@@ -99,7 +103,7 @@ export class ArchiveDOM {
           if (item.type === 'anthology') {
             card.className = `obra-book obra-book--${item.status}`;
             const coverHtml = item.img
-              ? `<div class="obra-cover obra-cover--clickable obra-cover--anthology" data-id="${item.id}" role="button" tabindex="0" aria-label="Ver detalles de ${item.title}"><img src="${item.img}" alt="${item.title}" width="600" height="900" loading="lazy" decoding="async" /></div>`
+              ? `<div class="obra-cover obra-cover--clickable obra-cover--anthology" data-id="${item.id}" role="button" tabindex="0" aria-label="Ver detalles de ${item.title}"><img src="${item.img}" srcset="${item.img.replace('/assets/','/assets/mobile/')} 320w, ${item.img} 600w" sizes="(max-width: 768px) 150px, 220px" alt="${item.title}" width="600" height="900" loading="lazy" decoding="async" /></div>`
               : `<div class="obra-cover obra-cover--empty"></div>`;
             card.innerHTML = `
               ${coverHtml}
@@ -117,7 +121,7 @@ export class ArchiveDOM {
 
           card.className = `obra-book obra-book--${item.status}`;
           const coverHtml = item.img
-            ? `<div class="obra-cover obra-cover--clickable" data-id="${item.id}" role="button" tabindex="0" aria-label="Ver detalles de ${item.title}"><img src="${item.img}" alt="${item.title}" width="600" height="900" loading="lazy" decoding="async" /></div>`
+            ? `<div class="obra-cover obra-cover--clickable" data-id="${item.id}" role="button" tabindex="0" aria-label="Ver detalles de ${item.title}"><img src="${item.img}" srcset="${item.img.replace('/assets/','/assets/mobile/')} 320w, ${item.img} 600w" sizes="(max-width: 768px) 150px, 220px" alt="${item.title}" width="600" height="900" loading="lazy" decoding="async" /></div>`
             : `<div class="obra-cover obra-cover--clickable obra-cover--empty" data-id="${item.id}" role="button" tabindex="0" aria-label="Ver detalles de ${item.title}"></div>`;
 
           let ctaHtml = '';
@@ -377,7 +381,7 @@ export class ArchiveDOM {
       } else {
         obrasList.innerHTML = librosLabel + obras.map(item => {
           const coverHtml = item.img
-            ? `<div class="reading-obra-cover"><img src="${item.img}" alt="${item.title}" width="600" height="900" loading="lazy" decoding="async" /></div>`
+            ? `<div class="reading-obra-cover"><img src="${item.img}" srcset="${item.img.replace('/assets/','/assets/mobile/')} 320w, ${item.img} 600w" sizes="(max-width: 768px) 150px, 220px" alt="${item.title}" width="600" height="900" loading="lazy" decoding="async" /></div>`
             : `<div class="reading-obra-cover"><div class="reading-obra-cover-empty">${item.type==='anthology'?'Antología':'—'}</div></div>`;
           let ctaHtml = '';
           if (item.editions) {
@@ -584,7 +588,7 @@ export class ArchiveDOM {
 
     const coverEl = document.getElementById('obra-modal-cover');
     coverEl.innerHTML = item.img
-      ? `<img src="${item.img}" alt="${item.title}" width="600" height="900" />`
+      ? `<img src="${item.img}" srcset="${item.img.replace('/assets/','/assets/mobile/')} 320w, ${item.img} 600w" sizes="(max-width: 768px) 150px, 220px" alt="${item.title}" width="600" height="900" />`
       : `<div class="obra-modal-no-cover">${item.type === 'anthology' ? 'Antología' : 'Sin portada'}</div>`;
 
     let ctaHtml = '';
@@ -722,16 +726,32 @@ export class ArchiveDOM {
       const wrap = doc.querySelector('.legal-wrap, main, article, body');
       return wrap ? wrap.innerHTML : '';
     };
-    // Warm the cache at first paint — by the time the user clicks a legal link,
-    // the content is already in memory and the modal opens synchronously, no spinner.
-    requestIdleCallback?.(() => {
+    // Warm the cache after first user interaction — by the time anyone clicks
+    // a legal link, the content is already in memory and the modal opens
+    // synchronously. The previous version fired at first paint and showed up
+    // in the Lighthouse critical-path chain (~4 s upstream of LCP on slow-4G).
+    const _warmLegal = () => {
       ['aviso-legal','privacidad','cookies'].forEach(slug => {
         if (legalCache.has(slug)) return;
         fetch(`/${slug}.html`).then(r => r.text()).then(html => {
           legalCache.set(slug, _parseLegal(html));
         }).catch(() => {});
       });
-    }, { timeout: 3000 });
+    };
+    let _warmed = false;
+    const _onFirstInteraction = () => {
+      if (_warmed) return;
+      _warmed = true;
+      ['pointerdown','touchstart','keydown','scroll'].forEach(ev =>
+        window.removeEventListener(ev, _onFirstInteraction, { passive: true }));
+      _warmLegal();
+    };
+    ['pointerdown','touchstart','keydown','scroll'].forEach(ev =>
+      window.addEventListener(ev, _onFirstInteraction, { passive: true }));
+    // Also warm when the user reaches the Archive — the footer with legal
+    // links is in Scene 4, so this guarantees coverage even for keyboardless
+    // users who somehow scroll there without firing any of the above.
+    Events.on('sceneChange', ({ to }) => { if (to === 4) _onFirstInteraction(); });
 
     const _showLegal = (title, content) => {
       legalTitle.textContent = title;
