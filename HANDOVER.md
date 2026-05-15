@@ -73,10 +73,13 @@ Bilingual (ES/EN) shipped publicly. The site is now indexable in two languages w
 - Spanish-leak grep on `/en/`: 0 matches across the patterns we care about ✓
 
 ### Pending for Ruben / Javier (search visibility)
-- [ ] **GSC → URL Inspection → Request Indexing** on each of the 10 `/en/*` URLs. Sitemap is already submitted and contains them, but per-URL request bumps crawl priority.
-- [ ] **Bing Webmaster Tools** — add `soulware.live` property, submit `https://soulware.live/sitemap.xml`. Feeds DuckDuckGo + Yahoo as well.
+- [x] **GSC → URL Inspection → Request Indexing** on each of the 10 `/en/*` URLs. ✅ Done May 15 — all 10 EN URLs (/en/, /en/obras, /en/empress/knight/sibyl/harlequin, /en/obras/pulso-del-nucleo + 3 more obras) confirmed in priority crawl queue.
+- [x] **PSI on /en/** ✅ Done May 15. Mobile: Perf 86, A11y/BP/SEO 100, LCP 1.3s, CLS 0. Desktop: Perf 70, A11y/BP/SEO 100, LCP 0.3s, CLS 0. Same budget as / (TBT is the cinematic intro — known constraint, not a regression).
+- [ ] **Bing Webmaster Tools** — Ruben to set up (free MS account, ~10 min via Import-from-GSC). Feeds DuckDuckGo + Yahoo as well.
 - [ ] **External EN-language inbound links** (Goodreads author page, Amazon author page, etc.) will move the needle far more than any on-page tweak. The Amazon + Goodreads work was already pending in CLAUDE.md; same items.
-- [ ] **PSI on /en/** — we've only measured `/` before. Should be in the same green budget (LCP 0.7s, TBT ~2.1s, CLS 0) but worth one run post-deploy to confirm.
+
+### Tiny follow-up — PR #32 (May 15)
+After Session 10 shipped, the post-deploy hardening pass caught one residual Spanish hardcode: the Pacto submit-success aria-label (`'Pacto firmado'`) was set inline in `ArchiveDOM.js`. Fixed via `t('pacto.signed-aria')`, both ES + EN dictionaries updated. PR #32 merged.
 
 ---
 
