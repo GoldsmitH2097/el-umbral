@@ -14,6 +14,7 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { STRINGS } from '../src/js/core/translations.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DIST = join(__dirname, '../dist');
@@ -25,6 +26,24 @@ const OG_DEFAULT = `${BASE}/og-image.jpg`;
 // EXCEPT for character archetype slugs which get translated (caballero → knight
 // etc.). Book slugs (pulso-del-nucleo) stay Spanish in both languages.
 const ROUTES = [
+  // Home (root). Spanish version overwrites dist/index.html in place; the EN
+  // twin is emitted to dist/en/index.html so scrapers and direct visits to /en/
+  // see English meta + lang attribute.
+  {
+    path: '',
+    enSlug: '',
+    es: {
+      title: 'Soulware — Editorial Española de Ficción Oscura',
+      desc:  'Soulware es una editorial independiente española de ficción oscura. Cuatro arquetipos, cuatro universos literarios. Descubre el catálogo, los autores y sus mundos.',
+    },
+    en: {
+      title: 'Soulware — Spanish Dark Fiction Publisher',
+      desc:  'Soulware is an independent Spanish dark-fiction publisher. Four archetypes, four literary universes. Explore the catalogue, the authors, and their worlds.',
+    },
+    image: OG_DEFAULT,
+    isHome: true,
+  },
+
   // Generic catalog landing
   {
     path: 'obras',
@@ -116,8 +135,10 @@ const ROUTES = [
 ];
 
 function patch(html, urlPath, { title, desc, image, bookSchema, langCode, altPath, altLang }) {
-  const canonical = `${BASE}/${urlPath}`;
-  const altUrl    = `${BASE}/${altPath}`;
+  // Home routes use a trailing slash (`/` and `/en/`) for canonical clarity.
+  // Sub-routes don't get a trailing slash.
+  const canonical = urlPath === '' ? `${BASE}/` : urlPath === 'en' ? `${BASE}/en/` : `${BASE}/${urlPath}`;
+  const altUrl    = altPath === '' ? `${BASE}/` : altPath === 'en' ? `${BASE}/en/` : `${BASE}/${altPath}`;
   // Replace canonical + main meta. hreflang alternates rewrite the whole link
   // block to point at the matching English (or Spanish) twin.
   let out = html
@@ -142,6 +163,13 @@ function patch(html, urlPath, { title, desc, image, bookSchema, langCode, altPat
              `<link rel="alternate" hreflang="en" href="${langCode === 'en' ? canonical : altUrl}" />`)
     .replace(/<link rel="alternate" hreflang="x-default" href="[^"]*"\s*\/>/,
              `<link rel="alternate" hreflang="x-default" href="${langCode === 'es' ? canonical : altUrl}" />`);
+
+  // For EN pages, translate body text up-front so scrapers + first-paint show
+  // English. Otherwise the prerendered HTML carries Spanish hardcoded strings
+  // and the user briefly sees them before applyTranslations() runs at boot.
+  if (langCode === 'en') {
+    out = translateBody(out, STRINGS.en);
+  }
 
   if (bookSchema) {
     const schema = JSON.stringify({
@@ -169,14 +197,58 @@ function patch(html, urlPath, { title, desc, image, bookSchema, langCode, altPat
 
 const esc = s => s.replace(/"/g, '&quot;');
 
+// Translate the body of an HTML string up-front by rewriting any element with
+// a data-i18n / data-i18n-html / data-i18n-attr-* attribute. Mirrors
+// applyTranslations() from src/js/core/i18n.js so the prerendered EN HTML
+// matches what JS would have produced at boot. Lets scrapers see English
+// content and prevents a Spanish flash on first paint of /en/ routes.
+//
+// Regex parsing is fine here because we only target tag *opening* attributes
+// and adjacent inner text — never nested HTML — and the source HTML is a
+// known fixed shape (our own Vite-built index.html), not arbitrary input.
+function translateBody(html, dict) {
+  // data-i18n: replace inner textContent (between > and the matching </tag>)
+  html = html.replace(/<(\w+)([^>]*?)\sdata-i18n="([^"]+)"([^>]*)>([^<]*)<\/\1>/g,
+    (_, tag, pre, key, post, _inner) => {
+      const v = dict[key];
+      return v == null ? _ : `<${tag}${pre} data-i18n="${key}"${post}>${v}</${tag}>`;
+    });
+  // data-i18n-html: same but allows inner markup, only replaces full body
+  html = html.replace(/<(\w+)([^>]*?)\sdata-i18n-html="([^"]+)"([^>]*)>[\s\S]*?<\/\1>/g,
+    (_, tag, pre, key, post) => {
+      const v = dict[key];
+      return v == null ? _ : `<${tag}${pre} data-i18n-html="${key}"${post}>${v}</${tag}>`;
+    });
+  // data-i18n-attr-*: replace the corresponding attribute value on same element
+  html = html.replace(/<(\w+)([^>]*)>/g, (match, tag, attrs) => {
+    if (!attrs.includes('data-i18n-attr-')) return match;
+    let newAttrs = attrs;
+    const re = /\sdata-i18n-attr-([\w-]+)="([^"]+)"/g;
+    let m;
+    while ((m = re.exec(attrs)) !== null) {
+      const attrName = m[1], key = m[2], v = dict[key];
+      if (v == null) continue;
+      const attrRe = new RegExp(`\\s${attrName}="[^"]*"`);
+      if (attrRe.test(newAttrs)) {
+        newAttrs = newAttrs.replace(attrRe, ` ${attrName}="${esc(v)}"`);
+      } else {
+        newAttrs += ` ${attrName}="${esc(v)}"`;
+      }
+    }
+    return `<${tag}${newAttrs}>`;
+  });
+  return html;
+}
+
 const base = readFileSync(join(DIST, 'index.html'), 'utf8');
 
 let n = 0;
 for (const route of ROUTES) {
-  // Spanish version — original path
+  // Spanish version — original path. Home (path === '') overwrites the root
+  // dist/index.html in place; everything else gets its own subdir.
   const esPath = route.path;
-  const enPath = `en/${route.enSlug}`;
-  const esDir = join(DIST, esPath);
+  const enPath = route.enSlug ? `en/${route.enSlug}` : 'en';
+  const esDir = route.path ? join(DIST, esPath) : DIST;
   const enDir = join(DIST, enPath);
   mkdirSync(esDir, { recursive: true });
   mkdirSync(enDir, { recursive: true });
@@ -197,7 +269,7 @@ for (const route of ROUTES) {
     }),
     'utf8'
   );
-  console.log(`  ✓ /${esPath} + /${enPath}`);
+  console.log(`  ✓ /${esPath || ''} + /${enPath}`);
   n += 2;
 }
 console.log(`\n${n} static route pages generated.\n`);

@@ -3,6 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Pre-render language redirect. If the user previously chose EN via the
+       footer selector, this hops them from / to /en/ before any HTML paints,
+       so the remembered language stays in sync with the URL with no flash.
+       Sync, blocking, in <head> by design — the rest of the bundle never
+       runs on the page being abandoned. -->
+  <script>
+    try {
+      var _p = location.pathname;
+      var _onRoot = _p === '/' || _p === '/index.html';
+      var _stored = localStorage.getItem('sw_lang');
+      if (_onRoot && _stored === 'en') location.replace('/en/' + location.search + location.hash);
+      else if (_p.indexOf('/en') === 0 && _stored === 'es') {
+        var _dest = _p.replace(/^\/en\b\/?/, '/') || '/';
+        location.replace(_dest + location.search + location.hash);
+      }
+    } catch (e) { /* localStorage blocked — let URL win */ }
+  </script>
   <title>Soulware — Editorial Española de Ficción Oscura</title>
 
   <meta name="description" content="Soulware es una editorial independiente española de ficción oscura. Cuatro arquetipos, cuatro universos literarios. Descubre el catálogo, los autores y sus mundos." />
@@ -225,7 +242,7 @@
   <div id="instruccion" data-i18n="scene1.instruction">Haz clic y mantén pulsado<br>para encender la llama</div>
   <div id="instruccion-mobile" data-i18n="scene1.instruction.mobile">Toca y mantén pulsado<br>para encender la llama</div>
 </div>
-<div id="editorial-watermark">Editorial independiente española<br>de ficción oscura y universos de autor</div>
+<div id="editorial-watermark" data-i18n-html="editorial.watermark-html">Editorial independiente española<br>de ficción oscura y universos de autor</div>
 <button id="umbral-btn" data-i18n="scene1.umbral-button" data-i18n-attr-aria-label="scene1.umbral-aria" aria-label="Adentrarse en El Umbral">EL UMBRAL</button>
 
 <!-- SCENE 2: VOCES DEL UMBRAL -->
@@ -251,33 +268,37 @@
     <nav class="site-nav">
       <div class="logo"><img src="/assets/soulware-logo.webp" alt="Soulware" class="site-logo" width="120" height="120" /></div>
       <div class="links">
-        <span role="button" tabindex="0" data-action="scroll-obras">LAS OBRAS</span>
-        <span role="button" tabindex="0" data-action="scroll-contact">CONTACTO</span>
+        <span role="button" tabindex="0" data-action="scroll-obras" data-i18n="nav.las-obras">LAS OBRAS</span>
+        <span role="button" tabindex="0" data-action="scroll-contact" data-i18n="nav.contacto">CONTACTO</span>
       </div>
     </nav>
     <header class="site-hero">
-      <h2 tabindex="-1">Las Crónicas</h2>
-      <p class="site-hero-sub">Cuatro arquetipos. Cuatro universos.<br>Bienvenido al Archivo de Soulware.</p>
-      <p class="site-hero-editorial">Soulware es una editorial independiente de ficción oscura y universos de autor.</p>
+      <h2 tabindex="-1" data-i18n="site-hero.title">Las Crónicas</h2>
+      <p class="site-hero-sub" data-i18n-html="site-hero.sub-html">Cuatro arquetipos. Cuatro universos.<br>Bienvenido al Archivo de Soulware.</p>
+      <p class="site-hero-editorial" data-i18n="site-hero.editorial">Soulware es una editorial independiente de ficción oscura y universos de autor.</p>
     </header>
     <div id="obras-section-wrapper">
       <section class="archive-grid" id="obras-section"></section>
     </div>
     <footer class="site-footer">
-      <img src="/assets/soulware-logo.webp" alt="Soulware" class="footer-logo" width="120" height="120" />
+      <img src="/assets/soulware-logo.webp" alt="Soulware" class="footer-logo" width="72" height="72" />
       <p>Soulware &copy; MMXXVI.</p>
-      <p>Nada es lo que parece.</p>
+      <p data-i18n="site-footer.tagline">Nada es lo que parece.</p>
+      <!-- Replay button + language selector share one row — keeps the footer
+           compact instead of stacking the selector on its own line. -->
+      <div class="footer-replay-row">
         <button id="replay-intro-btn" data-i18n="scene1.replay-back" data-i18n-attr-aria-label="scene1.replay-aria" aria-label="Volver al inicio del umbral">← Volver al Umbral</button>
-        <nav class="footer-legal">
+        <span class="footer-replay-sep" aria-hidden="true">·</span>
+        <nav id="lang-selector" class="lang-selector" data-i18n-attr-aria-label="lang.selector-aria" aria-label="Cambiar idioma">
+          <button type="button" data-set-lang="es" data-i18n="lang.es">ES</button>
+          <span aria-hidden="true">·</span>
+          <button type="button" data-set-lang="en" data-i18n="lang.en">EN</button>
+        </nav>
+      </div>
+      <nav class="footer-legal">
         <a href="/aviso-legal.html" data-legal="aviso-legal" data-legal-title="Aviso Legal" data-i18n="footer.legal.legal">Aviso Legal</a>
         <a href="/privacidad.html" data-legal="privacidad" data-legal-title="Privacidad" data-i18n="footer.legal.privacy">Privacidad</a>
         <a href="/cookies.html" data-legal="cookies" data-legal-title="Cookies" data-i18n="footer.legal.cookies">Cookies</a>
-      </nav>
-      <!-- Language selector — dark-launched (hidden by default until EN copy is fully wired) -->
-      <nav id="lang-selector" class="lang-selector" data-i18n-attr-aria-label="lang.selector-aria" aria-label="Cambiar idioma" hidden>
-        <button type="button" data-set-lang="es" data-i18n="lang.es">ES</button>
-        <span aria-hidden="true">·</span>
-        <button type="button" data-set-lang="en" data-i18n="lang.en">EN</button>
       </nav>
     </footer>
   </div>
@@ -286,9 +307,9 @@
 <!-- SCENE 5: READING VIEW — Author + Books tabs -->
 <div id="reading-view" role="dialog" aria-modal="true" aria-labelledby="read-title" inert aria-hidden="true">
   <video id="reading-bg-video" loop muted playsinline preload="none" aria-hidden="true"></video>
-  <nav class="reading-tabs" role="tablist" aria-label="Secciones">
-    <button class="reading-tab reading-tab--active" data-tab="autor" role="tab" aria-selected="true">Autor</button>
-    <button class="reading-tab" data-tab="libros" role="tab" aria-selected="false">Libros</button>
+  <nav class="reading-tabs" role="tablist" data-i18n-attr-aria-label="reading.sections-aria" aria-label="Secciones">
+    <button class="reading-tab reading-tab--active" data-tab="autor" role="tab" aria-selected="true" data-i18n="nav.author">Autor</button>
+    <button class="reading-tab" data-tab="libros" role="tab" aria-selected="false" data-i18n="nav.books">Libros</button>
   </nav>
   <div class="reading-content">
     <h1 id="read-title" tabindex="-1"><span class="sr-only">Detalles del personaje</span></h1>
@@ -308,10 +329,10 @@
   <!-- Sticky header: video + tabs + close — does NOT scroll -->
   <div class="mobile-detail-header">
     <video id="mobile-char-video-bg" loop muted playsinline preload="none" aria-hidden="true"></video>
-    <button id="mobile-char-close">← Volver</button>
+    <button id="mobile-char-close" data-i18n="mobile-detail.back">← Volver</button>
     <nav class="reading-tabs reading-tabs--mobile" role="tablist">
-      <button class="reading-tab reading-tab--active" data-tab="autor">Autor</button>
-      <button class="reading-tab" data-tab="libros">Libros</button>
+      <button class="reading-tab reading-tab--active" data-tab="autor" data-i18n="nav.author">Autor</button>
+      <button class="reading-tab" data-tab="libros" data-i18n="nav.books">Libros</button>
     </nav>
   </div>
   <!-- Scrollable content — below the header -->
@@ -329,15 +350,15 @@
 
 <!-- BOOK CARD MODAL -->
 <div id="obra-modal" role="dialog" aria-modal="true" aria-labelledby="obra-modal-title" inert aria-hidden="true">
-  <button id="obra-modal-close" aria-label="Cerrar">&#215;</button>
+  <button id="obra-modal-close" data-i18n-attr-aria-label="ui.close" aria-label="Cerrar">&#215;</button>
   <div id="obra-modal-inner">
     <div id="obra-modal-cover"></div>
     <div id="obra-modal-info">
       <p id="obra-modal-archetype"></p>
       <!-- Dual-layer tabs -->
       <div id="obra-modal-tabs" role="tablist">
-        <button class="obra-tab obra-tab--active" data-tab="vision" role="tab" aria-selected="true">La Visión</button>
-        <button class="obra-tab" data-tab="manuscrito" role="tab" aria-selected="false">La Ficha</button>
+        <button class="obra-tab obra-tab--active" data-tab="vision" role="tab" aria-selected="true" data-i18n="nav.vision">La Visión</button>
+        <button class="obra-tab" data-tab="manuscrito" role="tab" aria-selected="false" data-i18n="nav.sheet">La Ficha</button>
       </div>
       <!-- Tab: La Visión — atmospheric pitch -->
       <div id="obra-panel-vision" class="obra-tab-panel obra-tab-panel--active" role="tabpanel">
@@ -366,7 +387,7 @@
 
 <!-- LEGAL MODAL — content fetched on demand, never navigate away -->
 <div id="legal-modal" role="dialog" aria-modal="true" aria-labelledby="legal-modal-title" inert aria-hidden="true">
-  <button id="legal-modal-close" aria-label="Cerrar">&#215;</button>
+  <button id="legal-modal-close" data-i18n-attr-aria-label="ui.close" aria-label="Cerrar">&#215;</button>
   <div id="legal-modal-inner">
     <h2 id="legal-modal-title"><span class="sr-only">Documento legal</span></h2>
     <div id="legal-modal-body"></div>
@@ -385,13 +406,13 @@
 </div>
 
 <!-- TIZNO PANEL — slides up from below -->
-<div id="tizno-panel" role="dialog" aria-modal="true" aria-label="Contacto Soulware" inert aria-hidden="true">
-  <button id="tizno-panel-close" aria-label="Cerrar">&#215;</button>
+<div id="tizno-panel" role="dialog" aria-modal="true" data-i18n-attr-aria-label="pacto.contact-aria" aria-label="Contacto Soulware" inert aria-hidden="true">
+  <button id="tizno-panel-close" data-i18n-attr-aria-label="ui.close" aria-label="Cerrar">&#215;</button>
   <div id="tizno-panel-inner">
     <!-- Column 1: Contact CTA -->
     <div class="tizno-col tizno-col--contact">
-      <p class="tizno-form-title">Contacto</p>
-      <a href="mailto:editorial@soulware.live" class="obra-btn obra-btn--buy tizno-mailto-btn">Envíanos un mensaje</a>
+      <p class="tizno-form-title" data-i18n="tizno.contact">Contacto</p>
+      <a href="mailto:editorial@soulware.live" class="obra-btn obra-btn--buy tizno-mailto-btn" data-i18n="tizno.mailto">Envíanos un mensaje</a>
     </div>
 
     <!-- Column 2: Brand block — social, email, identity -->
@@ -411,25 +432,25 @@
     <!-- Tizno identity -->
     <div class="tizno-identity">
       <p class="tizno-identity-name">Tizno</p>
-      <p class="tizno-identity-sub">Hecho de hollín y tinta.</p>
-      <p class="tizno-identity-soon">Llegará pronto</p>
+      <p class="tizno-identity-sub" data-i18n="tizno.identity-sub">Hecho de hollín y tinta.</p>
+      <p class="tizno-identity-soon" data-i18n="tizno.identity-soon">Llegará pronto</p>
     </div>
     </div>
 
     <!-- Column 3: El Pacto — email capture -->
     <div class="tizno-col tizno-col--pacto">
     <div class="tizno-pacto">
-      <p class="tizno-pacto-label">Lanzamientos, relatos breves y muestras antes que nadie.</p>
+      <p class="tizno-pacto-label" data-i18n="tizno.pacto-label">Lanzamientos, relatos breves y muestras antes que nadie.</p>
       <form class="tizno-pacto-form" id="tizno-pacto-form" name="el-pacto" data-netlify="true" netlify-honeypot="bot-field2">
         <input type="hidden" name="form-name" value="el-pacto" />
-        <input type="text" name="bot-field2" tabindex="-1" autocomplete="off" aria-hidden="true" aria-label="No completar — campo trampa para bots" style="display:none" />
+        <input type="text" name="bot-field2" tabindex="-1" autocomplete="off" aria-hidden="true" data-i18n-attr-aria-label="tizno.honeypot-aria" aria-label="No completar — campo trampa para bots" style="display:none" />
         <div class="tizno-pacto-row">
           <input type="email" name="email" placeholder="tu@email.com" required autocomplete="email" aria-label="Tu correo electrónico para firmar El Pacto" data-i18n-attr-placeholder="pacto.email-placeholder" data-i18n-attr-aria-label="pacto.email-aria" />
-          <button type="submit" class="obra-btn obra-btn--buy tizno-pacto-btn" aria-label="Firmar el Pacto"><svg class="tizno-pacto-btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></button>
+          <button type="submit" class="obra-btn obra-btn--buy tizno-pacto-btn" data-i18n-attr-aria-label="pacto.submit-aria" aria-label="Firmar el Pacto"><svg class="tizno-pacto-btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></button>
         </div>
         <label class="tizno-pacto-consent">
           <input type="checkbox" name="consent" required />
-          <span>Acepto recibir comunicaciones de Soulware. <a href="/privacidad.html" target="_blank" rel="noopener">Privacidad</a>.</span>
+          <span data-i18n-html="tizno.consent-html">Acepto recibir comunicaciones de Soulware. <a href="/privacidad.html" target="_blank" rel="noopener">Privacidad</a>.</span>
         </label>
       </form>
     </div>
