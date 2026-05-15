@@ -75,7 +75,7 @@ Bilingual (ES/EN) shipped publicly. The site is now indexable in two languages w
 ### Pending for Ruben / Javier (search visibility)
 - [x] **GSC → URL Inspection → Request Indexing** on each of the 10 `/en/*` URLs. ✅ Done May 15 — all 10 EN URLs (/en/, /en/obras, /en/empress/knight/sibyl/harlequin, /en/obras/pulso-del-nucleo + 3 more obras) confirmed in priority crawl queue.
 - [x] **PSI on /en/** ✅ Done May 15. Mobile: Perf 86, A11y/BP/SEO 100, LCP 1.3s, CLS 0. Desktop: Perf 70, A11y/BP/SEO 100, LCP 0.3s, CLS 0. Same budget as / (TBT is the cinematic intro — known constraint, not a regression).
-- [ ] **Bing Webmaster Tools** — Ruben to set up (free MS account, ~10 min via Import-from-GSC). Feeds DuckDuckGo + Yahoo as well.
+- [x] **Bing Webmaster Tools** ✅ Done May 15. Imported from GSC (sitemap came over automatically). All 10 EN URLs submitted via URL Submission feature; quota 90/100 left for the day. Bing feeds DuckDuckGo + Yahoo + ChatGPT search citations as well.
 - [ ] **External EN-language inbound links** (Goodreads author page, Amazon author page, etc.) will move the needle far more than any on-page tweak. The Amazon + Goodreads work was already pending in CLAUDE.md; same items.
 
 ### Tiny follow-up — PR #32 (May 15)
