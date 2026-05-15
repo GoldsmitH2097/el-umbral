@@ -14,6 +14,7 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { STRINGS } from '../src/js/core/translations.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DIST = join(__dirname, '../dist');
@@ -163,6 +164,13 @@ function patch(html, urlPath, { title, desc, image, bookSchema, langCode, altPat
     .replace(/<link rel="alternate" hreflang="x-default" href="[^"]*"\s*\/>/,
              `<link rel="alternate" hreflang="x-default" href="${langCode === 'es' ? canonical : altUrl}" />`);
 
+  // For EN pages, translate body text up-front so scrapers + first-paint show
+  // English. Otherwise the prerendered HTML carries Spanish hardcoded strings
+  // and the user briefly sees them before applyTranslations() runs at boot.
+  if (langCode === 'en') {
+    out = translateBody(out, STRINGS.en);
+  }
+
   if (bookSchema) {
     const schema = JSON.stringify({
       "@context": "https://schema.org",
@@ -188,6 +196,49 @@ function patch(html, urlPath, { title, desc, image, bookSchema, langCode, altPat
 }
 
 const esc = s => s.replace(/"/g, '&quot;');
+
+// Translate the body of an HTML string up-front by rewriting any element with
+// a data-i18n / data-i18n-html / data-i18n-attr-* attribute. Mirrors
+// applyTranslations() from src/js/core/i18n.js so the prerendered EN HTML
+// matches what JS would have produced at boot. Lets scrapers see English
+// content and prevents a Spanish flash on first paint of /en/ routes.
+//
+// Regex parsing is fine here because we only target tag *opening* attributes
+// and adjacent inner text — never nested HTML — and the source HTML is a
+// known fixed shape (our own Vite-built index.html), not arbitrary input.
+function translateBody(html, dict) {
+  // data-i18n: replace inner textContent (between > and the matching </tag>)
+  html = html.replace(/<(\w+)([^>]*?)\sdata-i18n="([^"]+)"([^>]*)>([^<]*)<\/\1>/g,
+    (_, tag, pre, key, post, _inner) => {
+      const v = dict[key];
+      return v == null ? _ : `<${tag}${pre} data-i18n="${key}"${post}>${v}</${tag}>`;
+    });
+  // data-i18n-html: same but allows inner markup, only replaces full body
+  html = html.replace(/<(\w+)([^>]*?)\sdata-i18n-html="([^"]+)"([^>]*)>[\s\S]*?<\/\1>/g,
+    (_, tag, pre, key, post) => {
+      const v = dict[key];
+      return v == null ? _ : `<${tag}${pre} data-i18n-html="${key}"${post}>${v}</${tag}>`;
+    });
+  // data-i18n-attr-*: replace the corresponding attribute value on same element
+  html = html.replace(/<(\w+)([^>]*)>/g, (match, tag, attrs) => {
+    if (!attrs.includes('data-i18n-attr-')) return match;
+    let newAttrs = attrs;
+    const re = /\sdata-i18n-attr-([\w-]+)="([^"]+)"/g;
+    let m;
+    while ((m = re.exec(attrs)) !== null) {
+      const attrName = m[1], key = m[2], v = dict[key];
+      if (v == null) continue;
+      const attrRe = new RegExp(`\\s${attrName}="[^"]*"`);
+      if (attrRe.test(newAttrs)) {
+        newAttrs = newAttrs.replace(attrRe, ` ${attrName}="${esc(v)}"`);
+      } else {
+        newAttrs += ` ${attrName}="${esc(v)}"`;
+      }
+    }
+    return `<${tag}${newAttrs}>`;
+  });
+  return html;
+}
 
 const base = readFileSync(join(DIST, 'index.html'), 'utf8');
 

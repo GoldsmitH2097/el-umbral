@@ -3,6 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Pre-render language redirect. If the user previously chose EN via the
+       footer selector, this hops them from / to /en/ before any HTML paints,
+       so the remembered language stays in sync with the URL with no flash.
+       Sync, blocking, in <head> by design — the rest of the bundle never
+       runs on the page being abandoned. -->
+  <script>
+    try {
+      var _p = location.pathname;
+      var _onRoot = _p === '/' || _p === '/index.html';
+      var _stored = localStorage.getItem('sw_lang');
+      if (_onRoot && _stored === 'en') location.replace('/en/' + location.search + location.hash);
+      else if (_p.indexOf('/en') === 0 && _stored === 'es') {
+        var _dest = _p.replace(/^\/en\b\/?/, '/') || '/';
+        location.replace(_dest + location.search + location.hash);
+      }
+    } catch (e) { /* localStorage blocked — let URL win */ }
+  </script>
   <title>Soulware — Editorial Española de Ficción Oscura</title>
 
   <meta name="description" content="Soulware es una editorial independiente española de ficción oscura. Cuatro arquetipos, cuatro universos literarios. Descubre el catálogo, los autores y sus mundos." />
@@ -225,7 +242,7 @@
   <div id="instruccion" data-i18n="scene1.instruction">Haz clic y mantén pulsado<br>para encender la llama</div>
   <div id="instruccion-mobile" data-i18n="scene1.instruction.mobile">Toca y mantén pulsado<br>para encender la llama</div>
 </div>
-<div id="editorial-watermark">Editorial independiente española<br>de ficción oscura y universos de autor</div>
+<div id="editorial-watermark" data-i18n-html="editorial.watermark-html">Editorial independiente española<br>de ficción oscura y universos de autor</div>
 <button id="umbral-btn" data-i18n="scene1.umbral-button" data-i18n-attr-aria-label="scene1.umbral-aria" aria-label="Adentrarse en El Umbral">EL UMBRAL</button>
 
 <!-- SCENE 2: VOCES DEL UMBRAL -->
@@ -264,20 +281,24 @@
       <section class="archive-grid" id="obras-section"></section>
     </div>
     <footer class="site-footer">
-      <img src="/assets/soulware-logo.webp" alt="Soulware" class="footer-logo" width="120" height="120" />
+      <img src="/assets/soulware-logo.webp" alt="Soulware" class="footer-logo" width="72" height="72" />
       <p>Soulware &copy; MMXXVI.</p>
       <p data-i18n="site-footer.tagline">Nada es lo que parece.</p>
+      <!-- Replay button + language selector share one row — keeps the footer
+           compact instead of stacking the selector on its own line. -->
+      <div class="footer-replay-row">
         <button id="replay-intro-btn" data-i18n="scene1.replay-back" data-i18n-attr-aria-label="scene1.replay-aria" aria-label="Volver al inicio del umbral">← Volver al Umbral</button>
-        <nav class="footer-legal">
+        <span class="footer-replay-sep" aria-hidden="true">·</span>
+        <nav id="lang-selector" class="lang-selector" data-i18n-attr-aria-label="lang.selector-aria" aria-label="Cambiar idioma">
+          <button type="button" data-set-lang="es" data-i18n="lang.es">ES</button>
+          <span aria-hidden="true">·</span>
+          <button type="button" data-set-lang="en" data-i18n="lang.en">EN</button>
+        </nav>
+      </div>
+      <nav class="footer-legal">
         <a href="/aviso-legal.html" data-legal="aviso-legal" data-legal-title="Aviso Legal" data-i18n="footer.legal.legal">Aviso Legal</a>
         <a href="/privacidad.html" data-legal="privacidad" data-legal-title="Privacidad" data-i18n="footer.legal.privacy">Privacidad</a>
         <a href="/cookies.html" data-legal="cookies" data-legal-title="Cookies" data-i18n="footer.legal.cookies">Cookies</a>
-      </nav>
-      <!-- Language selector — dark-launched (hidden by default until EN copy is fully wired) -->
-      <nav id="lang-selector" class="lang-selector" data-i18n-attr-aria-label="lang.selector-aria" aria-label="Cambiar idioma" hidden>
-        <button type="button" data-set-lang="es" data-i18n="lang.es">ES</button>
-        <span aria-hidden="true">·</span>
-        <button type="button" data-set-lang="en" data-i18n="lang.en">EN</button>
       </nav>
     </footer>
   </div>

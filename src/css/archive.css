@@ -173,14 +173,16 @@
   text-shadow: 0 0 20px rgba(200,146,42,0.4);
 }
 .archive-pillar .pillar-content p {
-  font-size: 13px; color: #aaa; line-height: 1.7; margin: 0 auto; max-width: 250px;
+  font-size: 13px; color: #aaa; line-height: 1.7; margin: 0 auto; max-width: 290px;
   opacity: 0.75; transition: opacity 0.4s ease;
   /* Reserve space for tallest description (3 lines) so all character titles
      above align at the same vertical position regardless of blurb length. */
   min-height: 5.1em;
   display: flex; align-items: flex-start; justify-content: center;
-  /* Prevent widow words at the end (e.g. lone "verdad." on its own line) */
-  text-wrap: balance;
+  /* Avoid orphan widows ("truth." on its own line). `pretty` is better than
+     `balance` for short paragraphs — it actively pulls the last word back
+     onto the preceding line where possible. */
+  text-wrap: pretty;
 }
 .archive-col:hover .archive-pillar .pillar-content p,
 .archive-col--highlighted .archive-pillar .pillar-content p { opacity: 1; }
@@ -255,8 +257,14 @@
 /* ── Site footer (old rules below, new rules at end of file) */
 .site-footer p { margin: 0 0 16px; }
 .footer-legal { display: flex; gap: 30px; justify-content: center; flex-wrap: wrap; }
-.footer-legal a { color: #333; text-decoration: none; font-size: 9px; letter-spacing: 3px; transition: color 0.3s; }
+.footer-legal a {
+  color: #333; text-decoration: none; font-size: 9px; letter-spacing: 3px; transition: color 0.3s;
+  outline: none;
+}
 .footer-legal a:hover { color: #888; }
+/* Programmatic focus (modal close returns focus here) was leaving a default
+   blue rectangle. Override with an on-brand keyboard-only ring. */
+.footer-legal a:focus-visible { color: #c8922a; outline: none; }
 
 /* Language selector — same dim register as legal links, lives next to them.
    Dark-launched ([hidden] attribute is set in HTML); reveal once EN copy is
@@ -265,10 +273,13 @@
 .lang-selector[hidden] { display: none; }
 .lang-selector button {
   background: transparent; border: none; padding: 4px 6px; cursor: pointer;
-  color: #333; font-family: 'Times New Roman', serif; font-size: 9px; letter-spacing: 3px;
-  text-transform: uppercase; transition: color 0.3s;
+  color: #444; font-family: 'Times New Roman', serif; font-size: 9px; letter-spacing: 3px;
+  text-transform: uppercase; transition: color 0.3s; outline: none;
 }
-.lang-selector button:hover { color: #888; }
+.lang-selector button:hover { color: #aaa; }
+/* Active language gets the amber accent — same tone used elsewhere for "live" state */
+.lang-selector button[aria-current="true"] { color: #c8922a; }
+.lang-selector button:focus-visible { color: #c8922a; }
 .lang-selector span { color: #2a2a2a; font-size: 9px; }
 
 #reading-view { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: #020202; z-index: 30; display: none; opacity: 0; pointer-events: none; transition: opacity 1s ease; overflow-y: auto; overflow-x: hidden; }
@@ -341,8 +352,8 @@
   padding-bottom: 36px; border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 .reading-obra-card:last-child { border-bottom: none; padding-bottom: 0; }
-.reading-obra-cover { flex-shrink: 0; width: 120px; }
-.reading-obra-cover img { width: 100%; display: block; }
+.reading-obra-cover { flex-shrink: 0; width: 120px; aspect-ratio: 2/3; }
+.reading-obra-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .reading-obra-cover-empty {
   width: 120px; aspect-ratio: 2/3; background: #080808;
   border: 1px solid rgba(255,255,255,0.06); display: flex;
@@ -403,20 +414,33 @@
 
 /* ── Site footer ─────────────────────────────────────────────────────────── */
 .site-footer {
-  text-align: center; padding: 6vh 5vw 5vh;
+  text-align: center; padding: 2vh 5vw 5vh;
   font-size: 10px; color: #333; letter-spacing: 4px; text-transform: uppercase;
   border-top: 1px solid rgba(255,255,255,0.04);
 }
 .site-footer p { margin: 0 0 14px; white-space: nowrap; }
+.footer-logo {
+  /* Visual size — overrides the 72px intrinsic attr. Tight top margin keeps
+     the logo close to the section above; bottom margin gives breathing room
+     before the copyright/tagline block. */
+  width: 72px; height: 72px; display: block; margin: 0 auto 22px;
+}
+/* Replay + lang selector share a single row */
+.footer-replay-row {
+  display: flex; gap: 12px; justify-content: center; align-items: center;
+  flex-wrap: wrap; margin: 0 0 14px;
+}
+.footer-replay-sep { color: #2a2a2a; font-size: 9px; }
 #replay-intro-btn {
-  display: block; margin: 0 auto 20px;
   background: transparent; border: none; color: #2a2a2a;
   font-family: 'Times New Roman', serif; font-size: 9px;
   letter-spacing: 3px; text-transform: uppercase;
   cursor: pointer; transition: color 0.3s; padding: 4px 0;
 }
 #replay-intro-btn:hover { color: #666; }
-.footer-legal { display: flex; gap: 30px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+/* Selector inline in the replay row — drop the standalone-row top margin */
+.footer-replay-row .lang-selector { margin-top: 0; }
+.footer-legal { display: flex; gap: 30px; justify-content: center; flex-wrap: wrap; margin-top: 0; }
 .footer-legal a, .footer-legal a:visited { color: #333; text-decoration: none; font-size: 9px; letter-spacing: 3px; transition: color 0.3s; font-family: 'Times New Roman', serif; }
 .footer-legal a:hover { color: #777; }
 

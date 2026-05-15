@@ -30,8 +30,11 @@ input[type="text"]:not([readonly]), input[type="email"], textarea { cursor: text
 #char-title, #char-desc { text-wrap: balance; }
 
 .reading-content p, .obra-desc, .site-hero-sub, .contact-sub,
-#obra-modal-vision, #pacto-modal p, .tizno-panel-sub,
-.read-body p, .mobile-detail-lore p, .site-hero-sub { text-wrap: pretty; }
+#obra-modal-vision, #obra-modal-desc, #pacto-modal p, .tizno-panel-sub,
+.read-body p, .mobile-detail-lore p, .site-hero-sub,
+.reading-obra-vision, .reading-obra-subtitle, .obra-subtitle,
+.tizno-pacto-label, #editorial-watermark, .site-hero-editorial,
+.archive-pillar .pillar-content p { text-wrap: pretty; }
 
 body, html {
   margin: 0; padding: 0; background-color: #020202; height: 100vh; overflow: hidden;

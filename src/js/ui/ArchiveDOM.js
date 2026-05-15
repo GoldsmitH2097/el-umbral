@@ -1,6 +1,6 @@
 import { CHARACTERS, CATALOGUE, state, Events } from '../core/StateManager.js';
 import { pickVideoSrc } from '../core/videoVariant.js';
-import { t, getField } from '../core/i18n.js';
+import { t, getField, lang } from '../core/i18n.js';
 
 // Social platform SVG icons
 const ICONS = {
@@ -780,13 +780,17 @@ export class ArchiveDOM {
     const legalTitle  = document.getElementById('legal-modal-title');
     const legalBody   = document.getElementById('legal-modal-body');
     const legalCache = new Map();
+    // Per-language URL: ES → /aviso-legal.html, EN → /aviso-legal-en.html.
+    // Cache key includes lang so toggling language doesn't serve stale content.
+    const _legalUrl = (slug) => lang === 'en' ? `/${slug}-en.html` : `/${slug}.html`;
+    const _cacheKey = (slug) => `${lang}:${slug}`;
     // Parse a fetched legal HTML page into the clean inner content we display.
     const _parseLegal = (html) => {
       const doc = new DOMParser().parseFromString(html, 'text/html');
       doc.querySelectorAll('img, .legal-logo, .legal-back, nav, header, style, script').forEach(el => el.remove());
       doc.querySelectorAll('a').forEach(a => {
         const t = a.textContent.trim();
-        if (t === 'Soulware' || t.includes('Volver') || a.classList.contains('legal-logo') || a.classList.contains('legal-back')) {
+        if (t === 'Soulware' || t.includes('Volver') || t.includes('Back') || a.classList.contains('legal-logo') || a.classList.contains('legal-back')) {
           a.remove();
         }
       });
@@ -799,9 +803,10 @@ export class ArchiveDOM {
     // in the Lighthouse critical-path chain (~4 s upstream of LCP on slow-4G).
     const _warmLegal = () => {
       ['aviso-legal','privacidad','cookies'].forEach(slug => {
-        if (legalCache.has(slug)) return;
-        fetch(`/${slug}.html`).then(r => r.text()).then(html => {
-          legalCache.set(slug, _parseLegal(html));
+        const key = _cacheKey(slug);
+        if (legalCache.has(key)) return;
+        fetch(_legalUrl(slug)).then(r => r.text()).then(html => {
+          legalCache.set(key, _parseLegal(html));
         }).catch(() => {});
       });
     };
@@ -830,16 +835,17 @@ export class ArchiveDOM {
     };
 
     const openLegal = async (slug, title) => {
+      const key = _cacheKey(slug);
       // Cache hit → render synchronously. No loading flash.
-      if (legalCache.has(slug)) { _showLegal(title, legalCache.get(slug)); return; }
+      if (legalCache.has(key)) { _showLegal(title, legalCache.get(key)); return; }
       // Cache miss → fetch in the background, modal stays unopened until ready.
       try {
-        const html = await (await fetch(`/${slug}.html`)).text();
+        const html = await (await fetch(_legalUrl(slug))).text();
         const content = _parseLegal(html);
-        legalCache.set(slug, content);
+        legalCache.set(key, content);
         _showLegal(title, content);
       } catch {
-        _showLegal(title, '<p style="color:#555;">No se pudo cargar el contenido.</p>');
+        _showLegal(title, `<p style="color:#555;">${lang === 'en' ? 'Content could not be loaded.' : 'No se pudo cargar el contenido.'}</p>`);
       }
       setTimeout(()=>{ legalClose?.focus(); }, 100);
     };
@@ -848,11 +854,21 @@ export class ArchiveDOM {
       legalModal?.setAttribute('inert', '');
       legalModal?.setAttribute('aria-hidden', 'true');
       document.body.style.overflow = '';
+      // Move focus off the modal close button without programmatically focusing
+      // the originating link — re-focusing the link triggers :focus-visible
+      // (browser treats JS focus as keyboard-like) and leaves a blue ring on
+      // the footer legal links until the user clicks elsewhere.
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
     };
     document.querySelectorAll('[data-legal]').forEach(a => {
       a.addEventListener('click', e => {
         e.preventDefault();
-        openLegal(a.dataset.legal, a.dataset.legalTitle || a.textContent);
+        // Modal title follows the current language — read the live text of the
+        // footer link (already translated by applyTranslations) so the heading
+        // matches the click target rather than the hardcoded ES attribute.
+        openLegal(a.dataset.legal, a.textContent.trim() || a.dataset.legalTitle);
       });
     });
     legalClose?.addEventListener('click', closeLegal);

@@ -87,7 +87,23 @@ function _handleFirstAudio() {
 
 // Replay intro — reload from the home route
 document.getElementById('replay-intro-btn')?.addEventListener('click', () => {
-  window.location.href = '/';
+  window.location.href = urlForLang('/', lang);
+});
+
+// ── Language selector ──────────────────────────────────────────────────────
+// Clicking ES/EN persists the choice and navigates to the equivalent URL.
+// Storage drives the pre-render redirect in index.html, so the next visit
+// lands in the remembered language with no flash.
+document.querySelectorAll('[data-set-lang]').forEach(btn => {
+  // Mark current language on boot for visual state
+  if (btn.dataset.setLang === lang) btn.setAttribute('aria-current', 'true');
+  btn.addEventListener('click', () => {
+    const target = btn.dataset.setLang;
+    if (target === lang) return;
+    setLang(target);
+    const dest = urlForLang(window.location.pathname, target);
+    window.location.href = dest;
+  });
 });
 
 // Skip button — visible after 3s, persistent through all intro scenes until archive
@@ -267,6 +283,32 @@ function skipIntroAndEnterArchive() {
   // Mark before transitionTo so pickVideoSrc (called by the sceneChange→4
   // listener via runtime re-pick) returns the 720p variant for the pillars.
   state.skippedIntro = true;
+
+  // Tear down any in-flight intro state. Skip can fire MID-transition
+  // (between Scene 1 → 2 or 2 → 3 → 4), so all of these are defensive:
+  // they're no-ops when the corresponding scene wasn't active.
+  // 1. Awakening audio (Cm7 chord) — loops indefinitely until stopAwakening()
+  audio.stopAwakening();
+  audio.setAwakening(false);
+  state.isAwakening = false;
+  // 2. Hide gallery video + Scene 2/3 overlays so the archive isn't drawn
+  //    underneath them. Without this, #gallery-container keeps painting at
+  //    z-index 0 and #char-video keeps decoding frames.
+  const gallery = document.getElementById('gallery-container');
+  if (gallery) gallery.style.opacity = '0';
+  const charVideo = document.getElementById('char-video');
+  if (charVideo) { try { charVideo.pause(); } catch(_) {} }
+  const s2 = document.getElementById('scene-2');
+  if (s2) s2.style.display = 'none';
+  const s3 = document.getElementById('scene-3');
+  if (s3) { s3.style.display = 'none'; s3.style.opacity = '0'; s3.style.pointerEvents = 'none'; }
+  const watermark = document.getElementById('editorial-watermark');
+  if (watermark) watermark.style.display = 'none';
+  // 3. Cancel any pending scene-1 auto-advance / scene-3 idle timers
+  if (_autoTimer) { clearTimeout(_autoTimer); _autoTimer = null; }
+  if (_s3IdleInterval) { clearInterval(_s3IdleInterval); _s3IdleInterval = null; }
+  if (_s2HintInterval) { clearInterval(_s2HintInterval); _s2HintInterval = null; }
+
   transitionTo(4);
   visual.start();
   archive.showArchive({skipIntro:true});
