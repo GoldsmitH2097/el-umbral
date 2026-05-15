@@ -201,9 +201,8 @@ Accessible from footer. Serve without .html extension via Netlify pretty URLs.
 |------|-------|--------|
 | Submit sitemap in Search Console | Javier | ✅ Done — May 2026 (re-fetched automatically; lastmod bumped 2026-05-15 with EN URLs) |
 | Request indexing for 10 EN URLs in GSC | Javier/Ruben | Pending — Session 10 |
-| Submit Bing Webmaster Tools | Javier | Pending — feeds DuckDuckGo + Yahoo |
-| PSI run on /en/ (post-Session-10 deploy) | Ruben | Pending — confirm same green budget as / |
-| Video CDN (Bunny.net) | Javier | Before marketing push |
+| Submit Bing Webmaster Tools | Ruben | Pending — Ruben to set up (free MS account, ~10 min via Import-from-GSC) |
+| PSI run on /en/ (post-Session-10 deploy) | — | ✅ Done — Mobile: Perf 86/A11y 100/BP 100/SEO 100, LCP 1.3s, CLS 0. Desktop: Perf 70/A11y 100/BP 100/SEO 100, LCP 0.3s, CLS 0. Same budget as / (TBT is the cinematic intro, known constraint). |
 | Goodreads author page (WW. & Eidon) | Javier | Pending — high SEO impact for EN |
 | Amazon author page + publisher name | Javier | Pending — high SEO impact for EN |
 | Editorial directories submission | Ruben | Pending |
