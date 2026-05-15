@@ -95,6 +95,8 @@ src/
 
 La Emperatriz is "en paradero desconocido" — this is narrative, not a bug.
 
+**EN canon (Session 10)**: The Throneless Empress · The Nameless Knight · The Shadowless Sibyl · The Flowerless Harlequin. EN slugs: `/en/empress`, `/en/knight`, `/en/sibyl`, `/en/harlequin`. Book slugs stay Spanish in both languages (proper nouns).
+
 ---
 
 ## Catalogue (StateManager.js — CATALOGUE[])
@@ -153,17 +155,20 @@ To add a relato to La Corte: add entry to `relatos[]` array in StateManager.js. 
 ## SEO status
 
 - **Google Search Console:** Registered ✅ Sitemap: submitted ✅
-- **Indexed (as of May 15, 2026):** 1 of 9 sitemap URLs. Structure is fully correct — the gap is Google's indexing pace on a young site. After cleaning ghost URLs and using GSC "Request indexing" per route, expect the count to climb over the next few weeks.
-- **Sitemap:** `/sitemap.xml` ✅ 9 URLs (home + 4 characters + 4 obras). Legal pages intentionally excluded — they carry `noindex`.
-- **Per-route prerendering:** ✅ `scripts/generate-og-pages.js` runs as postbuild and writes `dist/<route>/index.html` for each of the 8 deep routes with unique `<title>`, `<meta description>`, `<link rel="canonical">`, OG/Twitter tags, and optional Book JSON-LD with price/priceCurrency for merchant-listing eligibility. Netlify serves these static files before applying the SPA catch-all.
+- **Bilingual indexing (NEW May 15 — Session 10):** Site is now ES + EN. Each language indexes as a separate URL set, linked by hreflang clusters. Google indexes /en/ independently and may rank both versions in their respective markets.
+- **Indexed (as of May 15, 2026):** 1 of 9 ES sitemap URLs prior to EN launch. After Session 10, the sitemap has 20 URLs (10 ES + 10 EN). The 10 new EN URLs need GSC "Request indexing" to bump crawl priority.
+- **Sitemap:** `/sitemap.xml` ✅ 20 URLs (10 ES + 10 EN) with bidirectional `xhtml:link hreflang` alternates. Legal pages intentionally excluded — they carry `noindex`.
+- **Per-route prerendering:** ✅ `scripts/generate-og-pages.js` runs as postbuild and writes `dist/<route>/index.html` for each route in both languages with unique `<title>`, `<meta description>`, `<link rel="canonical">`, OG/Twitter tags, `<html lang>`, hreflang alternates, and optional Book JSON-LD with price/priceCurrency for merchant-listing eligibility. For EN pages, body text is also pre-translated via `translateBody()` so scrapers + first paint see English (no FOUC). Netlify serves these static files before applying the SPA catch-all.
+- **Hreflang:** three layers of defense — `<link rel="alternate" hreflang>` in every prerendered `<head>` (es, en, x-default), `xhtml:link` per sitemap URL, self-pointing `<link rel="canonical">`.
+- **Language preference persistence:** sync `<head>` script reads `localStorage('sw_lang')` and `location.replace()`s between `/` and `/en/` on subsequent visits so the user's choice is honoured before paint. No SEO penalty — the redirect only fires for returning visitors with an explicit selection; first crawls and direct deep-links land on the canonical URL.
 - **Ghost paths:** `/read`, `/saga`, `/contact`, `/map`, `/universo`, `/thanks.html`, `/privacy`, `/terms` (+ `.html` variants) → 301 to `/` via `public/_redirects`. Remnants of a pre-Vite site that Google still crawls.
 - **robots.txt:** ✅
-- **JSON-LD:** Organization + 4 Book schemas with `offers.price` + `priceCurrency` ✅
-- **OG/Twitter meta:** ✅ with 1200×630 image
+- **JSON-LD:** Organization + 4 Book schemas with `offers.price` + `priceCurrency` + `inLanguage: "es"` (books published in Spanish even on EN routes) ✅
+- **OG/Twitter meta:** ✅ with 1200×630 image, per-language `og:locale` (`es_ES` / `en_US`)
 - **Favicons:** PNG 32px, 16px, Apple touch icon 180px ✅
 - **Ghost DOM:** semantic h1/h2/nav/article with .sr-only ✅
 - **No third-party tracking:** GA4 / GTM removed entirely (no `googletagmanager.com` script, no `dataLayer`, no cookie banner). If analytics are ever needed, prefer privacy-preserving alternatives (Plausible, Umami, Netlify Analytics).
-- **Performance (last PSI run, May 14):** LCP 0.7s · FCP 0.7s · TBT ~2.1s · CLS 0 · Speed Index 0.9s · WAVE 0 errors, AIM 9.8/10.
+- **Performance (last PSI run, May 14):** LCP 0.7s · FCP 0.7s · TBT ~2.1s · CLS 0 · Speed Index 0.9s · WAVE 0 errors, AIM 9.8/10. EN routes ship the same bundle + ~1 KB inline `<head>` redirect script; same perf budget expected. Worth one PSI run on `/en/` post-launch to confirm.
 
 ---
 
@@ -194,10 +199,13 @@ Accessible from footer. Serve without .html extension via Netlify pretty URLs.
 
 | Item | Owner | Status |
 |------|-------|--------|
-| Submit sitemap in Search Console | Javier | ✅ Done — May 2026 |
+| Submit sitemap in Search Console | Javier | ✅ Done — May 2026 (re-fetched automatically; lastmod bumped 2026-05-15 with EN URLs) |
+| Request indexing for 10 EN URLs in GSC | Javier/Ruben | Pending — Session 10 |
+| Submit Bing Webmaster Tools | Javier | Pending — feeds DuckDuckGo + Yahoo |
+| PSI run on /en/ (post-Session-10 deploy) | Ruben | Pending — confirm same green budget as / |
 | Video CDN (Bunny.net) | Javier | Before marketing push |
-| Goodreads author page (WW. & Eidon) | Javier | Pending |
-| Amazon author page + publisher name | Javier | Pending |
+| Goodreads author page (WW. & Eidon) | Javier | Pending — high SEO impact for EN |
+| Amazon author page + publisher name | Javier | Pending — high SEO impact for EN |
 | Editorial directories submission | Ruben | Pending |
 | @soulware.editorial branded social | Ruben | Pending |
 | La Emperatriz obra title | Ruben | Placeholder "Título Sellado" — pending final |
