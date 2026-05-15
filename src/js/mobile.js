@@ -1,4 +1,5 @@
 import { CHARACTERS, CATALOGUE, state } from './core/StateManager.js';
+import { t, getField } from './core/i18n.js';
 
 const isMobile = () => window.innerWidth <= 768;
 
@@ -126,8 +127,8 @@ export function initMobileArchive() {
     const char = CHARACTERS[charIndex];
     if (!char) return;
 
-    detailTitle.innerText = char.title;
-    detailLore.innerHTML = char.lore;
+    detailTitle.innerText = getField(char, 'title');
+    detailLore.innerHTML = getField(char, 'lore');
 
     // Social links
     detailSocial.innerHTML = char.social.length > 0
@@ -140,20 +141,24 @@ export function initMobileArchive() {
     // Books for this archetype
     const books = CATALOGUE.filter(b => b.archetype === char.slug);
     detailObras.innerHTML = books.length === 0
-      ? '<p style="color:#333;letter-spacing:3px;font-size:10px;text-transform:uppercase;padding:20px 0;">En preparación</p>'
+      ? `<p style="color:#333;letter-spacing:3px;font-size:10px;text-transform:uppercase;padding:20px 0;">${t('ui.in-preparation')}</p>`
       : books.map(item => {
+          const itemTitle = getField(item, 'title');
+          const itemSubtitle = getField(item, 'subtitle');
+          const itemVision = getField(item, 'vision') || getField(item, 'desc');
+          const itemBuyLabel = getField(item, 'buyLabel');
           let cta = item.status === 'available' && item.buyUrl
-            ? `<a href="${item.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy">${item.buyLabel}</a>`
+            ? `<a href="${item.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy">${itemBuyLabel}</a>`
             : item.status === 'countdown'
-            ? `<div class="obra-countdown"><div class="countdown-timer" data-release="${item.releaseDate}"></div><span class="obra-btn obra-btn--locked">${item.buyLabel}</span></div>`
-            : `<span class="obra-btn obra-btn--soon">Próximamente</span>`;
-          const coverHtml = item.img ? `<img src="${item.img}" alt="${item.title}" class="mobile-book-cover" />` : '';
+            ? `<div class="obra-countdown"><div class="countdown-timer" data-release="${item.releaseDate}"></div><span class="obra-btn obra-btn--locked">${itemBuyLabel}</span></div>`
+            : `<span class="obra-btn obra-btn--soon">${t('cta.coming-soon')}</span>`;
+          const coverHtml = item.img ? `<img src="${item.img}" alt="${itemTitle}" class="mobile-book-cover" />` : '';
           return `<div class="mobile-detail-book">
             ${coverHtml}
             <div>
-              <h3 class="obra-title">${item.title}</h3>
-              ${item.subtitle ? `<p class="obra-subtitle">${item.subtitle}</p>` : ''}
-              <p style="font-style:italic;color:#666;font-size:13px;line-height:1.8;margin:8px 0 12px;">${item.vision || item.desc}</p>
+              <h3 class="obra-title">${itemTitle}</h3>
+              ${itemSubtitle ? `<p class="obra-subtitle">${itemSubtitle}</p>` : ''}
+              <p style="font-style:italic;color:#666;font-size:13px;line-height:1.8;margin:8px 0 12px;">${itemVision}</p>
               ${cta}
             </div>
           </div>`;
@@ -247,7 +252,7 @@ function initCountdown(el) {
   const target = new Date(el.dataset.release).getTime();
   const update = () => {
     const diff = target - Date.now();
-    if (diff <= 0) { el.textContent = 'Disponible ahora'; return; }
+    if (diff <= 0) { el.textContent = t('countdown.now'); return; }
     const d = Math.floor(diff/86400000), h = Math.floor((diff%86400000)/3600000);
     const m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
     el.innerHTML = `<span>${d}<em>d</em></span><span>${h}<em>h</em></span><span>${m}<em>m</em></span><span>${s}<em>s</em></span>`;

@@ -110,19 +110,22 @@ export class ArchiveDOM {
         catalogue.forEach(item => {
           const card = document.createElement('div');
 
+          const itemTitle = getField(item, 'title');
+          const itemSubtitle = getField(item, 'subtitle');
+
           if (item.type === 'anthology') {
             card.className = `obra-book obra-book--${item.status}`;
             const coverHtml = item.img
-              ? `<div class="obra-cover obra-cover--clickable obra-cover--anthology" data-id="${item.id}" role="button" tabindex="0" aria-label="Ver detalles de ${item.title}"><img src="${item.img}" srcset="${item.img.replace('/assets/','/assets/mobile/')} 280w, ${item.img} 500w" sizes="(max-width: 768px) 150px, 220px" alt="${item.title}" width="600" height="900" loading="lazy" decoding="async" /></div>`
+              ? `<div class="obra-cover obra-cover--clickable obra-cover--anthology" data-id="${item.id}" role="button" tabindex="0" aria-label="${itemTitle}"><img src="${item.img}" srcset="${item.img.replace('/assets/','/assets/mobile/')} 280w, ${item.img} 500w" sizes="(max-width: 768px) 150px, 220px" alt="${itemTitle}" width="600" height="900" loading="lazy" decoding="async" /></div>`
               : `<div class="obra-cover obra-cover--empty"></div>`;
             card.innerHTML = `
               ${coverHtml}
               <div class="obra-meta">
                 <div class="obra-badges">
-                  <span class="obra-format-badge">Antología</span>
+                  <span class="obra-format-badge">${t('format.anthology')}</span>
                 </div>
-                <h3 class="obra-title">${item.title}</h3>
-                ${item.subtitle ? `<p class="obra-subtitle">${item.subtitle}</p>` : ''}
+                <h3 class="obra-title">${itemTitle}</h3>
+                ${itemSubtitle ? `<p class="obra-subtitle">${itemSubtitle}</p>` : ''}
                 <span class="obra-btn obra-btn--soon">${getField(item, 'buyLabel') || t('cta.notify')}</span>
               </div>`;
             books.appendChild(card); return;
@@ -130,28 +133,30 @@ export class ArchiveDOM {
 
           card.className = `obra-book obra-book--${item.status}`;
           const coverHtml = item.img
-            ? `<div class="obra-cover obra-cover--clickable" data-id="${item.id}" role="button" tabindex="0" aria-label="Ver detalles de ${item.title}"><img src="${item.img}" srcset="${item.img.replace('/assets/','/assets/mobile/')} 280w, ${item.img} 500w" sizes="(max-width: 768px) 150px, 220px" alt="${item.title}" width="600" height="900" loading="lazy" decoding="async" /></div>`
-            : `<div class="obra-cover obra-cover--clickable obra-cover--empty" data-id="${item.id}" role="button" tabindex="0" aria-label="Ver detalles de ${item.title}"></div>`;
+            ? `<div class="obra-cover obra-cover--clickable" data-id="${item.id}" role="button" tabindex="0" aria-label="${itemTitle}"><img src="${item.img}" srcset="${item.img.replace('/assets/','/assets/mobile/')} 280w, ${item.img} 500w" sizes="(max-width: 768px) 150px, 220px" alt="${itemTitle}" width="600" height="900" loading="lazy" decoding="async" /></div>`
+            : `<div class="obra-cover obra-cover--clickable obra-cover--empty" data-id="${item.id}" role="button" tabindex="0" aria-label="${itemTitle}"></div>`;
 
           let ctaHtml = '';
           if (item.editions) {
-            // Available editions render as a plain buy button (no header).
-            // Coming-soon editions collapse the label into the button.
             const editionBtns = item.editions.map(ed => {
+              const edBuyLabel = getField(ed, 'buyLabel');
+              const edLabel    = getField(ed, 'label');
               if (ed.status === 'available' && ed.buyUrl) {
-                return `<div class="obra-edition-row"><a href="${ed.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy">${ed.buyLabel}</a></div>`;
+                return `<div class="obra-edition-row"><a href="${ed.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy">${edBuyLabel}</a></div>`;
               }
-              return `<div class="obra-edition-row"><span class="obra-btn obra-btn--soon obra-edition-btn"><span class="obra-edition-label">${ed.label}</span>${ed.buyLabel}</span></div>`;
+              return `<div class="obra-edition-row"><span class="obra-btn obra-btn--soon obra-edition-btn"><span class="obra-edition-label">${edLabel}</span>${edBuyLabel}</span></div>`;
             }).join('');
             ctaHtml = `<div class="obra-editions">${editionBtns}</div>`;
           } else if (item.status === 'available' && item.buyUrl) {
-            { const [edLabel, ...rest] = (item.buyLabel||'').split(': ');
-              const lbl = rest.length ? `<span class="obra-edition-label">${edLabel}</span>${rest.join(': ')}` : item.buyLabel;
-              ctaHtml = `<a href="${item.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy${rest.length?' obra-edition-btn':''}">${lbl}</a>`; }
+            const buyLabel = getField(item, 'buyLabel');
+            const [edLabel, ...rest] = (buyLabel||'').split(': ');
+            const lbl = rest.length ? `<span class="obra-edition-label">${edLabel}</span>${rest.join(': ')}` : buyLabel;
+            ctaHtml = `<a href="${item.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy${rest.length?' obra-edition-btn':''}">${lbl}</a>`;
           } else if (item.status === 'countdown') {
-            { const [edLabel, ...rest] = (item.buyLabel||'').split(': ');
-              const lbl = rest.length ? `<span class="obra-edition-label">${edLabel}</span>${rest.join(': ')}` : item.buyLabel;
-              ctaHtml = `<div class="obra-countdown"><div class="countdown-timer" data-release="${item.releaseDate}"></div><button class="obra-btn obra-btn--locked obra-btn--notify${rest.length?' obra-edition-btn':''}">${lbl}</button></div>`; }
+            const buyLabel = getField(item, 'buyLabel');
+            const [edLabel, ...rest] = (buyLabel||'').split(': ');
+            const lbl = rest.length ? `<span class="obra-edition-label">${edLabel}</span>${rest.join(': ')}` : buyLabel;
+            ctaHtml = `<div class="obra-countdown"><div class="countdown-timer" data-release="${item.releaseDate}"></div><button class="obra-btn obra-btn--locked obra-btn--notify${rest.length?' obra-edition-btn':''}">${lbl}</button></div>`;
           } else {
             ctaHtml = `<span class="obra-btn obra-btn--soon">${getField(item, 'buyLabel') || t('cta.notify')}</span>`;
           }
@@ -166,8 +171,8 @@ export class ArchiveDOM {
                 ${item.status === 'available' ? `<span class="obra-status-pill obra-status-pill--${item.status}">${statusLabels[item.status]}</span>` : ''}
                 ${item.format ? `<span class="obra-format-badge">${formatLabels[item.format] || item.format}</span>` : ''}
               </div>
-              <h3 class="obra-title">${item.title}</h3>
-              ${item.subtitle ? `<p class="obra-subtitle">${item.subtitle}</p>` : ''}
+              <h3 class="obra-title">${itemTitle}</h3>
+              ${itemSubtitle ? `<p class="obra-subtitle">${itemSubtitle}</p>` : ''}
               ${ctaHtml}
             </div>`;
           books.appendChild(card);
@@ -354,7 +359,7 @@ export class ArchiveDOM {
       const update = () => {
         const now = Date.now();
         const diff = target - now;
-        if (diff <= 0) { el.textContent = 'Disponible ahora'; return; }
+        if (diff <= 0) { el.textContent = t('countdown.now'); return; }
         const d = Math.floor(diff / 86400000);
         const h = Math.floor((diff % 86400000) / 3600000);
         const m = Math.floor((diff % 3600000) / 60000);
@@ -396,55 +401,65 @@ export class ArchiveDOM {
     this._audio?.setReadingViewMuffle(true);
     this._readTitle.innerText=getField(char, 'title');
     // Add section label above bio
-    const sectionLabel = '<p class="reading-section-label">Autor</p>';
+    const sectionLabel = `<p class="reading-section-label">${t('nav.author')}</p>`;
     const socialHtml = char.social.length > 0
       ? `<div class="reading-social">${char.social.map(s =>
           `<a href="${s.url}" target="_blank" rel="noopener" class="reading-social-link">
             ${ICONS[s.platform]} <span>${s.handle}</span>
           </a>`).join('')}</div>`
       : '';
-    this._readBody.innerHTML = sectionLabel + char.lore + socialHtml;
+    this._readBody.innerHTML = sectionLabel + getField(char, 'lore') + socialHtml;
     this._readingBgVideo.src=char.src; this._readingBgVideo.load(); this._readingBgVideo.play().catch(()=>{});
 
     // Populate Libros panel
     const obrasList = document.getElementById('reading-obras-list');
     if (obrasList) {
       const obras = CATALOGUE.filter(c => c.archetype === char.slug);
-      const librosLabel = '<p class="reading-section-label">Obras</p>';
+      const librosLabel = `<p class="reading-section-label">${t('ui.books')}</p>`;
       if (obras.length === 0) {
-        obrasList.innerHTML = librosLabel + '<p style="color:#333;letter-spacing:3px;font-size:10px;text-transform:uppercase;text-align:center;padding:40px 0;">En preparación</p>';
+        obrasList.innerHTML = librosLabel + `<p style="color:#333;letter-spacing:3px;font-size:10px;text-transform:uppercase;text-align:center;padding:40px 0;">${t('ui.in-preparation')}</p>`;
       } else {
         obrasList.innerHTML = librosLabel + obras.map(item => {
+          const itemTitle = getField(item, 'title');
+          const itemSubtitle = getField(item, 'subtitle');
+          const itemAuthor = getField(item, 'author');
+          const itemVision = getField(item, 'vision') || getField(item, 'desc');
+          const itemFormat = getField(item, 'format');
           const coverHtml = item.img
-            ? `<div class="reading-obra-cover"><img src="${item.img}" srcset="${item.img.replace('/assets/','/assets/mobile/')} 280w, ${item.img} 500w" sizes="(max-width: 768px) 150px, 220px" alt="${item.title}" width="600" height="900" loading="lazy" decoding="async" /></div>`
-            : `<div class="reading-obra-cover"><div class="reading-obra-cover-empty">${item.type==='anthology'?'Antología':'—'}</div></div>`;
+            ? `<div class="reading-obra-cover"><img src="${item.img}" srcset="${item.img.replace('/assets/','/assets/mobile/')} 280w, ${item.img} 500w" sizes="(max-width: 768px) 150px, 220px" alt="${itemTitle}" width="600" height="900" loading="lazy" decoding="async" /></div>`
+            : `<div class="reading-obra-cover"><div class="reading-obra-cover-empty">${item.type==='anthology'?t('format.anthology'):'—'}</div></div>`;
           let ctaHtml = '';
           if (item.editions) {
             const edBtns = item.editions.map(ed => {
+              const edBuyLabel = getField(ed, 'buyLabel');
+              const edLabel    = getField(ed, 'label');
               return ed.status === 'available' && ed.buyUrl
-                ? `<div class="obra-edition-row"><a href="${ed.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy">${ed.buyLabel}</a></div>`
-                : `<div class="obra-edition-row"><span class="obra-btn obra-btn--soon obra-edition-btn"><span class="obra-edition-label">${ed.label}</span>${ed.buyLabel}</span></div>`;
+                ? `<div class="obra-edition-row"><a href="${ed.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy">${edBuyLabel}</a></div>`
+                : `<div class="obra-edition-row"><span class="obra-btn obra-btn--soon obra-edition-btn"><span class="obra-edition-label">${edLabel}</span>${edBuyLabel}</span></div>`;
             }).join('');
             ctaHtml = `<div class="obra-editions">${edBtns}</div>`;
-          } else if (item.status === 'available' && item.buyUrl)
-            { const [edLabel, ...rest] = (item.buyLabel||'').split(': ');
-              const lbl = rest.length ? `<span class="obra-edition-label">${edLabel}</span>${rest.join(': ')}` : item.buyLabel;
-              ctaHtml = `<a href="${item.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy${rest.length?' obra-edition-btn':''}">${lbl}</a>`; }
-          else if (item.status === 'countdown')
-            { const [edLabel, ...rest] = (item.buyLabel||'').split(': ');
-              const lbl = rest.length ? `<span class="obra-edition-label">${edLabel}</span>${rest.join(': ')}` : item.buyLabel;
-              ctaHtml = `<div class="obra-countdown"><div class="countdown-timer" data-release="${item.releaseDate}"></div><button class="obra-btn obra-btn--locked obra-btn--notify${rest.length?' obra-edition-btn':''}">${lbl}</button></div>`; }
-          else
+          } else if (item.status === 'available' && item.buyUrl) {
+            const buyLabel = getField(item, 'buyLabel');
+            const [edLabel, ...rest] = (buyLabel||'').split(': ');
+            const lbl = rest.length ? `<span class="obra-edition-label">${edLabel}</span>${rest.join(': ')}` : buyLabel;
+            ctaHtml = `<a href="${item.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy${rest.length?' obra-edition-btn':''}">${lbl}</a>`;
+          } else if (item.status === 'countdown') {
+            const buyLabel = getField(item, 'buyLabel');
+            const [edLabel, ...rest] = (buyLabel||'').split(': ');
+            const lbl = rest.length ? `<span class="obra-edition-label">${edLabel}</span>${rest.join(': ')}` : buyLabel;
+            ctaHtml = `<div class="obra-countdown"><div class="countdown-timer" data-release="${item.releaseDate}"></div><button class="obra-btn obra-btn--locked obra-btn--notify${rest.length?' obra-edition-btn':''}">${lbl}</button></div>`;
+          } else {
             ctaHtml = `<span class="obra-btn obra-btn--soon">${getField(item, 'buyLabel') || t('cta.notify')}</span>`;
+          }
           return `<div class="reading-obra-card">
             ${coverHtml}
             <div class="reading-obra-info">
-              <h3 class="reading-obra-title">${item.title}</h3>
-              ${item.subtitle ? `<p class="reading-obra-subtitle">${item.subtitle}</p>` : ''}
-              ${item.author ? `<p class="reading-obra-author">${item.author}</p>` : ''}
-              <p class="reading-obra-vision">${item.vision || item.desc}</p>
+              <h3 class="reading-obra-title">${itemTitle}</h3>
+              ${itemSubtitle ? `<p class="reading-obra-subtitle">${itemSubtitle}</p>` : ''}
+              ${itemAuthor ? `<p class="reading-obra-author">${itemAuthor}</p>` : ''}
+              <p class="reading-obra-vision">${itemVision}</p>
               <div class="reading-obra-meta">
-                ${item.format ? `<span class="reading-obra-format">${item.format}</span>` : ''}
+                ${itemFormat ? `<span class="reading-obra-format">${({ 'Novela': t('format.book'), 'Edición de coleccionista': t('format.book'), 'Experiencia web interactiva': t('format.experience'), 'Antología': t('format.anthology') })[itemFormat] || itemFormat}</span>` : ''}
                 ${ctaHtml}
               </div>
             </div>
@@ -609,22 +624,25 @@ export class ArchiveDOM {
       char ? `${t('ui.archetype')}: ${getField(char, 'title')}` : '';
 
     // La Visión — atmospheric pitch
+    const modalTitle = getField(item, 'title');
     document.getElementById('obra-modal-vision').textContent =
-      item.vision || item.desc;
+      getField(item, 'vision') || getField(item, 'desc');
 
     // El Manuscrito — practical info
-    document.getElementById('obra-modal-title').textContent = item.title;
-    document.getElementById('obra-modal-subtitle').textContent = item.subtitle || '';
+    document.getElementById('obra-modal-title').textContent = modalTitle;
+    document.getElementById('obra-modal-subtitle').textContent = getField(item, 'subtitle') || '';
     document.getElementById('obra-modal-author').textContent =
-      item.author ? `Autor: ${item.author}` : '';
-    document.getElementById('obra-modal-series').textContent = item.seriesInfo || '';
-    document.getElementById('obra-modal-format').textContent = item.format || '';
-    document.getElementById('obra-modal-desc').textContent = item.desc;
+      item.author ? `${t('ui.author')}: ${getField(item, 'author') || item.author}` : '';
+    document.getElementById('obra-modal-series').textContent = getField(item, 'seriesInfo') || '';
+    const _fmt = getField(item, 'format');
+    document.getElementById('obra-modal-format').textContent =
+      ({ 'Novela': t('format.book'), 'Edición de coleccionista': t('format.book'), 'Experiencia web interactiva': t('format.experience'), 'Antología': t('format.anthology') })[_fmt] || _fmt || '';
+    document.getElementById('obra-modal-desc').textContent = getField(item, 'desc');
 
     const coverEl = document.getElementById('obra-modal-cover');
     coverEl.innerHTML = item.img
-      ? `<img src="${item.img}" srcset="${item.img.replace('/assets/','/assets/mobile/')} 280w, ${item.img} 500w" sizes="(max-width: 768px) 150px, 220px" alt="${item.title}" width="600" height="900" />`
-      : `<div class="obra-modal-no-cover">${item.type === 'anthology' ? 'Antología' : 'Sin portada'}</div>`;
+      ? `<img src="${item.img}" srcset="${item.img.replace('/assets/','/assets/mobile/')} 280w, ${item.img} 500w" sizes="(max-width: 768px) 150px, 220px" alt="${modalTitle}" width="600" height="900" />`
+      : `<div class="obra-modal-no-cover">${item.type === 'anthology' ? t('format.anthology') : t('ui.no-cover')}</div>`;
 
     let ctaHtml = '';
     if (item.type === 'anthology') {
@@ -632,23 +650,26 @@ export class ArchiveDOM {
         ? `<ul class="obra-modal-relatos">${item.relatos.map(r =>
             `<li><span class="obra-relato-title">${r.title}</span> <span class="obra-relato-author">${r.author}</span></li>`
           ).join('')}</ul>`
-        : `<p style="font-size:12px;color:#444;letter-spacing:2px;font-style:italic;">Relatos en preparación.</p>`;
+        : `<p style="font-size:12px;color:#444;letter-spacing:2px;font-style:italic;">${t('ui.tales-in-preparation')}</p>`;
       ctaHtml = relatosHtml;
     } else if (item.editions) {
       const edBtns = item.editions.map(ed => {
+        const edBuyLabel = getField(ed, 'buyLabel');
+        const edLabel    = getField(ed, 'label');
         return ed.status === 'available' && ed.buyUrl
-          ? `<div class="obra-edition-row"><a href="${ed.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy">${ed.buyLabel}</a></div>`
-          : `<div class="obra-edition-row"><span class="obra-btn obra-btn--soon obra-edition-btn"><span class="obra-edition-label">${ed.label}</span>${ed.buyLabel}</span></div>`;
+          ? `<div class="obra-edition-row"><a href="${ed.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy">${edBuyLabel}</a></div>`
+          : `<div class="obra-edition-row"><span class="obra-btn obra-btn--soon obra-edition-btn"><span class="obra-edition-label">${edLabel}</span>${edBuyLabel}</span></div>`;
       }).join('');
       ctaHtml = `<div class="obra-editions">${edBtns}</div>`;
     } else if (item.status === 'available' && item.buyUrl) {
-      { const [edLabel, ...rest] = (item.buyLabel||'').split(': ');
-              const lbl = rest.length ? `<span class="obra-edition-label">${edLabel}</span>${rest.join(': ')}` : item.buyLabel;
-              ctaHtml = `<a href="${item.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy${rest.length?' obra-edition-btn':''}">${lbl}</a>`; }
+      const buyLabel = getField(item, 'buyLabel');
+      const [edLabel, ...rest] = (buyLabel||'').split(': ');
+      const lbl = rest.length ? `<span class="obra-edition-label">${edLabel}</span>${rest.join(': ')}` : buyLabel;
+      ctaHtml = `<a href="${item.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy${rest.length?' obra-edition-btn':''}">${lbl}</a>`;
     } else if (item.status === 'countdown') {
       ctaHtml = `<div class="obra-countdown">
         <div class="countdown-timer" data-release="${item.releaseDate}"></div>
-        <span class="obra-btn obra-btn--locked">${item.buyLabel}</span>
+        <span class="obra-btn obra-btn--locked">${getField(item, 'buyLabel')}</span>
       </div>`;
       setTimeout(() => {
         const timer = modal.querySelector('.countdown-timer');
@@ -692,7 +713,7 @@ export class ArchiveDOM {
     let prevS = -1;
     const update = () => {
       const diff = target - Date.now();
-      if (diff <= 0) { el.textContent = 'Disponible ahora'; return; }
+      if (diff <= 0) { el.textContent = t('countdown.now'); return; }
       const d = Math.floor(diff/86400000), h = Math.floor((diff%86400000)/3600000);
       const m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
       const slide = s !== prevS ? ' countdown-slide' : '';
