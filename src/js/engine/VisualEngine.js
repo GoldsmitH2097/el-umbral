@@ -1,5 +1,6 @@
 import { state, CHARACTERS } from '../core/StateManager.js';
 import { pickVideoSrc } from '../core/videoVariant.js';
+import { getField } from '../core/i18n.js';
 const root = document.documentElement;
 
 class FlameParticle {
@@ -269,7 +270,7 @@ export class VisualEngine {
     this._liveEl.poster = c.src.replace(/^\/(.+)\.mp4$/, '/posters/$1.webp');
     this._liveEl.src=pickVideoSrc(c.src); this._liveEl.load(); this._liveEl.play().catch(()=>{});
     if (window.innerWidth <= 768) this._liveEl.style.objectFit = 'cover';
-    this._titleEl.innerText=c.title; this._descEl.innerHTML=c.desc;
+    this._titleEl.innerText=getField(c, 'title'); this._descEl.innerHTML=getField(c, 'desc');
   }
   _swapToNextCharacter() {
     state.currentCharIndex++;
@@ -291,8 +292,8 @@ export class VisualEngine {
       nextEl.play().catch(()=>{});
       this._liveEl = nextEl;
       // Update text
-      this._titleEl.innerText = char.title;
-      this._descEl.innerHTML = char.desc;
+      this._titleEl.innerText = getField(char, 'title');
+      this._descEl.innerHTML = getField(char, 'desc');
       state.isSwapping=false; this._silentFlame=false;
     } else {
       state.hasFinishedGallery=true; state.isSwapping=false;
