@@ -258,6 +258,19 @@
 .footer-legal a { color: #333; text-decoration: none; font-size: 9px; letter-spacing: 3px; transition: color 0.3s; }
 .footer-legal a:hover { color: #888; }
 
+/* Language selector — same dim register as legal links, lives next to them.
+   Dark-launched ([hidden] attribute is set in HTML); reveal once EN copy is
+   ready by removing the attribute. */
+.lang-selector { display: flex; gap: 8px; justify-content: center; align-items: center; margin-top: 12px; }
+.lang-selector[hidden] { display: none; }
+.lang-selector button {
+  background: transparent; border: none; padding: 4px 6px; cursor: pointer;
+  color: #333; font-family: 'Times New Roman', serif; font-size: 9px; letter-spacing: 3px;
+  text-transform: uppercase; transition: color 0.3s;
+}
+.lang-selector button:hover { color: #888; }
+.lang-selector span { color: #2a2a2a; font-size: 9px; }
+
 #reading-view { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: #020202; z-index: 30; display: none; opacity: 0; pointer-events: none; transition: opacity 1s ease; overflow-y: auto; overflow-x: hidden; }
 #reading-bg-video { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; object-fit: cover; opacity: 0.15; filter: grayscale(100%) blur(20px); z-index: 1; pointer-events: none; }
 #btn-volver { 

@@ -8,6 +8,10 @@
   <meta name="description" content="Soulware es una editorial independiente española de ficción oscura. Cuatro arquetipos, cuatro universos literarios. Descubre el catálogo, los autores y sus mundos." />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://soulware.live/" />
+  <!-- hreflang alternates — Google indexes both language versions separately -->
+  <link rel="alternate" hreflang="es" href="https://soulware.live/" />
+  <link rel="alternate" hreflang="en" href="https://soulware.live/en/" />
+  <link rel="alternate" hreflang="x-default" href="https://soulware.live/" />
 
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://soulware.live/" />
@@ -144,7 +148,10 @@
 <body>
 
 <!-- SKIP BUTTON — first focusable element in DOM (WCAG 2.4.1) -->
-<button id="skip-btn" aria-label="Romper el trance — saltar experiencia y ver las obras">Romper el trance <span class="skip-btn-sep">·</span> Ver las obras</button>
+<button id="skip-btn"
+        data-i18n-html="scene3.adentrarse-with-works"
+        data-i18n-attr-aria-label="scene3.adentrarse-aria"
+        aria-label="Romper el trance — saltar experiencia y ver las obras">Romper el trance <span class="skip-btn-sep">·</span> Ver las obras</button>
 
 <!-- ═══════════════════════════════════════════════════════════════
      GHOST DOM — .sr-only: invisible to eyes, fully readable by
@@ -215,27 +222,27 @@
 </div>
 <div id="ambient-light" aria-hidden="true"></div>
 <div id="ui">
-  <div id="instruccion">Haz clic y mantén pulsado<br>para encender la llama</div>
-  <div id="instruccion-mobile">Toca y mantén pulsado<br>para encender la llama</div>
+  <div id="instruccion" data-i18n="scene1.instruction">Haz clic y mantén pulsado<br>para encender la llama</div>
+  <div id="instruccion-mobile" data-i18n="scene1.instruction.mobile">Toca y mantén pulsado<br>para encender la llama</div>
 </div>
 <div id="editorial-watermark">Editorial independiente española<br>de ficción oscura y universos de autor</div>
-<button id="umbral-btn" aria-label="Adentrarse en El Umbral">EL UMBRAL</button>
+<button id="umbral-btn" data-i18n="scene1.umbral-button" data-i18n-attr-aria-label="scene1.umbral-aria" aria-label="Adentrarse en El Umbral">EL UMBRAL</button>
 
 <!-- SCENE 2: VOCES DEL UMBRAL -->
 <div id="scene-2">
-  <h2 id="voces-title">Voces del Umbral</h2>
-  <div id="scene-2-hint">Toca las voces</div>
-  <div class="whisper" data-index="0" data-found="false" style="top:20%;left:15%;">La piedra recuerda</div>
-  <div class="whisper" data-index="1" data-found="false" style="top:75%;left:25%;">El frío no perdona</div>
-  <div class="whisper" data-index="2" data-found="false" style="top:30%;left:70%;">Lo que la carne olvida</div>
-  <div class="whisper" data-index="3" data-found="false" style="top:80%;left:65%;">La sombra ya sabe tu nombre</div>
+  <h2 id="voces-title" data-i18n="scene2.title">Voces del Umbral</h2>
+  <div id="scene-2-hint" data-i18n="scene2.hint">Toca las voces</div>
+  <div class="whisper" data-index="0" data-found="false" data-i18n="scene2.whisper.0" style="top:20%;left:15%;">La piedra recuerda</div>
+  <div class="whisper" data-index="1" data-found="false" data-i18n="scene2.whisper.2" style="top:75%;left:25%;">El frío no perdona</div>
+  <div class="whisper" data-index="2" data-found="false" data-i18n="scene2.whisper.1" style="top:30%;left:70%;">Lo que la carne olvida</div>
+  <div class="whisper" data-index="3" data-found="false" data-i18n="scene2.whisper.3" style="top:80%;left:65%;">La sombra ya sabe tu nombre</div>
 </div>
 <div id="scene-2-light" aria-hidden="true"></div>
 
 <!-- SCENE 3: THE AWAKENING -->
 <div id="scene-3">
   <h1>EL UMBRAL</h1>
-  <button id="final-btn">ADENTRARSE</button>
+  <button id="final-btn" data-i18n="scene3.adentrarse">ADENTRARSE</button>
 </div>
 
 <!-- SCENE 4: THE ARCHIVE -->
@@ -260,11 +267,17 @@
       <img src="/assets/soulware-logo.webp" alt="Soulware" class="footer-logo" width="120" height="120" />
       <p>Soulware &copy; MMXXVI.</p>
       <p>Nada es lo que parece.</p>
-        <button id="replay-intro-btn" aria-label="Volver al inicio del umbral">← Volver al Umbral</button>
+        <button id="replay-intro-btn" data-i18n="scene1.replay-back" data-i18n-attr-aria-label="scene1.replay-aria" aria-label="Volver al inicio del umbral">← Volver al Umbral</button>
         <nav class="footer-legal">
-        <a href="/aviso-legal.html" data-legal="aviso-legal" data-legal-title="Aviso Legal">Aviso Legal</a>
-        <a href="/privacidad.html" data-legal="privacidad" data-legal-title="Privacidad">Privacidad</a>
-        <a href="/cookies.html" data-legal="cookies" data-legal-title="Cookies">Cookies</a>
+        <a href="/aviso-legal.html" data-legal="aviso-legal" data-legal-title="Aviso Legal" data-i18n="footer.legal.legal">Aviso Legal</a>
+        <a href="/privacidad.html" data-legal="privacidad" data-legal-title="Privacidad" data-i18n="footer.legal.privacy">Privacidad</a>
+        <a href="/cookies.html" data-legal="cookies" data-legal-title="Cookies" data-i18n="footer.legal.cookies">Cookies</a>
+      </nav>
+      <!-- Language selector — dark-launched (hidden by default until EN copy is fully wired) -->
+      <nav id="lang-selector" class="lang-selector" data-i18n-attr-aria-label="lang.selector-aria" aria-label="Cambiar idioma" hidden>
+        <button type="button" data-set-lang="es" data-i18n="lang.es">ES</button>
+        <span aria-hidden="true">·</span>
+        <button type="button" data-set-lang="en" data-i18n="lang.en">EN</button>
       </nav>
     </footer>
   </div>
@@ -346,9 +359,9 @@
 
 <!-- PACTO MODAL -->
 <div id="pacto-modal" role="dialog" aria-modal="true" aria-labelledby="pacto-modal-title" inert aria-hidden="true">
-  <h2 id="pacto-modal-title">El Pacto</h2>
-  <p>Al cruzar este umbral, aceptas que las historias aquí contenidas no están diseñadas para consolarte. Eres un espectador en la oscuridad. No hay devoluciones, no hay garantías, y la verdad es una carga que deberás soportar solo.</p>
-  <button id="btn-cerrar-pacto">Acepto</button>
+  <h2 id="pacto-modal-title" data-i18n="pacto.title">El Pacto</h2>
+  <p data-i18n="pacto.body">Al cruzar este umbral, aceptas que las historias aquí contenidas no fueron hechas para consolarte. Eres un testigo en la oscuridad. No hay vuelta atrás. Ni garantías. Y la verdad es una carga que llevarás a solas.</p>
+  <button id="btn-cerrar-pacto" data-i18n="pacto.accept">Acepto</button>
 </div>
 
 <!-- LEGAL MODAL — content fetched on demand, never navigate away -->
@@ -361,7 +374,7 @@
 </div>
 
 <!-- TIZNO TEASE — Hollow Knight style peek, fixed bottom -->
-<div id="tizno-tease" aria-label="Algo acecha desde el umbral" role="button" tabindex="0">
+<div id="tizno-tease" data-i18n-attr-aria-label="pacto.tease-aria" aria-label="Algo acecha desde el umbral" role="button" tabindex="0">
   <div class="tizno-silhouette">
     <div class="tizno-eyes">
       <span class="tizno-eye"></span>
@@ -411,7 +424,7 @@
         <input type="hidden" name="form-name" value="el-pacto" />
         <input type="text" name="bot-field2" tabindex="-1" autocomplete="off" aria-hidden="true" aria-label="No completar — campo trampa para bots" style="display:none" />
         <div class="tizno-pacto-row">
-          <input type="email" name="email" placeholder="tu@email.com" required autocomplete="email" aria-label="Tu correo electrónico para firmar El Pacto" />
+          <input type="email" name="email" placeholder="tu@email.com" required autocomplete="email" aria-label="Tu correo electrónico para firmar El Pacto" data-i18n-attr-placeholder="pacto.email-placeholder" data-i18n-attr-aria-label="pacto.email-aria" />
           <button type="submit" class="obra-btn obra-btn--buy tizno-pacto-btn" aria-label="Firmar el Pacto"><svg class="tizno-pacto-btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></button>
         </div>
         <label class="tizno-pacto-consent">

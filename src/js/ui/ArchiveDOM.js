@@ -1,5 +1,6 @@
 import { CHARACTERS, CATALOGUE, state, Events } from '../core/StateManager.js';
 import { pickVideoSrc } from '../core/videoVariant.js';
+import { t, getField } from '../core/i18n.js';
 
 // Social platform SVG icons
 const ICONS = {
@@ -75,7 +76,7 @@ export class ArchiveDOM {
       // Social links only in reading/detail view — NOT on the grid pillar
       const content = document.createElement('div');
       content.className = 'pillar-content';
-      content.innerHTML = `<h3>${['I','II','III','IV'][i]}. ${char.label}</h3><p>${char.desc}</p>`;
+      content.innerHTML = `<h3>${['I','II','III','IV'][i]}. ${getField(char, 'label')}</h3><p>${getField(char, 'desc')}</p>`;
 
       pillar.appendChild(video);
       pillar.appendChild(content);
@@ -98,7 +99,7 @@ export class ArchiveDOM {
       // Mobile archetype header
       const header = document.createElement('div');
       header.className = 'obra-archetype-header';
-      header.innerHTML = `<span class="obra-archetype-label">${char.label}</span><span class="obra-archetype-author">${char.author || ''}</span>`;
+      header.innerHTML = `<span class="obra-archetype-label">${getField(char, 'label')}</span><span class="obra-archetype-author">${char.author || ''}</span>`;
       books.appendChild(header);
 
       const catalogue = CATALOGUE.filter(item => item.archetype === char.slug);
@@ -122,7 +123,7 @@ export class ArchiveDOM {
                 </div>
                 <h3 class="obra-title">${item.title}</h3>
                 ${item.subtitle ? `<p class="obra-subtitle">${item.subtitle}</p>` : ''}
-                <span class="obra-btn obra-btn--soon">${item.buyLabel || 'Recibir señal'}</span>
+                <span class="obra-btn obra-btn--soon">${getField(item, 'buyLabel') || t('cta.notify')}</span>
               </div>`;
             books.appendChild(card); return;
           }
@@ -152,11 +153,11 @@ export class ArchiveDOM {
               const lbl = rest.length ? `<span class="obra-edition-label">${edLabel}</span>${rest.join(': ')}` : item.buyLabel;
               ctaHtml = `<div class="obra-countdown"><div class="countdown-timer" data-release="${item.releaseDate}"></div><button class="obra-btn obra-btn--locked obra-btn--notify${rest.length?' obra-edition-btn':''}">${lbl}</button></div>`; }
           } else {
-            ctaHtml = `<span class="obra-btn obra-btn--soon">${item.buyLabel || 'Recibir señal'}</span>`;
+            ctaHtml = `<span class="obra-btn obra-btn--soon">${getField(item, 'buyLabel') || t('cta.notify')}</span>`;
           }
 
-          const statusLabels = { 'available': 'Disponible', 'coming-soon': 'Próximamente', 'countdown': 'Preventa' };
-          const formatLabels = { 'Novela': 'Edición Física', 'Novela — Edición de coleccionista': 'Edición Física', 'Experiencia web interactiva': 'Experiencia Digital', 'Antología': 'Antología' };
+          const statusLabels = { 'available': t('pill.available'), 'coming-soon': t('pill.coming-soon'), 'countdown': t('pill.countdown') };
+          const formatLabels = { 'Novela': t('format.book'), 'Novela — Edición de coleccionista': t('format.book'), 'Experiencia web interactiva': t('format.experience'), 'Antología': t('format.anthology') };
 
           card.innerHTML = `
             ${coverHtml}
@@ -393,7 +394,7 @@ export class ArchiveDOM {
     this._currentReadingIndex = index; // used by hover-sound handler for reading-view covers
     // "Door closes" — muffle the ambient while the user reads
     this._audio?.setReadingViewMuffle(true);
-    this._readTitle.innerText=char.title;
+    this._readTitle.innerText=getField(char, 'title');
     // Add section label above bio
     const sectionLabel = '<p class="reading-section-label">Autor</p>';
     const socialHtml = char.social.length > 0
@@ -434,7 +435,7 @@ export class ArchiveDOM {
               const lbl = rest.length ? `<span class="obra-edition-label">${edLabel}</span>${rest.join(': ')}` : item.buyLabel;
               ctaHtml = `<div class="obra-countdown"><div class="countdown-timer" data-release="${item.releaseDate}"></div><button class="obra-btn obra-btn--locked obra-btn--notify${rest.length?' obra-edition-btn':''}">${lbl}</button></div>`; }
           else
-            ctaHtml = `<span class="obra-btn obra-btn--soon">${item.buyLabel || 'Recibir señal'}</span>`;
+            ctaHtml = `<span class="obra-btn obra-btn--soon">${getField(item, 'buyLabel') || t('cta.notify')}</span>`;
           return `<div class="reading-obra-card">
             ${coverHtml}
             <div class="reading-obra-info">
@@ -605,7 +606,7 @@ export class ArchiveDOM {
     this._switchModalTab('vision');
 
     document.getElementById('obra-modal-archetype').textContent =
-      char ? `Arquetipo: ${char.title}` : '';
+      char ? `${t('ui.archetype')}: ${getField(char, 'title')}` : '';
 
     // La Visión — atmospheric pitch
     document.getElementById('obra-modal-vision').textContent =
@@ -654,7 +655,7 @@ export class ArchiveDOM {
         if (timer) this._initSingleCountdown(timer);
       }, 50);
     } else {
-      ctaHtml = `<span class="obra-btn obra-btn--soon">${item.buyLabel || 'Recibir señal'}</span>`;
+      ctaHtml = `<span class="obra-btn obra-btn--soon">${getField(item, 'buyLabel') || t('cta.notify')}</span>`;
     }
     document.getElementById('obra-modal-cta').innerHTML = ctaHtml;
 

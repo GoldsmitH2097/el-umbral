@@ -1,11 +1,15 @@
 export const CHARACTERS = [
   {
     slug: 'emperatriz',
+    slug_en: 'empress',
     label: 'La Emperatriz',
+    label_en: 'The Empress',
     title: 'La Emperatriz Sin Reino',
+    title_en: 'The Throneless Empress',
     author: 'Alicia Sarel',
     status: 'active',
     desc: 'No reclama compasión. Exige testigos.',
+    desc_en: 'She does not seek compassion. She demands witnesses.',
     src: '/reina-sin-corona.mp4',
     social: [
       { platform: 'instagram', url: 'https://www.instagram.com/aliciasarel', handle: '@aliciasarel' }
@@ -14,11 +18,15 @@ export const CHARACTERS = [
   },
   {
     slug: 'caballero',
+    slug_en: 'knight',
     label: 'El Caballero',
+    label_en: 'The Knight',
     title: 'El Caballero Sin Nombre',
+    title_en: 'The Nameless Knight',
     author: 'WW. & Eidon',
     status: 'active',
     desc: 'Acero oscuro, óxido, firmeza absoluta. No hay honor, solo inminencia.',
+    desc_en: 'Dark steel, rust, absolute resolve. There is no honour — only what is coming.',
     src: '/caballero-sin-nombre.mp4',
     social: [
       { platform: 'instagram', url: 'https://www.instagram.com/wwyeid0n', handle: '@wwyeid0n' },
@@ -28,11 +36,15 @@ export const CHARACTERS = [
   },
   {
     slug: 'sortilega',
+    slug_en: 'sibyl',
     label: 'La Sortílega',
+    label_en: 'The Sibyl',
     title: 'La Sortílega Sin Sombra',
+    title_en: 'The Shadowless Sibyl',
     author: 'Irina M.',
     status: 'active',
     desc: 'Humo, alteración, luz temblorosa.<br>Lo que crees ver está siempre un paso detrás de la verdad.',
+    desc_en: 'Smoke, distortion, trembling light.<br>What you think you see is always one step behind the truth.',
     src: '/sortilega-sin-sombra.mp4',
     social: [
       { platform: 'instagram', url: 'https://www.instagram.com/irina_mlk_', handle: '@irina_mlk_' },
@@ -42,11 +54,15 @@ export const CHARACTERS = [
   },
   {
     slug: 'arlequin',
+    slug_en: 'harlequin',
     label: 'El Arlequín',
+    label_en: 'The Harlequin',
     title: 'El Arlequín Sin Flores',
+    title_en: 'The Flowerless Harlequin',
     author: 'Germán Ferri',
     status: 'active',
     desc: 'Una risa seca en una cámara vacía. La grieta que aprende a reír.',
+    desc_en: 'A dry laugh in an empty chamber. The crack that learns to smile.',
     src: '/arlequin-sin-flores.mp4',
     social: [
       { platform: 'threads', url: 'https://www.threads.com/@germyto', handle: '@germyto' }
