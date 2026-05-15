@@ -890,7 +890,7 @@ export class ArchiveDOM {
         if (res.ok) {
           btn.innerHTML = PACTO_ICON_CHECK;
           btn.classList.add('tizno-pacto-btn--sent');
-          btn.setAttribute('aria-label', 'Pacto firmado');
+          btn.setAttribute('aria-label', t('pacto.signed-aria'));
           e.target.reset();
         } else {
           btn.innerHTML = PACTO_ICON_UP;
