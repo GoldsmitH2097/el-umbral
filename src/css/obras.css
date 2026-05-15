@@ -32,6 +32,7 @@
 }
 #skip-btn.visible { opacity: 1; pointer-events: auto; }
 #skip-btn:hover { color: rgba(255,255,255,0.8); border-color: rgba(255,255,255,0.4); }
+.skip-btn-sep { color: rgba(200,146,42,0.6); margin: 0 4px; }
 
 /* ── Pillar social links ──────────────────────────────────────────────────── */
 .pillar-social {

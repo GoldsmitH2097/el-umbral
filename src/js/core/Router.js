@@ -76,6 +76,17 @@ export class Router {
   _resolve() {
     const segments = window.location.pathname.replace(/^\//, '').toLowerCase().split('/');
 
+    // /obras — generic "catalog landing" — skip the intro, land in the Archive grid
+    if (segments[0] === 'obras' && !segments[1]) {
+      _applyMeta(
+        'Las Obras — Soulware',
+        'Catálogo de Soulware: novelas y experiencias de ficción oscura. Pulso del Núcleo, Filamentos de Oscuridad, Anatomía del Vacío, Totalis Libertas.',
+        'https://soulware.live/obras'
+      );
+      this._enterArchive({ skipIntro: true });
+      return true;
+    }
+
     // /obras/:slug — individual book deep link
     if (segments[0] === 'obras' && segments[1] && OBRA_META[segments[1]]) {
       const m = OBRA_META[segments[1]];
