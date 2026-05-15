@@ -1,12 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://soulware.live/</loc><lastmod>2026-05-15</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url>
-  <url><loc>https://soulware.live/emperatriz</loc><lastmod>2026-05-15</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://soulware.live/caballero</loc><lastmod>2026-05-15</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://soulware.live/sortilega</loc><lastmod>2026-05-15</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://soulware.live/arlequin</loc><lastmod>2026-05-15</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://soulware.live/obras/pulso-del-nucleo</loc><lastmod>2026-05-15</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://soulware.live/obras/filamentos-de-oscuridad</loc><lastmod>2026-05-15</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://soulware.live/obras/anatomia-del-vacio</loc><lastmod>2026-05-15</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://soulware.live/obras/totalis-libertas</loc><lastmod>2026-05-15</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <!-- ─── Spanish (default) ─────────────────────────────────────────── -->
+  <url>
+    <loc>https://soulware.live/</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://soulware.live/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://soulware.live/en/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://soulware.live/" />
+    <lastmod>2026-05-15</lastmod><changefreq>weekly</changefreq><priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://soulware.live/obras</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://soulware.live/obras" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://soulware.live/en/obras" />
+    <lastmod>2026-05-15</lastmod><changefreq>weekly</changefreq><priority>0.9</priority>
+  </url>
+  <url><loc>https://soulware.live/emperatriz</loc><xhtml:link rel="alternate" hreflang="es" href="https://soulware.live/emperatriz" /><xhtml:link rel="alternate" hreflang="en" href="https://soulware.live/en/empress" /><lastmod>2026-05-15</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://soulware.live/caballero</loc><xhtml:link rel="alternate" hreflang="es" href="https://soulware.live/caballero" /><xhtml:link rel="alternate" hreflang="en" href="https://soulware.live/en/knight" /><lastmod>2026-05-15</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://soulware.live/sortilega</loc><xhtml:link rel="alternate" hreflang="es" href="https://soulware.live/sortilega" /><xhtml:link rel="alternate" hreflang="en" href="https://soulware.live/en/sibyl" /><lastmod>2026-05-15</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://soulware.live/arlequin</loc><xhtml:link rel="alternate" hreflang="es" href="https://soulware.live/arlequin" /><xhtml:link rel="alternate" hreflang="en" href="https://soulware.live/en/harlequin" /><lastmod>2026-05-15</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://soulware.live/obras/pulso-del-nucleo</loc><xhtml:link rel="alternate" hreflang="es" href="https://soulware.live/obras/pulso-del-nucleo" /><xhtml:link rel="alternate" hreflang="en" href="https://soulware.live/en/obras/pulso-del-nucleo" /><lastmod>2026-05-15</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://soulware.live/obras/filamentos-de-oscuridad</loc><xhtml:link rel="alternate" hreflang="es" href="https://soulware.live/obras/filamentos-de-oscuridad" /><xhtml:link rel="alternate" hreflang="en" href="https://soulware.live/en/obras/filamentos-de-oscuridad" /><lastmod>2026-05-15</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://soulware.live/obras/anatomia-del-vacio</loc><xhtml:link rel="alternate" hreflang="es" href="https://soulware.live/obras/anatomia-del-vacio" /><xhtml:link rel="alternate" hreflang="en" href="https://soulware.live/en/obras/anatomia-del-vacio" /><lastmod>2026-05-15</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://soulware.live/obras/totalis-libertas</loc><xhtml:link rel="alternate" hreflang="es" href="https://soulware.live/obras/totalis-libertas" /><xhtml:link rel="alternate" hreflang="en" href="https://soulware.live/en/obras/totalis-libertas" /><lastmod>2026-05-15</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+
+  <!-- ─── English mirrors ───────────────────────────────────────────── -->
+  <url><loc>https://soulware.live/en/</loc><xhtml:link rel="alternate" hreflang="es" href="https://soulware.live/" /><xhtml:link rel="alternate" hreflang="en" href="https://soulware.live/en/" /><lastmod>2026-05-15</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://soulware.live/en/obras</loc><xhtml:link rel="alternate" hreflang="es" href="https://soulware.live/obras" /><xhtml:link rel="alternate" hreflang="en" href="https://soulware.live/en/obras" /><lastmod>2026-05-15</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://soulware.live/en/empress</loc><xhtml:link rel="alternate" hreflang="es" href="https://soulware.live/emperatriz" /><xhtml:link rel="alternate" hreflang="en" href="https://soulware.live/en/empress" /><lastmod>2026-05-15</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://soulware.live/en/knight</loc><xhtml:link rel="alternate" hreflang="es" href="https://soulware.live/caballero" /><xhtml:link rel="alternate" hreflang="en" href="https://soulware.live/en/knight" /><lastmod>2026-05-15</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://soulware.live/en/sibyl</loc><xhtml:link rel="alternate" hreflang="es" href="https://soulware.live/sortilega" /><xhtml:link rel="alternate" hreflang="en" href="https://soulware.live/en/sibyl" /><lastmod>2026-05-15</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://soulware.live/en/harlequin</loc><xhtml:link rel="alternate" hreflang="es" href="https://soulware.live/arlequin" /><xhtml:link rel="alternate" hreflang="en" href="https://soulware.live/en/harlequin" /><lastmod>2026-05-15</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://soulware.live/en/obras/pulso-del-nucleo</loc><xhtml:link rel="alternate" hreflang="es" href="https://soulware.live/obras/pulso-del-nucleo" /><xhtml:link rel="alternate" hreflang="en" href="https://soulware.live/en/obras/pulso-del-nucleo" /><lastmod>2026-05-15</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://soulware.live/en/obras/filamentos-de-oscuridad</loc><xhtml:link rel="alternate" hreflang="es" href="https://soulware.live/obras/filamentos-de-oscuridad" /><xhtml:link rel="alternate" hreflang="en" href="https://soulware.live/en/obras/filamentos-de-oscuridad" /><lastmod>2026-05-15</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://soulware.live/en/obras/anatomia-del-vacio</loc><xhtml:link rel="alternate" hreflang="es" href="https://soulware.live/obras/anatomia-del-vacio" /><xhtml:link rel="alternate" hreflang="en" href="https://soulware.live/en/obras/anatomia-del-vacio" /><lastmod>2026-05-15</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://soulware.live/en/obras/totalis-libertas</loc><xhtml:link rel="alternate" hreflang="es" href="https://soulware.live/obras/totalis-libertas" /><xhtml:link rel="alternate" hreflang="en" href="https://soulware.live/en/obras/totalis-libertas" /><lastmod>2026-05-15</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
 </urlset>

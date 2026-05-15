@@ -1,5 +1,23 @@
 import { state, transitionTo } from './core/StateManager.js';
 import { Router } from './core/Router.js';
+import { applyTranslations, lang, setLang, urlForLang } from './core/i18n.js';
+
+// Apply translations on first paint (the module already resolved the active
+// language from URL / localStorage / browser). Repeated on lang toggle below.
+applyTranslations();
+
+// Language selector — wired here so it works on any scene the footer renders in.
+// Hidden by default (dark launch); reveal once full EN copy lands.
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-set-lang]');
+  if (!btn) return;
+  const target = btn.dataset.setLang;
+  if (target === lang) return;
+  setLang(target);
+  // Navigate to the equivalent URL in the new language so the page reloads
+  // with the right prerendered HTML and proper canonical/hreflang.
+  window.location.href = urlForLang(window.location.pathname, target);
+});
 import { AudioEngine } from './engine/AudioEngine.js';
 import { VisualEngine } from './engine/VisualEngine.js';
 import { ArchiveDOM } from './ui/ArchiveDOM.js';
