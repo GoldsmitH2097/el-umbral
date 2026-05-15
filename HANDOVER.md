@@ -1,17 +1,82 @@
 # HANDOVER.md — El Umbral / Soulware
-*Last updated: May 15, 2026 — Session 9 (mega perf/SEO/a11y overhaul + 720p variants + privacy)*
+*Last updated: May 15, 2026 — Session 10 (bilingual ES/EN public launch + selector + skip resilience + footer polish)*
 
 ---
 
 ## Site status
 
-**Live:** https://soulware.live
+**Live:** https://soulware.live · https://soulware.live/en/
 **Repo:** github.com/GoldsmitH2097/el-umbral
 **Local:** `/Users/Ruben/Developer/el-umbral`
-**Last commit:** `9d5b92a` — perf: hardcode LCP poster in HTML + force 720p pillars on skip-intro (#21)
+**Last commit:** `227ba13` — fix(i18n): wire remaining Spanish-leaking UI + prerender /en/ home (#30)
 **Build:** ✅ Clean
 **Deploy:** ✅ Netlify auto-deploy from `main`
 **GA4:** ❌ Removed (PR #16) — no third-party tracking, no cookie banner
+**Languages:** 🇪🇸 ES (default, `/`) · 🇬🇧 EN (`/en/`) — selector visible in footer, choice persisted in `localStorage('sw_lang')`, sync `<head>` redirect honours the saved preference on next visit
+
+---
+
+## What was completed — Session 10 (May 15, 2026)
+
+Bilingual (ES/EN) shipped publicly. The site is now indexable in two languages with hreflang clusters, per-route prerender, a visible language selector, and persistent preference.
+
+### PRs landed in this session — #27 through #30
+| PR | Title | Summary |
+|----|-------|---------|
+| #27 | `feat(i18n): bilingual scaffold (ES/EN) — dark-launched` | `src/js/core/i18n.js` (`t`, `getField`, `setLang`, `urlForLang`, `applyTranslations`), `STRINGS` dict in `translations.js`, Router `/en/` prefix + character-slug translation map. Dark-launched (selector hidden). |
+| #28 | `feat(i18n): full English translations + render layer wired` | Character lore + catalogue translated via `_en` overlay fields on `CHARACTERS` / `CATALOGUE`. ArchiveDOM / mobile.js use `getField()`. Bilingual prerender via `scripts/generate-og-pages.js` (10 ES + 10 EN). Sitemap with `xhtml:link` hreflang. |
+| #29 | `fix(i18n): Scene 1 character text translates + #umbral-btn re-centred` | VisualEngine `_loadCharacterVideo` / `_swapToNextCharacter` use `getField()` (Scene 1 char-text was still ES on /en/). `#umbral-btn` got `text-indent: 5px` to compensate for letter-spacing trailing gap. |
+| #30 | `fix(i18n+footer): EN body prerender, legal pages, skip resilience, footer polish` | Body content for /en/ routes pre-translated by the prerender script (kills FOUC). Sync `<head>` redirect honours stored `sw_lang` before first paint. `aviso-legal-en.html` / `privacidad-en.html` / `cookies-en.html` siblings; modal fetches the matching file by lang. Skip-intro now tears down in-flight scene state (was leaving Cm7 chord looping). Footer logo 120→72, replay+selector inline, watermark + hero copy translated. `text-wrap: pretty` extended to vision blocks / subtitles / pillar quotes; pillar max-width 250→290. `.obra-btn` `text-indent: 1.5px` (CLAIM YOUR COPY off-centre fix). Reading + modal book covers lock `aspect-ratio: 2/3` + `object-fit: cover`. Footer legal links blur active element on modal close (default blue focus ring fix). |
+
+### Translation conventions established
+- **Translated**: chrome (nav, hero, footer, modals, Tizno panel), CTAs, status pills, format labels, character archetype names ("El Caballero Sin Nombre" → "The Nameless Knight"), character lore + descriptions, catalogue vision / subtitle / format, legal pages.
+- **NOT translated** (proper nouns of the universe): "Soulware", book titles (`Pulso del Núcleo`, `Filamentos de Oscuridad`, `Anatomía del Vacío`, `Totalis Libertas`), volume names (`Núcleo Eterno`, `Resonancia de la Penumbra`), author names, `editorial@soulware.live`. Same in both languages.
+- **Character archetype canon (EN)**: The Throneless Empress · The Nameless Knight · The Shadowless Sibyl · The Flowerless Harlequin. EN slug routes: `/en/empress` · `/en/knight` · `/en/sibyl` · `/en/harlequin`. Book slugs stay Spanish in both languages.
+
+### How the i18n system works
+- **Source of truth = URL.** `/` is ES, `/en/*` is EN. `lang` is resolved in `i18n.js` from `location.pathname`.
+- **Pre-render** (`scripts/generate-og-pages.js`) emits 20 static HTML files: `dist/index.html` (ES root), `dist/en/index.html` (EN root), and one subdir per route per language with patched `<title>`, `<meta description>`, canonical, OG/Twitter, `<html lang>`, and (NEW in #30) body text rewritten via `translateBody()` for EN routes so scrapers + first paint show English.
+- **Runtime translation** (`applyTranslations()`) walks `[data-i18n]` / `[data-i18n-html]` / `[data-i18n-attr-*]` elements and rewrites textContent / innerHTML / attribute values from `STRINGS[lang]`. Runs once on boot; the pre-rendered EN HTML matches what it would output, so no FOUC.
+- **`getField(obj, 'title')`** returns `obj.title_en` when `lang === 'en'` and the field exists, else falls back to `obj.title`. Lets CHARACTERS / CATALOGUE keep a single source with `_en` overlay fields.
+- **Persistence**: clicking ES/EN in the footer calls `setLang()` (writes `localStorage.sw_lang`) and navigates to `urlForLang(path, target)`. On next visit, the sync `<head>` script reads `sw_lang` and `location.replace`s to the matching URL before any paint.
+- **SEO**: hreflang in three layers — `<link rel="alternate" hreflang>` per page, `xhtml:link` per sitemap URL, self-pointing `<link rel="canonical">`. Both languages indexable; Google clusters them.
+
+### Other UX/polish in #30
+- **Skip-intro resilience**: previously a mid-transition skip (Scene 1→2 or 2→3) left the awakening chord (Cm7) looping forever, the gallery video painting under the archive, and pending timers firing. Fixed by tearing down audio (`stopAwakening`, `setAwakening(false)`, `state.isAwakening=false`), hiding `#gallery-container` + `#scene-2` + `#scene-3`, pausing `#char-video`, cancelling `_autoTimer` / `_s3IdleInterval` / `_s2HintInterval` before `transitionTo(4)`.
+- **Widow lines**: pillar quotes were rendering "truth." on its own line. Widened `max-width 250→290px` and switched `text-wrap: balance` → `text-wrap: pretty` (better for short paragraphs — `pretty` pulls trailing words back; `balance` only equalises line widths). Extended to `.reading-obra-vision`, `.reading-obra-subtitle`, `.obra-subtitle`, `.tizno-pacto-label`, `#editorial-watermark`, `.site-hero-editorial`, modal descriptions.
+- **Book cover stretching**: `.reading-obra-cover` and `#obra-modal-cover` had no explicit aspect-ratio; the IMG could grow unbounded under certain flex parent heights. Now both have `aspect-ratio: 2/3` + img `width: 100% height: 100% object-fit: cover`.
+- **Footer**: logo `120→72px`, padding `6vh 5vw 5vh → 2vh 5vw 5vh`, replay button + lang selector share one row separated by `·`. Legal links: programmatic focus on modal close was leaving a default blue rectangle; closeLegal now `blur()`s the active element and `.footer-legal a:focus-visible` is on-brand amber.
+- **Editorial watermark + hero copy translates.** EN copy drops the "Spanish" qualifier (Ruben call: "instead of Spanish Publisher of dark fiction, just say Dark Fiction Publisher"): watermark = "Independent publisher / of dark fiction and author-driven universes"; hero = "Soulware — an independent publisher of dark fiction and author-driven universes."
+
+### Files touched
+- `src/index.html` — data-i18n attrs across chrome + Tizno + modals, lang selector in footer, sync `<head>` redirect script, footer-replay-row, smaller logo.
+- `src/js/core/translations.js` — full ES + EN dictionaries, including `editorial.watermark-html`, `tizno.*`, `nav.las-obras/contacto`, `site-hero.*`, `site-footer.tagline`, `reading-view.back/back-aria`, `mobile-detail.back`, `nav.author/books/vision/sheet`, `ui.close`.
+- `src/js/core/StateManager.js` — `_en` overlay fields on every CHARACTERS + CATALOGUE entry (per-character: `slug_en`, `label_en`, `title_en`, `desc_en`, `lore_en`; per-catalogue: `title_en`, `subtitle_en`, `seriesInfo_en`, `vision_en`, `desc_en`, `buyLabel_en`, plus `editions[*].label_en/buyLabel_en/format_en/vision_en`).
+- `src/js/core/Router.js` — `/en/` prefix handling, dual `OBRA_META`, SLUG_MAP accepts both languages.
+- `src/js/engine/VisualEngine.js` — `getField(c, 'title')` / `getField(c, 'desc')` in char-text rendering.
+- `src/js/ui/ArchiveDOM.js` — all renders + reading view + obra modal use `getField` + `t`. Legal modal fetches per-language file. btn-volver uses `t('reading-view.back')` + data-i18n hooks. Modal close blurs active element.
+- `src/js/mobile.js` — `getField` in mobile detail view, `t()` for status labels.
+- `src/css/global.css` — `text-wrap: pretty` extended.
+- `src/css/archive.css` — pillar quote `max-width 290px` + `text-wrap: pretty`, footer redesign, `.lang-selector` styling with `aria-current` amber active state, `.footer-legal a:focus-visible`, `.reading-obra-cover` aspect-ratio.
+- `src/css/obras.css` — `.obra-btn` `text-indent: 1.5px`, `#obra-modal-cover` aspect-ratio + object-fit.
+- `src/css/canvas.css` — `#umbral-btn` `text-indent: 5px`.
+- `scripts/generate-og-pages.js` — bilingual prerender (10 ES + 10 EN routes, including home), `translateBody()` for EN, hreflang alternates rewritten per page.
+- `public/sitemap.xml` — 20 URLs with hreflang alternates.
+- `public/aviso-legal-en.html` · `public/privacidad-en.html` · `public/cookies-en.html` — EN legal page siblings.
+
+### Live-deploy verification (May 15 ~14:30 Madrid)
+- `/` → 200 · `<html lang="es">` · ES title
+- `/en/` → 200 · `<html lang="en">` · EN title + EN description
+- `/caballero` → 301 → `/caballero/` → 200 (Netlify pretty-URL behavior, fine for SEO)
+- `/en/knight` → 301 → `/en/knight/` → 200 · hreflang ES points back to `/caballero` ✓
+- `/aviso-legal-en.html` · `/privacidad-en.html` · `/cookies-en.html` → 200
+- Spanish-leak grep on `/en/`: 0 matches across the patterns we care about ✓
+
+### Pending for Ruben / Javier (search visibility)
+- [ ] **GSC → URL Inspection → Request Indexing** on each of the 10 `/en/*` URLs. Sitemap is already submitted and contains them, but per-URL request bumps crawl priority.
+- [ ] **Bing Webmaster Tools** — add `soulware.live` property, submit `https://soulware.live/sitemap.xml`. Feeds DuckDuckGo + Yahoo as well.
+- [ ] **External EN-language inbound links** (Goodreads author page, Amazon author page, etc.) will move the needle far more than any on-page tweak. The Amazon + Goodreads work was already pending in CLAUDE.md; same items.
+- [ ] **PSI on /en/** — we've only measured `/` before. Should be in the same green budget (LCP 0.7s, TBT ~2.1s, CLS 0) but worth one run post-deploy to confirm.
 
 ---
 
@@ -439,3 +504,4 @@ Chord test HTML file: shared with Javier + Diego. 5 options tested (Actual, Set1
 | 7 | May 14 (afternoon) | SEO investigation, ghost URL cleanup, GSC validate fixes + request indexing, audit cleanup landed (#3) |
 | 8 | May 14 (evening) | Long polish: Tizno 3-col redesign, fireflies behavior + perf, transition simplified to fades, audio muffle + hover chimes, Threads icon fixed, video re-encode (-49%). PRs #3 (polish) and #4 (lighter videos) merged. |
 | 9 | May 14 (night) → May 15 | Mega perf/SEO/a11y/privacy overhaul. 17 PRs (#5–#21). GA4/GTM removed. WAVE 6→0 errors. LCP 3.6s→0.7s. TBT ~15s→~2s. 720p mobile video variants + `pickVideoSrc()` + skip-intro flag. Poster `.webp` t=0 frames. IntersectionObserver pillar preload fallback. Mobile cover variants + `srcset`. LCP poster hardcoded in HTML with `fetchpriority="high"`. Catalogue: "Título Sellado" placeholder, all coming-soon CTAs unified to "Próximamente", status pills hidden when redundant. |
+| 10 | May 15 | Bilingual ES/EN public launch. 4 PRs (#27–#30). Two-language sitemap (20 URLs) with hreflang clusters. Pre-render translates body for /en/ routes (no FOUC). Visible footer language selector + `localStorage('sw_lang')` persistence + sync `<head>` redirect on next visit. EN legal pages (`*-en.html`). Skip-intro made resilient: tears down Cm7 chord, gallery video, scene overlays, pending timers. Footer redesign: smaller logo, replay+selector inline. Widow-line + button-centring + cover-aspect-ratio polish. |
