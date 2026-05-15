@@ -371,9 +371,19 @@ export class VisualEngine {
     const speed=Math.sqrt(vx*vx+vy*vy);
     this._lastX=this._currentX; this._lastY=this._currentY;
 
-    // --x/--y still needed for #scene-2-light radial gradient
-    if(!state.isAwakening){ root.style.setProperty('--x',this._currentX+'px'); root.style.setProperty('--y',this._currentY+'px'); this._awakeningFrames=0; }
-    else { this._radioExt=Math.min(this._radioExt+10, W*1.5); this._awakeningFrames++; }
+    // --x/--y still needed for #scene-2-light radial gradient.
+    // On mobile during Scene 2 these are driven by initMobileScene2 instead
+    // (which glides them toward the current pending whisper) — no cursor exists
+    // on mobile, so VisualEngine's tracking would leave the lucecita frozen.
+    const _mobileScene2 = state.activeScene === 2 && window.innerWidth <= 768;
+    if (state.isAwakening) {
+      this._radioExt = Math.min(this._radioExt + 10, W * 1.5);
+      this._awakeningFrames++;
+    } else if (!_mobileScene2) {
+      root.style.setProperty('--x', this._currentX + 'px');
+      root.style.setProperty('--y', this._currentY + 'px');
+      this._awakeningFrames = 0;
+    }
 
     const cx=this._currentX, cy=this._currentY;
 
