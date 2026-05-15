@@ -112,7 +112,7 @@ export class ArchiveDOM {
           if (item.type === 'anthology') {
             card.className = `obra-book obra-book--${item.status}`;
             const coverHtml = item.img
-              ? `<div class="obra-cover obra-cover--clickable obra-cover--anthology" data-id="${item.id}" role="button" tabindex="0" aria-label="Ver detalles de ${item.title}"><img src="${item.img}" srcset="${item.img.replace('/assets/','/assets/mobile/')} 320w, ${item.img} 600w" sizes="(max-width: 768px) 150px, 220px" alt="${item.title}" width="600" height="900" loading="lazy" decoding="async" /></div>`
+              ? `<div class="obra-cover obra-cover--clickable obra-cover--anthology" data-id="${item.id}" role="button" tabindex="0" aria-label="Ver detalles de ${item.title}"><img src="${item.img}" srcset="${item.img.replace('/assets/','/assets/mobile/')} 280w, ${item.img} 500w" sizes="(max-width: 768px) 150px, 220px" alt="${item.title}" width="600" height="900" loading="lazy" decoding="async" /></div>`
               : `<div class="obra-cover obra-cover--empty"></div>`;
             card.innerHTML = `
               ${coverHtml}
@@ -129,7 +129,7 @@ export class ArchiveDOM {
 
           card.className = `obra-book obra-book--${item.status}`;
           const coverHtml = item.img
-            ? `<div class="obra-cover obra-cover--clickable" data-id="${item.id}" role="button" tabindex="0" aria-label="Ver detalles de ${item.title}"><img src="${item.img}" srcset="${item.img.replace('/assets/','/assets/mobile/')} 320w, ${item.img} 600w" sizes="(max-width: 768px) 150px, 220px" alt="${item.title}" width="600" height="900" loading="lazy" decoding="async" /></div>`
+            ? `<div class="obra-cover obra-cover--clickable" data-id="${item.id}" role="button" tabindex="0" aria-label="Ver detalles de ${item.title}"><img src="${item.img}" srcset="${item.img.replace('/assets/','/assets/mobile/')} 280w, ${item.img} 500w" sizes="(max-width: 768px) 150px, 220px" alt="${item.title}" width="600" height="900" loading="lazy" decoding="async" /></div>`
             : `<div class="obra-cover obra-cover--clickable obra-cover--empty" data-id="${item.id}" role="button" tabindex="0" aria-label="Ver detalles de ${item.title}"></div>`;
 
           let ctaHtml = '';
@@ -415,7 +415,7 @@ export class ArchiveDOM {
       } else {
         obrasList.innerHTML = librosLabel + obras.map(item => {
           const coverHtml = item.img
-            ? `<div class="reading-obra-cover"><img src="${item.img}" srcset="${item.img.replace('/assets/','/assets/mobile/')} 320w, ${item.img} 600w" sizes="(max-width: 768px) 150px, 220px" alt="${item.title}" width="600" height="900" loading="lazy" decoding="async" /></div>`
+            ? `<div class="reading-obra-cover"><img src="${item.img}" srcset="${item.img.replace('/assets/','/assets/mobile/')} 280w, ${item.img} 500w" sizes="(max-width: 768px) 150px, 220px" alt="${item.title}" width="600" height="900" loading="lazy" decoding="async" /></div>`
             : `<div class="reading-obra-cover"><div class="reading-obra-cover-empty">${item.type==='anthology'?'Antología':'—'}</div></div>`;
           let ctaHtml = '';
           if (item.editions) {
@@ -622,7 +622,7 @@ export class ArchiveDOM {
 
     const coverEl = document.getElementById('obra-modal-cover');
     coverEl.innerHTML = item.img
-      ? `<img src="${item.img}" srcset="${item.img.replace('/assets/','/assets/mobile/')} 320w, ${item.img} 600w" sizes="(max-width: 768px) 150px, 220px" alt="${item.title}" width="600" height="900" />`
+      ? `<img src="${item.img}" srcset="${item.img.replace('/assets/','/assets/mobile/')} 280w, ${item.img} 500w" sizes="(max-width: 768px) 150px, 220px" alt="${item.title}" width="600" height="900" />`
       : `<div class="obra-modal-no-cover">${item.type === 'anthology' ? 'Antología' : 'Sin portada'}</div>`;
 
     let ctaHtml = '';
