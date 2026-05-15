@@ -99,7 +99,7 @@ export const CATALOGUE = [
     format: 'Novela',
     status: 'available',
     img: '/assets/pulso-hard-cover-es.webp',
-    vision: 'El mundo se quebró hace tanto que nadie recuerda cómo era antes del silencio. Pero el pulso sigue. Bajo las ruinas, en la sangre de los que no saben rendirse, en cuatro artefactos que no deberían existir — algo late. Primera de tres novelas. La trilogía Núcleo Eterno.',
+    vision: 'El mundo se quebró hace tanto que nadie recuerda cómo era antes del silencio. Pero el pulso sigue. Bajo las ruinas, en la sangre de los que no saben rendirse, en cuatro artefactos que no deberían existir — algo late. Primera de tres novelas de la trilogía Pulso del Núcleo. Esta entrega: Núcleo Eterno.',
     desc: 'Primera de tres novelas. Fantasía oscura épica. El mundo quebrado por la catástrofe, cuatro artefactos ancestrales y un poder antiguo que no concede victoria: exige precio.',
     editions: [
       {

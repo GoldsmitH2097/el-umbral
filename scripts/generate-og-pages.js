@@ -18,6 +18,12 @@ const OG_DEFAULT = `${BASE}/og-image.jpg`;
 
 const ROUTES = [
   {
+    path: 'obras',
+    title: 'Las Obras — Soulware Editorial',
+    desc: 'Catálogo de Soulware: novelas y experiencias de ficción oscura. Pulso del Núcleo, Filamentos de Oscuridad, Anatomía del Vacío, Totalis Libertas. Editorial independiente española.',
+    image: OG_DEFAULT,
+  },
+  {
     path: 'emperatriz',
     title: 'La Emperatriz Sin Reino — Soulware Editorial',
     desc: 'Silencio. El poder no necesita adornos para aplastar. La Emperatriz Sin Reino — una de las cuatro crónicas del universo Soulware. Ficción oscura independiente española.',
@@ -26,7 +32,7 @@ const ROUTES = [
   {
     path: 'caballero',
     title: 'El Caballero Sin Nombre — Soulware Editorial',
-    desc: 'Acero oscuro, firmeza absoluta. Lee Pulso del Núcleo — primera novela de la trilogía Núcleo Eterno. Disponible en Amazon España. Por WW. & Eidon.',
+    desc: 'Acero oscuro, firmeza absoluta. Lee Pulso del Núcleo — primera novela de la trilogía Pulso del Núcleo. Disponible en Amazon España. Por WW. & Eidon.',
     image: `${BASE}/assets/pulso-soft-cover-es.webp`,
   },
   {

@@ -15,11 +15,42 @@ export function initMobileScene2(onAllFound) {
   const whispers = Array.from(document.querySelectorAll('.whisper'));
   let currentIndex = 0;
 
+  // ── Lucecita follower ────────────────────────────────────────────────────
+  // Glides #scene-2-light's radial gradient toward the current pending whisper
+  // by interpolating --x / --y over ~1.4 s with an ease-out curve. Replaces
+  // VisualEngine's cursor-driven update (no cursor on mobile, so the gradient
+  // would otherwise sit frozen at the default 50% / 50% center).
+  const root = document.documentElement;
+  let glideRAF = null;
+  const glideToWhisper = (w) => {
+    if (!w) return;
+    const r = w.getBoundingClientRect();
+    const targetX = r.left + r.width / 2;
+    const targetY = r.top + r.height / 2;
+    const startX = parseFloat(getComputedStyle(root).getPropertyValue('--x')) || window.innerWidth / 2;
+    const startY = parseFloat(getComputedStyle(root).getPropertyValue('--y')) || window.innerHeight / 2;
+    const dur = 1400;
+    const t0 = performance.now();
+    cancelAnimationFrame(glideRAF);
+    const tick = (now) => {
+      const t = Math.min(1, (now - t0) / dur);
+      const eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
+      const x = startX + (targetX - startX) * eased;
+      const y = startY + (targetY - startY) * eased;
+      root.style.setProperty('--x', x + 'px');
+      root.style.setProperty('--y', y + 'px');
+      if (t < 1) glideRAF = requestAnimationFrame(tick);
+    };
+    glideRAF = requestAnimationFrame(tick);
+  };
+
   const showNext = () => {
     if (currentIndex >= whispers.length) return;
     const w = whispers[currentIndex];
     w.classList.remove('mobile-found');
     w.classList.add('mobile-pending');
+    // Lead the user's eye: glide the lucecita toward the new pending whisper
+    glideToWhisper(w);
   };
 
   const findCurrent = () => {
