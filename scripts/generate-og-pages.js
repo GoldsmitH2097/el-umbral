@@ -25,6 +25,24 @@ const OG_DEFAULT = `${BASE}/og-image.jpg`;
 // EXCEPT for character archetype slugs which get translated (caballero → knight
 // etc.). Book slugs (pulso-del-nucleo) stay Spanish in both languages.
 const ROUTES = [
+  // Home (root). Spanish version overwrites dist/index.html in place; the EN
+  // twin is emitted to dist/en/index.html so scrapers and direct visits to /en/
+  // see English meta + lang attribute.
+  {
+    path: '',
+    enSlug: '',
+    es: {
+      title: 'Soulware — Editorial Española de Ficción Oscura',
+      desc:  'Soulware es una editorial independiente española de ficción oscura. Cuatro arquetipos, cuatro universos literarios. Descubre el catálogo, los autores y sus mundos.',
+    },
+    en: {
+      title: 'Soulware — Spanish Dark Fiction Publisher',
+      desc:  'Soulware is an independent Spanish dark-fiction publisher. Four archetypes, four literary universes. Explore the catalogue, the authors, and their worlds.',
+    },
+    image: OG_DEFAULT,
+    isHome: true,
+  },
+
   // Generic catalog landing
   {
     path: 'obras',
@@ -116,8 +134,10 @@ const ROUTES = [
 ];
 
 function patch(html, urlPath, { title, desc, image, bookSchema, langCode, altPath, altLang }) {
-  const canonical = `${BASE}/${urlPath}`;
-  const altUrl    = `${BASE}/${altPath}`;
+  // Home routes use a trailing slash (`/` and `/en/`) for canonical clarity.
+  // Sub-routes don't get a trailing slash.
+  const canonical = urlPath === '' ? `${BASE}/` : urlPath === 'en' ? `${BASE}/en/` : `${BASE}/${urlPath}`;
+  const altUrl    = altPath === '' ? `${BASE}/` : altPath === 'en' ? `${BASE}/en/` : `${BASE}/${altPath}`;
   // Replace canonical + main meta. hreflang alternates rewrite the whole link
   // block to point at the matching English (or Spanish) twin.
   let out = html
@@ -173,10 +193,11 @@ const base = readFileSync(join(DIST, 'index.html'), 'utf8');
 
 let n = 0;
 for (const route of ROUTES) {
-  // Spanish version — original path
+  // Spanish version — original path. Home (path === '') overwrites the root
+  // dist/index.html in place; everything else gets its own subdir.
   const esPath = route.path;
-  const enPath = `en/${route.enSlug}`;
-  const esDir = join(DIST, esPath);
+  const enPath = route.enSlug ? `en/${route.enSlug}` : 'en';
+  const esDir = route.path ? join(DIST, esPath) : DIST;
   const enDir = join(DIST, enPath);
   mkdirSync(esDir, { recursive: true });
   mkdirSync(enDir, { recursive: true });
@@ -197,7 +218,7 @@ for (const route of ROUTES) {
     }),
     'utf8'
   );
-  console.log(`  ✓ /${esPath} + /${enPath}`);
+  console.log(`  ✓ /${esPath || ''} + /${enPath}`);
   n += 2;
 }
 console.log(`\n${n} static route pages generated.\n`);

@@ -483,7 +483,10 @@ export class ArchiveDOM {
       if (!document.getElementById('btn-volver')) {
         const btn = document.createElement('button');
         btn.id = 'btn-volver';
-        btn.textContent = '← Volver';
+        btn.textContent = t('reading-view.back');
+        btn.setAttribute('data-i18n', 'reading-view.back');
+        btn.setAttribute('aria-label', t('reading-view.back-aria'));
+        btn.setAttribute('data-i18n-attr-aria-label', 'reading-view.back-aria');
         btn.addEventListener('click', () => this.closeReading());
         document.body.appendChild(btn);
       }
