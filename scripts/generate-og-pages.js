@@ -135,10 +135,16 @@ const ROUTES = [
 ];
 
 function patch(html, urlPath, { title, desc, image, bookSchema, langCode, altPath, altLang }) {
-  // Home routes use a trailing slash (`/` and `/en/`) for canonical clarity.
-  // Sub-routes don't get a trailing slash.
-  const canonical = urlPath === '' ? `${BASE}/` : urlPath === 'en' ? `${BASE}/en/` : `${BASE}/${urlPath}`;
-  const altUrl    = altPath === '' ? `${BASE}/` : altPath === 'en' ? `${BASE}/en/` : `${BASE}/${altPath}`;
+  // All routes use a trailing slash on the canonical. The prerender writes
+  // `dist/<path>/index.html` which Netlify serves at `/<path>/` — without a
+  // trailing slash, Netlify 301-redirects to add one, creating a chain
+  // (sitemap URL → 301 → real URL) where the canonical pointed back at the
+  // redirecting URL. Google flagged that as "Redirect error". With the
+  // trailing slash everywhere — sitemap, canonical, hreflang — the chain
+  // collapses to a single 200 and the canonical loop closes cleanly.
+  const withSlash = p => p === '' ? `${BASE}/` : p === 'en' ? `${BASE}/en/` : `${BASE}/${p}/`;
+  const canonical = withSlash(urlPath);
+  const altUrl    = withSlash(altPath);
   // Replace canonical + main meta. hreflang alternates rewrite the whole link
   // block to point at the matching English (or Spanish) twin.
   let out = html
