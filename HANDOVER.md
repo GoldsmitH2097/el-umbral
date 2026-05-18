@@ -81,6 +81,15 @@ Bilingual (ES/EN) shipped publicly. The site is now indexable in two languages w
 ### Tiny follow-up — PR #32 (May 15)
 After Session 10 shipped, the post-deploy hardening pass caught one residual Spanish hardcode: the Pacto submit-success aria-label (`'Pacto firmado'`) was set inline in `ArchiveDOM.js`. Fixed via `t('pacto.signed-aria')`, both ES + EN dictionaries updated. PR #32 merged.
 
+### SEO follow-up — PR #35 (May 15) — trailing-slash canonical fix
+While reviewing GSC's "Why pages aren't indexed", Ruben spotted **8 pages flagged as "Redirect error"**. Root cause: the prerender writes `dist/<path>/index.html`, Netlify serves at `/<path>/` with a trailing slash, but our sitemap entries / `<link rel="canonical">` / hreflang alternates all referenced the **no-slash** version. The crawler's chain was: sitemap URL `/sortilega` → 301 → `/sortilega/` → canonical points back at `/sortilega` (the redirecting URL) → Google classified as canonical loop / redirect error.
+
+Fix in `scripts/generate-og-pages.js` and `public/sitemap.xml`: every URL emitted carries the trailing slash on deep routes (`/sortilega/`, `/en/knight/`, `/obras/pulso-del-nucleo/`, etc.). The home routes `/` and `/en/` already had the slash and were unaffected.
+
+After the fix shipped, re-submitted the 10 ES URLs to GSC via URL Inspection (priority crawl) and 10 to Bing via URL Submission. Counter for GSC indexing requests today: 20 (10 EN earlier + 10 ES now), no quota issues. Bing UI shows the most-recent submission set (10 ES); the earlier EN batch was accepted, also in queue.
+
+The 5 "Server error (5xx)" entries in GSC are ghost paths (`/read`, `/saga`, `/contact.html`) that 301-redirect to `/`, plus two parameterized homepage variants (`/?brand=...`, `/?titulo=...`). All currently return correct codes — the 5xx flag was historical and Google's validation status is "Started" (already re-checking, will clear on its own).
+
 ---
 
 ## What was completed — Session 9 (May 14, 2026 — night → May 15)
