@@ -41,3 +41,13 @@ export function pickVideoSrc(originalSrc) {
   }
   return originalSrc;
 }
+
+// Archive pillar videos ALWAYS use 720p. They render at ~250 px wide in the
+// pillar carousel — 1080p is invisible-quality overkill, and four concurrent
+// ~1 MB downloads (one per pillar) saturate Chrome's low-priority queue on
+// flaky networks, leaving pillars stuck on their poster frame. 720p drops
+// per-file size from ~1 MB → ~400 KB (60 % cut, total ~4 MB → ~1.6 MB across
+// all four).
+export function pickPillarSrc(originalSrc) {
+  return originalSrc.replace(/^\/(?!720\/)([^/]+\.mp4)$/, '/720/$1');
+}
