@@ -20,7 +20,7 @@
 .site-hero h2 { font-size: 4vw; font-weight: normal; letter-spacing: 15px; margin: 0 0 20px 0; text-transform: uppercase; opacity: 0; }
 .site-hero p { font-size: 16px; color: #888; letter-spacing: 2px; font-style: italic; max-width: 600px; margin: 0 auto; line-height: 1.8; opacity: 0; }
 .site-hero-sub { color: #999; max-width: none; white-space: nowrap; }
-.site-hero-editorial { font-size: 10px; color: #666; letter-spacing: 3px; text-transform: uppercase; margin: 8px auto 0; max-width: 600px; }
+.site-hero-editorial { font-size: 12px; color: #666; letter-spacing: 3px; text-transform: uppercase; margin: 8px auto 0; max-width: 640px; }
 #editorial-watermark {
   position: fixed; bottom: max(16px, env(safe-area-inset-bottom, 16px)); left: 50%; transform: translateX(-50%);
   font-size: 9px; letter-spacing: 4px; text-transform: uppercase;
@@ -273,14 +273,14 @@
 .lang-selector[hidden] { display: none; }
 .lang-selector button {
   background: transparent; border: none; padding: 4px 6px; cursor: pointer;
-  color: #444; font-family: 'Times New Roman', serif; font-size: 9px; letter-spacing: 3px;
+  color: #555; font-family: 'Times New Roman', serif; font-size: 11px; letter-spacing: 3px;
   text-transform: uppercase; transition: color 0.3s; outline: none;
 }
 .lang-selector button:hover { color: #aaa; }
 /* Active language gets the amber accent — same tone used elsewhere for "live" state */
 .lang-selector button[aria-current="true"] { color: #c8922a; }
 .lang-selector button:focus-visible { color: #c8922a; }
-.lang-selector span { color: #2a2a2a; font-size: 9px; }
+.lang-selector span { color: #2a2a2a; font-size: 11px; }
 
 #reading-view { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: #020202; z-index: 30; display: none; opacity: 0; pointer-events: none; transition: opacity 1s ease; overflow-y: auto; overflow-x: hidden; }
 #reading-bg-video { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; object-fit: cover; opacity: 0.15; filter: grayscale(100%) blur(20px); z-index: 1; pointer-events: none; }
@@ -297,7 +297,7 @@
 #pacto-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.98); z-index: 50; opacity: 0; pointer-events: none; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.8s ease; text-align: center; padding: 0 5vw; }
 #pacto-modal h2 { font-size: 30px; letter-spacing: 15px; text-transform: uppercase; margin-bottom: 30px; color: #fff; }
 #pacto-modal p { max-width: 600px; line-height: 2; color: #888; font-size: 16px; font-style: italic; margin-bottom: 40px; }
-#btn-cerrar-pacto { background: transparent; border: 1px solid #333; color: #888; padding: 10px 30px; font-size: 10px; letter-spacing: 4px; text-transform: uppercase; cursor: pointer !important; transition: color 0.3s, border-color 0.3s, background 0.3s; font-family: 'Times New Roman', serif; outline: none; }
+#btn-cerrar-pacto { background: transparent; border: 1px solid #333; color: #aaa; padding: 11px 32px; font-size: 12px; letter-spacing: 4px; text-transform: uppercase; cursor: pointer !important; transition: color 0.3s, border-color 0.3s, background 0.3s; font-family: 'Times New Roman', serif; outline: none; }
 #btn-cerrar-pacto:hover { border-color: #fff; color: #fff; }
 #btn-cerrar-pacto:focus-visible { border-color: rgba(200,146,42,0.5); }
 
@@ -358,15 +358,15 @@
   width: 120px; aspect-ratio: 2/3; background: #080808;
   border: 1px solid rgba(255,255,255,0.06); display: flex;
   align-items: center; justify-content: center;
-  font-size: 8px; letter-spacing: 3px; color: #333; text-transform: uppercase;
+  font-size: 10px; letter-spacing: 3px; color: #333; text-transform: uppercase;
 }
 .reading-obra-info { flex: 1; }
-.reading-obra-title { font-size: 13px; letter-spacing: 4px; text-transform: uppercase; margin: 0 0 4px; font-weight: normal; color: #e8ecef; }
-.reading-obra-subtitle { font-size: 10px; color: #555; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 10px; }
-.reading-obra-author { font-size: 11px; color: #666; margin: 0 0 10px; font-style: italic; }
-.reading-obra-vision { font-size: 13px; color: #888; line-height: 1.9; font-style: italic; margin: 0 0 12px; }
+.reading-obra-title { font-size: 14px; letter-spacing: 4px; text-transform: uppercase; margin: 0 0 4px; font-weight: normal; color: #e8ecef; }
+.reading-obra-subtitle { font-size: 12px; color: #555; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 10px; }
+.reading-obra-author { font-size: 13px; color: #777; margin: 0 0 10px; font-style: italic; }
+.reading-obra-vision { font-size: 14px; color: #888; line-height: 1.9; font-style: italic; margin: 0 0 12px; }
 .reading-obra-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; }
-.reading-obra-format { font-size: 8px; letter-spacing: 3px; text-transform: uppercase; color: #444; border: 1px solid rgba(255,255,255,0.06); padding: 3px 8px; }
+.reading-obra-format { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #555; border: 1px solid rgba(255,255,255,0.06); padding: 3px 8px; }
 #legal-modal {
   position: fixed; inset: 0; background: rgba(2,2,2,0.97); z-index: 70;
   display: flex; align-items: center; justify-content: center;
@@ -415,7 +415,7 @@
 /* ── Site footer ─────────────────────────────────────────────────────────── */
 .site-footer {
   text-align: center; padding: 2vh 5vw 5vh;
-  font-size: 10px; color: #333; letter-spacing: 4px; text-transform: uppercase;
+  font-size: 12px; color: #444; letter-spacing: 4px; text-transform: uppercase;
   border-top: 1px solid rgba(255,255,255,0.04);
 }
 .site-footer p { margin: 0 0 14px; white-space: nowrap; }
@@ -430,19 +430,19 @@
   display: flex; gap: 12px; justify-content: center; align-items: center;
   flex-wrap: wrap; margin: 0 0 14px;
 }
-.footer-replay-sep { color: #2a2a2a; font-size: 9px; }
+.footer-replay-sep { color: #2a2a2a; font-size: 11px; }
 #replay-intro-btn {
-  background: transparent; border: none; color: #2a2a2a;
-  font-family: 'Times New Roman', serif; font-size: 9px;
+  background: transparent; border: none; color: #555;
+  font-family: 'Times New Roman', serif; font-size: 11px;
   letter-spacing: 3px; text-transform: uppercase;
   cursor: pointer; transition: color 0.3s; padding: 4px 0;
 }
-#replay-intro-btn:hover { color: #666; }
+#replay-intro-btn:hover { color: #888; }
 /* Selector inline in the replay row — drop the standalone-row top margin */
 .footer-replay-row .lang-selector { margin-top: 0; }
 .footer-legal { display: flex; gap: 30px; justify-content: center; flex-wrap: wrap; margin-top: 0; }
-.footer-legal a, .footer-legal a:visited { color: #333; text-decoration: none; font-size: 9px; letter-spacing: 3px; transition: color 0.3s; font-family: 'Times New Roman', serif; }
-.footer-legal a:hover { color: #777; }
+.footer-legal a, .footer-legal a:visited { color: #555; text-decoration: none; font-size: 11px; letter-spacing: 3px; transition: color 0.3s; font-family: 'Times New Roman', serif; }
+.footer-legal a:hover { color: #aaa; }
 
 /* Suppress focus ring on programmatically focused heading */
 #read-title:focus { outline: none; }

@@ -1,5 +1,5 @@
 import { CHARACTERS, CATALOGUE, state, Events } from '../core/StateManager.js';
-import { pickVideoSrc } from '../core/videoVariant.js';
+import { pickVideoSrc, pickPillarSrc } from '../core/videoVariant.js';
 import { t, getField, lang } from '../core/i18n.js';
 
 // Social platform SVG icons
@@ -63,15 +63,13 @@ export class ArchiveDOM {
       video.loop = true; video.muted = true; video.playsInline = true; video.preload = 'none';
       video.poster = char.src.replace(/^\/(.+)\.mp4$/, '/posters/$1.webp');
       video.setAttribute('aria-hidden', 'true'); // decorative ambient — no captions needed
-      // pickVideoSrc returns /720/<slug>.mp4 on mobile / slow connection /
-      // skip-intro, otherwise /<slug>.mp4. Same URL the gallery (Scene 1) used,
-      // so the browser's HTTP cache serves it on Scene 4 entry — except in the
-      // skip-intro case, where the gallery never ran so the pillar fetch is
-      // the first one (and at 720p, ~400 KB instead of ~1 MB).
-      // Stash the canonical char.src on dataset so the sceneChange listener
-      // can re-pick if state.skippedIntro flipped AFTER construction.
+      // Pillars ALWAYS use 720p — see pickPillarSrc(). They display at ~250 px
+      // wide in the carousel, so 1080p is invisible-quality overkill, and
+      // four concurrent ~1 MB downloads were stalling on flaky networks
+      // (caught in May-21 Chrome trace: arlequin requested 3× over 38 s).
+      // Stash the canonical char.src on dataset for any future re-pick path.
       video.dataset.charSrc = char.src;
-      video.src = pickVideoSrc(char.src);
+      video.src = pickPillarSrc(char.src);
 
       // Social links only in reading/detail view — NOT on the grid pillar
       const content = document.createElement('div');
@@ -733,17 +731,25 @@ export class ArchiveDOM {
     // payload light (Lighthouse never reaches Scene 4 → its score is unaffected).
     // Once a REAL user reaches Scene 4 (Adentrarse / skip-btn / deep-link),
     // upgrade to preload='auto' — the videos buffer in the background, so
-    // hover/tap plays without any load wait. Same URL as the gallery video, so
-    // the HTTP cache typically serves it instantly (no re-download).
+    // hover/tap plays without any load wait.
+    //
+    // STAGGERED by 250 ms per pillar to avoid four simultaneous video fetches
+    // saturating Chrome's low-priority queue. Without the stagger, all four
+    // arrived at the network layer in the same tick and any one could stall
+    // for tens of seconds, leaving its pillar stuck on the poster frame.
+    // Combined with pickPillarSrc() forcing 720p (~400 KB each), total
+    // background buffer is ~1.6 MB — comfortable even on weak connections.
     Events.on('sceneChange', ({ to }) => {
       if (to !== 4) return;
-      document.querySelectorAll('.archive-pillar video').forEach(v => {
-        // Re-pick src in case state.skippedIntro flipped after construction.
-        // (Skip-btn fires between init and now; reduced-motion path beat us
-        // to it.) Swap to 720p BEFORE preload kicks off the fetch.
-        const want = pickVideoSrc(v.dataset.charSrc || v.src);
-        if (!v.src.endsWith(want)) v.src = want;
-        if (v.preload !== 'auto') v.preload = 'auto';
+      const pillars = document.querySelectorAll('.archive-pillar video');
+      pillars.forEach((v, i) => {
+        setTimeout(() => {
+          // Ensure 720p src (idempotent — pickPillarSrc was already set at
+          // build time, but a stale dataset / external reset would re-correct).
+          const want = pickPillarSrc(v.dataset.charSrc || v.src);
+          if (!v.src.endsWith(want)) v.src = want;
+          if (v.preload !== 'auto') v.preload = 'auto';
+        }, i * 250); // 0, 250, 500, 750 ms — first pillar starts immediately
       });
     });
 
