@@ -1,5 +1,26 @@
 # HANDOVER.md — El Umbral / Soulware
-*Last updated: May 15, 2026 — Session 10 (bilingual ES/EN public launch + selector + skip resilience + footer polish)*
+*Last updated: July 5, 2026 — Session 12 (Anatomía del Vacío Phase 0: full manuscript scored)*
+
+---
+
+## What was completed — Session 12 (July 5, 2026)
+
+**Anatomía del Vacío — Phase 0 complete.** Germán delivered the full manuscript
+(2,901 words, 10 sections: Prólogo + 8 pisos + Epílogo — one closed piece, not episodic).
+Converted in full to the beat score: `src/anatomia/score.es.json` — **615 beats**, validated
+1:1 against the original (zero lines lost, zero invented, breath-cycle duplicates intact).
+
+- `ANATOMIA.md` rewritten (v2) — supersedes the pre-manuscript draft. Key deltas: user-paced
+  (was auto-paced), ElevenLabs voiceover (was no-voice), free at launch (was per-chapter
+  payment), lives inside `/obras/anatomia-del-vacio/` (was `/anatomia`), ascent not descent.
+- Decisions locked by Ruben: user-paced advance · ElevenLabs with Ruben casting the voice ·
+  URL inside the obra route · free for now (future pieces may be Pacto-gated) · Germán hands-off.
+- Score format: `{t, fx, sfx, stack, delay, voice, scene, interact, id}` per beat; floor-level
+  `ambience`/`mode`/`loop`. ~28 bespoke effects mapped 1:1 to the story's motifs (11:11 clock,
+  vaho, obturar, breath cycle, Quinto Piso repetition trap, etc.). Full vocab in ANATOMIA.md.
+- **Next: Phase 1** — AnatomiaEngine.js prototype + Prólogo produced end-to-end, separate Vite
+  entry (`anatomia.html`) so the main site's perf budget is untouched.
+- Ruben can start ElevenLabs voice browsing any time (Phase 3 needs the pick, not blocking 1-2).
 
 ---
 

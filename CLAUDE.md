@@ -217,3 +217,13 @@ Accessible from footer. Serve without .html extension via Netlify pretty URLs.
 
 Separate design doc: see `TIZNO.md` in this repo.
 Tizno lives inside El Umbral as a feature. Development tracked in the same Soulware Claude Project.
+
+---
+
+## Anatomía del Vacío
+
+Separate design doc: see `ANATOMIA.md` (v2 — supersedes the pre-manuscript draft).
+Germán's full manuscript is delivered and scored: `src/anatomia/score.es.json` (Phase 0 ✅).
+Interactive line-by-line experience at `/obras/anatomia-del-vacio/` — user-paced, ElevenLabs
+voiceover (Ruben casts the voice), free at launch, separate Vite entry point. Never reword
+Germán's text — the score's `t` fields are canon.
