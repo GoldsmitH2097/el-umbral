@@ -10,5 +10,10 @@
 /privacy      /  301
 /terms        /  301
 
+# Anatomía del Vacío — interactive experience (separate Vite entry).
+# 200 rewrites (URL stays) — MUST be above the SPA catch-all.
+/obras/anatomia-del-vacio/leer  /anatomia.html 200
+/obras/anatomia-del-vacio/leer/ /anatomia.html 200
+
 # SPA catch-all (must remain last)
 /* /index.html 200
