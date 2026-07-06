@@ -329,8 +329,8 @@ flare 200 ms · `crujido` low ratchet burst · `tos` two bandpass barks 300 Hz, 
 | Phase | Scope | Acceptance |
 |---|---|---|
 | 0 ✅ | `score.es.json` | 615/615 lines match manuscript exactly; loop ref valid (validated 2026-07) |
-| 1 | Entry + engine + Prólogo | `/obras/anatomia-del-vacio/leer` serves the entry screen; Prólogo's 54 beats playable end-to-end with fade/cut/whisper/slam/cadence/obturar/corrige/friccion + close-in/blackout; main bundle hash unchanged; reduced-motion renders reading mode |
-| 2 | All floors + full fx/sfx/ambience | every fx in §5 + scene in §6 + preset/SFX in §7 implemented; loop trap works; wipe works (with tap-skip); carta mode works; finale sequence works |
+| 1 ✅ | Entry + engine + Prólogo | Shipped + feel pass (cross-fades, pre-laid stanzas, typographic scale, mono void-voice register, per-floor palettes incl. bone-white epilogue, dust field, drone ambience) |
+| 2 ✅ | All floors + full fx/sfx/ambience | Full §5 fx + §6 scenes + §7 SFX/ambience recipes. Extras shipped: tab title becomes 11:11 on clock beats; cursor becomes the zippo flame (cursor:none + glow) on floors 4-5; piso-8 titlecard flashes "NOVENO PISO" for 130 ms before correcting; paper-grain overlay on the carta epilogue; mecedora/columpio creak loops drift in stereo. Wipe requires the vaho beat and "Paso el dedo." to share a stanza (stack:true) — the wipe hooks the .fx-vaho-write element in the live stage |
 | 3 | Voiceover | Ruben casts voice from 3 candidates; sprites + manifest generated; VOZ toggle; sync verified on iOS Safari |
 | 4 | Polish | mobile pass; a11y audit (reduced-motion, keyboard-only, screen reader via antechamber transcript); PSI on the antechamber unchanged; cross-browser (Safari/iOS focus) |
 | 5 | Launch | antechamber "ENTRAR" CTA wired in StateManager CATALOGUE (status → `available`, buyUrl → `/obras/anatomia-del-vacio/leer`); full transcript ghost DOM added to antechamber prerender; Pacto announcement email; HANDOVER/CLAUDE docs updated |

@@ -307,6 +307,92 @@ html, body {
 /* Loop re-pass corruption */
 .repeat-glitch { animation: fxFade 0.9s ease forwards, fxFriccion 2.4s ease 1s; }
 
+/* ── Phase 2 fx vocabulary ───────────────────────────────────────────────── */
+
+/* "Soy yo." — flipped, then it corrects itself */
+.fx-mirror { animation: fxMirror 1.2s ease forwards; }
+@keyframes fxMirror {
+  0%   { opacity: 1; transform: scaleX(-1); }
+  65%  { opacity: 1; transform: scaleX(-1); }
+  100% { opacity: 1; transform: none; }
+}
+
+/* Condensation — read through fogged glass */
+.fx-vaho { animation: fxVaho 2s ease forwards; }
+@keyframes fxVaho {
+  from { opacity: 0.35; filter: blur(7px); }
+  to   { opacity: 0.85; filter: blur(1.6px); }
+}
+
+/* EL TIEMPO NO EXISTE — exhaled letter by letter */
+.fx-vaho-write {
+  opacity: 1; font-size: 1.45em; letter-spacing: 6px;
+  text-shadow: 0 3px 9px rgba(216,220,224,0.25);
+}
+.fx-vaho-write .vw {
+  opacity: 0; display: inline-block; white-space: pre;
+  animation: vwIn 1.4s ease forwards;
+  animation-delay: calc(var(--i) * 95ms + 300ms);
+}
+@keyframes vwIn {
+  from { opacity: 0; filter: blur(6px); }
+  to   { opacity: 0.9; filter: blur(1.8px); }
+}
+
+/* The corridor stretches */
+.fx-estira { animation: fxRise 1.9s cubic-bezier(0.22,1,0.36,1) 0.5s forwards, fxEstira 5s ease 1s forwards; }
+@keyframes fxEstira { from { letter-spacing: 0; } to { letter-spacing: 5px; } }
+
+/* A compressed version — without tremor, without wound */
+.fx-comprimida { animation: fxRise 1.9s cubic-bezier(0.22,1,0.36,1) 0.5s forwards; transform: scaleX(0.82); }
+
+/* Total darkness — barely legible, lean in */
+.fx-oscuridad { animation: fxOscuridad 2.4s ease 0.4s forwards; }
+@keyframes fxOscuridad { to { opacity: 0.07; } }
+
+/* "Se ha convertido en interfaz." — the ONLY beat outside the serif */
+.fx-interfaz {
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 0.85em; letter-spacing: 0;
+  animation: fxRise 1.9s cubic-bezier(0.22,1,0.36,1) 0.5s forwards;
+}
+
+/* Words as UI labels — the horror of language becoming interface */
+.fx-etiquetas { opacity: 1; }
+.chip {
+  display: inline-block; font-family: 'Courier New', Courier, monospace;
+  font-size: 0.6em; letter-spacing: 1px; text-transform: uppercase;
+  border: 1px solid var(--dim); border-radius: 3px; padding: 4px 12px;
+  margin: 3px 2px; opacity: 0;
+  animation: fxCad 0.8s ease forwards;
+  animation-delay: calc(var(--i) * 320ms + 400ms);
+}
+
+/* The echo — and it isn't even ours */
+.fx-eco { position: relative; }
+.eco-layer {
+  position: absolute; left: 0; right: 0; top: 0;
+  pointer-events: none; text-wrap: balance;
+  animation: fxFade 1.6s ease forwards;
+}
+
+/* "Blanco." — black text during the white flash */
+.beat.inverted { color: #0a0a0c !important; }
+
+/* "un milímetro desviado" — everything slightly, insufferably wrong */
+#stage.desviado { transform: translate(1.5px, -1px) rotate(0.15deg) !important; }
+
+/* Zippo floor: the cursor IS the flame */
+#stage-wrap.zippo-cursor { cursor: none; }
+
+/* The letter as paper — faint grain over the bone-white epilogue */
+body.carta-paper::after {
+  content: ''; position: fixed; inset: 0; z-index: 8; pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+body.carta-paper #stage.carta .beat { letter-spacing: 0.3px; }
+
 /* ── Reading mode (prefers-reduced-motion) ───────────────────────────────── */
 #reading-mode {
   position: fixed; inset: 0; z-index: 15; background: #020202;

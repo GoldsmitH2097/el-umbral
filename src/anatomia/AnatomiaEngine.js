@@ -5,7 +5,7 @@
 
 import './anatomia.css';
 import score from './score.es.json';
-import { applyFx } from './effects.js';
+import { applyFx, startWipe } from './effects.js';
 import { SceneFX } from './SceneFX.js';
 import { AnatomiaAudio } from './AnatomiaAudio.js';
 
@@ -54,6 +54,8 @@ class AnatomiaEngine {
     this._advances = 0;
     this._hintTimer = null;
     this._pending = [];
+    this._accelStep = 0;
+    this.pendingInteract = false;
 
     this._bindEntry();
     this._bindChrome();
@@ -102,9 +104,17 @@ class AnatomiaEngine {
     this.beatIndex = -1;
     this.loopsDone = 0;
     this.corrupted = false;
+    this._accelStep = 0;
+    this.pendingInteract = false;
     this.sceneFX.resetFloorLayers();
     this._clearStage(true);
+    this._stage.classList.remove('desviado');
+    this._stage.style.transform = '';
     this._stage.classList.toggle('carta', this.floor.mode === 'carta');
+    // The letter as paper: grain overlay only on the epilogue
+    document.body.classList.toggle('carta-paper', this.floor.mode === 'carta');
+    // If the 11:11 clock hijacked the tab title on a previous floor, release it
+    document.title = 'Anatomía del Vacío — Soulware';
     this._floorIndicator.textContent = this.floor.title.split(':')[0];
     this._applyPalette(this.floor.id);
     this.audio.setAmbience(this.floor.ambience);
@@ -125,7 +135,14 @@ class AnatomiaEngine {
 
   _showTitlecard(text) {
     this.state = 'titlecard';
-    this._titlecard.textContent = text;
+    // Piso 8's title lies for a single breath before correcting itself.
+    // Almost subliminal — the building promising the floor it will never give.
+    if (this.floor.id === 'piso-8' && text === this.floor.title) {
+      this._titlecard.textContent = 'NOVENO PISO';
+      setTimeout(() => { this._titlecard.textContent = text; }, 130);
+    } else {
+      this._titlecard.textContent = text;
+    }
     this._titlecard.classList.add('on');
     return new Promise(resolve => {
       const done = () => {
@@ -170,8 +187,9 @@ class AnatomiaEngine {
 
   // ── Advance ──────────────────────────────────────────────────────────────
 
-  advance() {
-    if (this.state !== 'playing' || performance.now() < this.lockUntil) return;
+  advance(force = false) {
+    if (this.state !== 'playing') return;
+    if (!force && (performance.now() < this.lockUntil || this.pendingInteract)) return;
     const beats = this.floor.beats;
     const next = this.beatIndex + 1;
 
@@ -222,15 +240,54 @@ class AnatomiaEngine {
     }
 
     el.classList.remove('pending');
-    applyFx(el, b);
+    applyFx(el, b, { stage: this._stage, scene: this.sceneFX, carta: this.floor.mode === 'carta' });
     if (this.corrupted) el.classList.add('repeat-glitch');
 
-    this._compressStack();
-    if (b.scene) this.sceneFX.trigger(b.scene);
-    if (b.sfx) this.audio.play(b.sfx);
-    // interact:"wipe" lands with its fx in Phase 2
+    // acelera: successive stacked reveals arrive faster and faster
+    if (b.fx === 'acelera') this._accelStep = 1;
+    else if (!b.stack) this._accelStep = 0;
+    if (this._accelStep > 0 && b.stack) {
+      const dur = Math.max(0.12, 1.9 * Math.pow(0.55, this._accelStep));
+      el.style.animationDuration = `${dur}s`;
+      el.style.animationDelay = '0.1s';
+      this._accelStep++;
+    }
 
-    this.lockUntil = performance.now() + (b.delay || 0);
+    // Idea #1: the tab title becomes the clock. Whoever glances at their
+    // browser sees 11:11 has followed them out of the page.
+    if (b.fx === 'clock') document.title = '11:11';
+
+    this._compressStack();
+
+    if (b.scene === 'silence') this.audio.duckAll();
+    else if (b.scene === 'silence-swing') this.audio.duckAllExcept('columpio');
+    else if (b.scene) this.sceneFX.trigger(b.scene);
+    if (b.sfx) this.audio.play(b.sfx);
+
+    // "Paso el dedo." — the reader's only physical act: wipe the vaho away.
+    if (b.interact === 'wipe' && !this.reduced) {
+      this.pendingInteract = true;
+      const vahoEl = [...this._stage.children].find(c => c.classList.contains('fx-vaho-write'));
+      startWipe(vahoEl, () => {
+        this.pendingInteract = false;
+        const hint = document.getElementById('hint');
+        if (hint) { hint.classList.remove('on'); hint.textContent = 'toca para continuar'; }
+      });
+    }
+
+    // "Subo corriendo." — the ONE sanctioned theft of the reader's pace.
+    if (b.fx === 'carrera') {
+      const gaps = [550, 450, 350, 300];
+      this.lockUntil = performance.now() + gaps.reduce((a, c) => a + c, 0) + 400;
+      let acc = 0;
+      gaps.forEach(gap => {
+        acc += gap;
+        setTimeout(() => this.advance(true), acc);
+      });
+    } else {
+      this.lockUntil = performance.now() + (b.delay || 0);
+    }
+
     this._advances++;
     this._maybeHint();
     this._saveProgress();

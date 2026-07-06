@@ -581,7 +581,7 @@
         { "t": "No escritas.", "stack": true },
         { "t": "Exhaladas.", "stack": true },
         { "t": "EL TIEMPO NO EXISTE", "fx": "vaho-write", "delay": 1500 },
-        { "t": "Paso el dedo.", "interact": "wipe" },
+        { "t": "Paso el dedo.", "stack": true, "interact": "wipe" },
         { "t": "Se borran.", "stack": true },
         { "t": "Debajo, en el cristal, está mi cara." },
         { "t": "Pero detrás de mi cara hay otra cosa.", "stack": true },

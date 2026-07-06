@@ -1,22 +1,36 @@
 // AnatomiaAudio.js — synthesized ambience + SFX. Spec: ENGINEERING.md §7.
-// Follows AudioEngine.js patterns (see CLAUDE.md iOS constraints):
-//  - context created + resumed synchronously inside the ENTRAR gesture handler
-//  - navigator.audioSession playback hint for the iOS mute switch
-//  - Page Visibility suspend/resume; looping noise sources restarted on resume
-// Phase 1: void-static ambience + master mute. SFX cues log-and-skip until Phase 2.
+// Phase 2: full palette. Everything synthesized (AudioEngine.js patterns);
+// the only pre-recorded audio will be the Phase-3 voiceover.
+// iOS: context created + resumed synchronously in the ENTRAR gesture;
+// looping sources restarted after visibility resume.
+
+// Per-floor ambience recipes. All share the bed architecture (noise whisper +
+// beating drones + breath swells); parameters give each floor its own air.
+const AMBIENCES = {
+  'void-static':      { noise: 0.35, lp: 140, dA: 55,  dB: 55.7, swell: 0.018, extra: null },
+  'casa-madrugada':   { noise: 0.2,  lp: 120, dA: 49,  dB: 49.4, swell: 0.010, extra: null },
+  'vestibulo-lluvia': { noise: 0.3,  lp: 160, dA: 52,  dB: 52.6, swell: 0.014, extra: 'rain' },
+  'corredor':         { noise: 0.28, lp: 130, dA: 47,  dB: 47.5, swell: 0.012, extra: 'wind' },
+  'escalera-profunda':{ noise: 0.3,  lp: 110, dA: 41,  dB: 41.6, swell: 0.016, extra: 'gear' },
+  'escalera-espiral': { noise: 0.3,  lp: 110, dA: 41,  dB: 41.8, swell: 0.016, extra: 'creaks' },
+  'interior-humedo':  { noise: 0.32, lp: 150, dA: 50,  dB: 50.5, swell: 0.014, extra: 'drips' },
+  'casa-exacta':      { noise: 0.18, lp: 120, dA: 50,  dB: 50.0, swell: 0.008, extra: 'mains' },
+  'edificio-vivo':    { noise: 0.34, lp: 130, dA: 44,  dB: 44.9, swell: 0.026, extra: null },
+  'silencio-residual':{ noise: 0.08, lp: 100, dA: 30,  dB: 30.2, swell: 0.004, extra: null },
+};
 
 export class AnatomiaAudio {
   constructor() {
     this.ctx = null;
     this.master = null;
     this._ambienceGain = null;
-    this._noiseSrc = null;
-    this._droneOsc = null;
-    this._droneOsc2 = null;
-    this._lfo = null;
-    this._swellTimer = null;
+    this._sfxGain = null;
+    this._bedNodes = [];
+    this._bedTimers = [];
+    this._loops = {}; // named loops: mecedora, columpio
     this.muted = false;
     this._currentAmbience = null;
+    this._noiseBuf = null;
   }
 
   /** Must be called synchronously from a user gesture (the ENTRAR click). */
@@ -31,6 +45,9 @@ export class AnatomiaAudio {
       this._ambienceGain = this.ctx.createGain();
       this._ambienceGain.gain.value = 0;
       this._ambienceGain.connect(this.master);
+      this._sfxGain = this.ctx.createGain();
+      this._sfxGain.gain.value = 1;
+      this._sfxGain.connect(this.master);
       this.ctx.resume().catch(() => {});
       document.addEventListener('visibilitychange', () => {
         if (!this.ctx) return;
@@ -43,7 +60,6 @@ export class AnatomiaAudio {
   _resume() {
     if (!this.ctx) return;
     this.ctx.resume().then(() => {
-      // iOS drops looping buffer sources across suspend — rebuild the bed.
       if (this._currentAmbience) this.setAmbience(this._currentAmbience, true);
     }).catch(() => {});
   }
@@ -55,87 +71,366 @@ export class AnatomiaAudio {
     return this.muted;
   }
 
-  /** Crossfade to a named ambience preset. One shared recipe, tuned per floor
-      Phase 2 differentiates fully; the bed must feel DESIGNED, not like static:
-      drones dominate, noise is a whisper underneath, and the building takes a
-      slow breath every ~20 s. */
+  /** "El último sonido no es un grito." — everything ducks to nothing. */
+  duckAll(tc = 0.8) {
+    if (!this.ctx) return;
+    this._ambienceGain.gain.setTargetAtTime(0.0001, this.ctx.currentTime, tc);
+    Object.values(this._loops).forEach(l => l.gain.gain.setTargetAtTime(0.0001, this.ctx.currentTime, tc));
+  }
+
+  /** Silence except one named loop (the swing, alone in the garden). */
+  duckAllExcept(name, tc = 0.8) {
+    this.duckAll(tc);
+    const keep = this._loops[name];
+    if (keep) keep.gain.gain.setTargetAtTime(keep.baseGain, this.ctx.currentTime, tc);
+  }
+
+  // ── Ambience ──────────────────────────────────────────────────────────────
+
   setAmbience(name, force = false) {
     if (!this.ctx) return;
     if (name === this._currentAmbience && !force) return;
     this._currentAmbience = name;
     this._stopBed();
-    this._buildBed(0.02);
+    this._buildBed(AMBIENCES[name] || AMBIENCES['void-static']);
   }
 
-  _buildBed(targetGain) {
-    const ctx = this.ctx, now = ctx.currentTime;
-    // A whisper of brown noise, heavily lowpassed — texture, not hiss
-    const len = ctx.sampleRate * 4;
-    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
-    const data = buf.getChannelData(0);
+  _noise() {
+    if (this._noiseBuf) return this._noiseBuf;
+    const len = this.ctx.sampleRate * 4;
+    const buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+    const d = buf.getChannelData(0);
     let last = 0;
     for (let i = 0; i < len; i++) {
       const white = Math.random() * 2 - 1;
       last = (last + 0.02 * white) / 1.02;
-      data[i] = last * 3.5;
+      d[i] = last * 3.5;
     }
-    this._noiseSrc = ctx.createBufferSource();
-    this._noiseSrc.buffer = buf; this._noiseSrc.loop = true;
+    this._noiseBuf = buf;
+    return buf;
+  }
+
+  _keep(node) { this._bedNodes.push(node); return node; }
+
+  _buildBed(cfg) {
+    const ctx = this.ctx, now = ctx.currentTime;
+    const buf = this._noise();
+
+    const noiseSrc = this._keep(ctx.createBufferSource());
+    noiseSrc.buffer = buf; noiseSrc.loop = true;
     const lp = ctx.createBiquadFilter();
-    lp.type = 'lowpass'; lp.frequency.value = 140;
-    const noiseGain = ctx.createGain(); noiseGain.gain.value = 0.35;
-    this._noiseSrc.connect(lp); lp.connect(noiseGain); noiseGain.connect(this._ambienceGain);
-    this._noiseSrc.start();
+    lp.type = 'lowpass'; lp.frequency.value = cfg.lp;
+    const nGain = ctx.createGain(); nGain.gain.value = cfg.noise;
+    noiseSrc.connect(lp); lp.connect(nGain); nGain.connect(this._ambienceGain);
+    noiseSrc.start();
 
-    // Two deep drones a hair apart — the ~0.7 Hz beating is the room's pulse
-    this._droneOsc = ctx.createOscillator();
-    this._droneOsc.type = 'sine'; this._droneOsc.frequency.value = 55;
-    this._droneOsc2 = ctx.createOscillator();
-    this._droneOsc2.type = 'sine'; this._droneOsc2.frequency.value = 55.7;
-    const droneGain = ctx.createGain(); droneGain.gain.value = 0.5;
-    this._lfo = ctx.createOscillator();
-    this._lfo.frequency.value = 1 / 13;
+    const dA = this._keep(ctx.createOscillator());
+    dA.type = 'sine'; dA.frequency.value = cfg.dA;
+    const dB = this._keep(ctx.createOscillator());
+    dB.type = 'sine'; dB.frequency.value = cfg.dB;
+    const dGain = ctx.createGain(); dGain.gain.value = 0.5;
+    const lfo = this._keep(ctx.createOscillator());
+    lfo.frequency.value = 1 / 13;
     const lfoGain = ctx.createGain(); lfoGain.gain.value = 2;
-    this._lfo.connect(lfoGain); lfoGain.connect(this._droneOsc.frequency);
-    this._droneOsc.connect(droneGain);
-    this._droneOsc2.connect(droneGain);
-    droneGain.connect(this._ambienceGain);
-    this._droneOsc.start(); this._droneOsc2.start(); this._lfo.start();
+    lfo.connect(lfoGain); lfoGain.connect(dA.frequency);
+    dA.connect(dGain); dB.connect(dGain); dGain.connect(this._ambienceGain);
+    dA.start(); dB.start(); lfo.start();
 
-    this._ambienceGain.gain.setTargetAtTime(targetGain, now, 2.5);
+    this._ambienceGain.gain.setTargetAtTime(0.02, now, 2.5);
 
-    // The building breathes: a soft filtered swell every 14–26 s
+    // The building breathes
     const swell = () => {
-      if (!this.ctx || this._noiseSrc === null) return;
-      const c = this.ctx, t = c.currentTime;
-      const src = c.createBufferSource();
+      if (!this.ctx) return;
+      const t = this.ctx.currentTime;
+      const src = this.ctx.createBufferSource();
       src.buffer = buf; src.loop = true;
-      const bp = c.createBiquadFilter();
+      const bp = this.ctx.createBiquadFilter();
       bp.type = 'bandpass'; bp.frequency.value = 280; bp.Q.value = 0.6;
-      const g = c.createGain();
+      const g = this.ctx.createGain();
       g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(0.018, t + 2.8);
+      g.gain.exponentialRampToValueAtTime(cfg.swell, t + 2.8);
       g.gain.exponentialRampToValueAtTime(0.0001, t + 6.5);
       src.connect(bp); bp.connect(g); g.connect(this._ambienceGain);
       src.start(); src.stop(t + 7);
-      this._swellTimer = setTimeout(swell, 14000 + Math.random() * 12000);
+      this._bedTimers.push(setTimeout(swell, 14000 + Math.random() * 12000));
     };
-    this._swellTimer = setTimeout(swell, 6000 + Math.random() * 6000);
+    this._bedTimers.push(setTimeout(swell, 6000 + Math.random() * 6000));
+
+    // Per-floor extra layer
+    switch (cfg.extra) {
+      case 'rain': {
+        const r = this._keep(ctx.createBufferSource());
+        r.buffer = buf; r.loop = true;
+        const bp = ctx.createBiquadFilter();
+        bp.type = 'bandpass'; bp.frequency.value = 900; bp.Q.value = 0.4;
+        const g = ctx.createGain(); g.gain.value = 0.35;
+        r.connect(bp); bp.connect(g); g.connect(this._ambienceGain);
+        r.start();
+        break;
+      }
+      case 'wind': {
+        const wSrc = this._keep(ctx.createBufferSource());
+        wSrc.buffer = buf; wSrc.loop = true;
+        const bp = ctx.createBiquadFilter();
+        bp.type = 'bandpass'; bp.frequency.value = 500; bp.Q.value = 1.2;
+        const g = ctx.createGain(); g.gain.value = 0.2;
+        const gustLfo = this._keep(ctx.createOscillator());
+        gustLfo.frequency.value = 1 / 7;
+        const gustGain = ctx.createGain(); gustGain.gain.value = 0.12;
+        gustLfo.connect(gustGain); gustGain.connect(g.gain);
+        wSrc.connect(bp); bp.connect(g); g.connect(this._ambienceGain);
+        wSrc.start(); gustLfo.start();
+        break;
+      }
+      case 'gear': {
+        const gOsc = this._keep(ctx.createOscillator());
+        gOsc.type = 'sine'; gOsc.frequency.value = 31;
+        const am = this._keep(ctx.createOscillator());
+        am.frequency.value = 0.4;
+        const amGain = ctx.createGain(); amGain.gain.value = 0.25;
+        const gg = ctx.createGain(); gg.gain.value = 0.3;
+        am.connect(amGain); amGain.connect(gg.gain);
+        gOsc.connect(gg); gg.connect(this._ambienceGain);
+        gOsc.start(); am.start();
+        break;
+      }
+      case 'creaks': {
+        const creak = () => {
+          this.play('crujido', 0.35);
+          this._bedTimers.push(setTimeout(creak, 9000 + Math.random() * 5000));
+        };
+        this._bedTimers.push(setTimeout(creak, 5000));
+        break;
+      }
+      case 'drips': {
+        const drip = () => {
+          const t = this.ctx.currentTime;
+          const o = this.ctx.createOscillator();
+          o.frequency.setValueAtTime(1300 + Math.random() * 600, t);
+          o.frequency.exponentialRampToValueAtTime(500, t + 0.09);
+          const g = this.ctx.createGain();
+          g.gain.setValueAtTime(0.015, t);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 0.4);
+          const pan = this.ctx.createStereoPanner ? this.ctx.createStereoPanner() : null;
+          if (pan) { pan.pan.value = Math.random() * 1.6 - 0.8; o.connect(g); g.connect(pan); pan.connect(this._ambienceGain); }
+          else { o.connect(g); g.connect(this._ambienceGain); }
+          o.start(); o.stop(t + 0.45);
+          this._bedTimers.push(setTimeout(drip, 4000 + Math.random() * 9000));
+        };
+        this._bedTimers.push(setTimeout(drip, 3000));
+        break;
+      }
+      case 'mains': {
+        const hum = this._keep(ctx.createOscillator());
+        hum.frequency.value = 50;
+        const hg = ctx.createGain(); hg.gain.value = 0.12;
+        hum.connect(hg); hg.connect(this._ambienceGain);
+        hum.start();
+        break;
+      }
+    }
   }
 
   _stopBed() {
-    const kill = (node) => { try { node?.stop(); } catch (_) {} };
-    clearTimeout(this._swellTimer);
+    this._bedTimers.forEach(clearTimeout);
+    this._bedTimers = [];
     if (this.ctx && this._ambienceGain) {
       this._ambienceGain.gain.setTargetAtTime(0, this.ctx.currentTime, 0.8);
     }
-    const olds = [this._noiseSrc, this._droneOsc, this._droneOsc2, this._lfo];
-    setTimeout(() => olds.forEach(kill), 2500);
-    this._noiseSrc = this._droneOsc = this._droneOsc2 = this._lfo = null;
+    const olds = this._bedNodes;
+    this._bedNodes = [];
+    setTimeout(() => olds.forEach(n => { try { n.stop(); } catch (_) {} }), 2500);
+    Object.values(this._loops).forEach(l => { try { l.src.stop(); } catch (_) {} clearInterval(l.timer); });
+    this._loops = {};
   }
 
-  /** SFX cues — Phase 2. Logged so score annotations are visibly wired. */
-  play(cue) {
-    if (import.meta.env.DEV) console.debug(`[anatomia] sfx "${cue}" pending Phase 2`);
+  // ── SFX — one small synth per cue ─────────────────────────────────────────
+
+  play(cue, gainScale = 1) {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    switch (cue) {
+      case 'timbre':      this._buzz(t, 320, 0.9, 0.05 * gainScale); break;
+      case 'timbre-dead': this._buzz(t, 240, 0.7, 0.02 * gainScale, 500); break;
+      case 'tick':        this._tick(t, 0.035); break;
+      case 'tick-stop':   this._tick(t, 0.035); break; // one tick. never two.
+      case 'rain': case 'wind': case 'gear': case 'hum': break; // ambience carries these
+      case 'gate':        this._thump(t, 180, 0.5, 0.05, 'square'); this._noiseBurst(t, 900, 0.25, 0.03); break;
+      case 'steps':       [0, 0.42, 0.86, 1.32].forEach(d => this._thump(t + d, 70, 0.18, 0.03)); break;
+      case 'heartbeat-soft': this._heart(t, 0.02 * gainScale); break;
+      case 'heartbeat':      this._heart(t, 0.05 * gainScale); break;
+      case 'breath-fail-soft': this._breathFail(t, 0.02); break;
+      case 'breath-fail':      this._breathFail(t, 0.035); break;
+      case 'breath-in-fail':   this._breathSwell(t, true, 0.03); break;
+      case 'breath-out-fail':  this._breathSwell(t, false, 0.03); break;
+      case 'door':        this._creakSweep(t, 400, 900, 0.7, 0.04); break;
+      case 'creak-door':  this._creakSweep(t, 300, 1100, 0.9, 0.05); break;
+      case 'knock':       [0, 0.25, 0.5].forEach(d => this._thump(t + d, 110, 0.12, 0.05)); break;
+      case 'zippo':       this._tick(t, 0.05); this._noiseBurst(t + 0.04, 2400, 0.3, 0.03); break;
+      case 'extinguish':  this._noiseBurst(t, 1800, 0.2, 0.025, true); break;
+      case 'crujido':     this._creakSweep(t, 200, 420, 0.5, 0.035 * gainScale); break;
+      case 'tos':         [0, 0.35].forEach(d => this._noiseBurst(t + d, 300, 0.14, 0.015)); break;
+      case 'intento':     this._intento(t); break;
+      case 'mecedora':    this._startLoop('mecedora', 2.8, 0.03); break;
+      case 'columpio':    this._startLoop('columpio', 3.6, 0.025); break;
+      default:
+        if (import.meta.env.DEV) console.debug(`[anatomia] sfx "${cue}" unmapped`);
+    }
+  }
+
+  _tick(t, g) {
+    const o = this.ctx.createOscillator();
+    o.frequency.value = 2000;
+    const gn = this.ctx.createGain();
+    gn.gain.setValueAtTime(g, t);
+    gn.gain.exponentialRampToValueAtTime(0.0001, t + 0.04);
+    o.connect(gn); gn.connect(this._sfxGain);
+    o.start(t); o.stop(t + 0.05);
+  }
+
+  _thump(t, freq, dur, g, type = 'sine') {
+    const o = this.ctx.createOscillator();
+    o.type = type;
+    o.frequency.setValueAtTime(freq, t);
+    o.frequency.exponentialRampToValueAtTime(Math.max(30, freq * 0.5), t + dur);
+    const gn = this.ctx.createGain();
+    gn.gain.setValueAtTime(g, t);
+    gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(gn); gn.connect(this._sfxGain);
+    o.start(t); o.stop(t + dur + 0.05);
+  }
+
+  _buzz(t, freq, dur, g, lpFreq = 4000) {
+    const o = this.ctx.createOscillator();
+    o.type = 'sawtooth'; o.frequency.value = freq;
+    const sh = this.ctx.createWaveShaper();
+    const curve = new Float32Array(64);
+    for (let i = 0; i < 64; i++) curve[i] = Math.tanh((i / 32 - 1) * 3);
+    sh.curve = curve;
+    const lp = this.ctx.createBiquadFilter();
+    lp.type = 'lowpass'; lp.frequency.value = lpFreq;
+    const gn = this.ctx.createGain();
+    gn.gain.setValueAtTime(g, t);
+    gn.gain.setValueAtTime(g, t + dur - 0.08);
+    gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(sh); sh.connect(lp); lp.connect(gn); gn.connect(this._sfxGain);
+    o.start(t); o.stop(t + dur + 0.05);
+  }
+
+  _noiseBurst(t, bpFreq, dur, g, reverse = false) {
+    const src = this.ctx.createBufferSource();
+    src.buffer = this._noise();
+    const bp = this.ctx.createBiquadFilter();
+    bp.type = 'bandpass'; bp.frequency.value = bpFreq; bp.Q.value = 1;
+    const gn = this.ctx.createGain();
+    if (reverse) {
+      gn.gain.setValueAtTime(0.0001, t);
+      gn.gain.exponentialRampToValueAtTime(g, t + dur * 0.8);
+      gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    } else {
+      gn.gain.setValueAtTime(g, t);
+      gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    }
+    src.connect(bp); bp.connect(gn); gn.connect(this._sfxGain);
+    src.start(t); src.stop(t + dur + 0.05);
+  }
+
+  _heart(t, g) {
+    this._thump(t, 55, 0.16, g);
+    this._thump(t + 0.22, 50, 0.14, g * 0.7);
+  }
+
+  _breathFail(t, g) {
+    this._breathSwell(t, true, g);
+    this._breathSwell(t + 1.2, false, g);
+  }
+
+  // A breath that clips mid-release — the failure IS the envelope.
+  _breathSwell(t, inhale, g) {
+    const src = this.ctx.createBufferSource();
+    src.buffer = this._noise();
+    const bp = this.ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.setValueAtTime(inhale ? 500 : 800, t);
+    bp.frequency.exponentialRampToValueAtTime(inhale ? 900 : 400, t + 0.8);
+    bp.Q.value = 0.8;
+    const gn = this.ctx.createGain();
+    gn.gain.setValueAtTime(0.0001, t);
+    gn.gain.exponentialRampToValueAtTime(g, t + 0.5);
+    gn.gain.setValueAtTime(g, t + 0.68);
+    gn.gain.setValueAtTime(0.0001, t + 0.7); // CUT. no release. no air.
+    src.connect(bp); bp.connect(gn); gn.connect(this._sfxGain);
+    src.start(t); src.stop(t + 0.8);
+  }
+
+  _intento(t) {
+    // The worst sound: a small breath-in that clips to silence at 70 %.
+    const src = this.ctx.createBufferSource();
+    src.buffer = this._noise();
+    const bp = this.ctx.createBiquadFilter();
+    bp.type = 'bandpass'; bp.frequency.value = 650; bp.Q.value = 1.2;
+    const gn = this.ctx.createGain();
+    gn.gain.setValueAtTime(0.0001, t);
+    gn.gain.exponentialRampToValueAtTime(0.03, t + 0.28);
+    gn.gain.setValueAtTime(0.0001, t + 0.29);
+    src.connect(bp); bp.connect(gn); gn.connect(this._sfxGain);
+    src.start(t); src.stop(t + 0.4);
+  }
+
+  _creakSweep(t, f0, f1, dur, g) {
+    const src = this.ctx.createBufferSource();
+    src.buffer = this._noise();
+    const bp = this.ctx.createBiquadFilter();
+    bp.type = 'bandpass'; bp.Q.value = 8;
+    bp.frequency.setValueAtTime(f0, t);
+    bp.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    const gn = this.ctx.createGain();
+    gn.gain.setValueAtTime(g, t);
+    gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    src.connect(bp); bp.connect(gn); gn.connect(this._sfxGain);
+    src.start(t); src.stop(t + dur + 0.05);
+  }
+
+  // Named creak loops (mecedora / columpio) with slow stereo drift — with
+  // headphones the rocking chair crosses the room behind you. (Idea #6.)
+  _startLoop(name, period, g) {
+    if (this._loops[name]) return;
+    const gain = this.ctx.createGain();
+    gain.gain.value = g;
+    let out = gain;
+    let panner = null;
+    if (this.ctx.createStereoPanner) {
+      panner = this.ctx.createStereoPanner();
+      const panLfo = this.ctx.createOscillator();
+      panLfo.frequency.value = 1 / 17;
+      const panDepth = this.ctx.createGain();
+      panDepth.gain.value = 0.6;
+      panLfo.connect(panDepth); panDepth.connect(panner.pan);
+      panLfo.start();
+      gain.connect(panner); panner.connect(this._sfxGain);
+    } else {
+      gain.connect(this._sfxGain);
+    }
+    const timer = setInterval(() => {
+      if (!this.ctx || document.hidden) return;
+      const t = this.ctx.currentTime;
+      // two-part creak: forward... back.
+      const sweep = (t0, f0, f1, dur) => {
+        const src = this.ctx.createBufferSource();
+        src.buffer = this._noise();
+        const bp = this.ctx.createBiquadFilter();
+        bp.type = 'bandpass'; bp.Q.value = 9;
+        bp.frequency.setValueAtTime(f0, t0);
+        bp.frequency.exponentialRampToValueAtTime(f1, t0 + dur);
+        const gn = this.ctx.createGain();
+        gn.gain.setValueAtTime(g, t0);
+        gn.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+        src.connect(bp); bp.connect(gn); gn.connect(gain);
+        src.start(t0); src.stop(t0 + dur + 0.05);
+      };
+      sweep(t, 260, 480, period * 0.32);
+      sweep(t + period * 0.5, 440, 240, period * 0.36);
+    }, period * 1000);
+    this._loops[name] = { gain, src: { stop: () => {} }, timer, baseGain: g, panner };
   }
 }
