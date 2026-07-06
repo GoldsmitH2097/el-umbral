@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Anatomía del Vacío — Soulware</title>
+  <!-- The antechamber (/obras/anatomia-del-vacio/) owns SEO + transcript.
+       This page is the experience itself — kept out of the index. -->
+  <meta name="robots" content="noindex" />
+  <link rel="canonical" href="https://soulware.live/obras/anatomia-del-vacio/" />
+  <meta name="theme-color" content="#020202" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+</head>
+<body>
+  <!-- Scene layers — z-order per ENGINEERING.md §6 -->
+  <div id="redwash" aria-hidden="true"></div>
+  <div id="figura" aria-hidden="true"><span class="figura-face"></span></div>
+  <canvas id="smoke" aria-hidden="true"></canvas>
+  <div id="vignette" aria-hidden="true"></div>
+  <div id="zippo-glow" aria-hidden="true"></div>
+  <div id="blackout" aria-hidden="true"></div>
+  <div id="whiteflash" aria-hidden="true"></div>
+
+  <!-- Entry screen -->
+  <div id="entry">
+    <h1 id="entry-title">ANATOMÍA DEL VACÍO</h1>
+    <p id="entry-author">Germán Ferri · SOULWARE</p>
+    <div id="entry-notes">
+      <p>Se recomienda auriculares.</p>
+      <p>Avanzas tú. Nadie te empuja.</p>
+      <p class="entry-warning">No se entra aquí. Se es absorbido.</p>
+    </div>
+    <div id="entry-actions">
+      <button id="btn-continuar" hidden></button>
+      <button id="btn-entrar">ENTRAR</button>
+    </div>
+  </div>
+
+  <!-- The chamber -->
+  <main id="stage-wrap" hidden>
+    <div id="titlecard" aria-live="polite"></div>
+    <div id="stage" aria-live="polite"></div>
+    <div id="hint">toca para continuar</div>
+  </main>
+
+  <!-- Chrome -->
+  <button id="btn-exit" aria-label="Salir" hidden>&#215;</button>
+  <button id="btn-sound" aria-label="Silenciar sonido" hidden>SONIDO&nbsp;&middot;&nbsp;ON</button>
+  <div id="floor-indicator" aria-hidden="true"></div>
+
+  <!-- Exit confirm -->
+  <div id="exit-confirm" role="dialog" aria-modal="true" hidden>
+    <p>¿Abandonar la subida?</p>
+    <p class="exit-sub">Tu paso queda guardado.</p>
+    <div class="exit-actions">
+      <button id="btn-exit-stay">SEGUIR</button>
+      <a id="btn-exit-leave" href="/obras/anatomia-del-vacio/">SALIR</a>
+    </div>
+  </div>
+
+  <script type="module" src="/anatomia/AnatomiaEngine.js"></script>
+</body>
+</html>
