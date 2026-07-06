@@ -35,6 +35,7 @@ export class SceneFX {
       case 'punto-pulso': this._puntoPulse(); break;
       case 'forma': this._puntoForma(); break;
       case 'gravedad-polvo': this._dustGravity(6000); break;
+      case 'polvo-agitado': this._dust?.burst?.(3500); break;
       case 'lluvia-codigo': this._codeRain(); break;
       case 'cierre': this._vignette.classList.add('on'); document.getElementById('stage').classList.add('cierre'); break;
       default:
@@ -289,9 +290,11 @@ export class SceneFX {
     }));
     let ink = [216, 220, 224];
     let attractor = null;
+    let burstUntil = 0;
     this._dust = {
       setInk: (rgb) => { ink = rgb; },
       setAttractor: (x, y) => { attractor = x === null ? null : { x, y }; },
+      burst: (ms) => { burstUntil = performance.now() + ms; }, // "levanta polvo la nada"
       dead: false,
     };
     let last = 0;
@@ -301,10 +304,11 @@ export class SceneFX {
       if (t - last < 41 || document.hidden) return;
       last = t;
       ctx.clearRect(0, 0, w, h);
+      const agitated = t < burstUntil ? 4.2 : 1;
       for (const m of motes) {
-        m.y += m.vy;
-        m.phase += 0.008;
-        m.x += Math.sin(m.phase) * m.drift * 0.3;
+        m.y += m.vy * agitated;
+        m.phase += 0.008 * agitated;
+        m.x += Math.sin(m.phase) * m.drift * 0.3 * agitated;
         // Gravity found a center: the ash curves toward the singularity.
         if (attractor) {
           const dx = attractor.x - m.x, dy = attractor.y - m.y;

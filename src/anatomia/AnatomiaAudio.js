@@ -282,48 +282,43 @@ export class AnatomiaAudio {
       case 'intento':     this._intento(t); break;
       case 'mecedora':    this._startLoop('mecedora', 2.8, 0.03); break;
       case 'columpio':    this._startLoop('columpio', 3.6, 0.025); break;
-      // ── Prologue art pass ──
-      case 'esteril': { // "Correcta." — the horror of cleanliness: one glass ping
+      // ── Prologue art pass (v2: all cues dark, filtered, textural) ──
+      case 'toques': // four muffled wooden taps under the UI-gesture words
+        [0.6, 1.6, 3.2, 4.1].forEach(d => this._tick(t + d, 0.022));
+        break;
+      case 'tic-seco': this._tick(t + 0.3, 0.028); break; // habit: one dry tick
+      case 'campana': { // the frosted cowbell: a dead gong, all lowpass, no shine
         const o = this.ctx.createOscillator();
-        o.frequency.value = 2400;
+        o.frequency.setValueAtTime(196, t);
+        o.frequency.exponentialRampToValueAtTime(182, t + 2.4);
         const o2 = this.ctx.createOscillator();
-        o2.frequency.value = 3595; // slightly inharmonic shimmer
+        o2.frequency.value = 274; // rough, inharmonic partner
+        const lp = this.ctx.createBiquadFilter();
+        lp.type = 'lowpass'; lp.frequency.value = 340;
         const gn = this.ctx.createGain();
-        gn.gain.setValueAtTime(0.025, t);
-        gn.gain.exponentialRampToValueAtTime(0.0001, t + 0.7);
-        o.connect(gn); o2.connect(gn); gn.connect(this._sfxGain);
-        o.start(t); o2.start(t); o.stop(t + 0.75); o2.stop(t + 0.75);
+        gn.gain.setValueAtTime(0.035, t);
+        gn.gain.exponentialRampToValueAtTime(0.0001, t + 2.6);
+        o.connect(lp); o2.connect(lp); lp.connect(gn); gn.connect(this._sfxGain);
+        this._noiseBurst(t, 500, 0.09, 0.02); // the strike, muffled
+        o.start(t); o2.start(t); o.stop(t + 2.7); o2.stop(t + 2.7);
         break;
       }
-      case 'ui-tap': { // app sounds inside a literary chamber
-        [0, 0.42, 0.84, 1.26].forEach((d, i) => {
-          const o = this.ctx.createOscillator();
-          o.frequency.value = 1000 + i * 120;
-          const gn = this.ctx.createGain();
-          gn.gain.setValueAtTime(0.03, t + d);
-          gn.gain.exponentialRampToValueAtTime(0.0001, t + d + 0.06);
-          o.connect(gn); gn.connect(this._sfxGain);
-          o.start(t + d); o.stop(t + d + 0.08);
-        });
+      case 'roces': // three tiny scratches as the text corrects itself
+        [0.4, 0.65, 0.9].forEach(d => this._creakSweep(t + d, 900, 500, 0.07, 0.012));
         break;
-      }
       case 'thud':  this._thump(t, 45, 0.35, 0.07); break; // the stone weight
       case 'scrape': this._creakSweep(t, 320, 170, 0.4, 0.03); break; // fricción
-      case 'iface-hum': { // the luminous coffin hums
-        [120, 240].forEach(f => {
+      case 'iface-hum': { // the luminous coffin hums — low dyad, no melody
+        [90, 181].forEach(f => {
           const o = this.ctx.createOscillator();
           o.frequency.value = f;
           const gn = this.ctx.createGain();
           gn.gain.setValueAtTime(0.0001, t);
-          gn.gain.exponentialRampToValueAtTime(0.012, t + 0.3);
-          gn.gain.exponentialRampToValueAtTime(0.0001, t + 1.4);
+          gn.gain.exponentialRampToValueAtTime(0.009, t + 0.4);
+          gn.gain.exponentialRampToValueAtTime(0.0001, t + 1.6);
           o.connect(gn); gn.connect(this._sfxGain);
-          o.start(t); o.stop(t + 1.5);
+          o.start(t); o.stop(t + 1.7);
         });
-        break;
-      }
-      case 'teclas': { // three keystrokes as the text corrects itself
-        [0.4, 0.65, 0.9].forEach(d => this._tick(t + d, 0.02));
         break;
       }
       case 'sub': this._thump(t, 36, 0.3, 0.05); break; // the singularity feeds
@@ -332,14 +327,18 @@ export class AnatomiaAudio {
     }
   }
 
+  // A tick with no pitch: a muffled wooden click, not a beep. (Ruben: sounds
+  // must never read as Game Boy — everything filtered, dark, textural.)
   _tick(t, g) {
-    const o = this.ctx.createOscillator();
-    o.frequency.value = 2000;
+    const src = this.ctx.createBufferSource();
+    src.buffer = this._noise();
+    const bp = this.ctx.createBiquadFilter();
+    bp.type = 'bandpass'; bp.frequency.value = 780; bp.Q.value = 4;
     const gn = this.ctx.createGain();
-    gn.gain.setValueAtTime(g, t);
-    gn.gain.exponentialRampToValueAtTime(0.0001, t + 0.04);
-    o.connect(gn); gn.connect(this._sfxGain);
-    o.start(t); o.stop(t + 0.05);
+    gn.gain.setValueAtTime(g * 1.6, t);
+    gn.gain.exponentialRampToValueAtTime(0.0001, t + 0.035);
+    src.connect(bp); bp.connect(gn); gn.connect(this._sfxGain);
+    src.start(t); src.stop(t + 0.05);
   }
 
   _thump(t, freq, dur, g, type = 'sine') {

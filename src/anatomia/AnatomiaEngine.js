@@ -56,9 +56,17 @@ class AnatomiaEngine {
     this._pending = [];
     this._accelStep = 0;
     this.pendingInteract = false;
+    // Auto-advance: 3 s of stillness and the building climbs on its own.
+    // A quiet ring in the corner fills with each breath.
+    this._autoMs = 3000;
+    this._autoEligibleAt = Infinity;
+    this._ring = document.getElementById('auto-ring');
+    this._ringCircle = this._ring?.querySelector('circle');
 
     this._bindEntry();
     this._bindChrome();
+    // Debug handle — lets tests and DevTools inspect the live engine.
+    window.__anatomia = this;
   }
 
   // ── Entry ────────────────────────────────────────────────────────────────
@@ -93,7 +101,33 @@ class AnatomiaEngine {
     this.sceneFX.startDust();
     this.floorIndex = floorIndex;
     this._bindInput();
+    this._startAutoLoop();
     this._startFloor();
+  }
+
+  // ── Auto-advance — the reader may rest; the building does not ────────────
+
+  _startAutoLoop() {
+    const CIRC = 56.5; // 2πr for r=9
+    const tick = () => {
+      requestAnimationFrame(tick);
+      if (this.state !== 'playing' || this.pendingInteract ||
+          !document.getElementById('exit-confirm').hidden) {
+        this._ring?.classList.add('hidden');
+        this._autoEligibleAt = performance.now() + 400; // re-arm after interruptions
+        return;
+      }
+      const now = performance.now();
+      const start = Math.max(this._autoEligibleAt, this.lockUntil);
+      const fill = Math.min(1, Math.max(0, (now - start) / this._autoMs));
+      this._ring?.classList.remove('hidden');
+      if (this._ringCircle) this._ringCircle.style.strokeDashoffset = `${CIRC * (1 - fill)}`;
+      if (fill >= 1) {
+        this._autoEligibleAt = now + 200; // reset before advancing
+        this.advance();
+      }
+    };
+    requestAnimationFrame(tick);
   }
 
   // ── Floor lifecycle ──────────────────────────────────────────────────────
@@ -290,6 +324,7 @@ class AnatomiaEngine {
     }
 
     this._advances++;
+    this._autoEligibleAt = performance.now(); // ring restarts with each beat
     this._maybeHint();
     this._saveProgress();
   }
