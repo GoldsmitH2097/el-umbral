@@ -3,11 +3,21 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* Per-floor palette — set by the engine on floor entry. Background morphs
+   slowly between floors; the epilogue inverts to bone-white (the letter
+   as paper). All text inherits --ink / --dim. */
+:root {
+  --bg: #020202;
+  --ink: #d8dce0;
+  --dim: #8a8a92;
+}
+
 html, body {
-  background: #020202; color: #d8dce0; height: 100%;
+  background: var(--bg); color: var(--ink); height: 100%;
   font-family: 'Times New Roman', serif;
   overflow: hidden; user-select: none;
   -webkit-tap-highlight-color: transparent;
+  transition: background 3s ease;
 }
 
 /* ── Scene layers (z-order: redwash < figura < smoke < vignette < zippo < blackout < whiteflash) ── */
@@ -111,10 +121,31 @@ html, body {
   transition: transform 1.6s ease-in-out;
 }
 
-.beat { opacity: 0; }
+/* Departing stanza — absolutely positioned ghost so the incoming beat can
+   cross-fade in the normal flow without a layout jump. */
+.stage-ghost {
+  position: absolute; inset: 0; pointer-events: none;
+  display: flex; align-items: center; justify-content: center;
+}
+.stage-ghost .ghost-col {
+  max-width: 34ch; width: 88vw; text-align: center;
+  font-size: clamp(19px, 2.6vw, 27px); line-height: 1.9;
+  display: flex; flex-direction: column; gap: 0.9em;
+  transition: opacity 0.7s cubic-bezier(0.4, 0, 1, 1),
+              transform 0.7s cubic-bezier(0.4, 0, 1, 1),
+              filter 0.7s ease;
+}
+.stage-ghost.out .ghost-col { opacity: 0; transform: translateY(-14px); filter: blur(3px); }
+
+.beat {
+  opacity: 0;
+  /* Elegant rag: no widows/orphans on centered lines */
+  text-wrap: balance;
+  hyphens: none;
+}
 .beat.dialogue { font-style: italic; }
 .beat.voice-void {
-  font-size: 0.72em; letter-spacing: 3px; color: #8a8a92; text-transform: uppercase;
+  font-size: 0.72em; letter-spacing: 3px; color: var(--dim); text-transform: uppercase;
 }
 
 /* Stack compression — the chamber never scrolls */
@@ -132,18 +163,23 @@ html, body {
 #titlecard {
   position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
   text-align: center; font-size: clamp(13px, 1.8vw, 18px); letter-spacing: 8px; text-indent: 4px;
-  color: #9a9ea6; text-transform: uppercase; padding: 0 8vw;
-  opacity: 0; pointer-events: none; transition: opacity 1.2s ease;
+  color: var(--dim); text-transform: uppercase; padding: 0 8vw;
+  opacity: 0; pointer-events: none;
+  transition: opacity 1.8s ease, filter 1.8s ease; filter: blur(3px);
+  text-wrap: balance;
 }
-#titlecard.on { opacity: 1; }
+#titlecard.on { opacity: 1; filter: blur(0); }
+
+/* Dust field — always-on ash motes drifting in the dark. Behind the text. */
+#dust { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
 
 /* ── Chrome ──────────────────────────────────────────────────────────────── */
 #hint {
   position: fixed; bottom: 9vh; left: 50%; transform: translateX(-50%);
-  font-size: 10px; letter-spacing: 5px; text-transform: uppercase; color: #555;
+  font-size: 10px; letter-spacing: 5px; text-transform: uppercase; color: var(--dim);
   opacity: 0; transition: opacity 2s ease; pointer-events: none; white-space: nowrap;
 }
-#hint.on { opacity: 0.7; }
+#hint.on { opacity: 0.55; }
 
 #btn-exit {
   position: fixed; top: max(18px, env(safe-area-inset-top)); right: 22px; z-index: 20;
@@ -161,8 +197,9 @@ html, body {
 #floor-indicator {
   position: fixed; bottom: max(16px, env(safe-area-inset-bottom)); left: 50%;
   transform: translateX(-50%); z-index: 20;
-  font-size: 9px; letter-spacing: 4px; text-transform: uppercase; color: #3a3a40;
-  pointer-events: none; white-space: nowrap;
+  font-size: 9px; letter-spacing: 4px; text-transform: uppercase; color: var(--dim);
+  opacity: 0.45; pointer-events: none; white-space: nowrap;
+  transition: color 3s ease;
 }
 
 #exit-confirm {
@@ -193,13 +230,22 @@ html, body {
 .finale-back:hover { border-color: #c8922a; box-shadow: 0 0 30px rgba(200,146,42,0.2); }
 
 /* ── FX vocabulary (Phase 1 set + shared plumbing) ───────────────────────── */
-.fx-fade    { animation: fxFade 0.9s ease forwards; }
+/* The default entrance breathes: rise + defocus resolving. Long, soft ease-out
+   (cubic-bezier(0.22,1,0.36,1)) with a beat of hesitation before it begins. */
+.fx-fade    { animation: fxRise 1.5s cubic-bezier(0.22, 1, 0.36, 1) 0.15s forwards; }
 .fx-cut     { opacity: 1; }
-.fx-whisper { font-size: 0.8em; animation: fxWhisper 1.5s ease forwards; }
+.fx-whisper { font-size: 0.8em; animation: fxWhisperRise 2.2s cubic-bezier(0.22, 1, 0.36, 1) 0.2s forwards; }
 .fx-slam    { font-size: 1.3em; animation: fxSlam 0.12s steps(2) forwards; }
 
+@keyframes fxRise {
+  from { opacity: 0; transform: translateY(14px); filter: blur(5px); }
+  to   { opacity: 1; transform: none; filter: blur(0); }
+}
+@keyframes fxWhisperRise {
+  from { opacity: 0; transform: translateY(8px); filter: blur(4px); }
+  to   { opacity: 0.55; transform: none; filter: blur(0); }
+}
 @keyframes fxFade    { to { opacity: 1; } }
-@keyframes fxWhisper { to { opacity: 0.55; } }
 @keyframes fxSlam {
   0%   { opacity: 1; transform: translate(2px, -1px); }
   50%  { opacity: 1; transform: translate(-2px, 1px); }
@@ -209,8 +255,12 @@ html, body {
 /* cadence: spans staggered by JS via --i */
 .fx-cadence { opacity: 1; }
 .fx-cadence .cad {
-  opacity: 0; display: inline; animation: fxFade 0.7s ease forwards;
-  animation-delay: calc(var(--i) * 350ms);
+  opacity: 0; display: inline-block; animation: fxCad 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: calc(var(--i) * 420ms + 150ms);
+}
+@keyframes fxCad {
+  from { opacity: 0; filter: blur(4px); }
+  to   { opacity: 1; filter: blur(0); }
 }
 
 /* obturar: JS collapses letter spans to center; the dot persists */

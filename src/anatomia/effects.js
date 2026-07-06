@@ -28,8 +28,11 @@ function _cadence(el) {
     const span = document.createElement('span');
     span.className = 'cad';
     span.style.setProperty('--i', i);
-    span.textContent = frag;
+    // inline-block (needed for filter/blur) swallows trailing whitespace at
+    // layout — trim it into a real text node between spans instead.
+    span.textContent = frag.trimEnd();
     el.appendChild(span);
+    if (i < frags.length - 1) el.appendChild(document.createTextNode(' '));
   });
 }
 
