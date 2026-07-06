@@ -131,11 +131,11 @@ html, body {
   max-width: 34ch; width: 88vw; text-align: center;
   font-size: clamp(19px, 2.6vw, 27px); line-height: 1.9;
   display: flex; flex-direction: column; gap: 0.9em;
-  transition: opacity 0.7s cubic-bezier(0.4, 0, 1, 1),
-              transform 0.7s cubic-bezier(0.4, 0, 1, 1),
-              filter 0.7s ease;
+  transition: opacity 0.95s cubic-bezier(0.4, 0, 1, 1),
+              transform 0.95s cubic-bezier(0.4, 0, 1, 1),
+              filter 0.95s ease;
 }
-.stage-ghost.out .ghost-col { opacity: 0; transform: translateY(-14px); filter: blur(3px); }
+.stage-ghost.out .ghost-col { opacity: 0; transform: translateY(-18px); filter: blur(4px); }
 
 .beat {
   opacity: 0;
@@ -143,16 +143,27 @@ html, body {
   text-wrap: balance;
   hyphens: none;
 }
+/* Pre-laid stanza lines awaiting their reveal — they occupy their final
+   geometry from the group's first beat, so nothing ever jumps. */
+.beat.pending { opacity: 0; }
 .beat.dialogue { font-style: italic; }
+/* The void voice — the system speaking through the text. Monospace: the
+   protocol register invading the literary serif. */
 .beat.voice-void {
-  font-size: 0.72em; letter-spacing: 3px; color: var(--dim); text-transform: uppercase;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.6em; letter-spacing: 2px; color: var(--dim); text-transform: uppercase;
 }
 
-/* Stack compression — the chamber never scrolls */
+/* ── Typographic scale — short lines strike harder ───────────────────────── */
+.beat.sz-lg  { font-size: 1.22em; }
+.beat.sz-xl  { font-size: 1.55em; letter-spacing: 1px; line-height: 1.5; }
+.beat.sz-xxl { font-size: 2rem;  letter-spacing: 2px; line-height: 1.4; }
+.beat.sz-sm  { font-size: 0.84em; line-height: 1.95; }
+
+/* Stack recession — older revealed lines dim; geometry never changes */
 .beat.old-1 { opacity: 0.55 !important; }
 .beat.old-2 { opacity: 0.3  !important; }
 .beat.old-3 { opacity: 0.14 !important; }
-.beat.old-gone { display: none; }
 
 /* Carta mode (epilogue) */
 #stage.carta {
@@ -231,10 +242,11 @@ html, body {
 
 /* ── FX vocabulary (Phase 1 set + shared plumbing) ───────────────────────── */
 /* The default entrance breathes: rise + defocus resolving. Long, soft ease-out
-   (cubic-bezier(0.22,1,0.36,1)) with a beat of hesitation before it begins. */
-.fx-fade    { animation: fxRise 1.5s cubic-bezier(0.22, 1, 0.36, 1) 0.15s forwards; }
+   (cubic-bezier(0.22,1,0.36,1)). The 0.5 s hesitation lets the departing ghost
+   clear the air first — entrance and exit no longer collide. */
+.fx-fade    { animation: fxRise 1.9s cubic-bezier(0.22, 1, 0.36, 1) 0.5s forwards; }
 .fx-cut     { opacity: 1; }
-.fx-whisper { font-size: 0.8em; animation: fxWhisperRise 2.2s cubic-bezier(0.22, 1, 0.36, 1) 0.2s forwards; }
+.fx-whisper { font-size: 0.8em; animation: fxWhisperRise 2.6s cubic-bezier(0.22, 1, 0.36, 1) 0.55s forwards; }
 .fx-slam    { font-size: 1.3em; animation: fxSlam 0.12s steps(2) forwards; }
 
 @keyframes fxRise {
@@ -255,8 +267,8 @@ html, body {
 /* cadence: spans staggered by JS via --i */
 .fx-cadence { opacity: 1; }
 .fx-cadence .cad {
-  opacity: 0; display: inline-block; animation: fxCad 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  animation-delay: calc(var(--i) * 420ms + 150ms);
+  opacity: 0; display: inline-block; animation: fxCad 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: calc(var(--i) * 480ms + 550ms);
 }
 @keyframes fxCad {
   from { opacity: 0; filter: blur(4px); }
@@ -288,6 +300,7 @@ html, body {
 
 .fx-clock {
   opacity: 1; font-variant-numeric: tabular-nums;
+  font-family: 'Courier New', Courier, monospace;
   text-shadow: 0 0 18px rgba(200,146,42,0.35); letter-spacing: 4px;
 }
 
