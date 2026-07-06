@@ -261,6 +261,7 @@ class AnatomiaEngine {
 
     if (b.scene === 'silence') this.audio.duckAll();
     else if (b.scene === 'silence-swing') this.audio.duckAllExcept('columpio');
+    else if (b.scene === 'respiro') this.audio.breathe(3000);
     else if (b.scene) this.sceneFX.trigger(b.scene);
     if (b.sfx) this.audio.play(b.sfx);
 
