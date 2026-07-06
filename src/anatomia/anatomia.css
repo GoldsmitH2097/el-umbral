@@ -115,9 +115,12 @@ html, body {
   cursor: default; touch-action: manipulation;
 }
 #stage {
-  max-width: 34ch; width: 88vw; text-align: center;
-  font-size: clamp(19px, 2.6vw, 27px); line-height: 1.9;
-  display: flex; flex-direction: column; gap: 0.9em;
+  max-width: 34ch; width: 90vw; text-align: center;
+  /* Larger + higher-contrast editorial serif. Didot/Bodoni on Apple devices,
+     Georgia elsewhere — the chamber's own voice, distinct from the main site. */
+  font-family: 'Didot', 'Bodoni 72', 'Cochin', Georgia, 'Times New Roman', serif;
+  font-size: clamp(24px, 3.4vw, 40px); line-height: 1.72;
+  display: flex; flex-direction: column; gap: 0.85em;
   transition: transform 1.6s ease-in-out;
 }
 
@@ -128,9 +131,10 @@ html, body {
   display: flex; align-items: center; justify-content: center;
 }
 .stage-ghost .ghost-col {
-  max-width: 34ch; width: 88vw; text-align: center;
-  font-size: clamp(19px, 2.6vw, 27px); line-height: 1.9;
-  display: flex; flex-direction: column; gap: 0.9em;
+  max-width: 34ch; width: 90vw; text-align: center;
+  font-family: 'Didot', 'Bodoni 72', 'Cochin', Georgia, 'Times New Roman', serif;
+  font-size: clamp(24px, 3.4vw, 40px); line-height: 1.72;
+  display: flex; flex-direction: column; gap: 0.85em;
   transition: opacity 0.95s cubic-bezier(0.4, 0, 1, 1),
               transform 0.95s cubic-bezier(0.4, 0, 1, 1),
               filter 0.95s ease;
@@ -387,33 +391,58 @@ html, body {
 
 /* ── Prologue art pass ───────────────────────────────────────────────────── */
 
-/* The singularity — a point that has been there the whole time */
+/* The singularity — stealth: a breathing halo, not a dead pixel.
+   It only MATERIALIZES at its moments (fed / pulse / your shape). */
 #punto {
   position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);
   width: 2px; height: 2px; border-radius: 50%; z-index: 1;
-  background: var(--ink); opacity: 0; pointer-events: none;
+  background: transparent; opacity: 0; pointer-events: none;
   transition: opacity 4s ease, width 1.2s cubic-bezier(0.6,0,0.4,1),
-              height 1.2s cubic-bezier(0.6,0,0.4,1), border-radius 0.8s ease;
-  box-shadow: 0 0 12px 2px rgba(216,220,224,0.08);
+              height 1.2s cubic-bezier(0.6,0,0.4,1), border-radius 0.8s ease,
+              background 1s ease;
+  box-shadow: 0 0 16px 5px rgba(216,220,224,0.05);
 }
-#punto.on { opacity: 0.4; }
-#punto.fed { opacity: 0.75; box-shadow: 0 0 22px 5px rgba(216,220,224,0.16); }
-#punto.pulso { opacity: 0.8; transform: translate(-50%, -50%) scale(1.6); transition: all 0.35s ease; }
+#punto.on { opacity: 1; animation: puntoBreath 7s ease-in-out infinite; }
+@keyframes puntoBreath {
+  0%, 100% { box-shadow: 0 0 14px 4px rgba(216,220,224,0.04); }
+  50%      { box-shadow: 0 0 20px 6px rgba(216,220,224,0.08); }
+}
+#punto.fed {
+  background: var(--ink); opacity: 0.55;
+  box-shadow: 0 0 26px 7px rgba(216,220,224,0.16);
+  animation: none;
+}
+#punto.pulso {
+  background: var(--ink); opacity: 0.6;
+  transform: translate(-50%, -50%) scale(1.8);
+  transition: all 0.35s ease; animation: none;
+}
 #punto.forma {
+  background: var(--ink);
   width: 3px !important; height: 42vh !important; border-radius: 2px;
-  opacity: 0.3; transition: height 1s cubic-bezier(0.6,0,0.3,1), opacity 1s ease;
+  opacity: 0.3; animation: none;
+  transition: height 1s cubic-bezier(0.6,0,0.3,1), opacity 1s ease;
 }
 
-/* "Como una infección." — the word is stained and the stain lives */
-.infectada {
-  background: linear-gradient(180deg, var(--ink) 20%, #8c2f2f 90%);
-  -webkit-background-clip: text; background-clip: text; color: transparent;
-  animation: infSpread 4s ease forwards;
+/* Auto-advance ring — the reader can rest; the building keeps climbing */
+#auto-ring {
+  position: fixed; right: 26px; bottom: max(24px, env(safe-area-inset-bottom));
+  width: 22px; height: 22px; z-index: 20; opacity: 0.3; pointer-events: none;
+  transition: opacity 0.6s ease;
 }
-@keyframes infSpread {
-  from { background-position: 0 -1.2em; }
-  to   { background-position: 0 0.4em; }
+#auto-ring.hidden { opacity: 0; }
+#auto-ring circle {
+  fill: none; stroke: var(--dim); stroke-width: 1.5;
+  stroke-dasharray: 56.5; stroke-dashoffset: 56.5;
+  transform: rotate(-90deg); transform-origin: center;
 }
+
+/* "Como una infección." — the whole line slowly turns the colour of blood */
+.fx-infeccion {
+  animation: fxRise 1.9s cubic-bezier(0.22,1,0.36,1) 0.5s forwards,
+             infFiebre 6s ease 2s forwards;
+}
+@keyframes infFiebre { to { color: #9c3535; } }
 
 /* "Como quien cabalga…" — the line rides */
 .fx-cabalga {
@@ -464,14 +493,15 @@ html, body {
 }
 @keyframes fxOpt { from { letter-spacing: normal; } to { letter-spacing: 0.5px; transform: scaleX(0.97); } }
 
-/* "el perfil" — a system-type ghost misaligned over the person */
+/* "el perfil" — a ghost of the line misaligned over the person. Same font =
+   same metrics = same wrap (v1's system-font ghost wrapped differently and
+   bled into the next line). */
 .perfil-ghost {
-  position: absolute; inset: 0; transform: translate(2px, 2px);
-  font-family: system-ui, -apple-system, sans-serif;
+  position: absolute; inset: 0; transform: translate(3px, 3px);
   opacity: 0; color: var(--ink); pointer-events: none; text-wrap: balance;
   animation: perfilIn 2.4s ease forwards;
 }
-@keyframes perfilIn { to { opacity: 0.16; } }
+@keyframes perfilIn { to { opacity: 0.14; } }
 
 /* "El yo ha muerto." — the line has weight; it settles like stone */
 .fx-lapida { animation: fxRise 1.4s cubic-bezier(0.22,1,0.36,1) 0.4s forwards, lapida 0.5s cubic-bezier(0.6,0,1,1) 2s forwards; }
@@ -522,6 +552,137 @@ html, body {
 /* "entiendes." — the only light in the room */
 .fx-fade.foco { text-shadow: 0 0 26px rgba(216,220,224,0.35); }
 .foco-dim { opacity: 0.13 !important; transition: opacity 1.6s ease; }
+
+/* ── v2: weirder, bolder ─────────────────────────────────────────────────── */
+
+/* Smoke condenses into letters */
+.dh {
+  display: inline-block; white-space: pre; opacity: 0;
+  transform: translate(var(--dx), var(--dy)) rotate(4deg);
+  filter: blur(9px);
+  animation: dhIn 2.4s cubic-bezier(0.2, 0.65, 0.25, 1) var(--d) forwards;
+}
+@keyframes dhIn {
+  60% { opacity: 0.7; filter: blur(2px); }
+  100% { opacity: 1; transform: none; filter: blur(0); }
+}
+
+/* Hollow text — a shape with nothing inside */
+.fx-hueco, .hueca {
+  color: transparent !important;
+  -webkit-text-stroke: 1.2px var(--ink);
+}
+.fx-hueco { animation: fxRise 1.9s cubic-bezier(0.22,1,0.36,1) 0.5s forwards; }
+.fx-medio { animation: fxRise 1.9s cubic-bezier(0.22,1,0.36,1) 0.5s forwards; color: color-mix(in srgb, var(--ink) 55%, transparent); }
+.fx-hueco-suave {
+  animation: fxRise 1.9s cubic-bezier(0.22,1,0.36,1) 0.5s forwards;
+  color: color-mix(in srgb, var(--ink) 22%, transparent);
+  -webkit-text-stroke: 0.8px var(--ink);
+}
+
+/* "Y de eso." — the reflection of the thing, printed upside down */
+.fx-invertido {
+  transform: rotate(180deg);
+  animation: fxRise 1.9s cubic-bezier(0.22,1,0.36,1) 0.5s forwards;
+}
+
+/* "Eso." — one systolic beat */
+.fx-latido { animation: fxRise 1.2s cubic-bezier(0.22,1,0.36,1) 0.4s forwards, latido 0.9s ease 1.8s; }
+@keyframes latido {
+  0%, 100% { transform: scale(1); }
+  25% { transform: scale(1.12); }
+  45% { transform: scale(0.98); }
+  60% { transform: scale(1.05); }
+}
+
+/* Imperfect thought — the two halves sit slightly wrong */
+.fx-torcido {
+  animation: fxRecuerdo 2.4s cubic-bezier(0.22,1,0.36,1) 0.5s forwards;
+  transform: rotate(-0.6deg); color: #b9b4a6;
+}
+
+/* The ember of thought — it glows once from within */
+.fx-brasa { animation: fxRise 1.9s cubic-bezier(0.22,1,0.36,1) 0.5s forwards, brasa 3.2s ease 2.2s; }
+@keyframes brasa {
+  0%, 100% { text-shadow: none; color: inherit; }
+  40% { text-shadow: 0 0 22px rgba(200,146,42,0.5); color: #d8c092; }
+}
+
+/* "Es una costumbre." — pendulum habit */
+.fx-metronomo { animation: fxRise 1.9s cubic-bezier(0.22,1,0.36,1) 0.5s forwards, metronomo 2.8s ease-in-out 2.2s 2; transform-origin: top center; }
+@keyframes metronomo {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(1deg); }
+  75% { transform: rotate(-1deg); }
+}
+
+/* Fragments FALL into place */
+.cad-gravedad { animation-name: cadGravedad !important; }
+@keyframes cadGravedad {
+  from { opacity: 0; transform: translateY(-22px); filter: blur(3px); }
+  60%  { opacity: 1; transform: translateY(2px); }
+  100% { opacity: 1; transform: none; filter: blur(0); }
+}
+
+/* "Está en la conducta." — it lands heavy, overshoots, settles */
+.fx-cae { animation: cae 1.3s cubic-bezier(0.3, 0, 0.4, 1) 0.4s forwards; }
+@keyframes cae {
+  from { opacity: 0; transform: translateY(-30px); }
+  70%  { opacity: 1; transform: translateY(3px); }
+  100% { opacity: 1; transform: none; }
+}
+
+/* The dead bell — one slow decaying swing */
+.fx-campana { animation: fxRise 1.9s cubic-bezier(0.22,1,0.36,1) 0.5s forwards, campana 4.5s ease-out 2.2s; transform-origin: top center; }
+@keyframes campana {
+  0% { transform: rotate(0); } 15% { transform: rotate(1.6deg); }
+  40% { transform: rotate(-1.1deg); } 65% { transform: rotate(0.5deg); }
+  85% { transform: rotate(-0.2deg); } 100% { transform: rotate(0); }
+}
+
+/* "Y ahí vamos." — it walks in, two steps */
+.fx-pasos { animation: pasos 1.6s steps(2) 0.4s forwards; }
+@keyframes pasos {
+  from { opacity: 0; transform: translateX(-34px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* "No hay alegrías." — the absence of joy is the absence of animation */
+.fx-plano { opacity: 1; }
+
+/* "Solo sonambulismo." — the line sleepwalks */
+.fx-sonambulo { animation: fxRise 1.9s cubic-bezier(0.22,1,0.36,1) 0.5s forwards, sonambulo 9s ease-in-out 2.5s infinite; }
+@keyframes sonambulo {
+  0%, 100% { transform: translateX(0); }
+  30% { transform: translateX(9px); }
+  70% { transform: translateX(-7px); }
+}
+
+/* "Eso eres ahora." — it comes closer */
+.fx-acerca { animation: acerca 2.2s cubic-bezier(0.22,1,0.36,1) 0.4s forwards; }
+@keyframes acerca {
+  from { opacity: 0; transform: scale(0.86); filter: blur(4px); }
+  to   { opacity: 1; transform: scale(1); filter: blur(0); }
+}
+
+/* "en ese punto mínimo…" — the line itself shrinks toward the point */
+.fx-encoge { animation: fxRise 1.6s cubic-bezier(0.22,1,0.36,1) 0.4s forwards, encoge 2.4s ease 2s forwards; }
+@keyframes encoge { to { transform: scale(0.72); opacity: 0.75; } }
+
+/* "Limpia. Silenciosa. Correcta." — each word cleaner than the last */
+.lmp { display: inline-block; opacity: 0; }
+.lmp-0 { animation: lmpRough 1.1s ease 0.5s forwards; }
+.lmp-1 { animation: lmpMid 1.1s ease 1.5s forwards; }
+.lmp-2 { animation: lmpSharp 1.3s ease 2.5s forwards; }
+@keyframes lmpRough { to { opacity: 0.85; filter: blur(1.1px); } }
+@keyframes lmpMid   { to { opacity: 0.95; filter: blur(0.4px); } }
+@keyframes lmpSharp {
+  60% { opacity: 1; filter: blur(0); text-shadow: 0 0 18px rgba(232,236,240,0.55); }
+  100% { opacity: 1; filter: blur(0); text-shadow: none; }
+}
+
+/* "eutanasia" — dying inside its own sentence */
+.moribunda { opacity: 0.38; filter: blur(0.7px); }
 
 /* The letter as paper — faint grain over the bone-white epilogue */
 body.carta-paper::after {

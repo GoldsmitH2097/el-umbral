@@ -8,7 +8,16 @@ const CSS_ONLY = new Set([
   'estira', 'comprimida', 'oscuridad', 'interfaz',
   // Prologue art pass — pure CSS verbs
   'cabalga', 'recuerdo', 'optimizado', 'lapida', 'rictus', 'arcada', 'cierre',
+  // v2: weirder, bolder
+  'infeccion', 'hueco', 'medio', 'hueco-suave', 'invertido', 'latido',
+  'torcido', 'brasa', 'metronomo', 'cae', 'campana', 'pasos', 'plano',
+  'sonambulo', 'acerca', 'encoge',
 ]);
+
+// Wrap a target substring in a styled span (word-level register shifts).
+function _wrapWord(el, regex, cls) {
+  el.innerHTML = el.textContent.replace(regex, `<span class="${cls}">$1</span>`);
+}
 
 export function applyFx(el, beat, ctx = {}) {
   let fx = beat.fx || 'fade';
@@ -42,7 +51,14 @@ export function applyFx(el, beat, ctx = {}) {
       ctx.stage?.classList.add('desviado'); // engine clears it on floor start
       el.classList.add('fx-fade');
       break;
-    case 'infeccion':  _infeccion(el); break;
+    case 'de-humo':    _deHumo(el); break;
+    case 'limpia':     _limpia(el); break;
+    case 'gravedad':   _gravedad(el); break;
+    case 'eutanasia':  el.classList.add('fx-fade'); _wrapWord(el, /(eutanasia)/i, 'moribunda'); break;
+    case 'vacio-hueco': el.classList.add('fx-fade'); _wrapWord(el, /(vacío)/i, 'hueca'); break;
+    case 'esperanza-hueca': el.classList.add('fx-fade'); _wrapWord(el, /(esperanza)/i, 'hueca'); break;
+    case 'verbo-mono': el.classList.add('fx-fade'); _wrapWord(el, /(verbo)/i, 'pantalla'); break;
+    case 'codigo-mono': el.classList.add('fx-fade'); _wrapWord(el, /(código)/i, 'pantalla'); break;
     case 'absorcion':  _absorcion(el); break;
     case 'deslizas':   _deslizas(el); break;
     case 'perfil':     _perfil(el); break;
@@ -272,10 +288,44 @@ function _typewriter(el) {
 
 // ── Prologue art pass ────────────────────────────────────────────────────────
 
-// "Como una infección." — the word itself is stained; the stain spreads.
-function _infeccion(el) {
-  el.classList.add('fx-fade');
-  el.innerHTML = el.textContent.replace(/(infección)/i, '<span class="infectada">$1</span>');
+// "La singularidad le está llegando." — smoke condenses into letters.
+// Each glyph starts scattered, blurred, adrift — and settles into the word.
+function _deHumo(el) {
+  const text = el.textContent;
+  el.textContent = '';
+  el.style.opacity = '1';
+  [...text].forEach((ch, i) => {
+    const s = document.createElement('span');
+    s.className = 'dh';
+    s.style.setProperty('--dx', `${(Math.random() - 0.5) * 70}px`);
+    s.style.setProperty('--dy', `${-15 - Math.random() * 45}px`);
+    s.style.setProperty('--d', `${i * 40 + Math.random() * 200}ms`);
+    s.textContent = ch === ' ' ? ' ' : ch;
+    el.appendChild(s);
+  });
+}
+
+// "Limpia. Silenciosa. Correcta." — each word arrives CLEANER than the last:
+// rough, then focused, then razor-sharp with a cold brightness. No sound.
+function _limpia(el) {
+  const words = el.textContent.split(/\s+/);
+  el.textContent = '';
+  el.style.opacity = '1';
+  words.forEach((w, i) => {
+    const s = document.createElement('span');
+    s.className = `lmp lmp-${i}`;
+    s.style.setProperty('--i', i);
+    s.textContent = w;
+    el.appendChild(s);
+    if (i < words.length - 1) el.appendChild(document.createTextNode(' '));
+  });
+}
+
+// "El agujero negro no está en el cielo." — the fragments FALL into place,
+// pulled down by something below the text.
+function _gravedad(el) {
+  _cadence(el);
+  el.querySelectorAll('.cad').forEach(s => s.classList.add('cad-gravedad'));
 }
 
 // "Se es absorbido." — the PREVIOUS line is sucked into the center and gone.
@@ -311,14 +361,18 @@ function _deslizas(el) {
   });
 }
 
-// "…su versión mejorada: el perfil." — a system-font ghost of the line slides
-// over the original, misaligned by two pixels. The profile overlays the person.
+// "…su versión mejorada: el perfil." — a ghost of the line slides over the
+// original, misaligned by three pixels; the words "el perfil" themselves
+// switch to interface type. SAME font for the ghost — identical metrics,
+// identical wrap, no layout bleed (the v1 system-font ghost wrapped
+// differently and overlapped the next line).
 function _perfil(el) {
   el.classList.add('fx-fade');
+  _wrapWord(el, /(el perfil)/i, 'pantalla');
   setTimeout(() => {
     const ghost = document.createElement('span');
     ghost.className = 'perfil-ghost';
-    ghost.textContent = el.textContent;
+    ghost.innerHTML = el.innerHTML;
     ghost.setAttribute('aria-hidden', 'true');
     el.style.position = 'relative';
     el.appendChild(ghost);
