@@ -85,6 +85,15 @@ export class AnatomiaAudio {
     if (keep) keep.gain.gain.setTargetAtTime(keep.baseGain, this.ctx.currentTime, tc);
   }
 
+  /** "Hubo un tiempo…" — the room holds its breath for a memory, then returns. */
+  breathe(ms = 3000) {
+    if (!this.ctx) return;
+    this._ambienceGain.gain.setTargetAtTime(0.004, this.ctx.currentTime, 0.7);
+    setTimeout(() => {
+      if (this.ctx) this._ambienceGain.gain.setTargetAtTime(0.02, this.ctx.currentTime, 1.5);
+    }, ms);
+  }
+
   // ── Ambience ──────────────────────────────────────────────────────────────
 
   setAmbience(name, force = false) {
@@ -273,6 +282,51 @@ export class AnatomiaAudio {
       case 'intento':     this._intento(t); break;
       case 'mecedora':    this._startLoop('mecedora', 2.8, 0.03); break;
       case 'columpio':    this._startLoop('columpio', 3.6, 0.025); break;
+      // ── Prologue art pass ──
+      case 'esteril': { // "Correcta." — the horror of cleanliness: one glass ping
+        const o = this.ctx.createOscillator();
+        o.frequency.value = 2400;
+        const o2 = this.ctx.createOscillator();
+        o2.frequency.value = 3595; // slightly inharmonic shimmer
+        const gn = this.ctx.createGain();
+        gn.gain.setValueAtTime(0.025, t);
+        gn.gain.exponentialRampToValueAtTime(0.0001, t + 0.7);
+        o.connect(gn); o2.connect(gn); gn.connect(this._sfxGain);
+        o.start(t); o2.start(t); o.stop(t + 0.75); o2.stop(t + 0.75);
+        break;
+      }
+      case 'ui-tap': { // app sounds inside a literary chamber
+        [0, 0.42, 0.84, 1.26].forEach((d, i) => {
+          const o = this.ctx.createOscillator();
+          o.frequency.value = 1000 + i * 120;
+          const gn = this.ctx.createGain();
+          gn.gain.setValueAtTime(0.03, t + d);
+          gn.gain.exponentialRampToValueAtTime(0.0001, t + d + 0.06);
+          o.connect(gn); gn.connect(this._sfxGain);
+          o.start(t + d); o.stop(t + d + 0.08);
+        });
+        break;
+      }
+      case 'thud':  this._thump(t, 45, 0.35, 0.07); break; // the stone weight
+      case 'scrape': this._creakSweep(t, 320, 170, 0.4, 0.03); break; // fricción
+      case 'iface-hum': { // the luminous coffin hums
+        [120, 240].forEach(f => {
+          const o = this.ctx.createOscillator();
+          o.frequency.value = f;
+          const gn = this.ctx.createGain();
+          gn.gain.setValueAtTime(0.0001, t);
+          gn.gain.exponentialRampToValueAtTime(0.012, t + 0.3);
+          gn.gain.exponentialRampToValueAtTime(0.0001, t + 1.4);
+          o.connect(gn); gn.connect(this._sfxGain);
+          o.start(t); o.stop(t + 1.5);
+        });
+        break;
+      }
+      case 'teclas': { // three keystrokes as the text corrects itself
+        [0.4, 0.65, 0.9].forEach(d => this._tick(t + d, 0.02));
+        break;
+      }
+      case 'sub': this._thump(t, 36, 0.3, 0.05); break; // the singularity feeds
       default:
         if (import.meta.env.DEV) console.debug(`[anatomia] sfx "${cue}" unmapped`);
     }
