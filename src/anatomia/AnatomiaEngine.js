@@ -53,6 +53,7 @@ class AnatomiaEngine {
     this._wheelCoolUntil = 0;
     this._advances = 0;
     this._hintTimer = null;
+    this._pending = [];
 
     this._bindEntry();
     this._bindChrome();
@@ -191,16 +192,36 @@ class AnatomiaEngine {
     this._renderBeat();
   }
 
+  // Stanzas are PRE-LAID: on a group's first beat, every subsequent stack
+  // beat is rendered invisibly in its final position; each advance merely
+  // reveals the next line. Nothing on screen ever moves. (Ruben: "bring the
+  // lines in their final position" — the score is known, so we can.)
   _renderBeat() {
     const b = this.floor.beats[this.beatIndex];
-    if (!b.stack) this._clearStage();
 
-    const el = document.createElement('p');
-    el.className = 'beat';
-    if (b.voice === 'void') el.classList.add('voice-void');
-    if (b.t.startsWith('—')) el.classList.add('dialogue');
-    el.textContent = b.t;
-    this._stage.appendChild(el);
+    let el;
+    if (!b.stack) {
+      this._clearStage();
+      this._pending = [];
+      // Build this beat + its whole trailing stack group at final geometry
+      const beats = this.floor.beats;
+      for (let i = this.beatIndex; i < beats.length; i++) {
+        const gb = beats[i];
+        if (i > this.beatIndex && !gb.stack) break;
+        const p = this._buildBeatEl(gb);
+        this._stage.appendChild(p);
+        this._pending.push(p);
+      }
+      el = this._pending.shift();
+    } else {
+      el = this._pending?.shift();
+      if (!el) { // resumed/jumped mid-group (loop trap) — degrade to append
+        el = this._buildBeatEl(b);
+        this._stage.appendChild(el);
+      }
+    }
+
+    el.classList.remove('pending');
     applyFx(el, b);
     if (this.corrupted) el.classList.add('repeat-glitch');
 
@@ -213,6 +234,31 @@ class AnatomiaEngine {
     this._advances++;
     this._maybeHint();
     this._saveProgress();
+  }
+
+  _buildBeatEl(b) {
+    const el = document.createElement('p');
+    el.className = 'beat pending';
+    if (b.voice === 'void') el.classList.add('voice-void');
+    if (b.t.startsWith('—')) el.classList.add('dialogue');
+    const sz = this._sizeClass(b);
+    if (sz) el.classList.add(sz);
+    el.textContent = b.t;
+    return el;
+  }
+
+  // Typographic scale: short lines strike harder. The score can override via
+  // b.em ('sm'|'lg'|'xl'|'xxl'); otherwise a length heuristic decides.
+  // Void-voice lines stay small — the system does not shout.
+  _sizeClass(b) {
+    if (b.em) return `sz-${b.em}`;
+    if (b.voice === 'void' || b.fx === 'whisper' || b.fx === 'slam') return null;
+    const t = b.t;
+    const words = t.split(/\s+/).length;
+    if (t.length > 150) return 'sz-sm';
+    if (words === 1 && t.length <= 14) return 'sz-xl';
+    if (t.length <= 14) return 'sz-lg';
+    return null;
   }
 
   // The departing stanza lifts away in an absolutely-positioned ghost while
@@ -243,16 +289,15 @@ class AnatomiaEngine {
     setTimeout(() => ghost.remove(), 800);
   }
 
-  // The chamber never scrolls: oldest stacked lines compress away instead.
+  // Older revealed lines recede by opacity only — geometry is sacred now
+  // (pre-laid stanzas), so nothing is ever removed or collapsed mid-group.
   _compressStack() {
     if (this.floor.mode === 'carta') return; // the letter accumulates — sole exception
-    const kids = [...this._stage.children];
-    const over = kids.length - 8;
-    kids.forEach((el, i) => {
-      el.classList.remove('old-1', 'old-2', 'old-3', 'old-gone');
-      const age = kids.length - 1 - i;
-      if (i < over) el.classList.add('old-gone');
-      else if (age >= 6) el.classList.add('old-3');
+    const revealed = [...this._stage.children].filter(el => !el.classList.contains('pending'));
+    revealed.forEach((el, i) => {
+      el.classList.remove('old-1', 'old-2', 'old-3');
+      const age = revealed.length - 1 - i;
+      if (age >= 6) el.classList.add('old-3');
       else if (age >= 4) el.classList.add('old-2');
       else if (age >= 3) el.classList.add('old-1');
     });
