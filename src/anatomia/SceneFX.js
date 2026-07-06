@@ -29,6 +29,14 @@ export class SceneFX {
       case 'zippo-on': this._zippoOn(); break;
       case 'zippo-off': this._zippoOff(); break;
       case 'reflejo': this._vignette.classList.add('on', 'reflejo'); break;
+      // ── The singularity (prologue through-line) ──
+      case 'punto': this._puntoOn(); break;
+      case 'punto-crece': this._puntoGrow(); break;
+      case 'punto-pulso': this._puntoPulse(); break;
+      case 'forma': this._puntoForma(); break;
+      case 'gravedad-polvo': this._dustGravity(6000); break;
+      case 'lluvia-codigo': this._codeRain(); break;
+      case 'cierre': this._vignette.classList.add('on'); document.getElementById('stage').classList.add('cierre'); break;
       default:
         if (import.meta.env.DEV) console.debug(`[anatomia] scene "${name}" unhandled`);
     }
@@ -69,6 +77,100 @@ export class SceneFX {
     clearInterval(this._flickerTimer);
     this._flickerTimer = null;
     this._stopSmoke();
+    this._puntoOff();
+    document.getElementById('stage')?.classList.remove('cierre');
+  }
+
+  // ── The singularity — a point that has been there the whole time ─────────
+
+  _puntoEl() {
+    let p = document.getElementById('punto');
+    if (!p) {
+      p = document.createElement('div');
+      p.id = 'punto';
+      document.body.appendChild(p);
+    }
+    return p;
+  }
+
+  _puntoOn() {
+    const p = this._puntoEl();
+    this._puntoSize = 2;
+    p.style.width = p.style.height = '2px';
+    p.classList.add('on');
+  }
+
+  _puntoGrow() {
+    const p = this._puntoEl();
+    this._puntoSize = (this._puntoSize || 2) + 2;
+    p.style.width = p.style.height = `${this._puntoSize}px`;
+    p.classList.add('fed');
+    setTimeout(() => p.classList.remove('fed'), 900);
+  }
+
+  _puntoPulse() {
+    const p = this._puntoEl();
+    p.classList.add('pulso');
+    setTimeout(() => p.classList.remove('pulso'), 700);
+  }
+
+  /** "tu forma." — the point stretches into a standing silhouette. */
+  _puntoForma() {
+    const p = this._puntoEl();
+    p.classList.add('forma');
+  }
+
+  _puntoOff() {
+    const p = document.getElementById('punto');
+    if (p) { p.classList.remove('on', 'forma', 'pulso', 'fed'); p.remove(); }
+    this._puntoSize = 2;
+  }
+
+  /** For a few seconds the dust falls INWARD — gravity found a center. */
+  _dustGravity(ms) {
+    if (!this._dust?.setAttractor) return;
+    this._dust.setAttractor(innerWidth / 2, innerHeight / 2);
+    setTimeout(() => this._dust.setAttractor(null), ms);
+  }
+
+  /** "Despellejando el código" — a brief rain of dim glyphs behind the text. */
+  _codeRain() {
+    const canvas = document.getElementById('smoke');
+    canvas.classList.add('on');
+    canvas.width = innerWidth; canvas.height = innerHeight;
+    const ctx = canvas.getContext('2d');
+    const GLYPHS = '01{};<>/=+*';
+    const drops = Array.from({ length: 34 }, () => ({
+      x: Math.random() * innerWidth,
+      y: -20 - Math.random() * innerHeight * 0.5,
+      v: 2.2 + Math.random() * 3.2,
+      ch: GLYPHS[(Math.random() * GLYPHS.length) | 0],
+      a: 0.05 + Math.random() * 0.08,
+    }));
+    const t0 = performance.now();
+    let last = 0;
+    const frame = (t) => {
+      const elapsed = t - t0;
+      if (elapsed > 3400) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        canvas.classList.remove('on');
+        return;
+      }
+      requestAnimationFrame(frame);
+      if (t - last < 41) return;
+      last = t;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const fadeOut = elapsed > 2400 ? 1 - (elapsed - 2400) / 1000 : 1;
+      ctx.font = '13px "Courier New", monospace';
+      for (const d of drops) {
+        d.y += d.v;
+        if (Math.random() < 0.04) d.ch = GLYPHS[(Math.random() * GLYPHS.length) | 0];
+        if (d.y > innerHeight + 20) { d.y = -20; d.x = Math.random() * innerWidth; }
+        ctx.fillStyle = `rgba(120,140,165,${d.a * fadeOut})`;
+        ctx.fillText(d.ch, d.x, d.y);
+      }
+    };
+    requestAnimationFrame(frame);
   }
 
   // ── Bombilla enferma — the page's light palpitates ────────────────────────
@@ -186,7 +288,12 @@ export class SceneFX {
       a: 0.06 + Math.random() * 0.1,
     }));
     let ink = [216, 220, 224];
-    this._dust = { setInk: (rgb) => { ink = rgb; }, dead: false };
+    let attractor = null;
+    this._dust = {
+      setInk: (rgb) => { ink = rgb; },
+      setAttractor: (x, y) => { attractor = x === null ? null : { x, y }; },
+      dead: false,
+    };
     let last = 0;
     const frame = (t) => {
       if (this._dust.dead) return;
@@ -198,6 +305,13 @@ export class SceneFX {
         m.y += m.vy;
         m.phase += 0.008;
         m.x += Math.sin(m.phase) * m.drift * 0.3;
+        // Gravity found a center: the ash curves toward the singularity.
+        if (attractor) {
+          const dx = attractor.x - m.x, dy = attractor.y - m.y;
+          const dist = Math.max(60, Math.hypot(dx, dy));
+          m.x += (dx / dist) * 0.55;
+          m.y += (dy / dist) * 0.55;
+        }
         if (m.y < -4) { m.y = h + 4; m.x = Math.random() * w; }
         if (m.x < -4) m.x = w + 4; else if (m.x > w + 4) m.x = -4;
         ctx.beginPath();

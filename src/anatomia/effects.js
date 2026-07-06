@@ -6,6 +6,8 @@
 const CSS_ONLY = new Set([
   'fade', 'cut', 'whisper', 'slam', 'clock', 'friccion', 'mirror', 'vaho',
   'estira', 'comprimida', 'oscuridad', 'interfaz',
+  // Prologue art pass — pure CSS verbs
+  'cabalga', 'recuerdo', 'optimizado', 'lapida', 'rictus', 'arcada', 'cierre',
 ]);
 
 export function applyFx(el, beat, ctx = {}) {
@@ -40,6 +42,16 @@ export function applyFx(el, beat, ctx = {}) {
       ctx.stage?.classList.add('desviado'); // engine clears it on floor start
       el.classList.add('fx-fade');
       break;
+    case 'infeccion':  _infeccion(el); break;
+    case 'absorcion':  _absorcion(el); break;
+    case 'deslizas':   _deslizas(el); break;
+    case 'perfil':     _perfil(el); break;
+    case 'epitafio':   _epitafio(el); break;
+    case 'ataud':      el.classList.add('fx-fade'); break; // border via .fx-ataud
+    case 'quiebra':    _quiebra(el); break;
+    case 'ausencia':   _ausencia(el); break;
+    case 'arrastre':   _arrastre(el); break;
+    case 'foco':       _foco(el); break;
     case 'acelera': case 'carrera':
       el.classList.add('fx-fade'); // pacing handled by the engine
       break;
@@ -256,6 +268,113 @@ function _typewriter(el) {
     if (i <= text.length) { el.textContent = text.slice(0, i++); setTimeout(type, 24); }
   };
   setTimeout(type, 250);
+}
+
+// ── Prologue art pass ────────────────────────────────────────────────────────
+
+// "Como una infección." — the word itself is stained; the stain spreads.
+function _infeccion(el) {
+  el.classList.add('fx-fade');
+  el.innerHTML = el.textContent.replace(/(infección)/i, '<span class="infectada">$1</span>');
+}
+
+// "Se es absorbido." — the PREVIOUS line is sucked into the center and gone.
+function _absorcion(el) {
+  el.classList.add('fx-fade');
+  const prev = el.previousElementSibling;
+  if (!prev || prev.classList.contains('pending')) return;
+  setTimeout(() => {
+    const cx = innerWidth / 2, cy = innerHeight / 2;
+    const r = prev.getBoundingClientRect();
+    const dx = cx - (r.left + r.width / 2);
+    const dy = cy - (r.top + r.height / 2);
+    prev.style.transition = 'transform 1.3s cubic-bezier(0.6,0,0.9,1), opacity 1.3s ease, filter 1.3s ease';
+    prev.style.transform = `translate(${dx}px, ${dy}px) scale(0.02)`;
+    prev.style.opacity = '0';
+    prev.style.filter = 'blur(2px)';
+  }, 700);
+}
+
+// "Ahora gestionas. Deslizas. Aceptas. Repites." — each word performs its verb:
+// notification / swipe-away / button-press / stutter. UI gestures invading prose.
+function _deslizas(el) {
+  const words = el.textContent.split(/\s+/);
+  el.textContent = '';
+  el.style.opacity = '1';
+  words.forEach((w, i) => {
+    const s = document.createElement('span');
+    s.className = `ds ds-${i}`;
+    s.style.setProperty('--i', i);
+    s.textContent = w;
+    el.appendChild(s);
+    if (i < words.length - 1) el.appendChild(document.createTextNode(' '));
+  });
+}
+
+// "…su versión mejorada: el perfil." — a system-font ghost of the line slides
+// over the original, misaligned by two pixels. The profile overlays the person.
+function _perfil(el) {
+  el.classList.add('fx-fade');
+  setTimeout(() => {
+    const ghost = document.createElement('span');
+    ghost.className = 'perfil-ghost';
+    ghost.textContent = el.textContent;
+    ghost.setAttribute('aria-hidden', 'true');
+    el.style.position = 'relative';
+    el.appendChild(ghost);
+  }, 1200);
+}
+
+// "…ya no se escribe en piedra, sino sobre pantalla." — the sentence changes
+// register mid-line: the screen half renders in interface type.
+function _epitafio(el) {
+  el.classList.add('fx-fade');
+  el.innerHTML = el.textContent.replace(/(sobre pantalla)/i, '<span class="pantalla">$1</span>');
+}
+
+// "Se quiebra el mineral." — the paragraph fractures: two halves, hairline off.
+function _quiebra(el) {
+  const text = el.textContent;
+  el.classList.add('fx-fade');
+  el.textContent = '';
+  el.style.position = 'relative';
+  const mk = (clip, dx) => {
+    const s = document.createElement('span');
+    s.className = 'quiebra-half';
+    s.textContent = text;
+    s.style.clipPath = clip;
+    s.style.transform = `translateX(${dx}px)`;
+    return s;
+  };
+  const top = mk('inset(0 0 48% 0)', 0);
+  const bottom = mk('inset(52% 0 0 0)', 0);
+  bottom.style.position = 'absolute';
+  bottom.style.inset = '0';
+  el.appendChild(top);
+  el.appendChild(bottom);
+  setTimeout(() => { bottom.style.transform = 'translateX(1.6px)'; top.style.transform = 'translateX(-0.8px)'; }, 1400);
+}
+
+// "Un compuesto estable de ausencia." — the last word is present but absent.
+function _ausencia(el) {
+  el.classList.add('fx-fade');
+  const words = el.textContent.trim().split(/\s+/);
+  const last = words[words.length - 1];
+  el.innerHTML = el.textContent.replace(new RegExp(`(${last.replace('.', '\\.')})$`), '<span class="ausente">$1</span>');
+}
+
+// "Te lleva. Te arrastra. Te organiza." — the fragments are dragged into place.
+function _arrastre(el) {
+  _cadence(el);
+  el.querySelectorAll('.cad').forEach(s => s.classList.add('cad-arrastre'));
+}
+
+// "entiendes." — everything else dims; the word alone holds the light.
+function _foco(el) {
+  el.classList.add('fx-fade', 'foco');
+  [...el.parentElement.children].forEach(sib => {
+    if (sib !== el && !sib.classList.contains('pending')) sib.classList.add('foco-dim');
+  });
 }
 
 // ── Breath — the viewport itself inhales. Halts on "No entra." ─────────────

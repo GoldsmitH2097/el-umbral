@@ -385,6 +385,144 @@ html, body {
 /* Zippo floor: the cursor IS the flame */
 #stage-wrap.zippo-cursor { cursor: none; }
 
+/* ── Prologue art pass ───────────────────────────────────────────────────── */
+
+/* The singularity — a point that has been there the whole time */
+#punto {
+  position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: 2px; height: 2px; border-radius: 50%; z-index: 1;
+  background: var(--ink); opacity: 0; pointer-events: none;
+  transition: opacity 4s ease, width 1.2s cubic-bezier(0.6,0,0.4,1),
+              height 1.2s cubic-bezier(0.6,0,0.4,1), border-radius 0.8s ease;
+  box-shadow: 0 0 12px 2px rgba(216,220,224,0.08);
+}
+#punto.on { opacity: 0.4; }
+#punto.fed { opacity: 0.75; box-shadow: 0 0 22px 5px rgba(216,220,224,0.16); }
+#punto.pulso { opacity: 0.8; transform: translate(-50%, -50%) scale(1.6); transition: all 0.35s ease; }
+#punto.forma {
+  width: 3px !important; height: 42vh !important; border-radius: 2px;
+  opacity: 0.3; transition: height 1s cubic-bezier(0.6,0,0.3,1), opacity 1s ease;
+}
+
+/* "Como una infección." — the word is stained and the stain lives */
+.infectada {
+  background: linear-gradient(180deg, var(--ink) 20%, #8c2f2f 90%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: infSpread 4s ease forwards;
+}
+@keyframes infSpread {
+  from { background-position: 0 -1.2em; }
+  to   { background-position: 0 0.4em; }
+}
+
+/* "Como quien cabalga…" — the line rides */
+.fx-cabalga {
+  animation: fxRise 1.9s cubic-bezier(0.22,1,0.36,1) 0.5s forwards,
+             cabalga 4.4s ease-in-out 2.4s 2;
+}
+@keyframes cabalga {
+  0%, 100% { transform: translateX(0) rotate(0); }
+  25% { transform: translateX(5px) rotate(0.12deg); }
+  75% { transform: translateX(-5px) rotate(-0.12deg); }
+}
+
+/* "Hubo un tiempo…" — memory register: faded print */
+.fx-recuerdo {
+  color: #b9b4a6; filter: blur(0.4px);
+  animation: fxRecuerdo 2.4s cubic-bezier(0.22,1,0.36,1) 0.5s forwards;
+}
+@keyframes fxRecuerdo {
+  from { opacity: 0; transform: translateY(8px); filter: blur(4px); }
+  to   { opacity: 0.82; transform: none; filter: blur(0.4px); }
+}
+
+/* "Gestionas. Deslizas. Aceptas. Repites." — each word performs its verb */
+.fx-deslizas { opacity: 1; }
+.ds { display: inline-block; opacity: 0; }
+.ds-0 { animation: dsNotif 0.8s ease 0.5s forwards; }           /* arrives like a notification */
+.ds-1 { animation: dsSwipe 1.4s cubic-bezier(0.3,0,0.2,1) 1.5s forwards; } /* swipes through */
+.ds-2 { animation: dsPress 0.7s ease 3.1s forwards; }            /* pressed like a button */
+.ds-3 { animation: dsStutter 0.9s steps(2) 4s forwards; }        /* prints twice */
+@keyframes dsNotif   { from { opacity: 0; transform: translateY(-14px); } to { opacity: 1; transform: none; } }
+@keyframes dsSwipe   { 0% { opacity: 0; transform: translateX(60px); } 45% { opacity: 1; transform: translateX(-4px); } 100% { opacity: 1; transform: none; } }
+@keyframes dsPress   { 0% { opacity: 0; } 40% { opacity: 1; transform: scale(0.92); } 100% { opacity: 1; transform: none; } }
+@keyframes dsStutter { 0% { opacity: 0; } 34% { opacity: 1; } 55% { opacity: 0.2; } 100% { opacity: 1; } }
+
+/* "algo en paralelo se está cerrando" — the line tightens; the room narrows */
+.fx-cierre {
+  animation: fxRise 1.9s cubic-bezier(0.22,1,0.36,1) 0.5s forwards,
+             fxCierreTxt 7s ease 2s forwards;
+}
+@keyframes fxCierreTxt { from { letter-spacing: 0.8px; } to { letter-spacing: -0.3px; } }
+#stage.cierre { max-width: 29ch; transition: max-width 22s ease; }
+
+/* "Todo ha sido optimizado." — kerning removed, snapped to grid */
+.fx-optimizado {
+  animation: fxRise 1.4s cubic-bezier(0.22,1,0.36,1) 0.5s forwards,
+             fxOpt 0.35s steps(2) 2.2s forwards;
+  font-variant-ligatures: none;
+}
+@keyframes fxOpt { from { letter-spacing: normal; } to { letter-spacing: 0.5px; transform: scaleX(0.97); } }
+
+/* "el perfil" — a system-type ghost misaligned over the person */
+.perfil-ghost {
+  position: absolute; inset: 0; transform: translate(2px, 2px);
+  font-family: system-ui, -apple-system, sans-serif;
+  opacity: 0; color: var(--ink); pointer-events: none; text-wrap: balance;
+  animation: perfilIn 2.4s ease forwards;
+}
+@keyframes perfilIn { to { opacity: 0.16; } }
+
+/* "El yo ha muerto." — the line has weight; it settles like stone */
+.fx-lapida { animation: fxRise 1.4s cubic-bezier(0.22,1,0.36,1) 0.4s forwards, lapida 0.5s cubic-bezier(0.6,0,1,1) 2s forwards; }
+@keyframes lapida { to { transform: translateY(3px); } }
+
+/* "…sino sobre pantalla." — the sentence changes register mid-line */
+.pantalla { font-family: system-ui, -apple-system, sans-serif; font-size: 0.92em; }
+
+/* "el ataúd luminoso de un perfil" — the text inside its own profile card */
+.fx-ataud {
+  border: 1px solid rgba(150, 180, 220, 0.28); border-radius: 8px;
+  padding: 0.7em 1.1em;
+  box-shadow: 0 0 24px rgba(150, 180, 220, 0.07), inset 0 0 18px rgba(150, 180, 220, 0.04);
+}
+
+/* "rictus nervioso" — three involuntary twitches */
+.fx-rictus { animation: fxRise 1.9s cubic-bezier(0.22,1,0.36,1) 0.5s forwards, rictus 0.9s ease 2.6s 3; }
+@keyframes rictus {
+  0%, 100% { transform: none; }
+  8%  { transform: scaleY(1.04) translateY(-1px); }
+  16% { transform: none; }
+}
+
+/* "la arcada" — one slow heave */
+.fx-arcada { animation: fxRise 1.9s cubic-bezier(0.22,1,0.36,1) 0.5s forwards, arcada 1.7s ease-in-out 2.4s; }
+@keyframes arcada {
+  0%, 100% { transform: none; }
+  35% { transform: translateY(7px) scaleY(0.985); }
+  65% { transform: translateY(-3px); }
+}
+
+/* "Se quiebra el mineral." — the paragraph fractures along a hairline */
+.quiebra-half {
+  display: block; text-wrap: balance;
+  transition: transform 1.6s cubic-bezier(0.2, 0, 0.1, 1);
+}
+
+/* "ausencia" — present but absent */
+.ausente { opacity: 0.32; filter: blur(0.6px); }
+
+/* "Te lleva. Te arrastra." — fragments dragged into place */
+.cad-arrastre { animation-name: cadArrastre !important; }
+@keyframes cadArrastre {
+  from { opacity: 0; transform: translateX(26px); filter: blur(3px); }
+  to   { opacity: 1; transform: none; filter: blur(0); }
+}
+
+/* "entiendes." — the only light in the room */
+.fx-fade.foco { text-shadow: 0 0 26px rgba(216,220,224,0.35); }
+.foco-dim { opacity: 0.13 !important; transition: opacity 1.6s ease; }
+
 /* The letter as paper — faint grain over the bone-white epilogue */
 body.carta-paper::after {
   content: ''; position: fixed; inset: 0; z-index: 8; pointer-events: none;
