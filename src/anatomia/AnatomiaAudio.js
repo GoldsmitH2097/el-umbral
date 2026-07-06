@@ -12,7 +12,9 @@ export class AnatomiaAudio {
     this._ambienceGain = null;
     this._noiseSrc = null;
     this._droneOsc = null;
+    this._droneOsc2 = null;
     this._lfo = null;
+    this._swellTimer = null;
     this.muted = false;
     this._currentAmbience = null;
   }
@@ -53,20 +55,21 @@ export class AnatomiaAudio {
     return this.muted;
   }
 
-  /** Crossfade to a named ambience preset. Phase 1 implements void-static;
-      unknown presets reuse it at lower gain (a bed is better than silence). */
+  /** Crossfade to a named ambience preset. One shared recipe, tuned per floor
+      Phase 2 differentiates fully; the bed must feel DESIGNED, not like static:
+      drones dominate, noise is a whisper underneath, and the building takes a
+      slow breath every ~20 s. */
   setAmbience(name, force = false) {
     if (!this.ctx) return;
     if (name === this._currentAmbience && !force) return;
     this._currentAmbience = name;
     this._stopBed();
-    const gain = name === 'void-static' ? 0.028 : 0.018;
-    this._buildBed(gain);
+    this._buildBed(0.02);
   }
 
   _buildBed(targetGain) {
     const ctx = this.ctx, now = ctx.currentTime;
-    // Brown noise → lowpass: the void's floor tone
+    // A whisper of brown noise, heavily lowpassed — texture, not hiss
     const len = ctx.sampleRate * 4;
     const buf = ctx.createBuffer(1, len, ctx.sampleRate);
     const data = buf.getChannelData(0);
@@ -79,30 +82,56 @@ export class AnatomiaAudio {
     this._noiseSrc = ctx.createBufferSource();
     this._noiseSrc.buffer = buf; this._noiseSrc.loop = true;
     const lp = ctx.createBiquadFilter();
-    lp.type = 'lowpass'; lp.frequency.value = 220;
-    this._noiseSrc.connect(lp); lp.connect(this._ambienceGain);
+    lp.type = 'lowpass'; lp.frequency.value = 140;
+    const noiseGain = ctx.createGain(); noiseGain.gain.value = 0.35;
+    this._noiseSrc.connect(lp); lp.connect(noiseGain); noiseGain.connect(this._ambienceGain);
     this._noiseSrc.start();
-    // Sub drone with slow wander
+
+    // Two deep drones a hair apart — the ~0.7 Hz beating is the room's pulse
     this._droneOsc = ctx.createOscillator();
-    this._droneOsc.type = 'sine'; this._droneOsc.frequency.value = 38;
-    const droneGain = ctx.createGain(); droneGain.gain.value = 0.4;
+    this._droneOsc.type = 'sine'; this._droneOsc.frequency.value = 55;
+    this._droneOsc2 = ctx.createOscillator();
+    this._droneOsc2.type = 'sine'; this._droneOsc2.frequency.value = 55.7;
+    const droneGain = ctx.createGain(); droneGain.gain.value = 0.5;
     this._lfo = ctx.createOscillator();
-    this._lfo.frequency.value = 1 / 9;
-    const lfoGain = ctx.createGain(); lfoGain.gain.value = 3;
+    this._lfo.frequency.value = 1 / 13;
+    const lfoGain = ctx.createGain(); lfoGain.gain.value = 2;
     this._lfo.connect(lfoGain); lfoGain.connect(this._droneOsc.frequency);
-    this._droneOsc.connect(droneGain); droneGain.connect(this._ambienceGain);
-    this._droneOsc.start(); this._lfo.start();
-    this._ambienceGain.gain.setTargetAtTime(targetGain, now, 2);
+    this._droneOsc.connect(droneGain);
+    this._droneOsc2.connect(droneGain);
+    droneGain.connect(this._ambienceGain);
+    this._droneOsc.start(); this._droneOsc2.start(); this._lfo.start();
+
+    this._ambienceGain.gain.setTargetAtTime(targetGain, now, 2.5);
+
+    // The building breathes: a soft filtered swell every 14–26 s
+    const swell = () => {
+      if (!this.ctx || this._noiseSrc === null) return;
+      const c = this.ctx, t = c.currentTime;
+      const src = c.createBufferSource();
+      src.buffer = buf; src.loop = true;
+      const bp = c.createBiquadFilter();
+      bp.type = 'bandpass'; bp.frequency.value = 280; bp.Q.value = 0.6;
+      const g = c.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.018, t + 2.8);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 6.5);
+      src.connect(bp); bp.connect(g); g.connect(this._ambienceGain);
+      src.start(); src.stop(t + 7);
+      this._swellTimer = setTimeout(swell, 14000 + Math.random() * 12000);
+    };
+    this._swellTimer = setTimeout(swell, 6000 + Math.random() * 6000);
   }
 
   _stopBed() {
     const kill = (node) => { try { node?.stop(); } catch (_) {} };
+    clearTimeout(this._swellTimer);
     if (this.ctx && this._ambienceGain) {
       this._ambienceGain.gain.setTargetAtTime(0, this.ctx.currentTime, 0.8);
     }
-    const oldNoise = this._noiseSrc, oldDrone = this._droneOsc, oldLfo = this._lfo;
-    setTimeout(() => { kill(oldNoise); kill(oldDrone); kill(oldLfo); }, 2500);
-    this._noiseSrc = this._droneOsc = this._lfo = null;
+    const olds = [this._noiseSrc, this._droneOsc, this._droneOsc2, this._lfo];
+    setTimeout(() => olds.forEach(kill), 2500);
+    this._noiseSrc = this._droneOsc = this._droneOsc2 = this._lfo = null;
   }
 
   /** SFX cues — Phase 2. Logged so score annotations are visibly wired. */

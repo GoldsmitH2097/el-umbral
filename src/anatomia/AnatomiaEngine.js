@@ -12,6 +12,22 @@ import { AnatomiaAudio } from './AnatomiaAudio.js';
 const STORAGE_KEY = 'sw_anatomia';
 const HINT_KEY = 'sw_anatomia_hinted';
 
+// Per-floor palette — presentation, not content, so it lives in the engine
+// rather than the score. Backgrounds morph slowly (3 s CSS transition);
+// the epilogue inverts to bone-white: the letter as paper.
+const PALETTES = {
+  'prologo': { bg: '#020202', ink: '#d8dce0', dim: '#8a8a92' },
+  'piso-1':  { bg: '#050507', ink: '#d8dce0', dim: '#8a8a92' },
+  'piso-2':  { bg: '#04060a', ink: '#d4dae2', dim: '#828a96' },
+  'piso-3':  { bg: '#060504', ink: '#dad6d0', dim: '#8e8880' },
+  'piso-4':  { bg: '#070303', ink: '#dcd4d2', dim: '#948684' },
+  'piso-5':  { bg: '#030303', ink: '#d0d2d6', dim: '#7e8086' },
+  'piso-6':  { bg: '#050408', ink: '#d6d4de', dim: '#88849a' },
+  'piso-7':  { bg: '#060303', ink: '#dcd2d0', dim: '#968280' },
+  'piso-8':  { bg: '#040406', ink: '#d8d8e0', dim: '#86869a' },
+  'epilogo': { bg: '#e9e6df', ink: '#1c1c1f', dim: '#6a6a70' },
+};
+
 class AnatomiaEngine {
   constructor() {
     this.floors = score.floors;
@@ -71,6 +87,7 @@ class AnatomiaEngine {
 
     if (this.reduced) { this._renderReadingMode(); return; }
 
+    this.sceneFX.startDust();
     this.floorIndex = floorIndex;
     this._bindInput();
     this._startFloor();
@@ -88,11 +105,21 @@ class AnatomiaEngine {
     this._clearStage(true);
     this._stage.classList.toggle('carta', this.floor.mode === 'carta');
     this._floorIndicator.textContent = this.floor.title.split(':')[0];
+    this._applyPalette(this.floor.id);
     this.audio.setAmbience(this.floor.ambience);
     this._showTitlecard(this.floor.title).then(() => {
       this.state = 'playing';
       this.advance();
     });
+  }
+
+  _applyPalette(floorId) {
+    const p = PALETTES[floorId] || PALETTES['prologo'];
+    const root = document.documentElement.style;
+    root.setProperty('--bg', p.bg);
+    root.setProperty('--ink', p.ink);
+    root.setProperty('--dim', p.dim);
+    this.sceneFX.setDustInk(p.ink);
   }
 
   _showTitlecard(text) {
@@ -188,14 +215,32 @@ class AnatomiaEngine {
     this._saveProgress();
   }
 
+  // The departing stanza lifts away in an absolutely-positioned ghost while
+  // the incoming beat rises in the normal flow — a true cross-fade with no
+  // layout jump. Exit: ease-in up + defocus. Entry: fxRise handles it.
   _clearStage(instant = false) {
     if (instant) { this._stage.textContent = ''; return; }
-    const old = [...this._stage.children];
-    old.forEach(el => {
-      el.style.transition = 'opacity 0.3s ease';
-      el.style.opacity = '0';
+    const kids = [...this._stage.children];
+    if (!kids.length) return;
+    const ghost = document.createElement('div');
+    ghost.className = 'stage-ghost';
+    const col = document.createElement('div');
+    col.className = 'ghost-col';
+    col.classList.toggle('carta', this.floor.mode === 'carta');
+    kids.forEach(k => {
+      // Moving a node restarts its CSS animations — freeze the computed state
+      // first so the ghost doesn't replay entrances while exiting.
+      const cs = getComputedStyle(k);
+      k.style.opacity = cs.opacity;
+      k.style.animation = 'none';
+      k.style.transform = 'none';
+      k.style.filter = 'none';
+      col.appendChild(k);
     });
-    setTimeout(() => old.forEach(el => el.remove()), 320);
+    ghost.appendChild(col);
+    this._stageWrap.appendChild(ghost);
+    requestAnimationFrame(() => requestAnimationFrame(() => ghost.classList.add('out')));
+    setTimeout(() => ghost.remove(), 800);
   }
 
   // The chamber never scrolls: oldest stacked lines compress away instead.
