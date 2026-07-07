@@ -5,7 +5,7 @@
 
 import './anatomia.css';
 import score from './score.es.json';
-import { applyFx, startWipe } from './effects.js';
+import { applyFx, startWipe, sentenceSegments } from './effects.js';
 import { SceneFX } from './SceneFX.js';
 import { AnatomiaAudio } from './AnatomiaAudio.js';
 
@@ -350,7 +350,7 @@ class AnatomiaEngine {
     const BASE = 1400;          // entrance legibility + one breath
     const PER_WORD = 340;       // ~176 wpm — a dwell pace, not a skim
     const PER_PAUSE = 220;      // each . … ? ! ; buys a beat of silence
-    const MIN = 2100, MAX = 9500;
+    const MIN = 2100, MAX = 11000;
 
     const text = (b.t || '').trim();
     const words = text ? text.split(/\s+/).length : 1;
@@ -360,9 +360,16 @@ class AnatomiaEngine {
     // legible moment later — give them extra headroom so reading starts fresh.
     const STAGGERED = new Set(['de-humo', 'vaho-write', 'cadence', 'limpia',
       'gravedad', 'etiquetas', 'corrige', 'rewrite', 'amputada']);
-    const staggerPad = STAGGERED.has(b.fx) ? Math.min(words, 8) * 90 : 0;
+    let revealPad = STAGGERED.has(b.fx) ? Math.min(words, 8) * 90 : 0;
 
-    let ms = BASE + words * PER_WORD + pauses * PER_PAUSE + staggerPad;
+    // The new slow reveals cost real time before the line is fully legible.
+    const segs = sentenceSegments(text);
+    const isPausa = (!b.fx || b.fx === 'fade') && segs.length >= 2;
+    if (isPausa) revealPad += (segs.length - 1) * 1150;                 // sentence pauses
+    if (b.fx === 'letra') revealPad += text.length * 105;              // letter by letter
+    if (b.fx === 'decode-codigo' || b.fx === 'codigo-mono') revealPad += 1400; // churn+lock
+
+    let ms = BASE + words * PER_WORD + pauses * PER_PAUSE + revealPad;
     if (b.delay) ms = Math.max(ms, b.delay + BASE); // honor authored holds
     return Math.max(MIN, Math.min(MAX, ms));
   }
