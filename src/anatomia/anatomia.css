@@ -291,6 +291,24 @@ html, body {
   animation-delay: calc(var(--i) * 1250ms + 350ms);
 }
 
+/* Accent words — the only colour in the chamber, carried by a single word */
+.accent-word { display: inline-block; }
+.accent-fever { animation: accFever 4.5s ease 0.8s forwards; }
+@keyframes accFever {
+  0%   { color: inherit; text-shadow: none; }
+  55%  { color: #a83636; text-shadow: 0 0 22px rgba(150,40,40,0.45); }
+  100% { color: #8c2f2f; text-shadow: 0 0 12px rgba(150,40,40,0.28); }
+}
+.accent-ember { animation: accEmber 3.4s ease 0.6s; color: inherit; }
+@keyframes accEmber {
+  0%, 100% { color: inherit; text-shadow: none; }
+  45% { color: #d8c092; text-shadow: 0 0 22px rgba(200,146,42,0.5); }
+}
+.accent-cold {
+  color: #cfe6ee; text-shadow: 0 0 14px rgba(150,200,220,0.3);
+  transition: color 1.5s ease;
+}
+
 /* Letter by letter — tension, one glyph at a time out of a blur */
 .fx-letra { opacity: 1; }
 .fx-letra .lt {
