@@ -109,6 +109,12 @@ class AnatomiaEngine {
 
   _startAutoLoop() {
     const CIRC = 56.5; // 2πr for r=9
+    // rAF pauses while the tab is hidden, but performance.now() keeps running.
+    // On return, give the reader their full reading window again instead of
+    // instantly auto-advancing on the stale clock.
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) this._autoEligibleAt = performance.now();
+    });
     const tick = () => {
       requestAnimationFrame(tick);
       if (this.state !== 'playing' || this.pendingInteract ||
@@ -118,13 +124,16 @@ class AnatomiaEngine {
         return;
       }
       const now = performance.now();
-      const start = Math.max(this._autoEligibleAt, this.lockUntil);
-      const fill = Math.min(1, Math.max(0, (now - start) / this._autoMs));
+      // Dwell is the per-beat reading window (set in _renderBeat). The manual
+      // input-lock (lockUntil, from an authored `delay`) is already folded into
+      // _autoMs, so the fill can start at render time.
+      const fill = Math.min(1, Math.max(0, (now - this._autoEligibleAt) / this._autoMs));
+      if (this._autoMs === Infinity) { this._ring?.classList.add('hidden'); return; }
       this._ring?.classList.remove('hidden');
       if (this._ringCircle) this._ringCircle.style.strokeDashoffset = `${CIRC * (1 - fill)}`;
       if (fill >= 1) {
         this._autoEligibleAt = now + 200; // reset before advancing
-        this.advance();
+        this.advance(true); // dwell already satisfied the reading window
       }
     };
     requestAnimationFrame(tick);
@@ -314,6 +323,7 @@ class AnatomiaEngine {
     if (b.fx === 'carrera') {
       const gaps = [550, 450, 350, 300];
       this.lockUntil = performance.now() + gaps.reduce((a, c) => a + c, 0) + 400;
+      this._autoMs = Infinity; // the burst drives itself; ring never completes
       let acc = 0;
       gaps.forEach(gap => {
         acc += gap;
@@ -321,12 +331,40 @@ class AnatomiaEngine {
       });
     } else {
       this.lockUntil = performance.now() + (b.delay || 0);
+      this._autoMs = this._computeAutoMs(b);
     }
 
     this._advances++;
-    this._autoEligibleAt = performance.now(); // ring restarts with each beat
+    this._autoEligibleAt = performance.now(); // ring + dwell restart with each beat
     this._maybeHint();
     this._saveProgress();
+  }
+
+  // How long a beat stays before auto-advancing. The window has three parts:
+  // a legibility base (the entrance animation must resolve before you can even
+  // read), a dramatic reading pace per word, and a small pause bonus for each
+  // sentence break within the beat. Clamped, and never shorter than an authored
+  // `delay` hold. This kills both failure modes: long baroque sentences got
+  // clipped, one-word punches sat too long.
+  _computeAutoMs(b) {
+    const BASE = 1400;          // entrance legibility + one breath
+    const PER_WORD = 340;       // ~176 wpm — a dwell pace, not a skim
+    const PER_PAUSE = 220;      // each . … ? ! ; buys a beat of silence
+    const MIN = 2100, MAX = 9500;
+
+    const text = (b.t || '').trim();
+    const words = text ? text.split(/\s+/).length : 1;
+    const pauses = (text.match(/[.…?!;:]/g) || []).length;
+
+    // Slow, staggered entrances (letters/words revealed one at a time) push the
+    // legible moment later — give them extra headroom so reading starts fresh.
+    const STAGGERED = new Set(['de-humo', 'vaho-write', 'cadence', 'limpia',
+      'gravedad', 'etiquetas', 'corrige', 'rewrite', 'amputada']);
+    const staggerPad = STAGGERED.has(b.fx) ? Math.min(words, 8) * 90 : 0;
+
+    let ms = BASE + words * PER_WORD + pauses * PER_PAUSE + staggerPad;
+    if (b.delay) ms = Math.max(ms, b.delay + BASE); // honor authored holds
+    return Math.max(MIN, Math.min(MAX, ms));
   }
 
   _buildBeatEl(b) {
