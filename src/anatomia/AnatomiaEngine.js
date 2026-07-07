@@ -411,18 +411,24 @@ class AnatomiaEngine {
     const col = document.createElement('div');
     col.className = 'ghost-col';
     col.classList.toggle('carta', this.floor.mode === 'carta');
+    // Reparenting a node into the ghost CANCELS AND RESTARTS every CSS
+    // animation in its subtree. Without freezing, the child letters of
+    // effects like de-humo / letra / decode re-scatter and re-condense while
+    // the line is supposed to be fading out — the "glitch out" Ruben saw on
+    // the first two lines. Pin each element's CURRENT computed opacity +
+    // transform + filter (read BEFORE killing the animation, or you capture
+    // the base state), then set animation:none so nothing replays on move.
+    const freeze = (node) => {
+      const cs = getComputedStyle(node);
+      const op = cs.opacity, tr = cs.transform, fi = cs.filter;
+      node.style.animation = 'none';
+      node.style.opacity = op;
+      node.style.transform = tr === 'none' ? '' : tr;
+      node.style.filter = fi === 'none' ? '' : fi;
+    };
     kids.forEach(k => {
-      // Moving a node restarts its CSS animations — freeze the FINAL computed
-      // state (opacity + transform + filter) so the ghost fades out exactly as
-      // the line looked. Forcing transform/filter to 'none' snapped rotated,
-      // shrunk or blurred lines (e.g. the upside-down "Y de eso.", the shrinking
-      // closing stanza) back to full size for a frame before the fade — the
-      // glitch Ruben caught.
-      const cs = getComputedStyle(k);
-      k.style.opacity = cs.opacity;
-      k.style.animation = 'none';
-      k.style.transform = cs.transform === 'none' ? '' : cs.transform;
-      k.style.filter = cs.filter === 'none' ? '' : cs.filter;
+      freeze(k);
+      k.querySelectorAll('*').forEach(freeze); // every span, cell, shard, echo
       col.appendChild(k);
     });
     ghost.appendChild(col);
