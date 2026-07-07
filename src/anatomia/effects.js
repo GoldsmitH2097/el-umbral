@@ -4,7 +4,7 @@
 // on the exact original string.
 
 const CSS_ONLY = new Set([
-  'fade', 'cut', 'whisper', 'slam', 'clock', 'friccion', 'mirror', 'vaho',
+  'fade', 'cut', 'whisper', 'slam', 'friccion', 'mirror', 'vaho',
   'estira', 'comprimida', 'oscuridad', 'interfaz',
   // Prologue art pass — pure CSS verbs
   'cabalga', 'recuerdo', 'optimizado', 'lapida', 'rictus', 'arcada', 'cierre',
@@ -19,10 +19,20 @@ function _wrapWord(el, regex, cls) {
   el.innerHTML = el.textContent.replace(regex, `<span class="${cls}">$1</span>`);
 }
 
+// A beat has ≥2 sentences worth pausing between (used for the auto
+// sentence-pause default — "Asiento." … "O algo parecido.").
+export function sentenceSegments(text) {
+  return (text.match(/[^.!?…]+[.!?…]+["”]?/g) || []).map(s => s.trim()).filter(Boolean);
+}
+
 export function applyFx(el, beat, ctx = {}) {
   let fx = beat.fx || 'fade';
   // Carta mode: default entrances become typewriter — the letter is being written.
   if (fx === 'fade' && ctx.carta) fx = 'carta-type';
+  // Smart default: a plain multi-sentence beat reveals sentence by sentence,
+  // with a held breath at each full stop. (Ruben: "los puntos y seguido como
+  // una pequeña pausa, y luego sigue la animación.")
+  if (fx === 'fade' && sentenceSegments(el.textContent).length >= 2) fx = 'pausa';
 
   if (CSS_ONLY.has(fx)) { el.classList.add(`fx-${fx}`); return; }
 
@@ -58,7 +68,10 @@ export function applyFx(el, beat, ctx = {}) {
     case 'vacio-hueco': el.classList.add('fx-fade'); _wrapWord(el, /(vacío)/i, 'hueca'); break;
     case 'esperanza-hueca': el.classList.add('fx-fade'); _wrapWord(el, /(esperanza)/i, 'hueca'); break;
     case 'verbo-mono': el.classList.add('fx-fade'); _wrapWord(el, /(verbo)/i, 'pantalla'); break;
-    case 'codigo-mono': el.classList.add('fx-fade'); _wrapWord(el, /(código)/i, 'pantalla'); break;
+    case 'codigo-mono': case 'decode-codigo': _decodeWord(el, /(código)/i); break;
+    case 'pausa':      _sentencePause(el); break;
+    case 'letra':      _letra(el); break;
+    case 'clock':      _clock(el); break;
     case 'absorcion':  _absorcion(el); break;
     case 'deslizas':   _deslizas(el); break;
     case 'perfil':     _perfil(el); break;
@@ -77,6 +90,105 @@ export function applyFx(el, beat, ctx = {}) {
 }
 
 // ── Text choreography ────────────────────────────────────────────────────────
+
+// Reveal a beat one sentence at a time, rising each in place after a held
+// pause at the previous full stop. Pre-measures the final layout so nothing
+// jumps — each sentence occupies its slot invisibly, then fades up in turn.
+function _sentencePause(el) {
+  const segs = sentenceSegments(el.textContent);
+  el.textContent = '';
+  el.style.opacity = '1';
+  segs.forEach((seg, i) => {
+    const span = document.createElement('span');
+    span.className = 'seg';
+    span.style.setProperty('--i', i);
+    span.textContent = seg;
+    el.appendChild(span);
+    if (i < segs.length - 1) el.appendChild(document.createTextNode(' '));
+  });
+}
+
+// Letter by letter, slow, for the moments where tension is everything.
+// Each glyph rises out of a blur; the cursor of dread crawls across the line.
+function _letra(el) {
+  const text = el.textContent;
+  el.textContent = '';
+  el.style.opacity = '1';
+  [...text].forEach((ch, i) => {
+    const s = document.createElement('span');
+    s.className = 'lt';
+    s.style.setProperty('--i', i);
+    s.textContent = ch === ' ' ? ' ' : ch;
+    el.appendChild(s);
+  });
+}
+
+// The clock. 11:11 forever — the minute NEVER changes — but the seconds are
+// alive and trapped: they climb, then time drags them back to :11. The colon
+// blinks like a real display. (Ruben: a frozen 11:11 read as broken, not eerie
+// — now it's a clock straining against a minute it can't escape.)
+function _clock(el) {
+  el.classList.add('fx-fade');
+  const base = (el.textContent.match(/\d{1,2}:\d{2}/) || ['11:11'])[0];
+  el.textContent = '';
+  const main = document.createElement('span');
+  main.className = 'clock-main';
+  main.textContent = base;
+  const secs = document.createElement('span');
+  secs.className = 'clock-secs';
+  secs.textContent = ':11';
+  el.appendChild(main);
+  el.appendChild(secs);
+  let s = 11;
+  const iv = setInterval(() => {
+    if (!document.contains(el)) { clearInterval(iv); return; }
+    main.classList.toggle('colon-dim'); // the blink of a live display
+    s++;
+    // time struggles forward, then is dragged back to the eternal minute
+    if ((s > 26 && Math.random() < 0.22) || s > 59) s = 11;
+    secs.textContent = ':' + String(s).padStart(2, '0');
+  }, 1000);
+}
+
+// Decode reveal: the target word churns through code glyphs (a64x:24 → …) and
+// resolves letter by letter, left to right — the word being decrypted out of
+// the machine. (Ruben's ask, for "código".)
+const CODE_GLYPHS = 'ABCDEF0123456789#$%&/:x?<>{}[]';
+function _decodeWord(el, regex) {
+  el.classList.add('fx-fade');
+  const html = el.textContent.replace(regex, '<span class="decode">$1</span>');
+  el.innerHTML = html;
+  const target = el.querySelector('.decode');
+  if (!target) return;
+  const word = target.textContent;
+  const chars = [...word];
+  // Rebuild the word as per-glyph cells so we can lock them one at a time.
+  target.textContent = '';
+  const cells = chars.map(ch => {
+    const c = document.createElement('span');
+    c.className = 'dcell';
+    c.textContent = ch === ' ' ? ' ' : CODE_GLYPHS[(Math.random() * CODE_GLYPHS.length) | 0];
+    target.appendChild(c);
+    return { c, ch };
+  });
+  let locked = 0;
+  const churn = setInterval(() => {
+    cells.forEach((cell, i) => {
+      if (i < locked) return;
+      cell.c.textContent = cell.ch === ' ' ? ' '
+        : CODE_GLYPHS[(Math.random() * CODE_GLYPHS.length) | 0];
+    });
+  }, 55);
+  const lockNext = () => {
+    if (locked >= cells.length) { clearInterval(churn); return; }
+    const cell = cells[locked];
+    cell.c.textContent = cell.ch;
+    cell.c.classList.add('locked');
+    locked++;
+    setTimeout(lockNext, 130);
+  };
+  setTimeout(lockNext, 700); // let it churn a moment before resolving
+}
 
 function _cadence(el) {
   const text = el.textContent;
@@ -406,7 +518,24 @@ function _quiebra(el) {
   bottom.style.inset = '0';
   el.appendChild(top);
   el.appendChild(bottom);
-  setTimeout(() => { bottom.style.transform = 'translateX(1.6px)'; top.style.transform = 'translateX(-0.8px)'; }, 1400);
+  setTimeout(() => {
+    bottom.style.transform = 'translateX(1.6px)'; top.style.transform = 'translateX(-0.8px)';
+    // "Se funde en la nada." — the mineral shatters: shards fly from the crack.
+    const burst = document.createElement('span');
+    burst.className = 'shards';
+    for (let i = 0; i < 16; i++) {
+      const sh = document.createElement('i');
+      const ang = Math.random() * Math.PI * 2;
+      const dist = 30 + Math.random() * 90;
+      sh.style.setProperty('--tx', `${Math.cos(ang) * dist}px`);
+      sh.style.setProperty('--ty', `${Math.sin(ang) * dist * 0.7 + 20}px`);
+      sh.style.setProperty('--d', `${Math.random() * 220}ms`);
+      sh.style.setProperty('--s', `${1 + Math.random() * 2}px`);
+      burst.appendChild(sh);
+    }
+    el.appendChild(burst);
+    setTimeout(() => burst.remove(), 2600);
+  }, 1400);
 }
 
 // "Un compuesto estable de ausencia." — the last word is present but absent.

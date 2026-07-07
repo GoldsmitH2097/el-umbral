@@ -259,8 +259,8 @@ export class AnatomiaAudio {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
     switch (cue) {
-      case 'timbre':      this._buzz(t, 320, 0.9, 0.05 * gainScale); break;
-      case 'timbre-dead': this._buzz(t, 240, 0.7, 0.02 * gainScale, 500); break;
+      case 'timbre':      this._doorbell(t, 0.06 * gainScale, false); break;
+      case 'timbre-dead': this._doorbell(t, 0.03 * gainScale, true); break;
       case 'tick':        this._tick(t, 0.035); break;
       case 'tick-stop':   this._tick(t, 0.035); break; // one tick. never two.
       case 'rain': case 'wind': case 'gear': case 'hum': break; // ambience carries these
@@ -351,6 +351,41 @@ export class AnatomiaAudio {
     gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     o.connect(gn); gn.connect(this._sfxGain);
     o.start(t); o.stop(t + dur + 0.05);
+  }
+
+  // A real electric door buzzer, not a chiptune beep. Two detuned reeds around
+  // 230 Hz, amplitude-modulated at ~52 Hz (the armature clapper), a bandpass
+  // body, and a click of mechanical rattle at the strike. "No suena. Irrumpe."
+  // `dead` = the muffled, resonance-robbed version (a buzzer through a wall).
+  _doorbell(t, g, dead = false) {
+    const dur = 0.85;
+    const reedA = this.ctx.createOscillator();
+    reedA.type = 'sawtooth'; reedA.frequency.value = dead ? 190 : 232;
+    const reedB = this.ctx.createOscillator();
+    reedB.type = 'sawtooth'; reedB.frequency.value = dead ? 193 : 236; // beating
+    // Mechanical clapper: AM at ~52 Hz gives the classic angry-buzzer rasp.
+    const am = this.ctx.createOscillator();
+    am.type = 'square'; am.frequency.value = dead ? 44 : 52;
+    const amDepth = this.ctx.createGain(); amDepth.gain.value = 0.5;
+    const amBase = this.ctx.createGain(); amBase.gain.value = 0.5;
+    const amSum = this.ctx.createGain();
+    am.connect(amDepth); amDepth.connect(amSum.gain);
+    amBase.connect(amSum.gain); // amSum.gain oscillates 0..1 around 0.5
+    // constant source to bias the AM (WebAudio: use a DC via buffer)
+    const dc = this.ctx.createConstantSource(); dc.offset.value = 1; dc.connect(amBase);
+    const body = this.ctx.createBiquadFilter();
+    body.type = 'bandpass'; body.frequency.value = dead ? 520 : 780; body.Q.value = dead ? 2 : 4.5;
+    const env = this.ctx.createGain();
+    env.gain.setValueAtTime(0.0001, t);
+    env.gain.exponentialRampToValueAtTime(g, t + 0.012); // sharp attack — it bursts in
+    env.gain.setValueAtTime(g, t + dur - 0.12);
+    env.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    reedA.connect(amSum); reedB.connect(amSum);
+    amSum.connect(body); body.connect(env); env.connect(this._sfxGain);
+    reedA.start(t); reedB.start(t); am.start(t); dc.start(t);
+    reedA.stop(t + dur); reedB.stop(t + dur); am.stop(t + dur); dc.stop(t + dur);
+    // the strike rattle
+    this._noiseBurst(t, dead ? 600 : 1400, 0.05, dead ? 0.015 : 0.03);
   }
 
   _buzz(t, freq, dur, g, lpFreq = 4000) {

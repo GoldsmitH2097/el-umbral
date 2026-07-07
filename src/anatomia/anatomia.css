@@ -282,6 +282,56 @@ html, body {
   to   { opacity: 1; filter: blur(0); }
 }
 
+/* Sentence-pause: each full sentence rises after a held breath at the last
+   full stop. ~1.3 s per sentence — the period becomes silence made visible. */
+.fx-pausa { opacity: 1; }
+.fx-pausa .seg {
+  opacity: 0; display: inline-block;
+  animation: fxRise 1.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: calc(var(--i) * 1250ms + 350ms);
+}
+
+/* Letter by letter — tension, one glyph at a time out of a blur */
+.fx-letra { opacity: 1; }
+.fx-letra .lt {
+  opacity: 0; display: inline-block; white-space: pre;
+  animation: ltIn 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: calc(var(--i) * 105ms + 300ms);
+}
+@keyframes ltIn {
+  from { opacity: 0; transform: translateY(6px); filter: blur(5px); }
+  to   { opacity: 1; transform: none; filter: blur(0); }
+}
+
+/* Decode — code glyphs churning, locking into the real word left to right */
+.decode {
+  font-family: 'Courier New', Courier, monospace;
+  letter-spacing: 1px; color: #9fb8a8; white-space: nowrap;
+}
+.decode .dcell { display: inline-block; opacity: 0.6; }
+.decode .dcell.locked { opacity: 1; color: var(--ink); transition: color 0.2s ease, opacity 0.2s ease; }
+
+/* Shatter shards — "Se funde en la nada." */
+.shards { position: absolute; left: 50%; top: 55%; pointer-events: none; }
+.shards i {
+  position: absolute; width: var(--s); height: var(--s); background: var(--ink);
+  opacity: 0; transform: translate(0, 0);
+  animation: shardFly 2.2s ease-out var(--d) forwards;
+}
+@keyframes shardFly {
+  0%   { opacity: 0.9; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0.3); }
+}
+
+/* The clock — 11:11 forever, seconds alive and trapped */
+.clock-main { font-variant-numeric: tabular-nums; font-family: 'Courier New', Courier, monospace; }
+.clock-main.colon-dim { opacity: 0.82; }
+.clock-secs {
+  font-family: 'Courier New', Courier, monospace; font-size: 0.5em;
+  vertical-align: 0.35em; margin-left: 0.15em; color: var(--dim);
+  letter-spacing: 1px;
+}
+
 /* obturar: JS collapses letter spans to center; the dot persists */
 .fx-obturar { opacity: 1; }
 .fx-obturar .ltr { display: inline-block; transition: transform 1s cubic-bezier(0.6, 0, 0.9, 1), opacity 1s ease; }
@@ -292,8 +342,15 @@ html, body {
 }
 .obt-dot.on { opacity: 0.9; }
 
-/* corrige: JS swaps glyphs; class only ensures visibility */
-.fx-corrige { opacity: 1; }
+/* corrige: JS swaps glyphs; on settle, a cold clinical light — the sterile
+   blue-white of being made "legible". The only cold colour in the piece,
+   against the red of infection and the amber of memory. */
+.fx-corrige { opacity: 1; animation: corrigeCold 3s ease 1s forwards; }
+@keyframes corrigeCold {
+  0%   { color: var(--ink); text-shadow: none; }
+  55%  { color: #cfe6ee; text-shadow: 0 0 20px rgba(150,200,220,0.4); }
+  100% { color: #b8ccd4; text-shadow: 0 0 10px rgba(150,200,220,0.2); }
+}
 
 .fx-friccion { animation: fxFade 0.9s ease forwards, fxFriccion 1.8s ease 0.9s; }
 @keyframes fxFriccion {
