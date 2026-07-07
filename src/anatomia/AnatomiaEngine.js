@@ -405,19 +405,23 @@ class AnatomiaEngine {
     col.className = 'ghost-col';
     col.classList.toggle('carta', this.floor.mode === 'carta');
     kids.forEach(k => {
-      // Moving a node restarts its CSS animations — freeze the computed state
-      // first so the ghost doesn't replay entrances while exiting.
+      // Moving a node restarts its CSS animations — freeze the FINAL computed
+      // state (opacity + transform + filter) so the ghost fades out exactly as
+      // the line looked. Forcing transform/filter to 'none' snapped rotated,
+      // shrunk or blurred lines (e.g. the upside-down "Y de eso.", the shrinking
+      // closing stanza) back to full size for a frame before the fade — the
+      // glitch Ruben caught.
       const cs = getComputedStyle(k);
       k.style.opacity = cs.opacity;
       k.style.animation = 'none';
-      k.style.transform = 'none';
-      k.style.filter = 'none';
+      k.style.transform = cs.transform === 'none' ? '' : cs.transform;
+      k.style.filter = cs.filter === 'none' ? '' : cs.filter;
       col.appendChild(k);
     });
     ghost.appendChild(col);
     this._stageWrap.appendChild(ghost);
     requestAnimationFrame(() => requestAnimationFrame(() => ghost.classList.add('out')));
-    setTimeout(() => ghost.remove(), 800);
+    setTimeout(() => ghost.remove(), 900);
   }
 
   // Older revealed lines recede by opacity only — geometry is sacred now
