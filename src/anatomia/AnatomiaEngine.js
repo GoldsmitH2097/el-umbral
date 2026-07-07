@@ -282,60 +282,76 @@ class AnatomiaEngine {
       }
     }
 
-    el.classList.remove('pending');
-    applyFx(el, b, { stage: this._stage, scene: this.sceneFX, carta: this.floor.mode === 'carta' });
-    if (this.corrupted) el.classList.add('repeat-glitch');
+    // A line of weight can be preceded by a held breath of silence — `pre` ms
+    // where the stage is empty (the previous stanza already gone) before it
+    // lands. The dwell clock only starts once the line actually appears.
+    const reveal = () => {
+      el.classList.remove('pending');
+      applyFx(el, b, { stage: this._stage, scene: this.sceneFX, carta: this.floor.mode === 'carta' });
+      if (this.corrupted) el.classList.add('repeat-glitch');
 
-    // acelera: successive stacked reveals arrive faster and faster
-    if (b.fx === 'acelera') this._accelStep = 1;
-    else if (!b.stack) this._accelStep = 0;
-    if (this._accelStep > 0 && b.stack) {
-      const dur = Math.max(0.12, 1.9 * Math.pow(0.55, this._accelStep));
-      el.style.animationDuration = `${dur}s`;
-      el.style.animationDelay = '0.1s';
-      this._accelStep++;
-    }
+      // acelera: successive stacked reveals arrive faster and faster
+      if (b.fx === 'acelera') this._accelStep = 1;
+      else if (!b.stack) this._accelStep = 0;
+      if (this._accelStep > 0 && b.stack) {
+        const dur = Math.max(0.12, 1.9 * Math.pow(0.55, this._accelStep));
+        el.style.animationDuration = `${dur}s`;
+        el.style.animationDelay = '0.1s';
+        this._accelStep++;
+      }
 
-    // Idea #1: the tab title becomes the clock. Whoever glances at their
-    // browser sees 11:11 has followed them out of the page.
-    if (b.fx === 'clock') document.title = '11:11';
+      // Idea #1: the tab title becomes the clock. Whoever glances at their
+      // browser sees 11:11 has followed them out of the page.
+      if (b.fx === 'clock') document.title = '11:11';
 
-    this._compressStack();
+      this._compressStack();
 
-    if (b.scene === 'silence') this.audio.duckAll();
-    else if (b.scene === 'silence-swing') this.audio.duckAllExcept('columpio');
-    else if (b.scene === 'respiro') this.audio.breathe(3000);
-    else if (b.scene) this.sceneFX.trigger(b.scene);
-    if (b.sfx) this.audio.play(b.sfx);
+      if (b.scene === 'silence') this.audio.duckAll();
+      else if (b.scene === 'silence-swing') this.audio.duckAllExcept('columpio');
+      else if (b.scene === 'respiro') this.audio.breathe(3000);
+      else if (b.scene) this.sceneFX.trigger(b.scene);
+      if (b.sfx) this.audio.play(b.sfx);
 
-    // "Paso el dedo." — the reader's only physical act: wipe the vaho away.
-    if (b.interact === 'wipe' && !this.reduced) {
-      this.pendingInteract = true;
-      const vahoEl = [...this._stage.children].find(c => c.classList.contains('fx-vaho-write'));
-      startWipe(vahoEl, () => {
-        this.pendingInteract = false;
-        const hint = document.getElementById('hint');
-        if (hint) { hint.classList.remove('on'); hint.textContent = 'toca para continuar'; }
-      });
-    }
+      // "Paso el dedo." — the reader's only physical act: wipe the vaho away.
+      if (b.interact === 'wipe' && !this.reduced) {
+        this.pendingInteract = true;
+        const vahoEl = [...this._stage.children].find(c => c.classList.contains('fx-vaho-write'));
+        startWipe(vahoEl, () => {
+          this.pendingInteract = false;
+          const hint = document.getElementById('hint');
+          if (hint) { hint.classList.remove('on'); hint.textContent = 'toca para continuar'; }
+        });
+      }
 
-    // "Subo corriendo." — the ONE sanctioned theft of the reader's pace.
-    if (b.fx === 'carrera') {
-      const gaps = [550, 450, 350, 300];
-      this.lockUntil = performance.now() + gaps.reduce((a, c) => a + c, 0) + 400;
-      this._autoMs = Infinity; // the burst drives itself; ring never completes
-      let acc = 0;
-      gaps.forEach(gap => {
-        acc += gap;
-        setTimeout(() => this.advance(true), acc);
-      });
+      // "Subo corriendo." — the ONE sanctioned theft of the reader's pace.
+      if (b.fx === 'carrera') {
+        const gaps = [550, 450, 350, 300];
+        this.lockUntil = performance.now() + gaps.reduce((a, c) => a + c, 0) + 400;
+        this._autoMs = Infinity; // the burst drives itself; ring never completes
+        let acc = 0;
+        gaps.forEach(gap => {
+          acc += gap;
+          setTimeout(() => this.advance(true), acc);
+        });
+      } else {
+        this.lockUntil = performance.now() + (b.delay || 0);
+        this._autoMs = this._computeAutoMs(b);
+      }
+      this._autoEligibleAt = performance.now(); // dwell begins when the line lands
+    };
+
+    if (b.pre) {
+      // Hold the silence: element stays invisible, manual skip blocked, ring
+      // waits out the pause, THEN the line arrives.
+      this.lockUntil = performance.now() + b.pre;
+      this._autoMs = Infinity;
+      this._autoEligibleAt = performance.now() + b.pre;
+      setTimeout(() => { if (this.state === 'playing') reveal(); }, b.pre);
     } else {
-      this.lockUntil = performance.now() + (b.delay || 0);
-      this._autoMs = this._computeAutoMs(b);
+      reveal();
     }
 
     this._advances++;
-    this._autoEligibleAt = performance.now(); // ring + dwell restart with each beat
     this._maybeHint();
     this._saveProgress();
   }

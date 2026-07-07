@@ -34,7 +34,7 @@ export function applyFx(el, beat, ctx = {}) {
   // una pequeña pausa, y luego sigue la animación.")
   if (fx === 'fade' && sentenceSegments(el.textContent).length >= 2) fx = 'pausa';
 
-  if (CSS_ONLY.has(fx)) { el.classList.add(`fx-${fx}`); return; }
+  if (CSS_ONLY.has(fx)) { el.classList.add(`fx-${fx}`); _accent(el, beat); return; }
 
   el.classList.add(`fx-${fx}`);
   switch (fx) {
@@ -86,6 +86,22 @@ export function applyFx(el, beat, ctx = {}) {
       break;
     default:
       el.classList.add('fx-fade');
+  }
+  _accent(el, beat);
+}
+
+// A key word can carry colour after the line settles — the only place hue
+// enters this black chamber. accent: { word, class } where class ∈
+// fever (blood red) | ember (memory amber) | cold (clinical blue-white).
+// Runs after the reveal so it composes with sentence-pause, letra, etc.
+function _accent(el, beat) {
+  if (!beat.accent) return;
+  const { word, class: cls } = beat.accent;
+  const re = new RegExp(`(${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'i');
+  // Wrap inside whichever leaf now holds the word (segment span or the p).
+  const host = [...el.querySelectorAll('.seg, .cad, .lt')].find(n => re.test(n.textContent)) || el;
+  if (re.test(host.textContent) && !host.querySelector('.accent-word')) {
+    host.innerHTML = host.innerHTML.replace(re, `<span class="accent-word accent-${cls}">$1</span>`);
   }
 }
 
