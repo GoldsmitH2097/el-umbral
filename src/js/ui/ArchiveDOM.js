@@ -88,29 +88,30 @@ function fichaBlock(item) {
 // the ebook link, then the shops that carry the print edition.
 function renderCta(item, { detail = false } = {}) {
   if (item.editions) {
-    if (detail) {
-      const linkable = item.editions.filter(
-        ed => ed.status === 'available' && (ed.retailers || []).some(r => r.url));
-      if (linkable.length) {
-        const compact = linkable.filter(ed => ed.compact);
-        const strips  = linkable.filter(ed => !ed.compact);
-        return `<div class="obra-editions obra-editions--detail">
-          <p class="obra-edition-invite">${t('cta.buy')}</p>
-          ${compact.map(ed => {
-            const r = (ed.retailers || []).find(x => x.url);
-            return `<a href="${r.url}" target="_blank" rel="noopener" class="obra-edition-link"
-                       aria-label="${getField(ed, 'label')} — ${t('cta.buyAt')} ${retailer(r.id).name}">${getField(ed, 'label')}</a>`;
-          }).join('')}
-          ${strips.map(ed => `<div class="retailer-strip">${
-            (ed.retailers || []).filter(r => r.url).map(retailerLink).join('')
-          }</div>`).join('')}
-        </div>`;
-      }
+    const linkable = item.editions.filter(
+      ed => ed.status === 'available' && (ed.retailers || []).some(r => r.url));
+    if (linkable.length) {
+      const compact = linkable.filter(ed => ed.compact);   // ebook — label is the link
+      const strips  = linkable.filter(ed => !ed.compact);  // print — label + facts + shops
+      return `<div class="obra-editions ${detail ? 'obra-editions--detail' : 'obra-editions--shop'}">
+        <p class="obra-edition-invite">${t('cta.buy')}</p>
+        ${compact.map(ed => {
+          const r = (ed.retailers || []).find(x => x.url);
+          return `<a href="${r.url}" target="_blank" rel="noopener" class="obra-edition-link"
+                     aria-label="${getField(ed, 'label')} — ${t('cta.buyAt')} ${retailer(r.id).name}">${getField(ed, 'label')}</a>`;
+        }).join('')}
+        ${strips.map(ed => {
+          const meta = getField(ed, 'meta');
+          return `<div class="obra-edition-block">
+            ${detail ? '' : `<p class="obra-edition-head">${getField(ed, 'label')}</p>`}
+            ${detail || !meta ? '' : `<p class="obra-edition-meta">${meta}</p>`}
+            <div class="retailer-strip">${(ed.retailers || []).filter(r => r.url).map(retailerLink).join('')}</div>
+          </div>`;
+        }).join('')}
+      </div>`;
     }
+    // Nothing linkable yet — fall back to the per-edition coming-soon rows.
     return `<div class="obra-editions">${item.editions.map(editionBlock).join('')}</div>`;
-  }
-  if (item.status === 'available' && item.retailers?.some(r => r.url)) {
-    return `<div class="obra-editions">${editionBlock(item)}</div>`;
   }
   const buyLabel = getField(item, 'buyLabel');
   const [edLabel, ...rest] = (buyLabel || '').split(': ');

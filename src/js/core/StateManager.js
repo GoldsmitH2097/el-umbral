@@ -211,9 +211,29 @@ export const CATALOGUE = [
     vision_en: 'There are threads that should not be touched. When they are, perception ceases to obey you. Only doubt remains — fine, persistent — until you no longer know which part of what you see is real and which part had been waiting for you all along. First of two novels.',
     desc: 'Primera de dos novelas. Cuando los hilos que no deberían conectarse se tensan, la percepción se convierte en trampa.',
     desc_en: 'First of two novels. When threads that should not connect pull taut, perception itself becomes a trap.',
-    buyUrl: 'https://www.amazon.es/dp/8409861771',
-    buyLabel: 'Reclamar mi Ejemplar',
-    buyLabel_en: 'Claim Your Copy',
+    // Same shape as Pulso so both books present identically. Filamentos is
+    // print-on-demand through Amazon only — one shop in the strip, no ebook
+    // edition (none exists yet; add one here the day it does).
+    editions: [
+      {
+        id: 'filamentos-fisica',
+        label: 'Edición Física',
+        label_en: 'Print Edition',
+        status: 'available',
+        retailers: [
+          { id: 'amazon', url: 'https://www.amazon.es/dp/8409861771' },
+        ],
+      },
+    ],
+    // ISBN-13 derived from the ISBN-10 in the Amazon URL (8409861771), not
+    // guessed. Page count and binding still needed from Ruben — fichaBlock and
+    // the edition meta line both skip absent fields, so this renders clean
+    // until they arrive.
+    ficha: {
+      isbn: '978-84-09-86177-4',
+      language: 'Castellano',
+      language_en: 'Spanish',
+    },
   },
   {
     id: 'anatomia',

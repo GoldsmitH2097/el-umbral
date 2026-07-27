@@ -607,3 +607,25 @@
    ficha técnica belongs to the detail view only. Belt-and-braces in case a
    future template reuses renderCta() inside a grid card. */
 .obra-book .obra-ficha { display: none; }
+
+/* ── The mini shop ────────────────────────────────────────────────────────
+   On the grid card the whole purchase area is framed in amber so it reads as
+   one small shop bolted to the book: the invitation, the ebook link, the print
+   edition with its page count, and the shops that carry it. The detail view
+   keeps the same markup but no frame — it already has a column to itself. */
+.obra-editions--shop {
+  border: 1px solid rgba(200,146,42,0.3);
+  padding: 14px 12px 12px;
+  margin-top: 12px;
+  gap: 8px;
+  background: rgba(200,146,42,0.02);
+}
+.obra-editions--shop .obra-edition-invite {
+  font-size: 12px; margin: 0 0 2px;
+}
+/* Inside the frame the per-edition block needs no rule of its own. */
+.obra-editions--shop .obra-edition-block:not(.obra-edition-block--compact) {
+  padding-top: 8px; border-top: none;
+}
+.obra-editions--shop .retailer-strip { border-bottom: none; padding-bottom: 0; }
+.obra-editions--shop .obra-edition-head { margin-top: 2px; }
