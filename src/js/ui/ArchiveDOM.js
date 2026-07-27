@@ -18,7 +18,7 @@ function retailerLink(r) {
     : `<span class="retailer-wordmark">${meta.name}</span>`;
   return `<a href="${r.url}" target="_blank" rel="noopener"
              class="retailer-logo retailer-logo--${r.id}"
-             aria-label="${t('cta.buyAt')} ${meta.name}">${inner}</a>`;
+             aria-label="${meta.shop === false ? meta.name : `${t('cta.buyAt')} ${meta.name}`}">${inner}</a>`;
 }
 
 // An edition = a label, an invitation, and the shops that carry it.

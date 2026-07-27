@@ -146,17 +146,14 @@ export const CATALOGUE = [
     editions: [
       {
         id: 'pulso-ebook',
-        label: 'eBook',
-        label_en: 'eBook',
+        label: 'Edición Digital',
+        label_en: 'Digital Edition',
         status: 'available',
-        // `compact` = the label IS the link. One shop, no invitation line and
-        // no logo strip — a strip holding a single mark reads as an accident.
-        compact: true,
         // Kindle ASIN B0G6LLMP8G. Resolved from the amzn.eu share link and
         // stored canonical + bare: the short form can rot, and the long form
         // carried a personal share token in its query string.
         retailers: [
-          { id: 'amazon', url: 'https://www.amazon.es/dp/B0G6LLMP8G' },
+          { id: 'ebook', url: 'https://www.amazon.es/dp/B0G6LLMP8G' },
         ],
       },
       {
@@ -168,8 +165,6 @@ export const CATALOGUE = [
         label_en: 'Print Edition',
         status: 'available',
         img: '/assets/pulso-soft-cover-es.webp',
-        meta: '433 páginas',
-        meta_en: '433 pages',
         retailers: [
           { id: 'casadellibro',  url: 'https://www.casadellibro.com/libro-pulso-del-nucleo/9788409810345/18324058' },
           { id: 'elcorteingles', url: 'https://www.elcorteingles.es/libros/A201079459-pulso-del-nucleo-tapa-blanda-con-solapas/' },
@@ -183,7 +178,7 @@ export const CATALOGUE = [
     // metadata), NOT estimated. Update here if a new printing changes any of it.
     ficha: {
       isbn: '978-84-098-1034-5',
-      pages: '433',
+      pages: '444',
       binding: 'Tapa blanda con solapas',
       binding_en: 'Softcover with flaps',
       language: 'Castellano',
@@ -229,8 +224,12 @@ export const CATALOGUE = [
     // guessed. Page count and binding still needed from Ruben — fichaBlock and
     // the edition meta line both skip absent fields, so this renders clean
     // until they arrive.
+    // From the Amazon listing: 250 pages, Spanish, 12 May 2026, ISBN-10
+    // 8409861771 (ISBN-13 derived from it). No ebook edition yet — add one
+    // here the day there's a real link; never a placeholder.
     ficha: {
       isbn: '978-84-09-86177-4',
+      pages: '250',
       language: 'Castellano',
       language_en: 'Spanish',
     },

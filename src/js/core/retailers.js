@@ -35,6 +35,13 @@
 // (bloom to true brand colour instead of amber — one line to switch in CSS).
 
 export const RETAILERS = {
+  // The digital edition's mark. Not a shop — it stands in for the format, and
+  // links straight to wherever that format is sold, so the reader meets one
+  // consistent row of icons whatever they're buying.
+  // shop:false — it's a format, not a retailer, so the aria-label reads
+  // "Edición Digital" rather than the nonsense "Comprar en Edición Digital".
+  ebook:         { name: 'Edición Digital', name_en: 'Digital Edition',
+                   shop: false, logo: '/assets/retailers/ebook.svg' },
   casadellibro:  { name: 'Casa del Libro',  brand: '#e30613',
                    logo: '/assets/retailers/casadellibro.svg' },
   elcorteingles: { name: 'El Corte Inglés', brand: '#00843d',
