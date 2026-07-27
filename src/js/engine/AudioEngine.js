@@ -190,6 +190,7 @@ export class AudioEngine {
         g.gain.setValueAtTime(0,now); g.gain.linearRampToValueAtTime(vol,now+0.4); g.gain.exponentialRampToValueAtTime(0.001,now+3.5);
         osc.connect(g); g.connect(this.masterOut || this.audioCtx.destination);
         if (this.masterDelay) g.connect(this.masterDelay); // null-safe: graph may not be ready
+        osc.onended = () => { try { osc.disconnect(); g.disconnect(); } catch(_){} };
         osc.start(); osc.stop(now+4);
       });
     } catch(_) {}
@@ -251,7 +252,7 @@ export class AudioEngine {
       g.gain.linearRampToValueAtTime(0.025, now + 0.02);
       g.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
       src.connect(filter); filter.connect(g); g.connect(this.masterOut || ctx.destination);
-      src.onended = () => { try { src.disconnect(); } catch(_){} }; src.start(); src.stop(now + 0.35);
+      src.onended = () => { try { src.disconnect(); filter.disconnect(); g.disconnect(); } catch(_){} }; src.start(); src.stop(now + 0.35);
     } catch(_) {}
   }
 

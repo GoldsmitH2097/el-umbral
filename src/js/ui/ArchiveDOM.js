@@ -150,6 +150,12 @@ export class ArchiveDOM {
     // and compositing <video>, so without this it burned GPU while buried
     // behind other windows. Pause on hide, resume only if still open.
     document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        // Pillar videos too: they play on hover, and cmd-tabbing away mid-hover
+        // never fires mouseleave — the video kept decoding in the hidden tab.
+        // No auto-resume needed; re-hovering restarts them.
+        document.querySelectorAll('.archive-pillar video').forEach(pv => pv.pause());
+      }
       const v = this._readingBgVideo;
       if (!v || !v.getAttribute('src')) return;
       if (document.hidden) v.pause();
@@ -482,7 +488,14 @@ export class ArchiveDOM {
         el.innerHTML = `<span>${d}<em>d</em></span><span>${h}<em>h</em></span><span>${m}<em>m</em></span><span class="countdown-seconds${slide}">${s}<em>s</em></span>`;
       };
       update();
-      const handle = setInterval(update, 1000);
+      const handle = setInterval(() => {
+        // Self-clearing: a finished countdown or a detached element must not
+        // keep a 1 Hz DOM-writing timer alive for the life of the page.
+        if (!document.contains(el) || target - Date.now() <= 0) {
+          update(); clearInterval(handle); this._countdownTimers.delete(handle); return;
+        }
+        update();
+      }, 1000);
       this._countdownTimers.add(handle);
     });
   }
@@ -706,7 +719,9 @@ export class ArchiveDOM {
         return;
       }
       // Active buy button hover → metallic shimmer (real links only)
-      const btn = e.target.closest('a.obra-btn--buy[href]');
+      // Shop logos and the digital-edition mark shimmer like buy buttons —
+      // every purchase door gives the same metallic acknowledgement.
+      const btn = e.target.closest('a.obra-btn--buy[href], a.retailer-logo[href], a.obra-edition-link[href]');
       if (btn && !btn.contains(e.relatedTarget)) {
         this._audio?.playButtonHover();
       }
@@ -825,7 +840,14 @@ export class ArchiveDOM {
       el.innerHTML = `<span>${d}<em>d</em></span><span>${h}<em>h</em></span><span>${m}<em>m</em></span><span class="countdown-seconds${slide}">${s}<em>s</em></span>`;
     };
     update();
-    const handle = setInterval(update, 1000);
+    const handle = setInterval(() => {
+      // Self-clearing: a finished countdown or a detached element must not
+      // keep a 1 Hz DOM-writing timer alive for the life of the page.
+      if (!document.contains(el) || target - Date.now() <= 0) {
+        update(); clearInterval(handle); this._countdownTimers.delete(handle); return;
+      }
+      update();
+    }, 1000);
     this._countdownTimers.add(handle);
   }
 
