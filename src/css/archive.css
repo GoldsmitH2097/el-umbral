@@ -283,7 +283,31 @@
 .lang-selector span { color: #2a2a2a; font-size: 11px; }
 
 #reading-view { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: #020202; z-index: 30; display: none; opacity: 0; pointer-events: none; transition: opacity 1s ease; overflow-y: auto; overflow-x: hidden; }
-#reading-bg-video { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; object-fit: cover; opacity: 0.15; filter: grayscale(100%) blur(20px); z-index: 1; pointer-events: none; }
+/* Reading-view ambient backdrop.
+   PERF — this was the single most expensive thing on the site. It was a
+   FULL-VIEWPORT video running `blur(20px)` every frame: ~5 MPx at DPR 2,
+   re-blurred 25-30×/sec, fed by the 1080p source. Large-radius blur cost
+   scales with both radius and area, so that combination pins the GPU and on
+   weaker/integrated graphics can take the whole machine down.
+   Three cheap changes keep the look and gut the cost:
+     · radius 20px → 8px (blur is the expensive part)
+     · scale(1.15) magnifies the frame, which softens detail for free —
+       transform is composited, blur is not — and hides the transparent edge
+       that blur leaves behind
+     · the source is now the 720p variant (see ArchiveDOM: pickPillarSrc)
+   At 15 % opacity through grayscale, none of this is visible as a downgrade. */
+#reading-bg-video {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh;
+  object-fit: cover; opacity: 0.15;
+  filter: grayscale(100%) blur(8px);
+  transform: scale(1.15);
+  z-index: 1; pointer-events: none;
+}
+/* Vestibular safety + a free perf win on low-power machines: no moving,
+   blurred full-screen layer at all. The panel keeps its own solid backdrop. */
+@media (prefers-reduced-motion: reduce) {
+  #reading-bg-video { display: none; }
+}
 #btn-volver { 
   position: fixed; top: 40px; left: 5vw; z-index: 40; 
   color: rgba(255,255,255,0.7); font-size: 12px; letter-spacing: 4px; text-transform: uppercase; 
