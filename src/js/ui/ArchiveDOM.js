@@ -147,6 +147,16 @@ export class ArchiveDOM {
     this._lastReadingFocus = null;
     this._pactoCallback = null; // called when user accepts El Pacto
     this._countdownTimers = new Set(); // track setInterval handles for cleanup
+    // The reading backdrop is a blurred full-screen video — the most expensive
+    // layer we render. Chrome throttles rAF in a hidden tab but keeps decoding
+    // and compositing <video>, so without this it burned GPU while buried
+    // behind other windows. Pause on hide, resume only if still open.
+    document.addEventListener('visibilitychange', () => {
+      const v = this._readingBgVideo;
+      if (!v || !v.getAttribute('src')) return;
+      if (document.hidden) v.pause();
+      else if (this._readingView?.style.display !== 'none') v.play().catch(()=>{});
+    });
     this._build(); this._bindEvents();
   }
 
@@ -514,7 +524,14 @@ export class ArchiveDOM {
           </a>`).join('')}</div>`
       : '';
     this._readBody.innerHTML = sectionLabel + getField(char, 'lore') + socialHtml;
-    this._readingBgVideo.src=char.src; this._readingBgVideo.load(); this._readingBgVideo.play().catch(()=>{});
+    // ALWAYS 720p — this plays at 15 % opacity behind an 8 px blur, so the
+    // 1080p variant is pure decode cost for pixels no one can resolve. Skip it
+    // entirely for reduced-motion users (the CSS hides the element anyway).
+    if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      this._readingBgVideo.src = pickPillarSrc(char.src);
+      this._readingBgVideo.load();
+      this._readingBgVideo.play().catch(()=>{});
+    }
 
     // Populate Libros panel
     const obrasList = document.getElementById('reading-obras-list');
