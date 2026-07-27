@@ -1,3 +1,9 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Netlify redirects. ORDER MATTERS: first match wins, and the catch-all MUST
+# stay last. Static files (including the prerendered dist/<route>/index.html
+# pages) are served before any rule here is consulted.
+# ─────────────────────────────────────────────────────────────────────────────
+
 # Ghost paths from previous site versions — drop from Google index
 /read         /  301
 /saga         /  301
@@ -10,10 +16,37 @@
 /privacy      /  301
 /terms        /  301
 
+# Spanish is served at the root — there is no /es prefix. Google had crawled
+# /es, got the SPA shell with a 200, and filed it as a phantom duplicate.
+/es      /  301
+/es/*    /  301
+
+# Literal /index.html is a genuine duplicate of "/" (Netlify already serves "/"
+# from that file). The ! forces the rule to win over the static file.
+/index.html     /     301!
+/en/index.html  /en/  301!
+
+# Cross-language slug variants. Router.js resolves BOTH language slug sets on
+# either path prefix, so /harlequin/ and /en/arlequin/ rendered real content on
+# URLs that appear in no sitemap. Send each to its proper localized home rather
+# than letting them accumulate as duplicates.
+/empress        /emperatriz/    301
+/knight         /caballero/     301
+/sibyl          /sortilega/     301
+/harlequin      /arlequin/      301
+/en/emperatriz  /en/empress/    301
+/en/caballero   /en/knight/     301
+/en/sortilega   /en/sibyl/      301
+/en/arlequin    /en/harlequin/  301
+
 # Anatomía del Vacío — interactive experience (separate Vite entry).
-# 200 rewrites (URL stays) — MUST be above the SPA catch-all.
+# 200 rewrites (URL stays) — MUST be above the catch-all.
 /obras/anatomia-del-vacio/leer  /anatomia.html 200
 /obras/anatomia-del-vacio/leer/ /anatomia.html 200
 
-# SPA catch-all (must remain last)
-/* /index.html 200
+# Catch-all — a REAL 404. Every route the site actually serves exists as a
+# prerendered static file (see scripts/generate-og-pages.js), so anything
+# reaching this line genuinely does not exist. This previously read
+# "/* /index.html 200", which handed Google an unlimited supply of soft-200
+# duplicates (/es, /index.html, every typo) that no fix validation could clear.
+/* /404.html 404
