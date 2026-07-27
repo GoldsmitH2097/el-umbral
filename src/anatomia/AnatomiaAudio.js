@@ -160,6 +160,7 @@ export class AnatomiaAudio {
       g.gain.exponentialRampToValueAtTime(cfg.swell, t + 2.8);
       g.gain.exponentialRampToValueAtTime(0.0001, t + 6.5);
       src.connect(bp); bp.connect(g); g.connect(this._ambienceGain);
+      this._reap(src, bp, g);
       src.start(); src.stop(t + 7);
       this._bedTimers.push(setTimeout(swell, 14000 + Math.random() * 12000));
     };
@@ -223,6 +224,7 @@ export class AnatomiaAudio {
           const pan = this.ctx.createStereoPanner ? this.ctx.createStereoPanner() : null;
           if (pan) { pan.pan.value = Math.random() * 1.6 - 0.8; o.connect(g); g.connect(pan); pan.connect(this._ambienceGain); }
           else { o.connect(g); g.connect(this._ambienceGain); }
+          this._reap(o, g, ...(pan ? [pan] : []));
           o.start(); o.stop(t + 0.45);
           this._bedTimers.push(setTimeout(drip, 4000 + Math.random() * 9000));
         };
@@ -248,9 +250,16 @@ export class AnatomiaAudio {
     }
     const olds = this._bedNodes;
     this._bedNodes = [];
-    setTimeout(() => olds.forEach(n => { try { n.stop(); } catch (_) {} }), 2500);
-    Object.values(this._loops).forEach(l => { try { l.src.stop(); } catch (_) {} clearInterval(l.timer); });
+    setTimeout(() => olds.forEach(n => { try { n.stop(); } catch (_) {} try { n.disconnect(); } catch (_) {} }), 2500);
+    Object.values(this._loops).forEach(l => { try { l.src.stop(); } catch (_) {} try { l.src.disconnect(); } catch (_) {} clearInterval(l.timer); });
     this._loops = {};
+  }
+
+  // Reap a one-shot voice: when its source ends, unwire the local chain.
+  // stop() alone leaves every node attached to the graph — over a 615-beat
+  // read the per-beat cues accumulated nodes for the life of the page.
+  _reap(src, ...nodes) {
+    src.onended = () => { try { src.disconnect(); nodes.forEach(x => x.disconnect()); } catch (_) {} };
   }
 
   // ── SFX — one small synth per cue ─────────────────────────────────────────
@@ -300,6 +309,7 @@ export class AnatomiaAudio {
         gn.gain.exponentialRampToValueAtTime(0.0001, t + 2.6);
         o.connect(lp); o2.connect(lp); lp.connect(gn); gn.connect(this._sfxGain);
         this._noiseBurst(t, 500, 0.09, 0.02); // the strike, muffled
+        this._reap(o, o2, lp, gn);
         o.start(t); o2.start(t); o.stop(t + 2.7); o2.stop(t + 2.7);
         break;
       }
@@ -317,6 +327,7 @@ export class AnatomiaAudio {
           gn.gain.exponentialRampToValueAtTime(0.009, t + 0.4);
           gn.gain.exponentialRampToValueAtTime(0.0001, t + 1.6);
           o.connect(gn); gn.connect(this._sfxGain);
+          this._reap(o, gn);
           o.start(t); o.stop(t + 1.7);
         });
         break;
@@ -338,6 +349,7 @@ export class AnatomiaAudio {
     gn.gain.setValueAtTime(g * 1.6, t);
     gn.gain.exponentialRampToValueAtTime(0.0001, t + 0.035);
     src.connect(bp); bp.connect(gn); gn.connect(this._sfxGain);
+    this._reap(src, bp, gn);
     src.start(t); src.stop(t + 0.05);
   }
 
@@ -350,6 +362,7 @@ export class AnatomiaAudio {
     gn.gain.setValueAtTime(g, t);
     gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     o.connect(gn); gn.connect(this._sfxGain);
+    this._reap(o, gn);
     o.start(t); o.stop(t + dur + 0.05);
   }
 
@@ -382,6 +395,7 @@ export class AnatomiaAudio {
     env.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     reedA.connect(amSum); reedB.connect(amSum);
     amSum.connect(body); body.connect(env); env.connect(this._sfxGain);
+    this._reap(reedA, reedB, am, dc, amDepth, amBase, amSum, body, env);
     reedA.start(t); reedB.start(t); am.start(t); dc.start(t);
     reedA.stop(t + dur); reedB.stop(t + dur); am.stop(t + dur); dc.stop(t + dur);
     // the strike rattle
@@ -402,6 +416,7 @@ export class AnatomiaAudio {
     gn.gain.setValueAtTime(g, t + dur - 0.08);
     gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     o.connect(sh); sh.connect(lp); lp.connect(gn); gn.connect(this._sfxGain);
+    this._reap(o, sh, lp, gn);
     o.start(t); o.stop(t + dur + 0.05);
   }
 
@@ -420,6 +435,7 @@ export class AnatomiaAudio {
       gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     }
     src.connect(bp); bp.connect(gn); gn.connect(this._sfxGain);
+    this._reap(src, bp, gn);
     src.start(t); src.stop(t + dur + 0.05);
   }
 
@@ -448,6 +464,7 @@ export class AnatomiaAudio {
     gn.gain.setValueAtTime(g, t + 0.68);
     gn.gain.setValueAtTime(0.0001, t + 0.7); // CUT. no release. no air.
     src.connect(bp); bp.connect(gn); gn.connect(this._sfxGain);
+    this._reap(src, bp, gn);
     src.start(t); src.stop(t + 0.8);
   }
 
@@ -462,6 +479,7 @@ export class AnatomiaAudio {
     gn.gain.exponentialRampToValueAtTime(0.03, t + 0.28);
     gn.gain.setValueAtTime(0.0001, t + 0.29);
     src.connect(bp); bp.connect(gn); gn.connect(this._sfxGain);
+    this._reap(src, bp, gn);
     src.start(t); src.stop(t + 0.4);
   }
 
@@ -476,6 +494,7 @@ export class AnatomiaAudio {
     gn.gain.setValueAtTime(g, t);
     gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     src.connect(bp); bp.connect(gn); gn.connect(this._sfxGain);
+    this._reap(src, bp, gn);
     src.start(t); src.stop(t + dur + 0.05);
   }
 
