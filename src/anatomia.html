@@ -5,9 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Anatomía del Vacío — Soulware</title>
   <!-- The antechamber (/obras/anatomia-del-vacio/) owns SEO + transcript.
-       This page is the experience itself — kept out of the index. -->
-  <meta name="robots" content="noindex" />
-  <link rel="canonical" href="https://soulware.live/obras/anatomia-del-vacio/" />
+       This page is the experience itself — kept out of the index.
+       noindex ONLY: no rel=canonical here. Google treats noindex + canonical
+       as contradictory signals and may follow the canonical, which risks
+       carrying the noindex over to the antechamber — a page we DO want
+       indexed (it's in sitemap.xml). noindex alone excludes this page cleanly. -->
+  <meta name="robots" content="noindex, follow" />
   <meta name="theme-color" content="#020202" />
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
