@@ -132,7 +132,8 @@ export const CATALOGUE = [
     seriesInfo_en: 'First of three novels',
     format: 'Novela',
     status: 'available',
-    img: '/assets/pulso-hard-cover-es.webp',
+    // The hardcover edition was removed, so the book's face is the softcover.
+    img: '/assets/pulso-soft-cover-es.webp',
     vision: 'El mundo se quebró hace tanto que nadie recuerda cómo era antes del silencio. Pero el pulso sigue. Bajo las ruinas, en la sangre de los que no saben rendirse, en cuatro artefactos que no deberían existir — algo late. Primera de tres novelas de la trilogía Pulso del Núcleo. Esta entrega: Núcleo Eterno.',
     vision_en: 'The world broke so long ago that none remember what it was before the silence. But the pulse continues. Beneath the ruins, in the blood of those who do not know surrender, in four artefacts that should not exist — something beats. First of three novels in the Pulso del Núcleo trilogy. This volume: Núcleo Eterno.',
     desc: 'Primera de tres novelas. Fantasía oscura épica. El mundo quebrado por la catástrofe, cuatro artefactos ancestrales y un poder antiguo que no concede victoria: exige precio.',
@@ -146,13 +147,12 @@ export const CATALOGUE = [
     editions: [
       {
         id: 'pulso-ebook',
-        label: 'Ebook',
-        label_en: 'Ebook',
+        label: 'eBook',
+        label_en: 'eBook',
         status: 'available',
-        note: 'Descarga inmediata',
-        note_en: 'Instant download',
-        buyLabel: 'Leer Ahora',
-        buyLabel_en: 'Read Now',
+        // `compact` = the label IS the link. One shop, no invitation line and
+        // no logo strip — a strip holding a single mark reads as an accident.
+        compact: true,
         // Kindle ASIN B0G6LLMP8G. Resolved from the amzn.eu share link and
         // stored canonical + bare: the short form can rot, and the long form
         // carried a personal share token in its query string.
@@ -166,10 +166,8 @@ export const CATALOGUE = [
         label_en: 'Softcover Edition',
         status: 'available',
         img: '/assets/pulso-soft-cover-es.webp',
-        buyLabel: 'Reclamar mi Ejemplar',
-        buyLabel_en: 'Claim Your Copy',
-        footnote: 'También en librerías de toda España',
-        footnote_en: 'Also in bookshops across Spain',
+        meta: '444 páginas',
+        meta_en: '444 pages',
         retailers: [
           { id: 'casadellibro',  url: 'https://www.casadellibro.com/libro-pulso-del-nucleo/9788409810345/18324058' },
           { id: 'elcorteingles', url: 'https://www.elcorteingles.es/libros/A201079459-pulso-del-nucleo-tapa-blanda-con-solapas/' },
@@ -178,6 +176,22 @@ export const CATALOGUE = [
         ],
       },
     ],
+    // Ficha técnica — shown in the obra modal's "La Ficha" tab. Sourced from
+    // the Casa del Libro listing for ISBN 9788409810345 (their own published
+    // metadata), NOT estimated. Update here if a new printing changes any of it.
+    ficha: {
+      isbn: '978-84-098-1034-5',
+      pages: '444',
+      binding: 'Tapa blanda con solapas',
+      binding_en: 'Softcover with flaps',
+      language: 'Castellano',
+      language_en: 'Spanish',
+      // No release date and no "tiempo de lectura" — Ruben's call. A date on a
+      // book that's already out only ages it, and reading-time is a retailer
+      // gimmick. The `ficha.published` row still renders if a future title
+      // wants it (fichaBlock skips absent fields).
+      publisher: 'Soulware',
+    },
   },
   {
     id: 'filamentos',

@@ -36,14 +36,47 @@ function editionBlock(ed) {
       </span></div>`;
   }
 
-  const note     = getField(ed, 'note');
-  const footnote = getField(ed, 'footnote');
+  // compact: the label itself is the link. For a single-shop edition (the
+  // ebook) a logo strip holding one mark reads as an accident, and an
+  // invitation line above one word is noise.
+  if (ed.compact) {
+    const r = shops[0];
+    return `<div class="obra-edition-block obra-edition-block--compact">
+      <a href="${r.url}" target="_blank" rel="noopener" class="obra-edition-link"
+         aria-label="${label} — ${t('cta.buyAt')} ${retailer(r.id).name}">${label}</a>
+    </div>`;
+  }
+
+  // Full edition: label, one line of dry fact, then the shops. No invitation
+  // line — the shops are self-evidently the way to buy, and the card is
+  // stronger for saying less.
+  const meta = getField(ed, 'meta');
   return `<div class="obra-edition-block">
-    <p class="obra-edition-head">${label}${note ? ` <span class="obra-edition-note">· ${note}</span>` : ''}</p>
-    <p class="obra-edition-invite">${getField(ed, 'buyLabel') || t('cta.buy')}</p>
+    <p class="obra-edition-head">${label}</p>
+    ${meta ? `<p class="obra-edition-meta">${meta}</p>` : ''}
     <div class="retailer-strip">${shops.map(retailerLink).join('')}</div>
-    ${footnote ? `<p class="obra-edition-footnote">${footnote}</p>` : ''}
   </div>`;
+}
+
+// Ficha técnica — the dry publication facts, shown only in the detail view
+// (the grid card stays deliberately minimal). Every row is optional, so a book
+// with partial data renders just what it has instead of empty labels.
+function fichaBlock(item) {
+  const f = item.ficha;
+  if (!f) return '';
+  // Values only, no label column — a label per row read as a spec sheet and
+  // took six lines to say four things. ISBN keeps its prefix because a bare
+  // 13-digit number means nothing without it. Page count is deliberately
+  // absent: it's already stated directly above, under the edition it belongs to.
+  const parts = [
+    getField(f, 'binding'),
+    getField(f, 'language'),
+    f.publisher,
+    f.published,
+    f.isbn ? `${t('ficha.isbn')} ${f.isbn}` : '',
+  ].filter(Boolean);
+  if (!parts.length) return '';
+  return `<p class="obra-ficha">${parts.map(v => `<span class="obra-ficha-item">${v}</span>`).join('<span class="obra-ficha-sep">·</span>')}</p>`;
 }
 
 // The full CTA area for a catalogue item, whatever shape it is.
@@ -210,7 +243,7 @@ export class ArchiveDOM {
             <div class="obra-meta">
               <div class="obra-badges">
                 ${item.status === 'available' ? `<span class="obra-status-pill obra-status-pill--${item.status}">${statusLabels[item.status]}</span>` : ''}
-                ${item.format ? `<span class="obra-format-badge">${formatLabels[item.format] || item.format}</span>` : ''}
+                ${item.status !== 'available' && item.format ? `<span class="obra-format-badge">${formatLabels[item.format] || item.format}</span>` : ''}
               </div>
               <h3 class="obra-title">${itemTitle}</h3>
               ${itemSubtitle ? `<p class="obra-subtitle">${itemSubtitle}</p>` : ''}
@@ -220,10 +253,16 @@ export class ArchiveDOM {
 
           const charIdx = CHARACTERS.findIndex(c => c.slug === item.archetype);
           const coverEl = card.querySelector('.obra-cover--clickable');
+          // Clicking a book opens its detail view (the author panel on "Libros",
+          // which carries the full ficha técnica). The WHOLE card is the target,
+          // not just the cover — but never steal a click that landed on a real
+          // link or button, or the shop logos would stop working.
+          const openLibros = () => { if (window.innerWidth > 768) this.openReading(charIdx, 'libros'); };
           if (coverEl) {
-            // Clicking a book opens the author panel on "Libros" tab
-            const openLibros = () => { if (window.innerWidth > 768) this.openReading(charIdx, 'libros'); };
-            coverEl.addEventListener('click', openLibros);
+            card.addEventListener('click', (e) => {
+              if (e.target.closest('a, button')) return;
+              openLibros();
+            });
             coverEl.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openLibros(); });
           }
         });
@@ -478,8 +517,9 @@ export class ArchiveDOM {
               ${itemAuthor ? `<p class="reading-obra-author">${itemAuthor}</p>` : ''}
               <p class="reading-obra-vision">${itemVision}</p>
               <div class="reading-obra-meta">
-                ${itemFormat ? `<span class="reading-obra-format">${({ 'Novela': t('format.book'), 'Edición de coleccionista': t('format.book'), 'Experiencia web interactiva': t('format.experience'), 'Antología': t('format.anthology') })[itemFormat] || itemFormat}</span>` : ''}
+                ${itemFormat && !item.editions ? `<span class="reading-obra-format">${({ 'Novela': t('format.book'), 'Edición de coleccionista': t('format.book'), 'Experiencia web interactiva': t('format.experience'), 'Antología': t('format.anthology') })[itemFormat] || itemFormat}</span>` : ''}
                 ${ctaHtml}
+                ${fichaBlock(item)}
               </div>
             </div>
           </div>`;

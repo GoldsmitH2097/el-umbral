@@ -499,6 +499,35 @@
   font-size: 13px; letter-spacing: 3px; text-transform: uppercase;
   color: #c8922a; margin: 0 0 10px;
 }
+/* One line of dry fact under the edition label (e.g. "444 páginas"). */
+.obra-edition-meta {
+  font-size: 11px; letter-spacing: 2px; color: rgba(255,255,255,0.34);
+  margin: 3px 0 10px; font-style: italic;
+}
+/* Compact edition — the label IS the link (the ebook). */
+.obra-edition-block--compact { margin-bottom: 2px; }
+.obra-edition-link {
+  display: inline-block; text-decoration: none;
+  font-size: 13px; letter-spacing: 3px; text-transform: uppercase;
+  color: #c8922a; padding: 2px 0;
+  border-bottom: 1px solid rgba(200,146,42,0.25);
+  transition: color 0.35s ease, border-color 0.35s ease;
+}
+.obra-edition-link:hover,
+.obra-edition-link:focus-visible { color: #e8c87a; border-color: rgba(232,200,122,0.7); }
+
+/* ── Ficha técnica — detail view only ─────────────────────────────────────
+   Deliberately plain: a definition list of publication facts, no ornament.
+   Small, dim, and left-aligned so it reads as a colophon rather than a claim. */
+.obra-ficha {
+  margin: 18px 0 0; width: 100%;
+  padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.06);
+  text-align: left;
+  font-size: 11px; letter-spacing: 1px; line-height: 1.9;
+  color: rgba(232,236,239,0.46);
+  font-variant-numeric: tabular-nums;
+}
+.obra-ficha-sep { color: rgba(255,255,255,0.16); margin: 0 7px; }
 
 /* The strip. Logos sit on a hairline rule, evenly spaced, optically equal
    height — the "as seen in" press-strip convention, which reads as prestige
@@ -562,3 +591,11 @@
   .retailer-strip { gap: 4px 14px; --slot: 38px; }
   .retailer-wordmark { font-size: 13px; }
 }
+
+/* The grid card stays minimal: status pill, title, subtitle, editions. The
+   ficha técnica belongs to the detail view only. Belt-and-braces in case a
+   future template reuses renderCta() inside a grid card. */
+.obra-book .obra-ficha { display: none; }
+/* Each value stays on one line — "Tapa blanda con solapas" breaking across
+   two lines mid-phrase looked like a bug, not a colophon. */
+.obra-ficha-item { white-space: nowrap; }
