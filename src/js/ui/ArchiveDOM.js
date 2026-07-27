@@ -69,6 +69,7 @@ function fichaBlock(item) {
   // 13-digit number means nothing without it. Page count is deliberately
   // absent: it's already stated directly above, under the edition it belongs to.
   const parts = [
+    f.pages ? `${f.pages} ${t('ficha.pagesUnit')}` : '',
     getField(f, 'binding'),
     getField(f, 'language'),
     f.publisher,
@@ -76,12 +77,36 @@ function fichaBlock(item) {
     f.isbn ? `${t('ficha.isbn')} ${f.isbn}` : '',
   ].filter(Boolean);
   if (!parts.length) return '';
-  return `<p class="obra-ficha">${parts.map(v => `<span class="obra-ficha-item">${v}</span>`).join('<span class="obra-ficha-sep">·</span>')}</p>`;
+  return `<ul class="obra-ficha">${parts.map(v => `<li>${v}</li>`).join('')}</ul>`;
 }
 
 // The full CTA area for a catalogue item, whatever shape it is.
-function renderCta(item) {
+// `detail` = the book's own page, where the ficha técnica already states the
+// format under the cover. There we drop the per-edition labels entirely (they
+// were repeating "tapa blanda" back at the reader) and use ONE heading —
+// "Reclamar mi Ejemplar", which already means "buy" — over both routes:
+// the ebook link, then the shops that carry the print edition.
+function renderCta(item, { detail = false } = {}) {
   if (item.editions) {
+    if (detail) {
+      const linkable = item.editions.filter(
+        ed => ed.status === 'available' && (ed.retailers || []).some(r => r.url));
+      if (linkable.length) {
+        const compact = linkable.filter(ed => ed.compact);
+        const strips  = linkable.filter(ed => !ed.compact);
+        return `<div class="obra-editions obra-editions--detail">
+          <p class="obra-edition-invite">${t('cta.buy')}</p>
+          ${compact.map(ed => {
+            const r = (ed.retailers || []).find(x => x.url);
+            return `<a href="${r.url}" target="_blank" rel="noopener" class="obra-edition-link"
+                       aria-label="${getField(ed, 'label')} — ${t('cta.buyAt')} ${retailer(r.id).name}">${getField(ed, 'label')}</a>`;
+          }).join('')}
+          ${strips.map(ed => `<div class="retailer-strip">${
+            (ed.retailers || []).filter(r => r.url).map(retailerLink).join('')
+          }</div>`).join('')}
+        </div>`;
+      }
+    }
     return `<div class="obra-editions">${item.editions.map(editionBlock).join('')}</div>`;
   }
   if (item.status === 'available' && item.retailers?.some(r => r.url)) {
@@ -508,9 +533,12 @@ export class ArchiveDOM {
           const coverHtml = item.img
             ? `<div class="reading-obra-cover"><img src="${item.img}" srcset="${item.img.replace('/assets/','/assets/mobile/')} 280w, ${item.img} 500w" sizes="(max-width: 768px) 150px, 220px" alt="${itemTitle}" width="600" height="900" loading="lazy" decoding="async" /></div>`
             : `<div class="reading-obra-cover"><div class="reading-obra-cover-empty">${item.type==='anthology'?t('format.anthology'):'—'}</div></div>`;
-          const ctaHtml = renderCta(item);
+          const ctaHtml = renderCta(item, { detail: true });
           return `<div class="reading-obra-card">
-            ${coverHtml}
+            <div class="reading-obra-left">
+              ${coverHtml}
+              ${fichaBlock(item)}
+            </div>
             <div class="reading-obra-info">
               <h3 class="reading-obra-title">${itemTitle}</h3>
               ${itemSubtitle ? `<p class="reading-obra-subtitle">${itemSubtitle}</p>` : ''}
@@ -519,7 +547,6 @@ export class ArchiveDOM {
               <div class="reading-obra-meta">
                 ${itemFormat && !item.editions ? `<span class="reading-obra-format">${({ 'Novela': t('format.book'), 'Edición de coleccionista': t('format.book'), 'Experiencia web interactiva': t('format.experience'), 'Antología': t('format.anthology') })[itemFormat] || itemFormat}</span>` : ''}
                 ${ctaHtml}
-                ${fichaBlock(item)}
               </div>
             </div>
           </div>`;

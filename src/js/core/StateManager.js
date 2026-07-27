@@ -132,8 +132,7 @@ export const CATALOGUE = [
     seriesInfo_en: 'First of three novels',
     format: 'Novela',
     status: 'available',
-    // The hardcover edition was removed, so the book's face is the softcover.
-    img: '/assets/pulso-soft-cover-es.webp',
+    img: '/assets/pulso-hard-cover-es.webp',
     vision: 'El mundo se quebró hace tanto que nadie recuerda cómo era antes del silencio. Pero el pulso sigue. Bajo las ruinas, en la sangre de los que no saben rendirse, en cuatro artefactos que no deberían existir — algo late. Primera de tres novelas de la trilogía Pulso del Núcleo. Esta entrega: Núcleo Eterno.',
     vision_en: 'The world broke so long ago that none remember what it was before the silence. But the pulse continues. Beneath the ruins, in the blood of those who do not know surrender, in four artefacts that should not exist — something beats. First of three novels in the Pulso del Núcleo trilogy. This volume: Núcleo Eterno.',
     desc: 'Primera de tres novelas. Fantasía oscura épica. El mundo quebrado por la catástrofe, cuatro artefactos ancestrales y un poder antiguo que no concede victoria: exige precio.',

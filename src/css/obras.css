@@ -520,14 +520,14 @@
    Deliberately plain: a definition list of publication facts, no ornament.
    Small, dim, and left-aligned so it reads as a colophon rather than a claim. */
 .obra-ficha {
-  margin: 18px 0 0; width: 100%;
-  padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.06);
-  text-align: left;
-  font-size: 11px; letter-spacing: 1px; line-height: 1.9;
-  color: rgba(232,236,239,0.46);
+  list-style: none; margin: 16px 0 0; padding: 14px 0 0;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  width: 100%; text-align: left;
+  font-size: 11px; letter-spacing: 1px; line-height: 1.95;
+  color: rgba(232,236,239,0.42);
   font-variant-numeric: tabular-nums;
 }
-.obra-ficha-sep { color: rgba(255,255,255,0.16); margin: 0 7px; }
+.obra-ficha li { margin: 0; }
 
 /* The strip. Logos sit on a hairline rule, evenly spaced, optically equal
    height — the "as seen in" press-strip convention, which reads as prestige
@@ -596,6 +596,3 @@
    ficha técnica belongs to the detail view only. Belt-and-braces in case a
    future template reuses renderCta() inside a grid card. */
 .obra-book .obra-ficha { display: none; }
-/* Each value stays on one line — "Tapa blanda con solapas" breaking across
-   two lines mid-phrase looked like a bug, not a colophon. */
-.obra-ficha-item { white-space: nowrap; }
