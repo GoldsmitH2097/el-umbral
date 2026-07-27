@@ -143,7 +143,7 @@ export class AudioEngine {
         const osc = this.audioCtx.createOscillator(), g = this.audioCtx.createGain(), now = this.audioCtx.currentTime;
         osc.type = 'sine'; osc.frequency.setValueAtTime(400+Math.random()*200, now); osc.frequency.exponentialRampToValueAtTime(100, now+0.08);
         g.gain.setValueAtTime(0, now); g.gain.linearRampToValueAtTime(0.03+Math.random()*0.02, now+0.01); g.gain.exponentialRampToValueAtTime(0.001, now+0.15);
-        osc.connect(g); g.connect(this.masterOut || this.audioCtx.destination); g.connect(this.masterDelay); osc.start(); osc.stop(now+0.2);
+        osc.connect(g); g.connect(this.masterOut || this.audioCtx.destination); g.connect(this.masterDelay); osc.onended = () => { osc.disconnect(); g.disconnect(); }; osc.start(); osc.stop(now+0.2);
       } catch(_) {}
     }
     setTimeout(() => this._scheduleDroplet(), 4000 + Math.random()*6000);
@@ -220,7 +220,7 @@ export class AudioEngine {
         g.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
         osc.connect(g); g.connect(this.masterOut || ctx.destination);
         if (this.masterDelay) g.connect(this.masterDelay);
-        osc.start(); osc.stop(now + 0.7);
+        osc.onended = () => { osc.disconnect(); g.disconnect(); }; osc.start(); osc.stop(now + 0.7);
       });
     } catch(_) {}
   }
@@ -251,7 +251,7 @@ export class AudioEngine {
       g.gain.linearRampToValueAtTime(0.025, now + 0.02);
       g.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
       src.connect(filter); filter.connect(g); g.connect(this.masterOut || ctx.destination);
-      src.start(); src.stop(now + 0.35);
+      src.onended = () => { try { src.disconnect(); } catch(_){} }; src.start(); src.stop(now + 0.35);
     } catch(_) {}
   }
 
@@ -284,7 +284,7 @@ export class AudioEngine {
       const osc=this.audioCtx.createOscillator(), g=this.audioCtx.createGain(), now=this.audioCtx.currentTime;
       osc.type='triangle'; osc.frequency.setValueAtTime(45+Math.random()*10,now);
       g.gain.setValueAtTime(0,now); g.gain.linearRampToValueAtTime(0.5,now+0.1); g.gain.exponentialRampToValueAtTime(0.001,now+0.8);
-      osc.connect(g); g.connect(this.masterDelay); osc.start(); osc.stop(now+1.0);
+      osc.connect(g); g.connect(this.masterDelay); osc.onended = () => { osc.disconnect(); g.disconnect(); }; osc.start(); osc.stop(now+1.0);
     } catch(_) {}
   }
 
