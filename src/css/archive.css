@@ -461,5 +461,8 @@
 .reading-obra-left .reading-obra-cover { width: 100%; }
 /* Detail buy block: one "Reclamar mi Ejemplar" heading, then the ebook link,
    then the shops. No per-edition labels — the ficha already states the format. */
-.obra-editions--detail { gap: 10px; }
+/* Breathing room between the vision text and the buy block — they were
+   running together, so the CTA read as another line of prose instead of the
+   moment the page turns into a shop. */
+.obra-editions--detail { gap: 10px; margin-top: 30px; }
 .obra-editions--detail .obra-edition-invite { margin-bottom: 2px; }
