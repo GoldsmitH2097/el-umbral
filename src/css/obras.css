@@ -480,3 +480,152 @@
   display: block; font-size: 10px; letter-spacing: 4px;
   text-transform: uppercase; opacity: 0.6; margin-bottom: 6px;
 }
+
+/* ── Edition blocks + retailer strip ──────────────────────────────────────
+   One block per edition (Ebook / Tapa Blanda): a label, the invitation in
+   amber, then the shops that carry it. The shops ARE the links — the old
+   single amber button became the invitation line above them, so we keep the
+   Soulware voice and still give the reader four doors with no extra click. */
+.obra-edition-block {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 3px; width: 100%;
+}
+/* Label, page count and shops are one unit, so the rule opens the whole block
+   rather than sitting between the count and the logos. Compact editions (the
+   ebook) are a bare link and need no frame. */
+.obra-edition-block:not(.obra-edition-block--compact) {
+  padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.09);
+}
+.obra-edition-head {
+  font-size: 10px; letter-spacing: 4px; text-transform: uppercase;
+  color: rgba(255,255,255,0.45); margin: 0;
+}
+.obra-edition-note { letter-spacing: 2px; text-transform: none; opacity: 0.75; font-style: italic; }
+.obra-edition-invite {
+  font-size: 13px; letter-spacing: 3px; text-transform: uppercase;
+  color: #c8922a; margin: 0 0 10px;
+}
+/* One line of dry fact under the edition label (e.g. "444 páginas"). */
+.obra-edition-meta {
+  font-size: 11px; letter-spacing: 2px; color: rgba(255,255,255,0.34);
+  margin: 3px 0 10px; font-style: italic;
+}
+/* Compact edition — the label IS the link (the ebook). */
+.obra-edition-block--compact { margin-bottom: 2px; }
+/* Same rest/hover colours as .retailer-logo — bone white, blooming to amber —
+   so the ebook link and the shop logos read as one row of equal doors rather
+   than one highlighted CTA plus some logos. */
+.obra-edition-link {
+  display: inline-block; text-decoration: none;
+  font-size: 13px; letter-spacing: 3px; text-transform: uppercase;
+  color: rgba(232,236,239,0.62); padding: 2px 0;
+  border-bottom: 1px solid rgba(232,236,239,0.16);
+  transition: color 0.45s ease, border-color 0.45s ease;
+}
+.obra-edition-link:hover,
+.obra-edition-link:focus-visible { color: #c8922a; border-color: rgba(200,146,42,0.55); }
+
+/* ── Ficha técnica — detail view only ─────────────────────────────────────
+   Deliberately plain: a definition list of publication facts, no ornament.
+   Small, dim, and left-aligned so it reads as a colophon rather than a claim. */
+.obra-ficha {
+  list-style: none; margin: 16px 0 0; padding: 14px 0 0;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  width: 100%; text-align: left;
+  font-size: 11px; letter-spacing: 1px; line-height: 1.95;
+  color: rgba(232,236,239,0.42);
+  font-variant-numeric: tabular-nums;
+}
+.obra-ficha li { margin: 0; }
+
+/* The strip. Logos sit on a hairline rule, evenly spaced, optically equal
+   height — the "as seen in" press-strip convention, which reads as prestige
+   rather than as a row of shop buttons. */
+.retailer-strip {
+  display: flex; align-items: center; justify-content: center;
+  flex-wrap: wrap; gap: 4px 20px;
+  width: 100%; max-width: 420px;
+  padding: 2px 4px 6px;
+  /* No rule above the logos — it used to cut the edition in half, fencing the
+     shops off from the label and page count that belong with them. The top
+     rule now sits above the whole block (see .obra-edition-block below). */
+  border-bottom: 1px solid rgba(255,255,255,0.09);
+}
+.retailer-logo {
+  display: inline-flex; align-items: center; justify-content: center;
+  text-decoration: none; line-height: 1;
+  transition: filter 0.45s ease, opacity 0.45s ease, color 0.45s ease;
+}
+/* The logo as a CSS MASK: the SVG is a stencil, `currentColor` is the paint.
+   The artwork's own colours never matter, and because we're just animating a
+   colour the bone → amber hover is a genuine smooth transition rather than a
+   filter swap. To bloom to each shop's true brand colour instead, change the
+   hover rule to `color: var(--brand)` — the hex is already on the element. */
+/* ONE square slot for every logo — see the sizing note in retailers.js. The
+   assets share a 500×500 artboard and are balanced inside it so the lettering
+   matches across marks, so a single scale factor is what keeps them even. */
+.retailer-mark {
+  display: block;
+  width: var(--slot, 44px); height: var(--slot, 44px);
+  background: currentColor;
+  -webkit-mask: var(--logo) center / contain no-repeat;
+          mask: var(--logo) center / contain no-repeat;
+}
+.retailer-logo { color: rgba(232,236,239,0.62); }
+.retailer-logo:hover,
+.retailer-logo:focus-visible { color: #c8922a; }
+
+/* Fallback until the SVG assets land — a styled wordmark, deliberately
+   on-brand rather than a broken image. */
+.retailer-wordmark {
+  font-size: 14px; letter-spacing: 1px;
+  color: rgba(232,236,239,0.62);
+  transition: color 0.45s ease;
+}
+.retailer-logo:hover .retailer-wordmark,
+.retailer-logo:focus-visible .retailer-wordmark { color: #e8ecef; }
+.retailer-logo:focus-visible { outline: 1px solid rgba(200,146,42,0.6); outline-offset: 4px; }
+
+.obra-edition-footnote {
+  font-size: 11px; letter-spacing: 2px;
+  color: rgba(255,255,255,0.32); margin: 9px 0 0; font-style: italic;
+}
+
+/* Grid cards are tighter than the reading view — shrink the strip so four
+   shops don't blow out the tile. */
+.obra-book .retailer-strip { gap: 2px 12px; padding: 4px 2px; max-width: 300px; }
+.obra-book .retailer-wordmark { font-size: 12px; }
+.obra-book .retailer-strip { --slot: 36px; }
+.obra-book .obra-edition-invite { font-size: 11px; margin-bottom: 8px; }
+
+@media (max-width: 768px) {
+  .retailer-strip { gap: 4px 14px; --slot: 38px; }
+  .retailer-wordmark { font-size: 13px; }
+}
+
+/* The grid card stays minimal: status pill, title, subtitle, editions. The
+   ficha técnica belongs to the detail view only. Belt-and-braces in case a
+   future template reuses renderCta() inside a grid card. */
+.obra-book .obra-ficha { display: none; }
+
+/* ── The mini shop ────────────────────────────────────────────────────────
+   On the grid card the whole purchase area is framed in amber so it reads as
+   one small shop bolted to the book: the invitation, the ebook link, the print
+   edition with its page count, and the shops that carry it. The detail view
+   keeps the same markup but no frame — it already has a column to itself. */
+.obra-editions--shop {
+  border: 1px solid rgba(200,146,42,0.3);
+  padding: 14px 12px 12px;
+  margin-top: 12px;
+  gap: 8px;
+  background: rgba(200,146,42,0.02);
+}
+.obra-editions--shop .obra-edition-invite {
+  font-size: 12px; margin: 0 0 2px;
+}
+/* Inside the frame the per-edition block needs no rule of its own. */
+.obra-editions--shop .obra-edition-block:not(.obra-edition-block--compact) {
+  padding-top: 8px; border-top: none;
+}
+.obra-editions--shop .retailer-strip { border-bottom: none; padding-bottom: 0; }
+.obra-editions--shop .obra-edition-head { margin-top: 2px; }
