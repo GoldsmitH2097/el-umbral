@@ -13,12 +13,16 @@ import { retailer } from '../core/retailers.js';
 // render a styled wordmark instead. Never a broken image.
 function retailerLink(r) {
   const meta = retailer(r.id);
+  // getField, not meta.name — the ebook mark carries name_en, so a raw read
+  // announced "Edición Digital" on English pages. Shop names are proper nouns
+  // with no _en variant, so getField returns them unchanged.
+  const name = getField(meta, 'name');
   const inner = meta.logo
     ? `<span class="retailer-mark" aria-hidden="true" style="--logo:url('${meta.logo}');${meta.w ? `--logo-w:${meta.w}px;` : ''}${meta.brand ? `--brand:${meta.brand};` : ''}"></span>`
-    : `<span class="retailer-wordmark">${meta.name}</span>`;
+    : `<span class="retailer-wordmark">${name}</span>`;
   return `<a href="${r.url}" target="_blank" rel="noopener"
              class="retailer-logo retailer-logo--${r.id}"
-             aria-label="${meta.shop === false ? meta.name : `${t('cta.buyAt')} ${meta.name}`}">${inner}</a>`;
+             aria-label="${meta.shop === false ? name : `${t('cta.buyAt')} ${name}`}">${inner}</a>`;
 }
 
 // An edition = a label, an invitation, and the shops that carry it.
@@ -91,19 +95,12 @@ function renderCta(item, { detail = false } = {}) {
     const linkable = item.editions.filter(
       ed => ed.status === 'available' && (ed.retailers || []).some(r => r.url));
     if (linkable.length) {
-      const compact = linkable.filter(ed => ed.compact);   // ebook — label is the link
-      const strips  = linkable.filter(ed => !ed.compact);  // print — label + facts + shops
       return `<div class="obra-editions ${detail ? 'obra-editions--detail' : 'obra-editions--shop'}">
         <p class="obra-edition-invite">${t('cta.buy')}</p>
-        ${compact.map(ed => {
-          const r = (ed.retailers || []).find(x => x.url);
-          return `<a href="${r.url}" target="_blank" rel="noopener" class="obra-edition-link"
-                     aria-label="${getField(ed, 'label')} — ${t('cta.buyAt')} ${retailer(r.id).name}">${getField(ed, 'label')}</a>`;
-        }).join('')}
-        ${strips.map(ed => {
+        ${linkable.map(ed => {
           const meta = getField(ed, 'meta');
           return `<div class="obra-edition-block">
-            ${detail ? '' : `<p class="obra-edition-head">${getField(ed, 'label')}</p>`}
+            <p class="obra-edition-head">${getField(ed, 'label')}</p>
             ${detail || !meta ? '' : `<p class="obra-edition-meta">${meta}</p>`}
             <div class="retailer-strip">${(ed.retailers || []).filter(r => r.url).map(retailerLink).join('')}</div>
           </div>`;

@@ -145,18 +145,6 @@ export const CATALOGUE = [
     // history and returns as a third edition when there's something to sell.
     editions: [
       {
-        id: 'pulso-ebook',
-        label: 'Edición Digital',
-        label_en: 'Digital Edition',
-        status: 'available',
-        // Kindle ASIN B0G6LLMP8G. Resolved from the amzn.eu share link and
-        // stored canonical + bare: the short form can rot, and the long form
-        // carried a personal share token in its query string.
-        retailers: [
-          { id: 'ebook', url: 'https://www.amazon.es/dp/B0G6LLMP8G' },
-        ],
-      },
-      {
         id: 'pulso-blanda',
         // "Edición Física" rather than naming the binding — the ficha técnica
         // under the cover already says "Tapa blanda con solapas", and this
@@ -170,6 +158,18 @@ export const CATALOGUE = [
           { id: 'elcorteingles', url: 'https://www.elcorteingles.es/libros/A201079459-pulso-del-nucleo-tapa-blanda-con-solapas/' },
           { id: 'fnac',          url: 'https://www.fnac.es/a13262523/Ww-etAmp-Pulso-Del-Nucleo' },
           { id: 'amazon',        url: 'https://www.amazon.es/Pulso-del-N%C3%BAcleo-Parte-Eterno/dp/8409810344/' },
+        ],
+      },
+      {
+        id: 'pulso-ebook',
+        label: 'Edición Digital',
+        label_en: 'Digital Edition',
+        status: 'available',
+        // Kindle ASIN B0G6LLMP8G. Resolved from the amzn.eu share link and
+        // stored canonical + bare: the short form can rot, and the long form
+        // carried a personal share token in its query string.
+        retailers: [
+          { id: 'ebook', url: 'https://www.amazon.es/dp/B0G6LLMP8G' },
         ],
       },
     ],

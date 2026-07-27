@@ -14,9 +14,19 @@ document.addEventListener('click', (e) => {
   const target = btn.dataset.setLang;
   if (target === lang) return;
   setLang(target);
-  // Navigate to the equivalent URL in the new language so the page reloads
-  // with the right prerendered HTML and proper canonical/hreflang.
-  window.location.href = urlForLang(window.location.pathname, target);
+  // Navigate to the equivalent URL so the page reloads with the right
+  // prerendered HTML and proper canonical/hreflang.
+  //
+  // BUT the destination is often the URL we're already on. _resolveLang()
+  // falls back to navigator.language when nothing is stored, so an
+  // English-locale browser renders English text on the canonical Spanish "/".
+  // Clicking ES then resolves to "/" — assigning an identical href is a no-op
+  // in every browser, so the button appeared dead. Reload explicitly instead;
+  // setLang() has already written the preference, so the reload resolves to
+  // the chosen language.
+  const dest = urlForLang(window.location.pathname, target);
+  if (dest === window.location.pathname) window.location.reload();
+  else window.location.href = dest;
 });
 import { AudioEngine } from './engine/AudioEngine.js';
 import { VisualEngine } from './engine/VisualEngine.js';
@@ -94,16 +104,10 @@ document.getElementById('replay-intro-btn')?.addEventListener('click', () => {
 // Clicking ES/EN persists the choice and navigates to the equivalent URL.
 // Storage drives the pre-render redirect in index.html, so the next visit
 // lands in the remembered language with no flash.
+// Visual state only — the click itself is handled by the delegated listener
+// above, which also covers footers rendered after boot.
 document.querySelectorAll('[data-set-lang]').forEach(btn => {
-  // Mark current language on boot for visual state
   if (btn.dataset.setLang === lang) btn.setAttribute('aria-current', 'true');
-  btn.addEventListener('click', () => {
-    const target = btn.dataset.setLang;
-    if (target === lang) return;
-    setLang(target);
-    const dest = urlForLang(window.location.pathname, target);
-    window.location.href = dest;
-  });
 });
 
 // Skip button — visible after 3s, persistent through all intro scenes until archive
