@@ -161,12 +161,15 @@ export const CATALOGUE = [
       },
       {
         id: 'pulso-blanda',
-        label: 'Edición Tapa Blanda',
-        label_en: 'Softcover Edition',
+        // "Edición Física" rather than naming the binding — the ficha técnica
+        // under the cover already says "Tapa blanda con solapas", and this
+        // label's job is only to separate print from ebook.
+        label: 'Edición Física',
+        label_en: 'Print Edition',
         status: 'available',
         img: '/assets/pulso-soft-cover-es.webp',
-        meta: '444 páginas',
-        meta_en: '444 pages',
+        meta: '433 páginas',
+        meta_en: '433 pages',
         retailers: [
           { id: 'casadellibro',  url: 'https://www.casadellibro.com/libro-pulso-del-nucleo/9788409810345/18324058' },
           { id: 'elcorteingles', url: 'https://www.elcorteingles.es/libros/A201079459-pulso-del-nucleo-tapa-blanda-con-solapas/' },
@@ -180,16 +183,16 @@ export const CATALOGUE = [
     // metadata), NOT estimated. Update here if a new printing changes any of it.
     ficha: {
       isbn: '978-84-098-1034-5',
-      pages: '444',
+      pages: '433',
       binding: 'Tapa blanda con solapas',
       binding_en: 'Softcover with flaps',
       language: 'Castellano',
       language_en: 'Spanish',
-      // No release date and no "tiempo de lectura" — Ruben's call. A date on a
-      // book that's already out only ages it, and reading-time is a retailer
-      // gimmick. The `ficha.published` row still renders if a future title
-      // wants it (fichaBlock skips absent fields).
-      publisher: 'Soulware',
+      // Deliberately absent (Ruben's calls), though fichaBlock still renders
+      // each if a future title supplies it:
+      //   publisher — the whole site is Soulware; saying it here is noise
+      //   published — a date only ages a book that's already out
+      //   reading time — a retailer gimmick
     },
   },
   {

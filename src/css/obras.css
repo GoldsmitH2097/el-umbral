@@ -490,6 +490,12 @@
   display: flex; flex-direction: column; align-items: center;
   gap: 3px; width: 100%;
 }
+/* Label, page count and shops are one unit, so the rule opens the whole block
+   rather than sitting between the count and the logos. Compact editions (the
+   ebook) are a bare link and need no frame. */
+.obra-edition-block:not(.obra-edition-block--compact) {
+  padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.09);
+}
 .obra-edition-head {
   font-size: 10px; letter-spacing: 4px; text-transform: uppercase;
   color: rgba(255,255,255,0.45); margin: 0;
@@ -506,15 +512,18 @@
 }
 /* Compact edition — the label IS the link (the ebook). */
 .obra-edition-block--compact { margin-bottom: 2px; }
+/* Same rest/hover colours as .retailer-logo — bone white, blooming to amber —
+   so the ebook link and the shop logos read as one row of equal doors rather
+   than one highlighted CTA plus some logos. */
 .obra-edition-link {
   display: inline-block; text-decoration: none;
   font-size: 13px; letter-spacing: 3px; text-transform: uppercase;
-  color: #c8922a; padding: 2px 0;
-  border-bottom: 1px solid rgba(200,146,42,0.25);
-  transition: color 0.35s ease, border-color 0.35s ease;
+  color: rgba(232,236,239,0.62); padding: 2px 0;
+  border-bottom: 1px solid rgba(232,236,239,0.16);
+  transition: color 0.45s ease, border-color 0.45s ease;
 }
 .obra-edition-link:hover,
-.obra-edition-link:focus-visible { color: #e8c87a; border-color: rgba(232,200,122,0.7); }
+.obra-edition-link:focus-visible { color: #c8922a; border-color: rgba(200,146,42,0.55); }
 
 /* ── Ficha técnica — detail view only ─────────────────────────────────────
    Deliberately plain: a definition list of publication facts, no ornament.
@@ -536,8 +545,10 @@
   display: flex; align-items: center; justify-content: center;
   flex-wrap: wrap; gap: 4px 20px;
   width: 100%; max-width: 420px;
-  padding: 6px 4px;
-  border-top: 1px solid rgba(255,255,255,0.09);
+  padding: 2px 4px 6px;
+  /* No rule above the logos — it used to cut the edition in half, fencing the
+     shops off from the label and page count that belong with them. The top
+     rule now sits above the whole block (see .obra-edition-block below). */
   border-bottom: 1px solid rgba(255,255,255,0.09);
 }
 .retailer-logo {
