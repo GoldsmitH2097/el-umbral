@@ -21,16 +21,28 @@
 //   · one asset covers both states; no @2x, no second file
 // See .retailer-mark in obras.css.
 //
-// `w` is the display width in px at the strip's 17px cap — set it from the
-// asset's aspect ratio so all four logos sit at equal optical weight.
+// ── SIZING: all four share ONE square slot. Do not "fix" this. ──────────────
+// Every asset is drawn on an identical 500×500 artboard and Ruben balanced the
+// marks INSIDE it so the LETTERING reads at the same size across all four —
+// which is the thing the eye actually compares. Their bounding boxes therefore
+// differ wildly on purpose (0.86:1 for Casa del Libro's book icon, 3.32:1 for
+// the Amazon wordmark). Scaling each to a common height, or trimming the
+// viewBoxes and normalising by bounding box, throws that balancing away and
+// makes Amazon's lettering tower over Casa del Libro's. Same square, same
+// scale factor, every logo. The artboard IS the design.
+//
 // `brand` is the shop's own colour, kept for the alternative hover treatment
 // (bloom to true brand colour instead of amber — one line to switch in CSS).
 
 export const RETAILERS = {
-  casadellibro:  { name: 'Casa del Libro',  brand: '#e30613' },
-  elcorteingles: { name: 'El Corte Inglés', brand: '#00843d' },
-  fnac:          { name: 'Fnac',            brand: '#e1a900' },
-  amazon:        { name: 'Amazon',          brand: '#ff9900' },
+  casadellibro:  { name: 'Casa del Libro',  brand: '#e30613',
+                   logo: '/assets/retailers/casadellibro.svg' },
+  elcorteingles: { name: 'El Corte Inglés', brand: '#00843d',
+                   logo: '/assets/retailers/elcorteingles.svg' },
+  fnac:          { name: 'Fnac',            brand: '#e1a900',
+                   logo: '/assets/retailers/fnac.svg' },
+  amazon:        { name: 'Amazon',          brand: '#ff9900',
+                   logo: '/assets/retailers/amazon.svg' },
 };
 
 export function retailer(id) {

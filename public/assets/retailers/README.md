@@ -1,54 +1,55 @@
 # Retailer logos
 
-Drop the shop logos here, then add `logo` + `w` to the matching entry in
-`src/js/core/retailers.js`. Until a `logo` is set the strip renders a styled
-wordmark — an intentional fallback, never a broken image.
-
-## What we need
-
-**Format: SVG.** One file per shop, named by its registry id:
+Referenced by `logo` in `src/js/core/retailers.js`, one file per registry id:
 
     casadellibro.svg   elcorteingles.svg   fnac.svg   amazon.svg
 
+## How they're rendered
+
 The SVG is used as a **CSS mask**, not as an `<img>` — the artwork becomes a
-stencil and CSS paints it with `currentColor`. Consequences worth knowing:
+stencil and CSS paints it with `currentColor`. So:
 
-- **The logo's own colours are irrelevant.** Solid black, full colour, whatever
-  the press kit ships — all identical once masked. Don't waste time recolouring.
-- **Colour is 100 % ours**, so the hover is a real bone → amber transition
-  rather than a filter swap, and it matches every other hover on the site.
-- **Multi-colour brand marks flatten to one colour.** That's the intended look
-  (the "as seen in" press strip). If a shop's guidelines forbid it, use that
-  one as an `<img>` instead and give it its own rule.
+- **The logo's own colour is irrelevant.** Masking reads the ALPHA channel, so
+  white-on-transparent, black-on-transparent, or full colour all behave
+  identically. Don't spend time recolouring.
+- **Colour is 100 % ours**, which is why the hover is a real bone → amber
+  transition rather than a filter swap, matching every other hover on the site.
+- Multi-colour marks flatten to one colour. That's the intended press-strip
+  look. To bloom to each shop's true brand colour instead, switch the hover
+  rule to `color: var(--brand)` — the hex is already on the element.
 
-### Asset requirements
+## ⚠️ Sizing: one square slot, same scale for all four
 
-- Transparent background, **no** baked-in white/coloured plate
-- Real vector paths — not an embedded `<image>` bitmap
-- **Trim the viewBox** to the artwork, no surrounding padding (padding makes
-  that logo optically smaller than its neighbours in the strip)
-- Prefer the **horizontal wordmark** lockup over the icon-only mark
-- Strip `<style>` blocks and scripts; plain `<path>`/`<g>` only
+**Every asset shares an identical 500×500 artboard, and the mark is balanced
+INSIDE it so the LETTERING reads at the same size across all four logos.** That
+is the thing the eye actually compares, and it's a design decision baked into
+the files.
 
-### PNG fallback
+Consequently their bounding boxes differ enormously *on purpose* — measured:
 
-If a brand only publishes PNG: transparent, **≥ 120 px tall**, tightly cropped.
-Masking works with PNG alpha too, so it drops into the same slot — it'll just
-be heavier and slightly softer on retina than an SVG.
+| logo | artwork bbox | ratio |
+|---|---|---|
+| casadellibro | 375.9 × 435.9 | 0.86 (taller than wide) |
+| elcorteingles | 487.9 × 274.9 | 1.78 |
+| fnac | 400.1 × 400.1 | 1.00 |
+| amazon | 360.3 × 108.6 | 3.32 (wide wordmark) |
 
-### After adding a file
+**Do not trim the viewBoxes to the artwork, and do not normalise by bounding
+box or to a common height.** Any of those throws the balancing away and makes
+Amazon's lettering tower over Casa del Libro's. Keep `viewBox="0 0 500 500"`,
+keep one square `--slot`, and let each file's internal scale do the work.
 
-Set the display width from the asset's aspect ratio so all four sit at equal
-optical weight in the 17 px-tall strip:
+Slots in use: **44px** in the reading view, **36px** in the Las Obras grid card,
+**38px** on mobile — see `--slot` in `obras.css`.
 
-```js
-fnac: { name: 'Fnac', brand: '#e1a900',
-        logo: '/assets/retailers/fnac.svg', w: 46 },
-```
+## Adding another shop
 
-`w` ≈ `17 × (viewBox width ÷ viewBox height)`.
+1. Export on the **same 500×500 artboard**, balancing the mark so its lettering
+   matches the existing four. Transparent background, real vector paths (no
+   embedded bitmap), no `<style>` blocks.
+2. Drop the file here, named after its registry id.
+3. Add `logo: '/assets/retailers/<id>.svg'` to the entry in `retailers.js`.
 
-## Where to source them
+No CSS change needed — the slot handles it.
 
-Each brand's press / media / brand-assets page is the correct source.
-Wikimedia Commons also carries clean, current SVGs for all four.
+PNG works too (masking uses alpha), but it'll be heavier and softer on retina.

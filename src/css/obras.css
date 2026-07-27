@@ -505,9 +505,9 @@
    rather than as a row of shop buttons. */
 .retailer-strip {
   display: flex; align-items: center; justify-content: center;
-  flex-wrap: wrap; gap: 10px 22px;
+  flex-wrap: wrap; gap: 4px 20px;
   width: 100%; max-width: 420px;
-  padding: 13px 4px;
+  padding: 6px 4px;
   border-top: 1px solid rgba(255,255,255,0.09);
   border-bottom: 1px solid rgba(255,255,255,0.09);
 }
@@ -521,9 +521,12 @@
    colour the bone → amber hover is a genuine smooth transition rather than a
    filter swap. To bloom to each shop's true brand colour instead, change the
    hover rule to `color: var(--brand)` — the hex is already on the element. */
+/* ONE square slot for every logo — see the sizing note in retailers.js. The
+   assets share a 500×500 artboard and are balanced inside it so the lettering
+   matches across marks, so a single scale factor is what keeps them even. */
 .retailer-mark {
   display: block;
-  width: var(--logo-w, 92px); height: 17px;
+  width: var(--slot, 44px); height: var(--slot, 44px);
   background: currentColor;
   -webkit-mask: var(--logo) center / contain no-repeat;
           mask: var(--logo) center / contain no-repeat;
@@ -550,12 +553,12 @@
 
 /* Grid cards are tighter than the reading view — shrink the strip so four
    shops don't blow out the tile. */
-.obra-book .retailer-strip { gap: 8px 14px; padding: 10px 2px; max-width: 300px; }
+.obra-book .retailer-strip { gap: 2px 12px; padding: 4px 2px; max-width: 300px; }
 .obra-book .retailer-wordmark { font-size: 12px; }
-.obra-book .retailer-mark { height: 14px; width: calc(var(--logo-w, 92px) * 0.82); }
+.obra-book .retailer-strip { --slot: 36px; }
 .obra-book .obra-edition-invite { font-size: 11px; margin-bottom: 8px; }
 
 @media (max-width: 768px) {
-  .retailer-strip { gap: 8px 16px; }
+  .retailer-strip { gap: 4px 14px; --slot: 38px; }
   .retailer-wordmark { font-size: 13px; }
 }
