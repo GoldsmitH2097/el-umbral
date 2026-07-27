@@ -480,3 +480,82 @@
   display: block; font-size: 10px; letter-spacing: 4px;
   text-transform: uppercase; opacity: 0.6; margin-bottom: 6px;
 }
+
+/* ── Edition blocks + retailer strip ──────────────────────────────────────
+   One block per edition (Ebook / Tapa Blanda): a label, the invitation in
+   amber, then the shops that carry it. The shops ARE the links — the old
+   single amber button became the invitation line above them, so we keep the
+   Soulware voice and still give the reader four doors with no extra click. */
+.obra-edition-block {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 3px; width: 100%;
+}
+.obra-edition-head {
+  font-size: 10px; letter-spacing: 4px; text-transform: uppercase;
+  color: rgba(255,255,255,0.45); margin: 0;
+}
+.obra-edition-note { letter-spacing: 2px; text-transform: none; opacity: 0.75; font-style: italic; }
+.obra-edition-invite {
+  font-size: 13px; letter-spacing: 3px; text-transform: uppercase;
+  color: #c8922a; margin: 0 0 10px;
+}
+
+/* The strip. Logos sit on a hairline rule, evenly spaced, optically equal
+   height — the "as seen in" press-strip convention, which reads as prestige
+   rather than as a row of shop buttons. */
+.retailer-strip {
+  display: flex; align-items: center; justify-content: center;
+  flex-wrap: wrap; gap: 10px 22px;
+  width: 100%; max-width: 420px;
+  padding: 13px 4px;
+  border-top: 1px solid rgba(255,255,255,0.09);
+  border-bottom: 1px solid rgba(255,255,255,0.09);
+}
+.retailer-logo {
+  display: inline-flex; align-items: center; justify-content: center;
+  text-decoration: none; line-height: 1;
+  transition: filter 0.45s ease, opacity 0.45s ease, color 0.45s ease;
+}
+/* The logo as a CSS MASK: the SVG is a stencil, `currentColor` is the paint.
+   The artwork's own colours never matter, and because we're just animating a
+   colour the bone → amber hover is a genuine smooth transition rather than a
+   filter swap. To bloom to each shop's true brand colour instead, change the
+   hover rule to `color: var(--brand)` — the hex is already on the element. */
+.retailer-mark {
+  display: block;
+  width: var(--logo-w, 92px); height: 17px;
+  background: currentColor;
+  -webkit-mask: var(--logo) center / contain no-repeat;
+          mask: var(--logo) center / contain no-repeat;
+}
+.retailer-logo { color: rgba(232,236,239,0.62); }
+.retailer-logo:hover,
+.retailer-logo:focus-visible { color: #c8922a; }
+
+/* Fallback until the SVG assets land — a styled wordmark, deliberately
+   on-brand rather than a broken image. */
+.retailer-wordmark {
+  font-size: 14px; letter-spacing: 1px;
+  color: rgba(232,236,239,0.62);
+  transition: color 0.45s ease;
+}
+.retailer-logo:hover .retailer-wordmark,
+.retailer-logo:focus-visible .retailer-wordmark { color: #e8ecef; }
+.retailer-logo:focus-visible { outline: 1px solid rgba(200,146,42,0.6); outline-offset: 4px; }
+
+.obra-edition-footnote {
+  font-size: 11px; letter-spacing: 2px;
+  color: rgba(255,255,255,0.32); margin: 9px 0 0; font-style: italic;
+}
+
+/* Grid cards are tighter than the reading view — shrink the strip so four
+   shops don't blow out the tile. */
+.obra-book .retailer-strip { gap: 8px 14px; padding: 10px 2px; max-width: 300px; }
+.obra-book .retailer-wordmark { font-size: 12px; }
+.obra-book .retailer-mark { height: 14px; width: calc(var(--logo-w, 92px) * 0.82); }
+.obra-book .obra-edition-invite { font-size: 11px; margin-bottom: 8px; }
+
+@media (max-width: 768px) {
+  .retailer-strip { gap: 8px 16px; }
+  .retailer-wordmark { font-size: 13px; }
+}

@@ -137,29 +137,45 @@ export const CATALOGUE = [
     vision_en: 'The world broke so long ago that none remember what it was before the silence. But the pulse continues. Beneath the ruins, in the blood of those who do not know surrender, in four artefacts that should not exist — something beats. First of three novels in the Pulso del Núcleo trilogy. This volume: Núcleo Eterno.',
     desc: 'Primera de tres novelas. Fantasía oscura épica. El mundo quebrado por la catástrofe, cuatro artefactos ancestrales y un poder antiguo que no concede victoria: exige precio.',
     desc_en: 'First of three novels. Epic dark fantasy. A world shattered by catastrophe, four ancestral artefacts, and an ancient power that grants no victory — it demands price.',
+    // Two editions, each with its own shops. ISBN 978-84-098-1034-5 is the
+    // same across all four print retailers — Amazon's paperback is print-on-
+    // demand (a worse print run of the identical book), so it is listed last.
+    // Retailer ORDER IS DISPLAY ORDER and is editorial: see retailers.js.
+    // The hardcover was removed 2026-07-27 (no release date); it lives in git
+    // history and returns as a third edition when there's something to sell.
     editions: [
       {
-        id: 'pulso-blanda',
-        label: 'Tapa Blanda',
-        label_en: 'Softcover',
+        id: 'pulso-ebook',
+        label: 'Ebook',
+        label_en: 'Ebook',
         status: 'available',
-        img: '/assets/pulso-soft-cover-es.webp',
-        buyUrl: 'https://www.amazon.es/Pulso-del-N%C3%BAcleo-Parte-Eterno/dp/8409810344/',
-        buyLabel: 'Reclamar mi Ejemplar',
-        buyLabel_en: 'Claim Your Copy',
+        note: 'Descarga inmediata',
+        note_en: 'Instant download',
+        buyLabel: 'Leer Ahora',
+        buyLabel_en: 'Read Now',
+        // Kindle ASIN B0G6LLMP8G. Resolved from the amzn.eu share link and
+        // stored canonical + bare: the short form can rot, and the long form
+        // carried a personal share token in its query string.
+        retailers: [
+          { id: 'amazon', url: 'https://www.amazon.es/dp/B0G6LLMP8G' },
+        ],
       },
       {
-        id: 'pulso-dura',
-        label: 'Tapa Dura',
-        label_en: 'Hardcover',
-        status: 'coming-soon',
-        img: '/assets/pulso-hard-cover-es.webp',
-        format: 'Edición de coleccionista',
-        format_en: "Collector's edition",
-        vision: 'La misma historia. Otro peso en las manos. Encuadernación en tela, papel de alto gramaje, maquetación depurada.',
-        vision_en: 'The same story. A different weight in the hands. Cloth binding, heavyweight paper, refined typography.',
-        buyLabel: 'Próximamente',
-        buyLabel_en: 'Coming Soon',
+        id: 'pulso-blanda',
+        label: 'Edición Tapa Blanda',
+        label_en: 'Softcover Edition',
+        status: 'available',
+        img: '/assets/pulso-soft-cover-es.webp',
+        buyLabel: 'Reclamar mi Ejemplar',
+        buyLabel_en: 'Claim Your Copy',
+        footnote: 'También en librerías de toda España',
+        footnote_en: 'Also in bookshops across Spain',
+        retailers: [
+          { id: 'casadellibro',  url: 'https://www.casadellibro.com/libro-pulso-del-nucleo/9788409810345/18324058' },
+          { id: 'elcorteingles', url: 'https://www.elcorteingles.es/libros/A201079459-pulso-del-nucleo-tapa-blanda-con-solapas/' },
+          { id: 'fnac',          url: 'https://www.fnac.es/a13262523/Ww-etAmp-Pulso-Del-Nucleo' },
+          { id: 'amazon',        url: 'https://www.amazon.es/Pulso-del-N%C3%BAcleo-Parte-Eterno/dp/8409810344/' },
+        ],
       },
     ],
   },

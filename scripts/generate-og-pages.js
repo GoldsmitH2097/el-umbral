@@ -97,13 +97,20 @@ const ROUTES = [
   {
     path: 'obras/pulso-del-nucleo', enSlug: 'obras/pulso-del-nucleo',
     es: { title: 'Pulso del Núcleo — Núcleo Eterno · Soulware',
-          desc:  'Primera de tres novelas de la trilogía Pulso del Núcleo. Por WW. & Eidon. Disponible ahora en tapa blanda en Amazon España. Editorial Soulware.' },
+          desc:  'Primera de tres novelas de la trilogía Pulso del Núcleo. Por WW. & Eidon. Ya en Casa del Libro, El Corte Inglés, Fnac y Amazon. Editorial Soulware.' },
     en: { title: 'Pulso del Núcleo — Núcleo Eterno · Soulware',
-          desc:  'First of three novels in the Pulso del Núcleo trilogy. By WW. & Eidon. Now available in softcover on Amazon Spain. Soulware Publishing.' },
+          desc:  'First of three novels in the Pulso del Núcleo trilogy. By WW. & Eidon. Available at Casa del Libro, El Corte Inglés, Fnac and Amazon. Soulware Publishing.' },
     image: `${BASE}/assets/pulso-soft-cover-es.webp`,
+    // Sellers mirror StateManager CATALOGUE → pulso → editions → retailers.
+    // Same ISBN at all four; order is editorial (Spanish bookshops first).
     bookSchema: { name: 'Pulso del Núcleo', author: 'WW. & Eidon', isbn: '978-8409810345',
-                  buyUrl: 'https://www.amazon.es/Pulso-del-N%C3%BAcleo-Parte-Eterno/dp/8409810344/',
-                  path: 'obras/pulso-del-nucleo', price: '22.44' },
+                  path: 'obras/pulso-del-nucleo',
+                  sellers: [
+                    { seller: 'Casa del Libro',  url: 'https://www.casadellibro.com/libro-pulso-del-nucleo/9788409810345/18324058' },
+                    { seller: 'El Corte Inglés', url: 'https://www.elcorteingles.es/libros/A201079459-pulso-del-nucleo-tapa-blanda-con-solapas/' },
+                    { seller: 'Fnac',            url: 'https://www.fnac.es/a13262523/Ww-etAmp-Pulso-Del-Nucleo' },
+                    { seller: 'Amazon',          url: 'https://www.amazon.es/Pulso-del-N%C3%BAcleo-Parte-Eterno/dp/8409810344/' },
+                  ] },
   },
   {
     path: 'obras/filamentos-de-oscuridad', enSlug: 'obras/filamentos-de-oscuridad',
@@ -114,7 +121,7 @@ const ROUTES = [
     image: `${BASE}/assets/filamentos-de-oscuridad.webp`,
     bookSchema: { name: 'Filamentos de Oscuridad', author: 'Irina M.',
                   buyUrl: 'https://www.amazon.es/dp/8409861771',
-                  path: 'obras/filamentos-de-oscuridad', price: '17.95' },
+                  path: 'obras/filamentos-de-oscuridad' },
   },
   {
     path: 'obras/anatomia-del-vacio', enSlug: 'obras/anatomia-del-vacio',
@@ -187,13 +194,19 @@ function patch(html, urlPath, { title, desc, image, bookSchema, langCode, altPat
       "inLanguage": "es", // books are published in Spanish even on EN pages
       "publisher": { "@type": "Organization", "name": "Soulware", "url": "https://soulware.live" },
       "url": `${BASE}/${bookSchema.path}`,
-      "offers": {
+      // One Offer per shop, each named via `seller`. NO `price`: the same ISBN
+      // sells at different prices per retailer and they get adjusted, so any
+      // number we bake into the prerender goes stale silently. A wrong price in
+      // structured data costs merchant-listing eligibility rather than earning
+      // it — truthful-without-price beats rich-but-wrong. Add prices back only
+      // if someone commits to keeping them in sync.
+      "offers": (bookSchema.sellers || [{ url: bookSchema.buyUrl }]).map(s => ({
         "@type": "Offer",
-        "url": bookSchema.buyUrl,
+        "url": s.url,
+        ...(s.seller ? { "seller": { "@type": "Organization", "name": s.seller } } : {}),
         "availability": "https://schema.org/InStock",
-        ...(bookSchema.price ? { "price": bookSchema.price } : {}),
         "priceCurrency": "EUR",
-      }
+      })),
     }, null, 2);
     out = out.replace('</head>', `  <script type="application/ld+json">${schema}</script>
 </head>`);

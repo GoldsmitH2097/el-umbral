@@ -1,6 +1,72 @@
 import { CHARACTERS, CATALOGUE, state, Events } from '../core/StateManager.js';
 import { pickVideoSrc, pickPillarSrc } from '../core/videoVariant.js';
 import { t, getField, lang } from '../core/i18n.js';
+import { retailer } from '../core/retailers.js';
+
+// ── Buy CTAs ────────────────────────────────────────────────────────────────
+// One implementation, used by BOTH the Las Obras grid card and the reading-view
+// obra card. These were duplicated line-for-line; a third copy was one feature
+// away, so they now share this.
+
+// A shop. The logo is painted via CSS mask (see retailers.js) so its colour is
+// pure CSS and the hover is a real colour transition; until the asset exists we
+// render a styled wordmark instead. Never a broken image.
+function retailerLink(r) {
+  const meta = retailer(r.id);
+  const inner = meta.logo
+    ? `<span class="retailer-mark" aria-hidden="true" style="--logo:url('${meta.logo}');${meta.w ? `--logo-w:${meta.w}px;` : ''}${meta.brand ? `--brand:${meta.brand};` : ''}"></span>`
+    : `<span class="retailer-wordmark">${meta.name}</span>`;
+  return `<a href="${r.url}" target="_blank" rel="noopener"
+             class="retailer-logo retailer-logo--${r.id}"
+             aria-label="${t('cta.buyAt')} ${meta.name}">${inner}</a>`;
+}
+
+// An edition = a label, an invitation, and the shops that carry it.
+function editionBlock(ed) {
+  const label   = getField(ed, 'label');
+  const shops   = (ed.retailers || []).filter(r => r.url); // no link, no logo
+  const soonLbl = getField(ed, 'buyLabel') || t('cta.coming-soon');
+
+  // Available but nothing linkable yet (e.g. a URL we're still waiting on)
+  // degrades to the coming-soon treatment rather than rendering a dead row.
+  if (ed.status !== 'available' || !shops.length) {
+    return `<div class="obra-edition-row">
+      <span class="obra-btn obra-btn--soon obra-edition-btn">
+        <span class="obra-edition-label">${label}</span>${soonLbl}
+      </span></div>`;
+  }
+
+  const note     = getField(ed, 'note');
+  const footnote = getField(ed, 'footnote');
+  return `<div class="obra-edition-block">
+    <p class="obra-edition-head">${label}${note ? ` <span class="obra-edition-note">· ${note}</span>` : ''}</p>
+    <p class="obra-edition-invite">${getField(ed, 'buyLabel') || t('cta.buy')}</p>
+    <div class="retailer-strip">${shops.map(retailerLink).join('')}</div>
+    ${footnote ? `<p class="obra-edition-footnote">${footnote}</p>` : ''}
+  </div>`;
+}
+
+// The full CTA area for a catalogue item, whatever shape it is.
+function renderCta(item) {
+  if (item.editions) {
+    return `<div class="obra-editions">${item.editions.map(editionBlock).join('')}</div>`;
+  }
+  if (item.status === 'available' && item.retailers?.some(r => r.url)) {
+    return `<div class="obra-editions">${editionBlock(item)}</div>`;
+  }
+  const buyLabel = getField(item, 'buyLabel');
+  const [edLabel, ...rest] = (buyLabel || '').split(': ');
+  const lbl = rest.length
+    ? `<span class="obra-edition-label">${edLabel}</span>${rest.join(': ')}`
+    : buyLabel;
+  if (item.status === 'available' && item.buyUrl) {
+    return `<a href="${item.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy${rest.length ? ' obra-edition-btn' : ''}">${lbl}</a>`;
+  }
+  if (item.status === 'countdown') {
+    return `<div class="obra-countdown"><div class="countdown-timer" data-release="${item.releaseDate}"></div><button class="obra-btn obra-btn--locked obra-btn--notify${rest.length ? ' obra-edition-btn' : ''}">${lbl}</button></div>`;
+  }
+  return `<span class="obra-btn obra-btn--soon">${buyLabel || t('cta.notify')}</span>`;
+}
 
 // Social platform SVG icons
 const ICONS = {
@@ -134,30 +200,7 @@ export class ArchiveDOM {
             ? `<div class="obra-cover obra-cover--clickable" data-id="${item.id}" role="button" tabindex="0" aria-label="${itemTitle}"><img src="${item.img}" srcset="${item.img.replace('/assets/','/assets/mobile/')} 280w, ${item.img} 500w" sizes="(max-width: 768px) 150px, 220px" alt="${itemTitle}" width="600" height="900" loading="lazy" decoding="async" /></div>`
             : `<div class="obra-cover obra-cover--clickable obra-cover--empty" data-id="${item.id}" role="button" tabindex="0" aria-label="${itemTitle}"></div>`;
 
-          let ctaHtml = '';
-          if (item.editions) {
-            const editionBtns = item.editions.map(ed => {
-              const edBuyLabel = getField(ed, 'buyLabel');
-              const edLabel    = getField(ed, 'label');
-              if (ed.status === 'available' && ed.buyUrl) {
-                return `<div class="obra-edition-row"><a href="${ed.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy">${edBuyLabel}</a></div>`;
-              }
-              return `<div class="obra-edition-row"><span class="obra-btn obra-btn--soon obra-edition-btn"><span class="obra-edition-label">${edLabel}</span>${edBuyLabel}</span></div>`;
-            }).join('');
-            ctaHtml = `<div class="obra-editions">${editionBtns}</div>`;
-          } else if (item.status === 'available' && item.buyUrl) {
-            const buyLabel = getField(item, 'buyLabel');
-            const [edLabel, ...rest] = (buyLabel||'').split(': ');
-            const lbl = rest.length ? `<span class="obra-edition-label">${edLabel}</span>${rest.join(': ')}` : buyLabel;
-            ctaHtml = `<a href="${item.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy${rest.length?' obra-edition-btn':''}">${lbl}</a>`;
-          } else if (item.status === 'countdown') {
-            const buyLabel = getField(item, 'buyLabel');
-            const [edLabel, ...rest] = (buyLabel||'').split(': ');
-            const lbl = rest.length ? `<span class="obra-edition-label">${edLabel}</span>${rest.join(': ')}` : buyLabel;
-            ctaHtml = `<div class="obra-countdown"><div class="countdown-timer" data-release="${item.releaseDate}"></div><button class="obra-btn obra-btn--locked obra-btn--notify${rest.length?' obra-edition-btn':''}">${lbl}</button></div>`;
-          } else {
-            ctaHtml = `<span class="obra-btn obra-btn--soon">${getField(item, 'buyLabel') || t('cta.notify')}</span>`;
-          }
+          const ctaHtml = renderCta(item);
 
           const statusLabels = { 'available': t('pill.available'), 'coming-soon': t('pill.coming-soon'), 'countdown': t('pill.countdown') };
           const formatLabels = { 'Novela': t('format.book'), 'Novela — Edición de coleccionista': t('format.book'), 'Experiencia web interactiva': t('format.experience'), 'Antología': t('format.anthology') };
@@ -426,29 +469,7 @@ export class ArchiveDOM {
           const coverHtml = item.img
             ? `<div class="reading-obra-cover"><img src="${item.img}" srcset="${item.img.replace('/assets/','/assets/mobile/')} 280w, ${item.img} 500w" sizes="(max-width: 768px) 150px, 220px" alt="${itemTitle}" width="600" height="900" loading="lazy" decoding="async" /></div>`
             : `<div class="reading-obra-cover"><div class="reading-obra-cover-empty">${item.type==='anthology'?t('format.anthology'):'—'}</div></div>`;
-          let ctaHtml = '';
-          if (item.editions) {
-            const edBtns = item.editions.map(ed => {
-              const edBuyLabel = getField(ed, 'buyLabel');
-              const edLabel    = getField(ed, 'label');
-              return ed.status === 'available' && ed.buyUrl
-                ? `<div class="obra-edition-row"><a href="${ed.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy">${edBuyLabel}</a></div>`
-                : `<div class="obra-edition-row"><span class="obra-btn obra-btn--soon obra-edition-btn"><span class="obra-edition-label">${edLabel}</span>${edBuyLabel}</span></div>`;
-            }).join('');
-            ctaHtml = `<div class="obra-editions">${edBtns}</div>`;
-          } else if (item.status === 'available' && item.buyUrl) {
-            const buyLabel = getField(item, 'buyLabel');
-            const [edLabel, ...rest] = (buyLabel||'').split(': ');
-            const lbl = rest.length ? `<span class="obra-edition-label">${edLabel}</span>${rest.join(': ')}` : buyLabel;
-            ctaHtml = `<a href="${item.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy${rest.length?' obra-edition-btn':''}">${lbl}</a>`;
-          } else if (item.status === 'countdown') {
-            const buyLabel = getField(item, 'buyLabel');
-            const [edLabel, ...rest] = (buyLabel||'').split(': ');
-            const lbl = rest.length ? `<span class="obra-edition-label">${edLabel}</span>${rest.join(': ')}` : buyLabel;
-            ctaHtml = `<div class="obra-countdown"><div class="countdown-timer" data-release="${item.releaseDate}"></div><button class="obra-btn obra-btn--locked obra-btn--notify${rest.length?' obra-edition-btn':''}">${lbl}</button></div>`;
-          } else {
-            ctaHtml = `<span class="obra-btn obra-btn--soon">${getField(item, 'buyLabel') || t('cta.notify')}</span>`;
-          }
+          const ctaHtml = renderCta(item);
           return `<div class="reading-obra-card">
             ${coverHtml}
             <div class="reading-obra-info">
