@@ -17,17 +17,21 @@
     X-Frame-Options = "SAMEORIGIN"
     Permissions-Policy = "geolocation=(), microphone=(), camera=()"
 
-# Videos — long cache (content never changes, filenames are stable)
+# Videos & unversioned assets: these filenames do NOT carry a content hash,
+# so "immutable" was a lie — replacing a video or cover under the same name
+# left visitors watching the stale copy for up to 30 days (real risk: covers
+# were swapped twice this week). 7 days, no immutable: browsers revalidate
+# with an ETag (a cheap 304) after a week. If an asset must change NOW,
+# rename it — StateManager is the single reference point.
 [[headers]]
   for = "/*.mp4"
   [headers.values]
-    Cache-Control = "public, max-age=2592000, immutable"
+    Cache-Control = "public, max-age=604800"
 
-# Assets (covers, logo, favicons)
 [[headers]]
   for = "/assets/*"
   [headers.values]
-    Cache-Control = "public, max-age=2592000, immutable"
+    Cache-Control = "public, max-age=604800"
 
 # JS/CSS bundles (Vite adds content hashes to filenames)
 [[headers]]

@@ -358,6 +358,19 @@ export class ArchiveDOM {
     // Dots above the grid — better scroll affordance on mobile
     grid.insertAdjacentElement('beforebegin', dotsBar);
 
+    // One-time swipe hint (mobile). The dots alone failed as an affordance —
+    // an external audit hunting for carousel navigation never noticed them.
+    // Shown once per visitor, dies on the first horizontal scroll.
+    let swipeHint = null;
+    try {
+      if (window.innerWidth <= 768 && !localStorage.getItem('sw_swiped')) {
+        swipeHint = document.createElement('div');
+        swipeHint.className = 'swipe-hint';
+        swipeHint.textContent = t('archive.swipe-hint');
+        dotsBar.insertAdjacentElement('afterend', swipeHint);
+      }
+    } catch (_) {}
+
     // Mobile: update dots on scroll
     // Mobile: mark first column active by default
     if (window.innerWidth <= 768) {
@@ -372,6 +385,14 @@ export class ArchiveDOM {
     });
 
     grid.addEventListener('scroll', () => {
+      if (swipeHint) {
+        // Capture before nulling — the timeout closure must still see the node.
+        const h = swipeHint;
+        swipeHint = null;
+        h.classList.add('gone');
+        try { localStorage.setItem('sw_swiped', '1'); } catch (_) {}
+        setTimeout(() => h.remove(), 700);
+      }
       const idx = Math.round(grid.scrollLeft / grid.offsetWidth);
       dotsBar.querySelectorAll('.archive-scroll-dot').forEach((d, i) => {
         d.classList.toggle('active', i === idx);

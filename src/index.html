@@ -175,7 +175,11 @@
      Googlebot and screen readers. Includes <a> links so Google
      discovers and crawls all deep-link character URLs.
 ═══════════════════════════════════════════════════════════════ -->
-<div class="sr-only">
+<!-- inert + aria-hidden: Googlebot reads this HTML text and follows the
+     hrefs regardless, but screen readers no longer get a phantom duplicate
+     site (14 links, 9 headings) before the real content, and its links leave
+     the Tab order. Found by an external a11y audit, verified real. -->
+<div class="sr-only" inert aria-hidden="true">
   <h1>Soulware — Las Crónicas de la Oscuridad</h1>
   <nav>
     <a href="/emperatriz">La Emperatriz Sin Reino</a>
