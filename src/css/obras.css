@@ -569,7 +569,7 @@
    matches across marks, so a single scale factor is what keeps them even. */
 .retailer-mark {
   display: block;
-  width: var(--slot, 44px); height: var(--slot, 44px);
+  width: var(--slot, 52px); height: var(--slot, 52px);
   background: currentColor;
   -webkit-mask: var(--logo) center / contain no-repeat;
           mask: var(--logo) center / contain no-repeat;
@@ -633,7 +633,9 @@
    shops don't blow out the tile. */
 .obra-book .retailer-strip { gap: 2px 12px; padding: 4px 2px; max-width: 300px; }
 .obra-book .retailer-wordmark { font-size: 12px; }
-.obra-book .retailer-strip { --slot: 36px; }
+/* Ruben 2026-08-01: marks a touch larger, breathing the same padding.
+   Anchor hit-areas (44px min) and strip gaps unchanged — only the glyph grows. */
+.obra-book .retailer-strip { --slot: 42px; }
 .obra-book .obra-edition-invite { font-size: 11px; margin-bottom: 8px; }
 
 @media (max-width: 768px) {
