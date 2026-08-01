@@ -112,7 +112,11 @@ document.querySelectorAll('[data-set-lang]').forEach(btn => {
 
 // Skip button — visible after 3s, persistent through all intro scenes until archive
 const skipBtn = document.getElementById('skip-btn');
-setTimeout(()=>{ if(state.activeScene < 4) skipBtn.classList.add('visible'); }, 3000);
+// First visit: skip appears after 1.5s (was 3s — a real toll for goal-driven
+// buyers). Returning visitors who already reached the archive once get it
+// instantly: they've paid the atmosphere toll, don't charge twice.
+const _seenArchive = (() => { try { return localStorage.getItem('sw_seen') === '1'; } catch (_) { return false; } })();
+setTimeout(()=>{ if(state.activeScene < 4) skipBtn.classList.add('visible'); }, _seenArchive ? 0 : 1500);
 skipBtn?.addEventListener('click', ()=>{
   skipBtn.classList.remove('visible');
   _stopHaptics();
@@ -315,6 +319,7 @@ function skipIntroAndEnterArchive() {
 
   transitionTo(4);
   visual.start();
+  try { localStorage.setItem('sw_seen', '1'); } catch (_) {}
   archive.showArchive({skipIntro:true});
   document.body.style.cursor='auto';
   document.querySelectorAll('[style*="cursor"]').forEach(el=>el.style.removeProperty('cursor'));
@@ -396,6 +401,7 @@ function enterMainSite() {
   document.documentElement.style.height = '';
   document.body.style.overflow = '';
   document.body.style.height = '';
+  try { localStorage.setItem('sw_seen', '1'); } catch (_) {}
   archive.showArchive(); audio.playTransitionEcho(); audio.stopAwakening();
   audio.setAwakening(false); state.isAwakening=false;
   // Silence everything — fire and wind should be inaudible in the archive
