@@ -112,11 +112,11 @@ document.querySelectorAll('[data-set-lang]').forEach(btn => {
 
 // Skip button — visible after 3s, persistent through all intro scenes until archive
 const skipBtn = document.getElementById('skip-btn');
-// First visit: skip appears after 1.5s (was 3s — a real toll for goal-driven
-// buyers). Returning visitors who already reached the archive once get it
-// instantly: they've paid the atmosphere toll, don't charge twice.
-const _seenArchive = (() => { try { return localStorage.getItem('sw_seen') === '1'; } catch (_) { return false; } })();
-setTimeout(()=>{ if(state.activeScene < 4) skipBtn.classList.add('visible'); }, _seenArchive ? 0 : 1500);
+// The second door is visible from frame one (GPT audit, Ruben-approved).
+// It's styled quiet enough not to break the tomb; hiding it entirely was
+// costing goal-driven buyers real discovery time. CSS transition still gives
+// it a gentle fade-in rather than a pop.
+if (state.activeScene < 4) skipBtn.classList.add('visible');
 skipBtn?.addEventListener('click', ()=>{
   skipBtn.classList.remove('visible');
   _stopHaptics();

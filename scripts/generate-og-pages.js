@@ -291,4 +291,18 @@ for (const route of ROUTES) {
   console.log(`  ✓ /${esPath || ''} + /${enPath}`);
   n += 2;
 }
+// ── Sitemap freshness ────────────────────────────────────────────────────
+// The static sitemap's <lastmod> was frozen at its authoring date, so Google
+// had no reason to re-read it (last fetch: May 18). Every deploy IS a change
+// to the site, so stamp the build date. Runs on the dist copy only — the
+// source file in public/ stays clean.
+{
+  const smPath = join(DIST, 'sitemap.xml');
+  const today = new Date().toISOString().slice(0, 10);
+  const sm = readFileSync(smPath, 'utf8')
+    .replace(/<lastmod>[^<]*<\/lastmod>/g, `<lastmod>${today}</lastmod>`);
+  writeFileSync(smPath, sm);
+  console.log(`sitemap.xml lastmod stamped ${today}`);
+}
+
 console.log(`\n${n} static route pages generated.\n`);

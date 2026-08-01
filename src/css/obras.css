@@ -24,9 +24,12 @@
 /* ── Skip Button ──────────────────────────────────────────────────────────── */
 #skip-btn {
   position: fixed; bottom: 30px; right: 30px; z-index: 7;
-  background: transparent; border: 1px solid rgba(255,255,255,0.12);
-  color: rgba(255,255,255,0.35); font-family: 'Times New Roman', serif;
-  font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+  /* GPT-audit follow-up (Ruben-approved): the second door out of the intro
+     must be READABLE, not decorative. 13px + white 60% clears WCAG AA
+     (~6.5:1 on black); was 11px at 35% (~3.6:1, below AA for that size). */
+  background: transparent; border: 1px solid rgba(255,255,255,0.22);
+  color: rgba(255,255,255,0.6); font-family: 'Times New Roman', serif;
+  font-size: 13px; letter-spacing: 3px; text-transform: uppercase;
   padding: 10px 18px; cursor: pointer; transition: color 0.4s, border-color 0.4s, opacity 0.4s;
   opacity: 0; pointer-events: none;
 }
@@ -202,7 +205,7 @@
   .obra-cover { max-width: 70px; }
   .obra-title { font-size: 12px; }
   .obra-desc { opacity: 1; max-height: none; }
-  #skip-btn { top: 20px; bottom: auto; right: 16px; font-size: 10px; padding: 8px 14px; }
+  #skip-btn { top: 20px; bottom: auto; right: 16px; font-size: 12px; padding: 8px 14px; }
 }
 
 /* ── Book card modal ──────────────────────────────────────────────────────── */
