@@ -553,6 +553,9 @@
 }
 .retailer-logo {
   display: inline-flex; align-items: center; justify-content: center;
+  /* 44×44 minimum hit area (Apple HIG) — the visible mark stays its size,
+     the finger gets a real target. Audit follow-up, Ruben-approved. */
+  min-width: 44px; min-height: 44px;
   text-decoration: none; line-height: 1;
   transition: filter 0.45s ease, opacity 0.45s ease, color 0.45s ease;
 }
