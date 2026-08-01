@@ -20,9 +20,11 @@ function retailerLink(r) {
   const inner = meta.logo
     ? `<span class="retailer-mark" aria-hidden="true" style="--logo:url('${meta.logo}');${meta.w ? `--logo-w:${meta.w}px;` : ''}${meta.brand ? `--brand:${meta.brand};` : ''}"></span>`
     : `<span class="retailer-wordmark">${name}</span>`;
+  // Four spark motes burst outward on hover — see .retailer-logo .spark.
+  const sparks = '<s class="spark"></s>'.repeat(4);
   return `<a href="${r.url}" target="_blank" rel="noopener"
              class="retailer-logo retailer-logo--${r.id}"
-             aria-label="${meta.shop === false ? name : `${t('cta.buyAt')} ${name}`}">${inner}</a>`;
+             aria-label="${meta.shop === false ? name : `${t('cta.buyAt')} ${name}`}">${inner}${sparks}</a>`;
 }
 
 // An edition = a label, an invitation, and the shops that carry it.
@@ -95,7 +97,44 @@ function renderCta(item, { detail = false } = {}) {
     const linkable = item.editions.filter(
       ed => ed.status === 'available' && (ed.retailers || []).some(r => r.url));
     if (linkable.length) {
+      // The legendary chest (Ruben-approved v5): every layer is decorative,
+      // aria-hidden, pointer-events:none, and animated with transform/opacity
+      // only. The detail view stays unframed — its column is calm on purpose.
+      const lootDecor = detail ? '' : `
+        <span class="loot-aura" aria-hidden="true"></span>
+        <span class="loot-glint" aria-hidden="true"></span>
+        <span class="loot-corner loot-corner--tl" aria-hidden="true"></span>
+        <span class="loot-corner loot-corner--tr" aria-hidden="true"></span>
+        <span class="loot-corner loot-corner--bl" aria-hidden="true"></span>
+        <span class="loot-corner loot-corner--br" aria-hidden="true"></span>
+        <span class="loot-bed" aria-hidden="true"></span>
+        <span class="loot-melt" aria-hidden="true"></span>
+        <span class="loot-bumps" aria-hidden="true">
+          <u style="--x:5%;--d:0s;--t:6.5s"></u><u style="--x:17%;--d:2.8s;--t:7.5s"></u>
+          <u style="--x:29%;--d:1.2s;--t:6s"></u><u style="--x:43%;--d:4.6s;--t:8s"></u>
+          <u style="--x:56%;--d:0.7s;--t:7s"></u><u style="--x:68%;--d:3.4s;--t:6.8s"></u>
+          <u style="--x:80%;--d:5.5s;--t:7.2s"></u><u style="--x:92%;--d:1.9s;--t:7.8s"></u>
+        </span>
+        <span class="loot-bubbles" aria-hidden="true">
+          <b style="--x:5%;--d:0s;--s:4px;--h:40px;--w:6px;--t:6.5s"></b>
+          <b style="--x:17%;--d:2.8s;--s:3px;--h:54px;--w:-7px;--t:7.5s"></b>
+          <b style="--x:29%;--d:1.2s;--s:5px;--h:34px;--w:5px;--t:6s"></b>
+          <b style="--x:43%;--d:4.6s;--s:3.5px;--h:62px;--w:-5px;--t:8s"></b>
+          <b style="--x:56%;--d:0.7s;--s:5.5px;--h:44px;--w:8px;--t:7s"></b>
+          <b style="--x:68%;--d:3.4s;--s:3px;--h:50px;--w:-8px;--t:6.8s"></b>
+          <b style="--x:80%;--d:5.5s;--s:4.5px;--h:38px;--w:6px;--t:7.2s"></b>
+          <b style="--x:92%;--d:1.9s;--s:3.5px;--h:58px;--w:-5px;--t:7.8s"></b>
+          <i style="--x:11%;--d:0.4s;--h:-28px;--w:4px;--t:2.8s"></i>
+          <i style="--x:24%;--d:1.7s;--h:-36px;--w:-4px;--t:3.4s"></i>
+          <i style="--x:37%;--d:0.9s;--h:-24px;--w:3px;--t:2.5s"></i>
+          <i style="--x:51%;--d:2.6s;--h:-40px;--w:-5px;--t:3.7s"></i>
+          <i style="--x:63%;--d:0.2s;--h:-30px;--w:5px;--t:3s"></i>
+          <i style="--x:75%;--d:1.4s;--h:-26px;--w:-3px;--t:2.7s"></i>
+          <i style="--x:87%;--d:2.1s;--h:-34px;--w:4px;--t:3.2s"></i>
+        </span>
+        <span class="loot-sheen" aria-hidden="true"><i></i><b></b></span>`;
       return `<div class="obra-editions ${detail ? 'obra-editions--detail' : 'obra-editions--shop'}">
+        ${lootDecor}
         <p class="obra-edition-invite">${t('cta.buy')}</p>
         ${linkable.map(ed => {
           const meta = getField(ed, 'meta');
