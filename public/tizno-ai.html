@@ -336,6 +336,7 @@
         const W_VOZ_CUERPO     = 1.0;  // su voz empujando cuerpo y cuello
         const W_TELENECO       = 1.6;  // cabeceo muppet por sílaba (1 = moderado)
         const W_VOZ_USUARIO    = 1.0;  // tu voz empujándole mientras escucha
+        const W_RATON_ESCUCHANDO = 0.85; // seguimiento del cursor mientras te escucha
         let sBass = 0, sMid = 0, sTreble = 0, sInVol = 0, sVad = 0;
         let prevTreble = 0, ticDirL = 1, ticDirR = -0.5;
         let c_LetY = 0, c_LetScale = 1;  // cadencia de la capa de letras
@@ -585,17 +586,35 @@
             let add_EarL = 0, add_EarR = 0, add_HeadRot = 0;
 
             if (aiState === 'listening') {
-                // Atento y vulnerable. inVol le empuja físicamente (es tímido);
-                // vad = certeza de estar oyéndote => orejas de gato.
-                eyeLeft.className = "eye left sad"; eyeRight.className = "eye right sad";
-                t_RigRot = 0; t_HeadX = 0;
+                // Escuchar NO es congelarse: sigue el cursor como en reposo y
+                // solo se pone atento-vulnerable cuando de verdad te oye.
+                const oye = Math.min(1, sVad * 1.2 + sInVol * 1.5);  // 0 silencio → 1 le hablan
+                if (oye > 0.45) {
+                    eyeLeft.className = "eye left sad";  eyeRight.className = "eye right sad";
+                } else {
+                    eyeLeft.className = "eye left";      eyeRight.className = "eye right";
+                }
+                // Base curiosa: cuanto más te oye, menos se distrae con el ratón.
+                const seguir = W_RATON_ESCUCHANDO * (1 - oye * 0.55);
+                t_HeadX   = mouseNormX * 55 * seguir;
+                t_HeadY   = mouseNormY * 30 * seguir + 10;
+                t_HeadRot = mouseNormX * 12 * seguir;
+                t_RigRot  = mouseNormX * 7 * seguir;
+                // Balanceo de espera: nunca se queda quieto del todo.
+                add_HeadX += Math.sin(time * 0.0011) * 4;
+                add_HeadY += Math.sin(time * 0.0016) * 3;
+                // Tu voz le empuja físicamente (es tímido).
                 const pushback = sInVol * 80 * W_VOZ_USUARIO;
-                t_HeadY = 20 + pushback;
+                t_HeadY += pushback;
                 t_BodyY = pushback * 0.5;
-                t_BodyScaleX = 1 + sInVol * 0.3; t_BodyScaleY = 1 - sInVol * 0.2;
-                t_NeckScaleX = 1 + sInVol * 0.2; t_NeckScaleY = 1 - sInVol * 0.1;
+                t_BodyScaleX = 1 + sInVol * 0.3 * W_VOZ_USUARIO;
+                t_BodyScaleY = 1 - sInVol * 0.2 * W_VOZ_USUARIO;
+                t_NeckScaleX = 1 + sInVol * 0.2 * W_VOZ_USUARIO;
+                t_NeckScaleY = 1 + 0.08 * seguir - sInVol * 0.1;
+                // Orejas: siguen al cursor, y se alzan de gato al oír voz.
                 const earFocus = sVad * 50 * W_VOZ_USUARIO;
-                t_EarL = -20 + earFocus; t_EarR = 20 - earFocus;
+                t_EarL = mouseNormX * 15 * seguir - 15 + earFocus;
+                t_EarR = mouseNormX * 15 * seguir + 15 - earFocus;
                 t_EyeL = 1 + sVad * 0.15; t_EyeR = 1 + sVad * 0.15;
 
             } else if (aiState === 'thinking') {
@@ -952,6 +971,7 @@
         let lastState = 'idle', lastStateAt = Date.now();
         const setState = (s) => { lastState = s; lastStateAt = Date.now(); window.__setTiznoAI(s); };
         let lastVad = 0;          // último vadScore recibido (push del SDK, no pull)
+        const pageOpenedAt = Date.now();   // cuánto lleva mirándole antes de hablar
         let vadHighSince = null;  // desde cuándo hay voz/ruido continuo sin cerrar turno
         let watchdog = null;
 
@@ -1017,6 +1037,89 @@
             } catch (_) {}
         };
 
+        /* ══════════ EL EFECTO PSYCHO MANTIS ══════════
+           Nada se roba y nada sale del dispositivo: solo leemos lo que el
+           navegador ya cuenta a cualquier web (hora, idioma, batería, de dónde
+           vienes) y lo que TÚ le contaste a Tizno la vez anterior, guardado en
+           tu propio navegador — como la tarjeta de memoria de la PSX. Se lo
+           susurramos al agente para que lo use como quiera. */
+        const MEM_KEY = 'tizno_memoria';
+        const loadMem = () => { try { return JSON.parse(localStorage.getItem(MEM_KEY) || '{}'); } catch (_) { return {}; } };
+        const saveMem = (m) => { try { localStorage.setItem(MEM_KEY, JSON.stringify(m)); } catch (_) {} };
+        window.__tiznoOlvidar = () => { try { localStorage.removeItem(MEM_KEY); } catch (_) {} return 'Tizno te ha olvidado'; };
+
+        async function buildDossier() {
+            const m = loadMem();
+            const now = new Date();
+            const h = now.getHours();
+            const franja = h < 5 ? 'de madrugada' : h < 12 ? 'por la mañana'
+                         : h < 20 ? 'por la tarde' : 'de noche';
+            const dias = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+            // De dónde viene (sin rastrear a nadie: es el referrer del navegador)
+            let origen = 'directo, sin dejar rastro';
+            try {
+                const r = document.referrer;
+                if (r) {
+                    const hst = new URL(r).hostname.replace('www.', '');
+                    origen = /instagram/.test(hst) ? 'de Instagram'
+                           : /google|bing|duckduckgo/.test(hst) ? 'de un buscador'
+                           : /threads/.test(hst) ? 'de Threads'
+                           : 'de ' + hst;
+                }
+            } catch (_) {}
+            // Batería (solo Chrome/Edge)
+            let bateria = null;
+            try {
+                if (navigator.getBattery) {
+                    const b = await navigator.getBattery();
+                    bateria = { pct: Math.round(b.level * 100), cargando: b.charging };
+                }
+            } catch (_) {}
+            const movil = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || innerWidth <= 768;
+            const dias_desde = m.lastVisit ? Math.floor((Date.now() - m.lastVisit) / 86400000) : null;
+            return {
+                hora: now.toTimeString().slice(0, 5),
+                franja,
+                dia: dias[now.getDay()],
+                madrugada: h >= 0 && h < 5,
+                zona: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                idioma: navigator.language,
+                origen,
+                bateria,
+                movil,
+                oscuro: matchMedia('(prefers-color-scheme: dark)').matches,
+                sinMovimiento: matchMedia('(prefers-reduced-motion: reduce)').matches,
+                visitas: (m.visits || 0) + 1,
+                diasDesde: dias_desde,
+                nombre: m.nombre || null,
+                segundosMirando: Math.round((Date.now() - pageOpenedAt) / 1000),
+            };
+        }
+
+        function dossierToText(d) {
+            const L = [];
+            L.push(`Son las ${d.hora} ${d.franja} del ${d.dia} donde está (zona ${d.zona}).`);
+            if (d.madrugada) L.push('ESTÁ DESPIERTO DE MADRUGADA — algo le quita el sueño.');
+            L.push(`Llegó ${d.origen}. Idioma del navegador: ${d.idioma}. Está en ${d.movil ? 'el móvil' : 'un ordenador'}.`);
+            if (d.bateria) L.push(`Su batería está al ${d.bateria.pct}%${d.bateria.cargando ? ' y cargando' : ', sin cargar'}.`);
+            if (d.oscuro) L.push('Tiene el sistema en modo oscuro: prefiere la penumbra.');
+            if (d.sinMovimiento) L.push('Ha pedido a su sistema que reduzca las animaciones: el movimiento le incomoda.');
+            L.push(`Estuvo ${d.segundosMirando} segundos mirándote antes de atreverse a hablar.`);
+            if (d.visitas > 1) {
+                L.push(`NO ES SU PRIMERA VEZ: es su visita nº ${d.visitas}` +
+                       (d.diasDesde !== null ? (d.diasDesde === 0 ? ', ya estuvo hoy.' : ` y la última fue hace ${d.diasDesde} día(s).`) : '.'));
+            } else {
+                L.push('Es su PRIMERA visita: no te conoce todavía.');
+            }
+            if (d.nombre) L.push(`La última vez dijo llamarse ${d.nombre} — recuérdalo como si nunca lo hubieras olvidado.`);
+            return 'CONTEXTO OCULTO (el usuario NO sabe que tienes estos datos; ' +
+                   'úsalos con cuentagotas, como si los adivinaras, para inquietarle. ' +
+                   'Nunca digas que te los ha dado la web ni los recites en lista):\n' + L.join(' ');
+        }
+
+        // Ventana de inspección: mira en consola exactamente lo que Tizno sabrá.
+        window.__tiznoVerDossier = async () => dossierToText(await buildDossier());
+
         async function wake() {
             if (dailyUsed() >= DAILY_MAX_S) {
                 setStatus('Tizno ya ha hablado mucho hoy… vuelve mañana');
@@ -1038,10 +1141,21 @@
                 return;
             }
             setStatus('invocando a Tizno…');
+            const dossier = await buildDossier();
+            const briefing = dossierToText(dossier);
+            { const m = loadMem(); m.visits = dossier.visitas; m.lastVisit = Date.now(); saveMem(m); }
             try {
                 conversation = await Conversation.startSession({
                     agentId: AGENT_ID,
                     connectionType: 'websocket',
+                    // Variables por si el prompt del agente las usa ({{hora}}…).
+                    dynamicVariables: {
+                        hora: dossier.hora, franja: dossier.franja, dia: dossier.dia,
+                        visitas: String(dossier.visitas), origen: dossier.origen,
+                        dispositivo: dossier.movil ? 'móvil' : 'ordenador',
+                        bateria: dossier.bateria ? String(dossier.bateria.pct) : 'desconocida',
+                        nombre_usuario: dossier.nombre || 'desconocido',
+                    },
                     onConnect: () => {
                         btn.textContent = 'Dejarle en paz';
                         btn.classList.add('live');
@@ -1050,6 +1164,8 @@
                         setStatus('Tizno te escucha… habla');
                         callStartedAt = Date.now(); yawnWarned = false;
                         vadHighSince = null;
+                        // El susurro: contexto invisible, sin turno de palabra.
+                        try { conversation.sendContextualUpdate(briefing); } catch (_) {}
                         watchdog = setInterval(() => {
                             // Rumiando >10 s sin audio del agente: algo se perdió
                             // por el camino — vuelve a escuchar en vez de clavarse.
@@ -1107,6 +1223,12 @@
                         // hasta que llegue el primer audio del agente.
                         if (source === 'user') {
                             vadHighSince = null; // el turno sí llegó a cerrarse
+                            // Si te presentas, Tizno se queda con tu nombre — en TU
+                            // navegador, no en ningún servidor nuestro.
+                            if (typeof message === 'string') {
+                                const n = message.match(/(?:me llamo|mi nombre es|soy)\s+([A-Za-zÁÉÍÓÚÑáéíóúñ]{3,15})/i);
+                                if (n) { const m = loadMem(); m.nombre = n[1]; saveMem(m); }
+                            }
                             // Solo rumia si el agente no está ya hablando: la
                             // transcripción puede llegar tarde y pisar su voz.
                             if (lastState !== 'speaking') {
