@@ -959,8 +959,8 @@
            Tope por conversación (Tizno "se cansa"), corte al ocultar la pestaña
            y límite diario por navegador. Sin esto, una pestaña olvidada con la
            llamada abierta funde la cuota mensual de ElevenLabs. */
-        const SESSION_MAX_S = 180;   // 3 min por conversación
-        const DAILY_MAX_S = 600;     // 10 min al día por navegador
+        const SESSION_MAX_S = 180;    // 3 min por conversación
+        const DAILY_MAX_S = 1800;     // 30 min/día por navegador (Creator: 275 min/mes)
         let callStartedAt = 0, yawnWarned = false;
         const todayKey = () => new Date().toISOString().slice(0, 10);
         const dailyUsed = () => {
@@ -1110,6 +1110,14 @@
         // Pestaña oculta = colgar: nadie paga créditos a una pestaña de fondo.
         document.addEventListener('visibilitychange', () => {
             if (document.hidden && conversation) sleep();
+        });
+
+        // Herramienta de dev: tecla 0 = reiniciar el contador diario.
+        window.addEventListener('keydown', (e) => {
+            if (e.key === '0') {
+                try { localStorage.removeItem('tizno_daily'); } catch (_) {}
+                setStatus('contador diario reiniciado — Tizno vuelve a tener voz');
+            }
         });
     </script>
 </body>
