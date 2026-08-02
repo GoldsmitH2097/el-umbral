@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tizno: Elegant Dynamic Fog & Gooey Runes</title>
+    <style>
+        :root {
+            --bg-color: #030303;
+            --ink: #050505; 
+            --eye-glow: #f39c12; 
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-color);
+            display: flex; justify-content: center; align-items: center;
+            height: 100vh; overflow: hidden; font-family: 'Georgia', serif;
+        }
+
+        /* --- LUZ AMBIENTE DINÁMICA --- */
+        #ambient-light {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: radial-gradient(circle at 50% 70%, #1f1a18 0%, transparent 60%);
+            z-index: 0;
+            animation: flicker-light 8s ease-in-out infinite alternate;
+        }
+
+        /* --- UI BOXES (A & B) --- */
+        .ui-box {
+            position: fixed; bottom: 45%; 
+            width: auto; min-width: 150px; padding: 0 20px; height: 60px;
+            display: flex; justify-content: center; align-items: center;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px; color: rgba(255,255,255,0.5);
+            font-size: 14px; font-weight: bold; letter-spacing: 2px;
+            transition: all 0.3s ease; cursor: pointer; z-index: 50;
+            background: rgba(0,0,0,0.5);
+        }
+
+        #box-a { left: 10%; border-color: rgba(46, 204, 113, 0.3); }
+        #box-a:hover { background: rgba(46, 204, 113, 0.1); color: #2ecc71; border-color: #2ecc71; box-shadow: 0 0 20px rgba(46, 204, 113, 0.2); }
+
+        #box-b { right: 10%; border-color: rgba(231, 76, 60, 0.3); }
+        #box-b:hover { background: rgba(231, 76, 60, 0.1); color: #e74c3c; border-color: #e74c3c; box-shadow: 0 0 20px rgba(231, 76, 60, 0.2); }
+
+        /* --- NIEBLA FRONTAL DINÁMICA (Respiración suave, sin blobs) --- */
+        #abyss-foreground {
+            position: fixed; bottom: 0; left: -10vw;
+            width: 120vw; height: 250px;
+            background: linear-gradient(to top, var(--bg-color) 10%, rgba(3,3,3,0.95) 40%, transparent 100%);
+            z-index: 20; pointer-events: none;
+            transform-origin: bottom center;
+            animation: breath-fog 8s ease-in-out infinite alternate;
+        }
+
+        /* --- FILTRO DE TINTA --- */
+        .goo-layer {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            filter: url('#ink-goo'); z-index: 2; 
+            display: flex; justify-content: center; align-items: flex-end;
+            pointer-events: none;
+        }
+
+        /* --- MASTER RIG --- */
+        .master-rig {
+            position: relative; width: 500px; height: 600px; 
+            display: flex; justify-content: center; align-items: flex-end;
+            bottom: 50px; transform-origin: bottom center;
+        }
+
+        /* --- CUERPO --- */
+        #body-tracking-container {
+            position: absolute; bottom: 0; width: 120px; height: 250px;
+            transform-origin: bottom center; z-index: 2;
+        }
+
+        #body-shape {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--ink); border-radius: 50% 50% 20% 20% / 80% 80% 20% 20%;
+            transform-origin: bottom center;
+        }
+
+        /* --- CABEZA MODULAR --- */
+        .head-tracker {
+            position: absolute; bottom: 180px; width: 400px; height: 250px; z-index: 3;
+        }
+
+        #head-breathing-layer {
+            width: 100%; height: 100%;
+            transform-origin: center bottom; position: relative;
+        }
+
+        #head-base {
+            position: absolute; top: 50px; left: 125px; width: 150px; height: 150px;
+            background: var(--ink); border-radius: 50%;
+        }
+
+        #neck-bridge {
+            position: absolute; top: 120px; left: 176px; width: 48px; height: 180px;
+            background: var(--ink); border-radius: 50%; z-index: -1;
+            transform-origin: top center;
+        }
+
+        .ear-shape { position: absolute; top: 70px; width: 140px; height: 90px; }
+        #ear-left-wrapper { left: 20px; transform-origin: 100% 50%; }
+        #ear-right-wrapper { right: 20px; transform-origin: 0% 50%; }
+        .ear-svg { width: 100%; height: 100%; fill: var(--ink); }
+
+        /* --- OJOS --- */
+        #eyes-layer-container {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 10; display: flex; justify-content: center; align-items: flex-end;
+            pointer-events: none; padding-bottom: 50px; 
+        }
+
+        #eyes-breathing-layer {
+            width: 100%; height: 100%;
+            transform-origin: center bottom; position: relative;
+        }
+
+        .eye-wrapper {
+            position: absolute; top: 110px; width: 40px; height: 40px;
+            filter: drop-shadow(0 0 10px var(--eye-glow)) drop-shadow(0 0 20px var(--eye-glow)) drop-shadow(0 0 40px var(--eye-glow));
+            --eye-x: 0px; --eye-y: 0px; --eye-sx: 1; --eye-sy: 1;
+            transform: translate(var(--eye-x), var(--eye-y)) scale(var(--eye-sx), var(--eye-sy));
+        }
+
+        #eye-left-wrapper { left: 140px; }
+        #eye-right-wrapper { right: 140px; }
+
+        .eye {
+            width: 100%; height: 100%; background: #fff; border-radius: 50%;
+            transition: clip-path 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+            clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%); 
+        }
+
+        .eye::after {
+            content: ''; position: absolute; top: 15%; left: 20%; width: 35%; height: 35%;
+            background: rgba(255, 255, 255, 0.95); border-radius: 50%;
+        }
+
+        .eye.angry.left { clip-path: polygon(0% 40%, 100% 10%, 100% 100%, 0% 100%); }
+        .eye.angry.right { clip-path: polygon(0% 10%, 100% 40%, 100% 100%, 0% 100%); }
+        .eye.sad.left { clip-path: polygon(0% 10%, 100% 40%, 100% 100%, 0% 100%); }
+        .eye.sad.right { clip-path: polygon(0% 40%, 100% 10%, 100% 100%, 0% 100%); }
+        .eye-wrapper.blinking { --eye-sy: 0.01 !important; }
+
+        /* --- KEYFRAMES --- */
+        @keyframes breathe-body { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.03, 1.02); } }
+        @keyframes breathe-head { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(5px) rotate(-1deg); } }
+        
+        @keyframes flicker-light {
+            0% { transform: scale(1) translate(0, 0); opacity: 0.7; }
+            33% { transform: scale(1.05) translate(-1%, 1%); opacity: 0.9; }
+            66% { transform: scale(0.98) translate(1%, -1%); opacity: 0.8; }
+            100% { transform: scale(1.02) translate(0%, 1%); opacity: 1; }
+        }
+
+        @keyframes breath-fog {
+            0% { transform: translateY(0) scaleY(1); opacity: 0.95; }
+            100% { transform: translateY(10px) scaleY(1.15); opacity: 1; }
+        }
+
+        /* --- PARTÍCULAS --- */
+        .particle-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; }
+        .ink-drop { position: absolute; top: 0; left: 0; background-color: var(--ink); border-radius: 50%; transform-origin: center; }
+        .eye-spark { position: absolute; top: 0; left: 0; background: #fff; border-radius: 50%; box-shadow: 0 0 8px 2px var(--eye-glow), 0 0 15px 4px rgba(243, 156, 18, 0.6); z-index: 11; transform-origin: center; }
+        
+        /* Letras gruesas para fusionarse con el filtro Goo */
+        .floating-letter { 
+            position: absolute; top: 0; left: 0; 
+            color: var(--ink); 
+            font-family: 'Courier New', monospace; font-size: 36px; font-weight: 900; 
+            transform-origin: center;
+        }
+
+        /* ═══ ELEVENLABS 1/4 — call UI ═══ */
+        #tizno-call-ui {
+            position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
+            z-index: 60; display: flex; flex-direction: column; align-items: center;
+            gap: 8px; font-family: 'Georgia', serif;
+        }
+        #tizno-call {
+            background: rgba(0,0,0,0.55); color: rgba(243, 156, 18, 0.9);
+            border: 1px solid rgba(243, 156, 18, 0.35); border-radius: 8px;
+            padding: 12px 22px; font-family: inherit; font-size: 14px;
+            letter-spacing: 3px; text-transform: uppercase; cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        #tizno-call:hover { border-color: rgba(243, 156, 18, 0.8); box-shadow: 0 0 20px rgba(243, 156, 18, 0.15); }
+        #tizno-call.live { color: #e74c3c; border-color: rgba(231, 76, 60, 0.6); }
+        #tizno-call:disabled { opacity: 0.4; cursor: wait; }
+        #tizno-status {
+            color: rgba(255,255,255,0.35); font-style: italic; font-size: 12px;
+            letter-spacing: 1px; text-align: center;
+        }
+
+        /* --- LUCIÉRNAGA --- */
+        #firefly {
+            position: fixed; top: 0; left: 0; width: 7px; height: 7px;
+            background: #fff8e0; border-radius: 50%; pointer-events: none; z-index: 25;
+            box-shadow: 0 0 8px 2px rgba(243, 196, 18, 0.8), 0 0 22px 8px rgba(243, 156, 18, 0.35);
+        }
+    </style>
+</head>
+<body>
+
+    <svg style="display: none;">
+        <defs>
+            <filter id="ink-goo">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+                <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -9" result="ink-goo" />
+                <feBlend in="SourceGraphic" in2="ink-goo" result="merged" />
+                <!-- Borde vivo: ruido fractal que despeina el contorno del blob.
+                     baseFrequency mas alto = pelusa fina; mas bajo = humo ancho.
+                     scale = cuanto se despeina el borde. -->
+                <feTurbulence type="fractalNoise" baseFrequency="0.013 0.05" numOctaves="3" seed="7" result="smoke" />
+                <feDisplacementMap in="merged" in2="smoke" scale="20" xChannelSelector="R" yChannelSelector="G" />
+            </filter>
+            <filter id="ink-goo-body">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+                <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -9" result="ink-goo" />
+                <feBlend in="SourceGraphic" in2="ink-goo" result="merged" />
+                <!-- Mismo humo pero escala minima: la silueta respira, no se rompe. -->
+                <feTurbulence type="fractalNoise" baseFrequency="0.02 0.06" numOctaves="2" seed="7" result="smoke" />
+                <feDisplacementMap in="merged" in2="smoke" scale="6" xChannelSelector="R" yChannelSelector="G" />
+            </filter>
+        </defs>
+    </svg>
+
+    <!-- Fondo de luz -->
+    <div id="ambient-light"></div>
+    
+    <!-- UI Elements -->
+    <div id="box-a" class="ui-box">HAZ CLICK AQUI</div>
+    <div id="box-b" class="ui-box">NO HAGAS CLICK AQUI</div>
+
+    <!-- EL ABISMO FRONTAL (Niebla dinámica limpia) -->
+    <div id="abyss-foreground"></div>
+
+    <!-- Cuerpo: goo con despeine SUAVE en la silueta -->
+    <div class="goo-layer" style="filter: url('#ink-goo-body'); width: 800px; left: 50%; margin-left: -400px;">
+        <div class="master-rig">
+            <div id="body-tracking-container"><div id="body-shape"></div></div>
+            <div class="head-tracker">
+                <div id="head-breathing-layer">
+                    <div class="ear-shape" id="ear-left-wrapper"><svg viewBox="0 0 150 100" class="ear-svg"><path d="M 150 50 Q 70 20 0 40 Q 60 90 150 80 Z" /></svg></div>
+                    <div class="ear-shape" id="ear-right-wrapper"><svg viewBox="0 0 150 100" class="ear-svg"><path d="M 0 50 Q 80 20 150 40 Q 90 90 0 80 Z" /></svg></div>
+                    <div id="head-base"></div>
+                    <div id="neck-bridge"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Partículas y letras: goo con el despeine FUERTE original -->
+    <div class="goo-layer" id="goo-particles" style="width: 1100px; left: 50%; margin-left: -550px;">
+        <div id="ink-particle-container" class="particle-canvas" style="z-index: 1;"></div>
+        <div id="letters-layer" class="particle-canvas" style="z-index: 3;"></div>
+    </div>
+
+    <div id="eyes-layer-container">
+        <div class="master-rig">
+            <div class="head-tracker">
+                <div id="eyes-breathing-layer">
+                    <div class="eye-wrapper" id="eye-left-wrapper"><div class="eye left" id="eye-left"></div></div>
+                    <div class="eye-wrapper" id="eye-right-wrapper"><div class="eye right" id="eye-right"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Chispas Mágicas FUERA del Goo Filter -->
+    <div id="eye-particle-container" class="particle-canvas" style="z-index: 11;"></div>
+
+    <div id="firefly"></div>
+
+    <!-- ═══ ELEVENLABS 2/4 — call UI ═══ -->
+    <div id="tizno-call-ui">
+        <button id="tizno-call">Despertar a Tizno</button>
+        <div id="tizno-status">pulsa para hablar con él · teclas 1-4 = probar posturas sin gastar minutos</div>
+    </div>
+
+    <script>
+        const masterRigs = document.querySelectorAll('.master-rig');
+        const trackers = document.querySelectorAll('.head-tracker');
+        const bodyTracker = document.getElementById('body-tracking-container');
+        const earLeft = document.getElementById('ear-left-wrapper');
+        const earRight = document.getElementById('ear-right-wrapper');
+        const headBase = document.getElementById('head-base');
+        const neckBridge = document.getElementById('neck-bridge');
+        const eyeLeftWrapper = document.getElementById('eye-left-wrapper');
+        const eyeRightWrapper = document.getElementById('eye-right-wrapper');
+        const eyeLeft = document.getElementById('eye-left');
+        const eyeRight = document.getElementById('eye-right');
+
+        const boxA = document.getElementById('box-a');
+        const boxB = document.getElementById('box-b');
+
+        let c_HeadX = 0, c_HeadY = 0, c_HeadRot = 0;
+        let c_BodyScaleX = 1, c_BodyScaleY = 1, c_BodyY = 0;
+        let c_NeckScaleX = 1, c_NeckScaleY = 1;
+        let c_EarL = 0, c_EarR = 0;
+        let c_RigRot = 0;
+        let c_EyeL = 1, c_EyeR = 1;
+
+        let mouseDistance = 1000, mouseNormX = 0, mouseNormY = 0;
+        let distA = 1000, distB = 1000;
+        let boxANormX = 0, boxANormY = 0;
+        let boxBNormX = 0, boxBNormY = 0;
+
+        /* ═══ ELEVENLABS 3/4 — AI state + signal bridge ═══
+           El módulo del SDK (al final del archivo) escribe aquí a través de
+           window.__setTiznoAI / window.__tiznoSignals. El rig solo LEE. */
+        let aiState = 'idle';            // idle | listening | thinking | speaking
+        let aiVolume = 0;                // energía base de la voz (envolvente lenta)
+        let aiVolFast = 0;               // envolvente rápida: sigue las sílabas
+        let sBass = 0, sMid = 0, sTreble = 0, sInVol = 0, sVad = 0;
+        let prevTreble = 0, ticDirL = 1, ticDirR = -0.5;
+        let c_LetY = 0, c_LetScale = 1;  // cadencia de la capa de letras
+        const lettersLayerEl = document.getElementById('letters-layer');
+        lettersLayerEl.style.transformOrigin = '50% 80%';
+        window.__setTiznoAI = (s) => { aiState = s; debugFake = null; debugSince = 0; };
+        window.__tiznoSignals = null;    // el módulo instala () => paleta de señales
+        // Debug sin gastar minutos: 1=idle 2=listening 3=thinking 4=speaking.
+        // Las teclas 2 y 4 sintetizan señales con ondas para afinar posturas.
+        let debugFake = null, debugSince = 0;
+        window.addEventListener('keydown', (e) => {
+            const map = { '1':'idle', '2':'listening', '3':'thinking', '4':'speaking' };
+            if (map[e.key]) {
+                aiState = map[e.key];
+                debugFake = e.key === '4' ? 'speak' : (e.key === '2' ? 'listen' : null);
+                debugSince = e.key === '1' ? 0 : Date.now();
+            }
+        });
+
+        /* Luciérnaga: vaga por la página. Si el ratón lleva >3 s quieto, roba la
+           atención de Tizno; a veces se lanza hacia él y lo asusta (misma física
+           que el cursor, pero aleatoria). */
+        let ffX = Math.random() * window.innerWidth;
+        let ffY = Math.random() * window.innerHeight * 0.5;
+        let ffVX = 0, ffVY = 0, ffTX = ffX, ffTY = ffY, ffTimer = 0;
+        let lastMouseMove = Date.now();
+        window.addEventListener('mousemove', () => { lastMouseMove = Date.now(); });
+        const fireflyEl = document.getElementById('firefly');
+
+        /* Optimización GPU: la física corre a 60 fps pero los estilos del cuerpo
+           se escriben a 30 (el ojo no lo nota; los filtros SVG repintan la mitad).
+           La respiración vive aquí — como animación CSS mantenía los filtros
+           calientes a 60 fps incluso con Tizno completamente quieto. */
+        let frameFlip = false;
+        const bodyShapeEl = document.getElementById('body-shape');
+        const headBreathEl = document.getElementById('head-breathing-layer');
+        const eyesBreathEl = document.getElementById('eyes-breathing-layer');
+        const partWrapEl = document.getElementById('goo-particles');
+
+        /* Paleta de señales — TODO 0..1, seguro llamar cada frame.
+           outVol voz de Tizno · inVol micrófono del usuario · bass ~23-200 Hz ·
+           mid ~200-1000 Hz · treble ~1-3 kHz · vad prob. de que el usuario hable. */
+        function tiznoSignals() {
+            if (debugFake === 'speak') {
+                const t = performance.now();
+                const vol = Math.max(0, Math.sin(t / 90)) * 0.7 + Math.max(0, Math.sin(t / 37)) * 0.2;
+                return { outVol: vol, inVol: 0, bass: vol * 0.8, mid: vol * 0.6,
+                         treble: Math.max(0, Math.sin(t / 23)) * 0.5, vad: 0 };
+            }
+            if (debugFake === 'listen') {
+                const u = Math.max(0, Math.sin(performance.now() / 700));
+                return { outVol: 0, inVol: u * 0.6, bass: 0, mid: 0, treble: 0,
+                         vad: Math.min(1, u * 3) };
+            }
+            if (typeof window.__tiznoSignals === 'function') {
+                try { const s = window.__tiznoSignals(); if (s) return s; } catch (_) {}
+            }
+            return { outVol: 0, inVol: 0, bass: 0, mid: 0, treble: 0, vad: 0 };
+        }
+
+        window.addEventListener('mousemove', (e) => {
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+            
+            mouseDistance = Math.hypot(e.clientX - centerX, e.clientY - centerY);
+            mouseNormX = (e.clientX - centerX) / centerX; 
+            mouseNormY = (e.clientY - centerY) / centerY;
+
+            const rectA = boxA.getBoundingClientRect();
+            const centerAX = rectA.left + rectA.width / 2;
+            const centerAY = rectA.top + rectA.height / 2;
+            distA = Math.hypot(e.clientX - centerAX, e.clientY - centerAY);
+            boxANormX = (centerAX - centerX) / centerX;
+            boxANormY = (centerAY - centerY) / centerY;
+
+            const rectB = boxB.getBoundingClientRect();
+            const centerBX = rectB.left + rectB.width / 2;
+            const centerBY = rectB.top + rectB.height / 2;
+            distB = Math.hypot(e.clientX - centerBX, e.clientY - centerBY);
+            boxBNormX = (centerBX - centerX) / centerX;
+            boxBNormY = (centerBY - centerY) / centerY;
+        });
+
+        function updateRig() {
+            const time = Date.now();
+            const interactionThreshold = 180; 
+
+            let t_HeadX = 0, t_HeadY = 0, t_HeadRot = 0;
+            let t_BodyScaleX = 1, t_BodyScaleY = 1, t_BodyY = 0;
+            let t_NeckScaleX = 1, t_NeckScaleY = 1;
+            let t_EarL = 0, t_EarR = 0;
+            let t_RigRot = 0;
+            let t_EyeL = 1, t_EyeR = 1;
+
+            let add_HeadX = 0, add_HeadY = 0;
+            let add_BodyY = 0, add_BodyScaleX = 0, add_BodyScaleY = 0;
+
+            /* ═══ ELEVENLABS 4/4 — the state fork ═══
+               Cajas y ratón mandan SOLO sin llamada. En los estados AI las
+               posturas se imponen; señales suavizadas con ataque rápido / caída lenta. */
+            // Las posturas forzadas con teclado (2-4) caducan a los 8 s.
+            if (debugSince && time - debugSince > 8000) {
+                aiState = 'idle'; debugFake = null; debugSince = 0;
+            }
+
+            // ── vuelo de la luciérnaga ──
+            ffTimer -= 16;
+            if (ffTimer <= 0) {
+                ffTimer = 2800 + Math.random() * 2500;
+                if (Math.random() < 0.22) {
+                    // A veces se lanza hacia Tizno: acaba en susto (bola).
+                    ffTX = window.innerWidth / 2 + (Math.random() - 0.5) * 120;
+                    ffTY = window.innerHeight / 2 + (Math.random() - 0.5) * 80;
+                } else {
+                    ffTX = window.innerWidth * (0.08 + Math.random() * 0.84);
+                    ffTY = window.innerHeight * (0.08 + Math.random() * 0.6);
+                }
+            }
+            ffVX += (ffTX - ffX) * 0.0005 + (Math.random() - 0.5) * 0.3;
+            ffVY += (ffTY - ffY) * 0.0005 + (Math.random() - 0.5) * 0.3;
+            ffVX *= 0.94; ffVY *= 0.94;
+            ffX += ffVX; ffY += ffVY;
+            fireflyEl.style.transform = `translate(${ffX}px, ${ffY}px)`;
+            fireflyEl.style.opacity = 0.55 + Math.sin(time * 0.006) * 0.35 + Math.random() * 0.1;
+            // Ratón quieto >3 s: la luciérnaga sustituye sus coordenadas — Tizno
+            // la sigue con ojos y cabeza, y si se le acerca, se asusta. El primer
+            // mousemove real devuelve el control al cursor al instante.
+            if (time - lastMouseMove > 3000) {
+                const fcx = window.innerWidth / 2, fcy = window.innerHeight / 2;
+                mouseDistance = Math.hypot(ffX - fcx, ffY - fcy);
+                mouseNormX = (ffX - fcx) / fcx;
+                mouseNormY = (ffY - fcy) / fcy;
+            }
+
+            const sig = tiznoSignals();
+            // Doble envolvente: la rápida sigue las sílabas, la lenta es la energía
+            // base; su diferencia (transient) marca cada golpe de voz.
+            aiVolFast += (sig.outVol - aiVolFast) * (sig.outVol > aiVolFast ? 0.8 : 0.35);
+            aiVolume  += (sig.outVol - aiVolume)  * (sig.outVol > aiVolume  ? 0.3 : 0.08);
+            const transient = Math.max(0, aiVolFast - aiVolume);
+            sBass    += (sig.bass   - sBass)    * (sig.bass   > sBass   ? 0.6 : 0.25);
+            sMid     += (sig.mid    - sMid)     * (sig.mid    > sMid    ? 0.6 : 0.25);
+            sTreble  += (sig.treble - sTreble)  * (sig.treble > sTreble ? 0.7 : 0.3);
+            sInVol   += (sig.inVol  - sInVol)   * (sig.inVol  > sInVol  ? 0.4 : 0.1);
+            sVad     += (sig.vad - sVad) * 0.15;
+            // Tic de orejas: la dirección se sortea UNA vez por pico de agudos
+            // (aleatorio por frame estroboscopea a 60 fps).
+            if (sTreble > 0.25 && prevTreble <= 0.25) {
+                ticDirL = Math.random() > 0.5 ? 1 : -0.5;
+                ticDirR = Math.random() > 0.5 ? 1 : -0.5;
+            }
+            prevTreble = sTreble;
+            let t_LetY = 0, t_LetScale = 1;
+            let add_EarL = 0, add_EarR = 0, add_HeadRot = 0;
+
+            if (aiState === 'listening') {
+                // Atento y vulnerable. inVol le empuja físicamente (es tímido);
+                // vad = certeza de estar oyéndote => orejas de gato.
+                eyeLeft.className = "eye left sad"; eyeRight.className = "eye right sad";
+                t_RigRot = 0; t_HeadX = 0;
+                const pushback = sInVol * 80;
+                t_HeadY = 20 + pushback;
+                t_BodyY = pushback * 0.5;
+                t_BodyScaleX = 1 + sInVol * 0.3; t_BodyScaleY = 1 - sInVol * 0.2;
+                t_NeckScaleX = 1 + sInVol * 0.2; t_NeckScaleY = 1 - sInVol * 0.1;
+                const earFocus = sVad * 50;
+                t_EarL = -20 + earFocus; t_EarR = 20 - earFocus;
+                t_EyeL = 1 + sVad * 0.15; t_EyeR = 1 + sVad * 0.15;
+
+            } else if (aiState === 'thinking') {
+                // Ansiedad de proceso: ojos desparejados, jitter, balanceo.
+                if (Math.floor(time / 200) % 2 === 0) {
+                    eyeLeft.className = "eye left sad"; eyeRight.className = "eye right angry";
+                } else {
+                    eyeLeft.className = "eye left angry"; eyeRight.className = "eye right sad";
+                }
+                t_HeadY = 60;
+                add_HeadX = (Math.random() - 0.5) * 15;
+                add_HeadY = (Math.random() - 0.5) * 10;
+                t_RigRot = Math.sin(time * 0.005) * 2;
+                t_EarL = 30; t_EarR = -30;
+                t_BodyScaleX = 1.05; t_BodyScaleY = 0.95;
+                t_EyeL = 1 + Math.sin(time * 0.02) * 0.2 + (Math.random() - 0.5) * 0.1;
+                t_EyeR = 1 + Math.cos(time * 0.02) * 0.2 + (Math.random() - 0.5) * 0.1;
+
+            } else if (aiState === 'speaking') {
+                // "Lip-sync" procedural y SNAPPY: los golpes de sílaba (transient)
+                // van por los canales add_ — inmediatos, sin el ease global 0.12
+                // que los convertía en un balanceo constante. La postura queda en t_.
+                eyeLeft.className = "eye left"; eyeRight.className = "eye right";
+                t_HeadX = mouseNormX * 60;
+                t_HeadY = mouseNormY * 40 - 20;
+                t_HeadRot = mouseNormX * 10;
+                t_RigRot = mouseNormX * 8 + aiVolume * 1.5;
+                // Cada sílaba empuja el cuerpo AL INSTANTE; graves = peso horizontal.
+                add_BodyScaleY = aiVolFast * 0.32 + transient * 0.35 - sBass * 0.12;
+                add_BodyScaleX = -aiVolFast * 0.16 + sBass * 0.28;
+                // Cabeceo teleñeco: la cabeza salta y se ladea con cada sílaba.
+                add_HeadY = -(transient * 34) - aiVolFast * 8;
+                add_HeadRot = -(transient * 7) - aiVolFast * 2;
+                t_NeckScaleY = 1 + aiVolume * 0.2; t_NeckScaleX = 1 - aiVolume * 0.1;
+                // Orejas: base suave con el ratón (t_), tic de agudos inmediato (add_).
+                t_EarL = mouseNormX * 20 + aiVolume * 8;
+                t_EarR = mouseNormX * 20 - aiVolume * 8;
+                add_EarL = sTreble * 34 * ticDirL + transient * 10;
+                add_EarR = -sTreble * 34 * ticDirR - transient * 10;
+                // Las letras saltan con los golpes de voz, no con un vaivén fijo.
+                t_LetY = -(transient * 16);
+                t_LetScale = 1 + aiVolFast * 0.08;
+
+            } else if (distA < interactionThreshold) {
+                const intensity = (interactionThreshold - distA) / interactionThreshold;
+                eyeLeft.className = "eye left"; eyeRight.className = "eye right";
+
+                t_HeadX = boxANormX * 60; 
+                t_HeadY = boxANormY * 40; 
+                t_RigRot = boxANormX * 10;
+                t_EarL = 40; t_EarR = -40;
+                t_EyeL = 1.2; t_EyeR = 1.2;
+                
+                t_NeckScaleX = 1 - (intensity * 0.1);
+                t_NeckScaleY = 1 + (intensity * 0.2);
+
+                const bounce = Math.abs(Math.sin(time * 0.01)) * 40 * intensity;
+                const nod = Math.sin(time * 0.008) * 15 * intensity;
+                add_BodyY = -bounce;
+                add_BodyScaleY = bounce * 0.005;
+                add_BodyScaleX = -bounce * 0.005;
+                add_HeadY = nod - bounce;
+
+            } else if (distB < interactionThreshold) {
+                const intensity = (interactionThreshold - distB) / interactionThreshold;
+                eyeLeft.className = "eye left angry"; eyeRight.className = "eye right angry";
+
+                t_HeadX = boxBNormX * 20; 
+                t_HeadY = boxBNormY * 20 + 95; 
+                t_RigRot = -boxBNormX * 15; 
+                t_EarL = 60; t_EarR = -60;
+                
+                // El cuerpo se queda ARRIBA y entero; la cabeza es la que baja.
+                t_BodyScaleX = 1.3; t_BodyScaleY = 0.9; t_BodyY = 5;
+                t_NeckScaleX = 1.5; t_NeckScaleY = 0.3; 
+
+                const shake = Math.sin(time * 0.02) * 20 * intensity;
+                add_HeadX = shake + (Math.random() - 0.5) * 8 * intensity;
+                add_HeadY = (Math.random() - 0.5) * 8 * intensity;
+
+            } else {
+                if (mouseDistance < 200) {
+                    eyeLeft.className = "eye left angry"; eyeRight.className = "eye right angry";
+                    const fear = (200 - mouseDistance) / 200;
+                    
+                    // El cuerpo se queda alto y entero: bola, no tallo.
+                    t_BodyScaleX = 1 + (fear * 0.4); t_BodyScaleY = 1 - (fear * 0.25); t_BodyY = fear * 12;
+                    // La cabeza se hunde DENTRO del cuerpo y el cuello se pliega
+                    // casi a cero (el goo los funde en un blob).
+                    t_NeckScaleX = 1 + (fear * 0.3); t_NeckScaleY = 1 - (fear * 0.85);
+                    
+                    t_HeadX = -mouseNormX * 20; t_HeadY = -mouseNormY * 15 + 60 + fear * 80;
+                    t_EarL = 50; t_EarR = -50;
+                    t_RigRot = -mouseNormX * 15;
+                    
+                    add_HeadX = (Math.random() - 0.5) * 4 * fear;
+                    add_HeadY = (Math.random() - 0.5) * 4 * fear;
+
+                } else if (mouseDistance < 350) {
+                    eyeLeft.className = "eye left sad"; eyeRight.className = "eye right sad";
+                    const timid = (350 - mouseDistance) / 150;
+                    
+                    t_BodyScaleX = 1 + (timid * 0.1); t_BodyScaleY = 1 - (timid * 0.1); t_BodyY = timid * 15;
+                    t_NeckScaleX = 1 + (timid * 0.2); t_NeckScaleY = 1 - (timid * 0.1);
+
+                    t_HeadX = -mouseNormX * 15; t_HeadY = -mouseNormY * 10 + 20;
+                    t_EarL = 20; t_EarR = -20;
+                    t_RigRot = -mouseNormX * 5;
+
+                } else {
+                    eyeLeft.className = "eye left"; eyeRight.className = "eye right";
+                    const stretch = Math.min((mouseDistance - 350) / 300, 1);
+                    
+                    t_BodyScaleX = 1 - (stretch * 0.2); t_BodyScaleY = 1 + (stretch * 0.3); t_BodyY = 0;
+                    t_NeckScaleX = 1 - (stretch * 0.4); t_NeckScaleY = 1 + (stretch * 0.5); 
+
+                    t_HeadX = mouseNormX * 60; t_HeadY = mouseNormY * 40 - (stretch * 30);
+                    t_EarL = mouseNormX * 30 + (mouseNormY * 20); t_EarR = mouseNormX * 30 - (mouseNormY * 20);
+                    t_RigRot = mouseNormX * 12 * stretch;
+                    t_HeadRot = mouseNormX * 18;
+
+                    if (mouseNormX < -0.3) { t_EyeL = 1.2; t_EyeR = 0.85; }
+                    else if (mouseNormX > 0.3) { t_EyeL = 0.85; t_EyeR = 1.2; }
+                }
+            }
+
+            const ease = 0.12; 
+            c_HeadX += (t_HeadX - c_HeadX) * ease;
+            c_HeadY += (t_HeadY - c_HeadY) * ease;
+            c_HeadRot += (t_HeadRot - c_HeadRot) * ease;
+            c_BodyY += (t_BodyY - c_BodyY) * ease;
+            c_BodyScaleX += (t_BodyScaleX - c_BodyScaleX) * ease;
+            c_BodyScaleY += (t_BodyScaleY - c_BodyScaleY) * ease;
+            c_NeckScaleX += (t_NeckScaleX - c_NeckScaleX) * ease;
+            c_NeckScaleY += (t_NeckScaleY - c_NeckScaleY) * ease;
+            c_EarL += (t_EarL - c_EarL) * ease;
+            c_EarR += (t_EarR - c_EarR) * ease;
+            c_RigRot += (t_RigRot - c_RigRot) * ease;
+            c_EyeL += (t_EyeL - c_EyeL) * ease;
+            c_EyeR += (t_EyeR - c_EyeR) * ease;
+
+            frameFlip = !frameFlip;
+            if (frameFlip) {
+            masterRigs.forEach(rig => {
+                rig.style.transform = `rotate(${c_RigRot}deg)`;
+            });
+
+            trackers.forEach(tracker => {
+                tracker.style.transform = `translate(${c_HeadX + add_HeadX}px, ${c_HeadY + add_HeadY}px) rotate(${c_HeadRot + add_HeadRot}deg)`;
+            });
+
+            bodyTracker.style.transform = `translateY(${c_BodyY + add_BodyY}px) scale(${c_BodyScaleX + add_BodyScaleX}, ${c_BodyScaleY + add_BodyScaleY})`;
+            neckBridge.style.transform = `scale(${c_NeckScaleX}, ${c_NeckScaleY})`;
+            
+            earLeft.style.transform = `rotate(${c_EarL + add_EarL}deg)`;
+            earRight.style.transform = `rotate(${c_EarR + add_EarR}deg)`;
+
+            c_LetY += (t_LetY - c_LetY) * 0.35;
+            c_LetScale += (t_LetScale - c_LetScale) * 0.35;
+            lettersLayerEl.style.transform = `translateY(${c_LetY}px) scale(${c_LetScale})`;
+
+            const pupilMoveX = mouseNormX * 14;
+            const pupilMoveY = mouseNormY * 14;
+            
+            eyeLeftWrapper.style.setProperty('--eye-x', `${pupilMoveX}px`);
+            eyeLeftWrapper.style.setProperty('--eye-y', `${pupilMoveY}px`);
+            eyeLeftWrapper.style.setProperty('--eye-sx', c_EyeL);
+            eyeLeftWrapper.style.setProperty('--eye-sy', c_EyeL);
+
+            eyeRightWrapper.style.setProperty('--eye-x', `${pupilMoveX}px`);
+            eyeRightWrapper.style.setProperty('--eye-y', `${pupilMoveY}px`);
+            eyeRightWrapper.style.setProperty('--eye-sx', c_EyeR);
+            eyeRightWrapper.style.setProperty('--eye-sy', c_EyeR);
+
+            // Respiración (antes en CSS): ciclo de 2 s, ahora a 30 fps.
+            const breathe = 0.5 - 0.5 * Math.cos(time * Math.PI / 1000);
+            bodyShapeEl.style.transform = `scale(${1 + breathe * 0.03}, ${1 + breathe * 0.02})`;
+            const breathT = `translateY(${breathe * 5}px) rotate(${-breathe}deg)`;
+            headBreathEl.style.transform = breathT;
+            eyesBreathEl.style.transform = breathT;
+            } // fin frameFlip
+
+            requestAnimationFrame(updateRig);
+        }
+        updateRig();
+
+        function blinkEye(wrapperElement) {
+            wrapperElement.classList.add('blinking');
+            setTimeout(() => {
+                wrapperElement.classList.remove('blinking');
+                setTimeout(() => blinkEye(wrapperElement), Math.random() * 4000 + 1000);
+            }, 100);
+        }
+        setTimeout(() => blinkEye(eyeLeftWrapper), 800);
+        setTimeout(() => blinkEye(eyeRightWrapper), 1500);
+
+        const inkContainer = document.getElementById('ink-particle-container');
+        const eyeParticleContainer = document.getElementById('eye-particle-container');
+        const lettersLayer = document.getElementById('letters-layer');
+        const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789§¶†‡";
+
+        function spawnParticles() {
+            const leftEarRect = earLeft.getBoundingClientRect();
+            const rightEarRect = earRight.getBoundingClientRect();
+            const headRect = headBase.getBoundingClientRect();
+            const bodyRect = bodyTracker.getBoundingClientRect();
+            const wOff = partWrapEl.getBoundingClientRect();
+            const leftEyeRect = eyeLeftWrapper.getBoundingClientRect();
+            const rightEyeRect = eyeRightWrapper.getBoundingClientRect();
+
+            for(let i=0; i<3; i++) {
+                if (Math.random() > 0.4) {
+                    const drop = document.createElement('div');
+                    drop.classList.add('ink-drop');
+                    const size = Math.random() * 15 + 8;
+                    drop.style.width = `${size}px`; drop.style.height = `${size}px`;
+                    
+                    let spawnZone = Math.random();
+                    let startX = 0, startY = 0;
+
+                    if (spawnZone < 0.3) {
+                        startX = leftEarRect.left + (leftEarRect.width / 2);
+                        startY = leftEarRect.top + (leftEarRect.height / 2);
+                    } else if (spawnZone < 0.6) {
+                        startX = rightEarRect.left + (rightEarRect.width / 2);
+                        startY = rightEarRect.top + (rightEarRect.height / 2);
+                    } else if (spawnZone < 0.75) {
+                        startX = headRect.left + (headRect.width / 2);
+                        startY = headRect.top + 20;
+                    } else if (spawnZone < 0.9) {
+                        // Torso: brotan del pecho y los costados
+                        startX = bodyRect.left + bodyRect.width * (0.15 + Math.random() * 0.7);
+                        startY = bodyRect.top + bodyRect.height * (0.25 + Math.random() * 0.4);
+                    } else {
+                        // Base: se evaporan desde el suelo de tinta
+                        startX = bodyRect.left + bodyRect.width * Math.random();
+                        startY = bodyRect.bottom - 15;
+                    }
+
+                    startX -= wOff.left; startY -= wOff.top;
+
+                    inkContainer.appendChild(drop);
+
+                    const destX = (Math.random() * 100 - 50);
+                    const destY = -(Math.random() * 150 + 80); 
+
+                    drop.animate([
+                        { transform: `translate(${startX}px, ${startY}px) scale(0)`, opacity: 0 },
+                        { transform: `translate(${startX + destX * 0.3}px, ${startY + destY * 0.3}px) scale(1)`, opacity: 1, offset: 0.3 },
+                        { transform: `translate(${startX + destX}px, ${startY + destY}px) scale(0)`, opacity: 0 }
+                    ], { duration: Math.random() * 2500 + 1500, easing: 'ease-in-out' }).onfinish = () => drop.remove();
+                }
+            }
+
+            if (Math.random() > 0.4) {
+                const spark = document.createElement('div');
+                spark.classList.add('eye-spark');
+                const size = Math.random() * 4 + 2;
+                spark.style.width = `${size}px`; spark.style.height = `${size}px`;
+                
+                const targetEye = Math.random() > 0.5 ? leftEyeRect : rightEyeRect;
+                const startX = targetEye.left + (targetEye.width / 2);
+                const startY = targetEye.top + (targetEye.height / 2);
+
+                eyeParticleContainer.appendChild(spark);
+
+                const destX = (Math.random() * 60 - 30);
+                const destY = -(Math.random() * 80 + 40);
+
+                spark.animate([
+                    { transform: `translate(${startX}px, ${startY}px) scale(0)`, opacity: 0 },
+                    { transform: `translate(${startX + destX * 0.3}px, ${startY + destY * 0.3}px) scale(1)`, opacity: 1, offset: 0.2 },
+                    { transform: `translate(${startX + destX}px, ${startY + destY}px) scale(0)`, opacity: 0 }
+                ], { duration: Math.random() * 1500 + 1000, easing: 'ease-out' }).onfinish = () => spark.remove();
+            }
+
+            if (Math.random() > 0.7) {
+                const letter = document.createElement('div');
+                letter.classList.add('floating-letter');
+                letter.innerText = alphabet[Math.floor(Math.random() * alphabet.length)];
+                
+                const startX = headRect.left + (headRect.width / 2) - wOff.left;
+                const startY = headRect.top + 10 - wOff.top;
+                
+                lettersLayer.appendChild(letter);
+
+                const destX = (Math.random() * 200 - 100);
+                const destY = -(Math.random() * 300 + 150);
+                const rotZ = Math.random() * 360;
+                const rotX = Math.random() * 180;
+
+                letter.animate([
+                    { transform: `translate(${startX}px, ${startY}px) rotateZ(0deg) rotateX(0deg) scale(0)`, opacity: 0 },
+                    { transform: `translate(${startX + destX * 0.4}px, ${startY + destY * 0.4}px) rotateZ(${rotZ*0.5}deg) rotateX(${rotX*0.5}deg) scale(1)`, opacity: 0.9, offset: 0.4 },
+                    { transform: `translate(${startX + destX}px, ${startY + destY}px) rotateZ(${rotZ}deg) rotateX(${rotX}deg) scale(0)`, opacity: 0 }
+                ], { duration: Math.random() * 5000 + 3500, easing: 'ease-in-out' }).onfinish = () => letter.remove();
+            }
+        }
+        
+        setInterval(spawnParticles, 120);
+    </script>
+
+    <!-- ═══ ELEVENLABS — módulo del SDK ═══
+         Agente público: conexión directa con agentId, sin backend ni claves.
+         'thinking' no existe como evento del SDK: se deriva — transcripción
+         final del usuario => thinking, hasta que el modo pasa a speaking. -->
+    <script type="module">
+        import { Conversation } from 'https://esm.sh/@elevenlabs/client';
+
+        const AGENT_ID = 'agent_2101kyzjd6e6ehhaaq9m4mhn8dhq';
+        const btn = document.getElementById('tizno-call');
+        const statusEl = document.getElementById('tizno-status');
+        let conversation = null;
+
+        const setStatus = (t) => { statusEl.textContent = t; };
+        let lastState = 'idle', lastStateAt = Date.now();
+        const setState = (s) => { lastState = s; lastStateAt = Date.now(); window.__setTiznoAI(s); };
+        let lastVad = 0;          // último vadScore recibido (push del SDK, no pull)
+        let vadHighSince = null;  // desde cuándo hay voz/ruido continuo sin cerrar turno
+        let watchdog = null;
+
+        async function wake() {
+            btn.disabled = true;
+            setStatus('pidiendo micrófono…');
+            try {
+                await navigator.mediaDevices.getUserMedia({ audio: true });
+            } catch (err) {
+                btn.disabled = false;
+                setStatus('sin micrófono no hay conversación (' + err.name + ')');
+                return;
+            }
+            setStatus('invocando a Tizno…');
+            try {
+                conversation = await Conversation.startSession({
+                    agentId: AGENT_ID,
+                    connectionType: 'websocket',
+                    onConnect: () => {
+                        btn.textContent = 'Dejarle en paz';
+                        btn.classList.add('live');
+                        btn.disabled = false;
+                        setState('listening');
+                        setStatus('Tizno te escucha… habla');
+                        vadHighSince = null;
+                        watchdog = setInterval(() => {
+                            // Rumiando >10 s sin audio del agente: algo se perdió
+                            // por el camino — vuelve a escuchar en vez de clavarse.
+                            if (lastState === 'thinking' && Date.now() - lastStateAt > 10000) {
+                                setState('listening');
+                                setStatus('Tizno se ha despistado… háblale otra vez');
+                            }
+                            // Voz continua >12 s sin turno cerrado = suena algo de
+                            // fondo (vídeo, música) y no deja hablar al agente.
+                            if (vadHighSince && Date.now() - vadHighSince > 12000) {
+                                setStatus('oigo ruido continuo — pausa vídeos o música o Tizno no podrá responder');
+                            }
+                        }, 1000);
+                    },
+                    onDisconnect: () => {
+                        btn.textContent = 'Despertar a Tizno';
+                        btn.classList.remove('live');
+                        btn.disabled = false;
+                        setState('idle');
+                        setStatus('se ha evaporado');
+                        window.__tiznoSignals = null;
+                        conversation = null;
+                        if (watchdog) { clearInterval(watchdog); watchdog = null; }
+                    },
+                    onModeChange: ({ mode }) => {
+                        // El SDK solo reporta speaking/listening.
+                        setState(mode === 'speaking' ? 'speaking' : 'listening');
+                        setStatus(mode === 'speaking' ? 'Tizno habla…' : 'Tizno te escucha…');
+                    },
+                    onMessage: ({ source }) => {
+                        // Fin del turno del usuario => el goblin rumia (thinking)
+                        // hasta que llegue el primer audio del agente.
+                        if (source === 'user') {
+                            vadHighSince = null; // el turno sí llegó a cerrarse
+                            setState('thinking'); setStatus('Tizno rumia…');
+                        }
+                    },
+                    onVadScore: (e) => {
+                        // Probabilidad 0..1 de que el usuario esté hablando.
+                        lastVad = (typeof e === 'number' ? e : e?.vadScore) || 0;
+                        if (lastVad > 0.5) { if (!vadHighSince) vadHighSince = Date.now(); }
+                        else vadHighSince = null;
+                    },
+                    onError: (err) => {
+                        console.error('[tizno-ai]', err);
+                        setStatus('algo se rompió en el vacío: ' + (err?.message || err));
+                    },
+                });
+                // Paleta completa para animación. Bandas: media 0..1 de un rango
+                // de bins del FFT de salida (fftSize 2048 => ~23 Hz por bin a 48 kHz).
+                const band = (arr, from, to) => {
+                    if (!arr || !arr.length) return 0;
+                    to = Math.min(to, arr.length);
+                    let sum = 0;
+                    for (let i = from; i < to; i++) sum += arr[i];
+                    return sum / ((to - from) * 255);
+                };
+                window.__tiznoSignals = () => {
+                    try {
+                        const f = conversation.getOutputByteFrequencyData();
+                        return {
+                            outVol: conversation.getOutputVolume(),
+                            inVol:  conversation.getInputVolume(),
+                            bass:   band(f, 1, 9),     // ~23-200 Hz
+                            mid:    band(f, 9, 44),    // ~200-1000 Hz
+                            treble: band(f, 44, 131),  // ~1-3 kHz
+                            vad:    lastVad,
+                        };
+                    } catch (_) { return null; }
+                };
+            } catch (err) {
+                btn.disabled = false;
+                setState('idle');
+                setStatus('no se pudo invocar: ' + (err?.message || err));
+                console.error('[tizno-ai] startSession', err);
+            }
+        }
+
+        async function sleep() {
+            if (conversation) { try { await conversation.endSession(); } catch (_) {} }
+        }
+
+        btn.addEventListener('click', () => conversation ? sleep() : wake());
+    </script>
+</body>
+</html>
