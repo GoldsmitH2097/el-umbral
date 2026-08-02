@@ -986,7 +986,13 @@
                 await navigator.mediaDevices.getUserMedia({ audio: true });
             } catch (err) {
                 btn.disabled = false;
-                setStatus('sin micrófono no hay conversación (' + err.name + ')');
+                if (err.name === 'NotAllowedError') {
+                    setStatus('micrófono bloqueado — pulsa el candado de la barra de direcciones → Micrófono → Permitir, y recarga');
+                } else if (err.name === 'NotFoundError') {
+                    setStatus('no encuentro ningún micrófono en este dispositivo');
+                } else {
+                    setStatus('sin micrófono no hay conversación (' + err.name + ')');
+                }
                 return;
             }
             setStatus('invocando a Tizno…');
