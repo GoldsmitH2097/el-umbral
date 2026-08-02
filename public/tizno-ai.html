@@ -329,6 +329,13 @@
         let aiState = 'idle';            // idle | listening | thinking | speaking
         let aiVolume = 0;                // energía base de la voz (envolvente lenta)
         let aiVolFast = 0;               // envolvente rápida: sigue las sílabas
+
+        /* ── MESA DE MEZCLAS ── cuánto pesa cada fuente sobre la postura.
+           Sube o baja estos cuatro faders a gusto:                       */
+        const W_RATON_HABLANDO = 0.6;  // seguimiento del cursor mientras habla (0-1)
+        const W_VOZ_CUERPO     = 1.0;  // su voz empujando cuerpo y cuello
+        const W_TELENECO       = 1.6;  // cabeceo muppet por sílaba (1 = moderado)
+        const W_VOZ_USUARIO    = 1.0;  // tu voz empujándole mientras escucha
         let sBass = 0, sMid = 0, sTreble = 0, sInVol = 0, sVad = 0;
         let prevTreble = 0, ticDirL = 1, ticDirR = -0.5;
         let c_LetY = 0, c_LetScale = 1;  // cadencia de la capa de letras
@@ -582,12 +589,12 @@
                 // vad = certeza de estar oyéndote => orejas de gato.
                 eyeLeft.className = "eye left sad"; eyeRight.className = "eye right sad";
                 t_RigRot = 0; t_HeadX = 0;
-                const pushback = sInVol * 80;
+                const pushback = sInVol * 80 * W_VOZ_USUARIO;
                 t_HeadY = 20 + pushback;
                 t_BodyY = pushback * 0.5;
                 t_BodyScaleX = 1 + sInVol * 0.3; t_BodyScaleY = 1 - sInVol * 0.2;
                 t_NeckScaleX = 1 + sInVol * 0.2; t_NeckScaleY = 1 - sInVol * 0.1;
-                const earFocus = sVad * 50;
+                const earFocus = sVad * 50 * W_VOZ_USUARIO;
                 t_EarL = -20 + earFocus; t_EarR = 20 - earFocus;
                 t_EyeL = 1 + sVad * 0.15; t_EyeR = 1 + sVad * 0.15;
 
@@ -626,17 +633,18 @@
                 } else {
                     eyeLeft.className = "eye left"; eyeRight.className = "eye right";
                 }
-                t_HeadX = mouseNormX * 60;
-                t_HeadY = mouseNormY * 40 - 20;
-                t_HeadRot = mouseNormX * 10;
-                t_RigRot = mouseNormX * 8 + aiVolume * 1.5;
+                t_HeadX = mouseNormX * 60 * W_RATON_HABLANDO;
+                t_HeadY = mouseNormY * 40 * W_RATON_HABLANDO - 20;
+                t_HeadRot = mouseNormX * 10 * W_RATON_HABLANDO;
+                t_RigRot = mouseNormX * 8 * W_RATON_HABLANDO + aiVolume * 1.5;
                 // Cada sílaba empuja el cuerpo AL INSTANTE; graves = peso horizontal.
-                add_BodyScaleY = aiVolFast * 0.32 + transient * 0.35 - sBass * 0.12;
-                add_BodyScaleX = -aiVolFast * 0.16 + sBass * 0.28;
-                // Cabeceo teleñeco: la cabeza salta y se ladea con cada sílaba.
-                add_HeadY = -(transient * 34) - aiVolFast * 8;
-                add_HeadRot = -(transient * 7) - aiVolFast * 2;
-                t_NeckScaleY = 1 + aiVolume * 0.2; t_NeckScaleX = 1 - aiVolume * 0.1;
+                add_BodyScaleY = (aiVolFast * 0.32 + transient * 0.35 - sBass * 0.12) * W_VOZ_CUERPO;
+                add_BodyScaleX = (-aiVolFast * 0.16 + sBass * 0.28) * W_VOZ_CUERPO;
+                // Cabeceo teleñeco: salto + ladeo por sílaba, con rebote de cuello.
+                add_HeadY = (-(transient * 34) - aiVolFast * 8) * W_TELENECO;
+                add_HeadRot = (-(transient * 7) - aiVolFast * 2) * W_TELENECO;
+                t_NeckScaleY = 1 + (aiVolume * 0.2 + transient * 0.18) * W_VOZ_CUERPO;
+                t_NeckScaleX = 1 - aiVolume * 0.1 * W_VOZ_CUERPO;
                 // Orejas: base suave con el ratón (t_), tic de agudos inmediato (add_).
                 t_EarL = mouseNormX * 20 + aiVolume * 8;
                 t_EarR = mouseNormX * 20 - aiVolume * 8;
