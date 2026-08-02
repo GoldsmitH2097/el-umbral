@@ -395,6 +395,48 @@
         };
         window.addEventListener('pointerdown', sfxEnable);
         window.addEventListener('keydown', sfxEnable);
+
+        /* El murmullo de rumia: "mmmw… wwmmm" — dos osciladores graves con
+           vibrato lento tras un filtro cerrado (boca cerrada). Arranca al
+           entrar en 'thinking' y se apaga con fade al salir. */
+        let humOsc = null, humOsc2 = null, humLfo = null, humLfoGain = null,
+            humFilter = null, humGain = null, prevAiState = 'idle';
+        function humStart() {
+            if (!sfxCtx || sfxCtx.state !== 'running' || humOsc) return;
+            try {
+                const t = sfxCtx.currentTime;
+                const f = 85 + Math.random() * 30;   // cada rumia, un tono distinto
+                humOsc = sfxCtx.createOscillator(); humOsc.type = 'triangle';
+                humOsc.frequency.value = f;
+                humOsc2 = sfxCtx.createOscillator(); humOsc2.type = 'sine';
+                humOsc2.frequency.value = f * 2.01;  // octava desafinada un pelo
+                humLfo = sfxCtx.createOscillator(); humLfo.frequency.value = 3.2;
+                humLfoGain = sfxCtx.createGain(); humLfoGain.gain.value = 7;
+                humLfo.connect(humLfoGain); humLfoGain.connect(humOsc.frequency);
+                humFilter = sfxCtx.createBiquadFilter(); humFilter.type = 'lowpass';
+                humFilter.frequency.value = 320; humFilter.Q.value = 3;
+                humGain = sfxCtx.createGain();
+                humGain.gain.setValueAtTime(0.0001, t);
+                humGain.gain.exponentialRampToValueAtTime(0.05, t + 0.25);
+                humOsc.connect(humFilter); humOsc2.connect(humFilter);
+                humFilter.connect(humGain).connect(sfxCtx.destination);
+                humOsc.start(t); humOsc2.start(t); humLfo.start(t);
+            } catch (_) {}
+        }
+        function humStop() {
+            if (!humOsc) return;
+            try {
+                const t = sfxCtx.currentTime;
+                humGain.gain.cancelScheduledValues(t);
+                humGain.gain.setValueAtTime(Math.max(humGain.gain.value, 0.0001), t);
+                humGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
+                const o1 = humOsc, o2 = humOsc2, lf = humLfo, lg = humLfoGain,
+                      fl = humFilter, g = humGain;
+                o1.stop(t + 0.3); o2.stop(t + 0.3); lf.stop(t + 0.3);
+                o1.onended = () => { try { o1.disconnect(); o2.disconnect(); lf.disconnect(); lg.disconnect(); fl.disconnect(); g.disconnect(); } catch (_) {} };
+            } catch (_) {}
+            humOsc = humOsc2 = humLfo = humLfoGain = humFilter = humGain = null;
+        }
         function scareSfx() {
             if (!sfxCtx || sfxCtx.state !== 'running') return;
             try {
@@ -541,6 +583,11 @@
             }
 
             prevFear = inFear; inFear = false;
+            // Murmullo de rumia: suena mientras piensa, calla al hablar.
+            if (aiState === 'thinking' && prevAiState !== 'thinking') humStart();
+            else if (aiState !== 'thinking' && prevAiState === 'thinking') humStop();
+            prevAiState = aiState;
+
             const sig = tiznoSignals();
             // Doble envolvente: la rápida sigue las sílabas, la lenta es la energía
             // base; su diferencia (transient) marca cada golpe de voz.
