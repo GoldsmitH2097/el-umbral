@@ -258,7 +258,7 @@
             <div class="head-tracker">
                 <div id="head-breathing-layer">
                     <div class="ear-shape" id="ear-left-wrapper"><svg viewBox="0 0 150 100" class="ear-svg"><path d="M 150 50 Q 70 20 0 40 Q 60 90 150 80 Z" /></svg></div>
-                    <div class="ear-shape" id="ear-right-wrapper"><svg viewBox="0 0 150 100" class="ear-svg"><path d="M 0 50 Q 80 20 150 40 Q 90 90 0 80 Z" /></svg><div id="earring-anchor" style="position: absolute; left: 88%; top: 55%; width: 2px; height: 2px;"></div></div>
+                    <div class="ear-shape" id="ear-right-wrapper"><svg viewBox="0 0 150 100" class="ear-svg"><path d="M 0 50 Q 80 20 150 40 Q 90 90 0 80 Z" /></svg><div id="earring-anchor" style="position: absolute; left: 78%; top: 48%; width: 2px; height: 2px;"></div></div>
                     <div id="head-base"></div>
                     <div id="neck-bridge"></div>
                 </div>
@@ -489,7 +489,7 @@
                 erOmega += alpha * dt;          // Euler semi-implícito: estable
                 erTheta += erOmega * dt;
                 erVX = vx; erVY = vy; erPX = px; erPY = py; erLastT = time;
-                earringEl.style.transform = `translate(${px - 9}px, ${py}px) rotate(${erTheta * 180 / Math.PI}deg) skew(-12deg)`;
+                earringEl.style.transform = `translate(${px - 9}px, ${py - 6}px) rotate(${erTheta * 180 / Math.PI}deg) skew(-12deg)`;
             }
             const interactionThreshold = 180; 
 
