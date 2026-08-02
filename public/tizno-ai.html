@@ -258,7 +258,7 @@
             <div class="head-tracker">
                 <div id="head-breathing-layer">
                     <div class="ear-shape" id="ear-left-wrapper"><svg viewBox="0 0 150 100" class="ear-svg"><path d="M 150 50 Q 70 20 0 40 Q 60 90 150 80 Z" /></svg></div>
-                    <div class="ear-shape" id="ear-right-wrapper"><svg viewBox="0 0 150 100" class="ear-svg"><path d="M 0 50 Q 80 20 150 40 Q 90 90 0 80 Z" /></svg><div id="earring-anchor" style="position: absolute; left: 78%; top: 48%; width: 2px; height: 2px;"></div></div>
+                    <div class="ear-shape" id="ear-right-wrapper"><svg viewBox="0 0 150 100" class="ear-svg"><path d="M 0 50 Q 80 20 150 40 Q 90 90 0 80 Z" /></svg><div id="earring-anchor" style="position: absolute; left: 83%; top: 51%; width: 2px; height: 2px;"></div></div>
                     <div id="head-base"></div>
                     <div id="neck-bridge"></div>
                 </div>
@@ -396,58 +396,37 @@
         window.addEventListener('pointerdown', sfxEnable);
         window.addEventListener('keydown', sfxEnable);
 
-        /* El murmullo de rumia: "mmmw… wwmmm" — dos osciladores graves con
-           vibrato lento tras un filtro cerrado (boca cerrada). Arranca al
-           entrar en 'thinking' y se apaga con fade al salir. */
-        let humOsc = null, humOsc2 = null, humLfo = null, humLfoGain = null,
-            humFilter = null, humGain = null, prevAiState = 'idle';
-        function humStart() {
-            if (!sfxCtx || sfxCtx.state !== 'running' || humOsc) return;
+        /* ── LA VOZ DE TIZNO ──
+           Nada de ambientes: sílabas cortas tipo muppet. Sierra + filtro
+           formante (boca cerrada nasal) + contorno de tono por sílaba:
+           subida = duda, bajada = gruñido. */
+        let nextMutterAt = 0;
+        function tiznoVoice(f0, f1, dur, vol) {
+            if (!sfxCtx || sfxCtx.state !== 'running') return;
             try {
                 const t = sfxCtx.currentTime;
-                const f = 85 + Math.random() * 30;   // cada rumia, un tono distinto
-                humOsc = sfxCtx.createOscillator(); humOsc.type = 'triangle';
-                humOsc.frequency.value = f;
-                humOsc2 = sfxCtx.createOscillator(); humOsc2.type = 'sine';
-                humOsc2.frequency.value = f * 2.01;  // octava desafinada un pelo
-                humLfo = sfxCtx.createOscillator(); humLfo.frequency.value = 3.2;
-                humLfoGain = sfxCtx.createGain(); humLfoGain.gain.value = 7;
-                humLfo.connect(humLfoGain); humLfoGain.connect(humOsc.frequency);
-                humFilter = sfxCtx.createBiquadFilter(); humFilter.type = 'lowpass';
-                humFilter.frequency.value = 320; humFilter.Q.value = 3;
-                humGain = sfxCtx.createGain();
-                humGain.gain.setValueAtTime(0.0001, t);
-                humGain.gain.exponentialRampToValueAtTime(0.05, t + 0.25);
-                humOsc.connect(humFilter); humOsc2.connect(humFilter);
-                humFilter.connect(humGain).connect(sfxCtx.destination);
-                humOsc.start(t); humOsc2.start(t); humLfo.start(t);
+                const o = sfxCtx.createOscillator(); o.type = 'sawtooth';
+                o.frequency.setValueAtTime(f0, t);
+                o.frequency.exponentialRampToValueAtTime(Math.max(f1, 30), t + dur);
+                const bp = sfxCtx.createBiquadFilter(); bp.type = 'bandpass';
+                bp.frequency.value = 550; bp.Q.value = 1.4;
+                const lp = sfxCtx.createBiquadFilter(); lp.type = 'lowpass';
+                lp.frequency.value = 1400;
+                const g = sfxCtx.createGain();
+                g.gain.setValueAtTime(0.0001, t);
+                g.gain.exponentialRampToValueAtTime(vol, t + 0.025);
+                g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+                o.connect(bp); bp.connect(lp); lp.connect(g); g.connect(sfxCtx.destination);
+                o.start(t); o.stop(t + dur + 0.02);
+                o.onended = () => { try { o.disconnect(); bp.disconnect(); lp.disconnect(); g.disconnect(); } catch (_) {} };
             } catch (_) {}
-        }
-        function humStop() {
-            if (!humOsc) return;
-            try {
-                const t = sfxCtx.currentTime;
-                humGain.gain.cancelScheduledValues(t);
-                humGain.gain.setValueAtTime(Math.max(humGain.gain.value, 0.0001), t);
-                humGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
-                const o1 = humOsc, o2 = humOsc2, lf = humLfo, lg = humLfoGain,
-                      fl = humFilter, g = humGain;
-                o1.stop(t + 0.3); o2.stop(t + 0.3); lf.stop(t + 0.3);
-                o1.onended = () => { try { o1.disconnect(); o2.disconnect(); lf.disconnect(); lg.disconnect(); fl.disconnect(); g.disconnect(); } catch (_) {} };
-            } catch (_) {}
-            humOsc = humOsc2 = humLfo = humLfoGain = humFilter = humGain = null;
         }
         function scareSfx() {
             if (!sfxCtx || sfxCtx.state !== 'running') return;
             try {
                 const t = sfxCtx.currentTime;
-                const o = sfxCtx.createOscillator(); o.type = 'triangle';
-                o.frequency.setValueAtTime(280, t);
-                o.frequency.exponentialRampToValueAtTime(70, t + 0.28);
-                const og = sfxCtx.createGain();
-                og.gain.setValueAtTime(0.0001, t);
-                og.gain.exponentialRampToValueAtTime(0.07, t + 0.03);
-                og.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+                // ¡Uip! — chillidito descendente con la voz de Tizno.
+                tiznoVoice(420, 110, 0.26, 0.09);
                 const nb = sfxCtx.createBuffer(1, Math.floor(sfxCtx.sampleRate * 0.3), sfxCtx.sampleRate);
                 const d = nb.getChannelData(0);
                 for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
@@ -458,11 +437,8 @@
                 ng.gain.setValueAtTime(0.0001, t);
                 ng.gain.exponentialRampToValueAtTime(0.12, t + 0.02);
                 ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
-                o.connect(og).connect(sfxCtx.destination);
                 ns.connect(nf).connect(ng).connect(sfxCtx.destination);
-                o.start(t); o.stop(t + 0.32);
                 ns.start(t); ns.stop(t + 0.3);
-                o.onended = () => { o.disconnect(); og.disconnect(); };
                 ns.onended = () => { ns.disconnect(); nf.disconnect(); ng.disconnect(); };
             } catch (_) {}
         }
@@ -531,7 +507,7 @@
                 erOmega += alpha * dt;          // Euler semi-implícito: estable
                 erTheta += erOmega * dt;
                 erVX = vx; erVY = vy; erPX = px; erPY = py; erLastT = time;
-                earringEl.style.transform = `translate(${px - 9}px, ${py - 6}px) rotate(${erTheta * 180 / Math.PI}deg) skew(-12deg)`;
+                earringEl.style.transform = `translate(${px - 9}px, ${py - 3}px) rotate(${erTheta * 180 / Math.PI}deg) skew(-12deg)`;
             }
             const interactionThreshold = 180; 
 
@@ -583,10 +559,20 @@
             }
 
             prevFear = inFear; inFear = false;
-            // Murmullo de rumia: suena mientras piensa, calla al hablar.
-            if (aiState === 'thinking' && prevAiState !== 'thinking') humStart();
-            else if (aiState !== 'thinking' && prevAiState === 'thinking') humStop();
-            prevAiState = aiState;
+            // Refunfuño de rumia: sílabas cortas con pausas irregulares — VOZ,
+            // no ambiente. Cada sílaba con su propio contorno de tono.
+            if (aiState === 'thinking') {
+                if (time >= nextMutterAt) {
+                    const base = 130 + Math.random() * 70;
+                    const shape = Math.random();
+                    if (shape < 0.4)      tiznoVoice(base, base * 0.82, 0.14, 0.05);       // gruñido corto
+                    else if (shape < 0.7) tiznoVoice(base, base * 1.28, 0.18, 0.045);      // duda hacia arriba
+                    else                  tiznoVoice(base * 1.1, base * 0.75, 0.24, 0.05); // refunfuño largo
+                    nextMutterAt = time + 260 + Math.random() * 420 + (Math.random() < 0.35 ? 700 : 0);
+                }
+            } else {
+                nextMutterAt = time + 350; // pequeño respiro al entrar en rumia
+            }
 
             const sig = tiznoSignals();
             // Doble envolvente: la rápida sigue las sílabas, la lenta es la energía
