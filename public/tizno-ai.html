@@ -340,6 +340,10 @@
            El módulo SDK lo detecta y lo fija aquí con caducidad. */
         let aiMood = null, aiMoodUntil = 0;
         window.__setTiznoMood = (m, holdMs) => { aiMood = m; aiMoodUntil = Date.now() + (holdMs || 8000); };
+        /* Línea de tiempo emocional: el módulo instala window.__tiznoTimeline
+           ({segs, totalChars, cps}) por cada parlamento; el rig avanza un reloj
+           de habla (solo cuando suena audio) y busca el tramo actual. */
+        let wasSpeaking = false, speakMs = 0;
         window.__tiznoSignals = null;    // el módulo instala () => paleta de señales
 
         /* Luciérnaga: vaga por la página. Si el ratón lleva >3 s quieto, roba la
@@ -524,7 +528,7 @@
             // Ratón quieto >3 s: la luciérnaga sustituye sus coordenadas — Tizno
             // la sigue con ojos y cabeza, y si se le acerca, se asusta. El primer
             // mousemove real devuelve el control al cursor al instante.
-            if (time - lastMouseMove > 3000) {
+            if (time - lastMouseMove > 3000 && window.innerWidth > 0) {
                 const fcx = window.innerWidth / 2, fcy = window.innerHeight / 2;
                 mouseDistance = Math.hypot(ffX - fcx, ffY - fcy);
                 mouseNormX = (ffX - fcx) / fcx;
@@ -532,6 +536,11 @@
             }
 
             prevFear = inFear; inFear = false;
+            // Reloj del parlamento: avanza solo mientras suena su voz.
+            if (aiState === 'speaking') {
+                if (!wasSpeaking) { wasSpeaking = true; speakMs = 0; }
+                if (aiVolFast > 0.03) speakMs += 16;
+            } else { wasSpeaking = false; }
             // Refunfuño de rumia: sílabas cortas con pausas irregulares — VOZ,
             // no ambiente. Cada sílaba con su propio contorno de tono.
             if (aiState === 'thinking') {
@@ -602,7 +611,14 @@
                 // "Lip-sync" procedural y SNAPPY: los golpes de sílaba (transient)
                 // van por los canales add_ — inmediatos, sin el ease global 0.12
                 // que los convertía en un balanceo constante. La postura queda en t_.
-                const mood = (aiMood && time < aiMoodUntil) ? aiMood : null;
+                let mood = (aiMood && time < aiMoodUntil) ? aiMood : null;
+                // La línea de tiempo manda: humor del tramo que suena AHORA.
+                const tl = window.__tiznoTimeline;
+                if (tl && tl.segs.length) {
+                    const frac = Math.min(speakMs / 1000 / (tl.totalChars / tl.cps), 0.999);
+                    const seg = tl.segs.find(sg => frac >= sg.start && frac < sg.end);
+                    if (seg) mood = seg.mood; // un tramo neutro también pisa el global
+                }
                 if (mood === 'enfado') {
                     eyeLeft.className = "eye left angry"; eyeRight.className = "eye right angry";
                 } else if (mood === 'miedo' || mood === 'tristeza') {
@@ -642,6 +658,9 @@
                 } else if (mood === 'energia') {
                     add_BodyScaleY += transient * 0.2;
                     add_HeadY -= transient * 10;              // saltos más altos
+                } else if (mood === 'duda') {
+                    t_HeadRot += 8;                           // cabeza ladeada
+                    t_EarL += 20; t_EarR += 12;               // una oreja alzada
                 }
 
             } else if (distA < interactionThreshold) {
@@ -928,6 +947,48 @@
         let vadHighSince = null;  // desde cuándo hay voz/ruido continuo sin cerrar turno
         let watchdog = null;
 
+        /* ── Línea de tiempo emocional del parlamento ──
+           El texto llega antes que el audio: lo troceamos por acotaciones y
+           frases, cada tramo con su humor, y estimamos cuándo suena cada uno
+           (proporcional a caracteres, con velocidad auto-calibrada). */
+        const MOOD_LEX = [
+            [/grita|gruñe|ruge|amenaza|golpea|furios|rabia|\bira\b|maldit|¡no\b/, 'enfado'],
+            [/tiembla|tartamudea|respiraci|jadea|se encoge|susurra rápido|miedo|asustad|terror|no te acerques|peligro|huye/, 'miedo'],
+            [/solloza|suspira|llora|lament|triste|\bsolo\b|abandonad|olvidad|\bpena\b|vacío me llama/, 'tristeza'],
+            [/ríe|risa|carcajada|canturrea|salta|celebra|brillante|jaja|maravill|tesoro/, 'energia'],
+        ];
+        const moodOf = (txt) => {
+            const t = txt.toLowerCase();
+            for (const [re, m] of MOOD_LEX) if (re.test(t)) return m;
+            return null;
+        };
+        let ttsCps = 13;           // caracteres/segundo estimados (se calibra solo)
+        let lastTotalChars = 0, speakStartAt = 0;
+        function buildTimeline(msg) {
+            const segs = [];
+            let inherited = null;
+            for (const part of msg.split(/(\[[^\]]*\])/).filter(Boolean)) {
+                if (/^\[[^\]]*\]$/.test(part)) {
+                    // acotación del propio agente: fija el humor y ocupa un instante
+                    inherited = moodOf(part) || inherited;
+                    segs.push({ mood: inherited, chars: 2 });
+                    continue;
+                }
+                for (const sent of part.split(/(?<=[.!?…])/)) {
+                    if (!sent.trim()) continue;
+                    const m = moodOf(sent) || (/\?\s*$/.test(sent.trim()) ? 'duda' : null);
+                    if (m) inherited = m;
+                    segs.push({ mood: inherited, chars: sent.length });
+                }
+            }
+            if (!segs.length) return null;
+            const total = segs.reduce((a, x) => a + x.chars, 0);
+            let acc = 0;
+            const out = segs.map(x => { const st = acc / total; acc += x.chars; return { mood: x.mood, start: st, end: acc / total }; });
+            lastTotalChars = total;
+            return { segs: out, totalChars: total, cps: ttsCps };
+        }
+
         /* ── Protección de créditos ──
            Tope por conversación (Tizno "se cansa"), corte al ocultar la pestaña
            y límite diario por navegador. Sin esto, una pestaña olvidada con la
@@ -1019,6 +1080,19 @@
                         // El SDK solo reporta speaking/listening.
                         setState(mode === 'speaking' ? 'speaking' : 'listening');
                         setStatus(mode === 'speaking' ? 'Tizno habla…' : 'Tizno te escucha…');
+                        // Auto-calibración de velocidad del TTS: al terminar un
+                        // parlamento sabemos su duración real.
+                        if (mode === 'speaking') {
+                            speakStartAt = Date.now();
+                        } else if (speakStartAt) {
+                            const dur = (Date.now() - speakStartAt) / 1000;
+                            if (dur > 1.5 && lastTotalChars > 30) {
+                                const measured = lastTotalChars / dur;
+                                ttsCps = Math.max(8, Math.min(22, ttsCps + (measured - ttsCps) * 0.4));
+                                if (window.__tiznoTimeline) window.__tiznoTimeline.cps = ttsCps;
+                            }
+                            speakStartAt = 0;
+                        }
                     },
                     onMessage: ({ source, message }) => {
                         // Fin del turno del usuario => el goblin rumia (thinking)
@@ -1031,16 +1105,16 @@
                                 setState('thinking'); setStatus('Tizno rumia…');
                             }
                         }
-                        // El texto del agente llega al empezar a hablar: sus propias
-                        // acotaciones ([Tiembla], [Gruñe]…) delatan el tono.
+                        // El texto del agente llega al empezar a hablar: línea de
+                        // tiempo emocional tramo a tramo (acotaciones + frases).
                         if (source === 'ai' && typeof message === 'string') {
-                            const t = message.toLowerCase();
-                            const mood =
-                                /\[(grita|gruñe|ruge|amenaza)|furia|rabia|¡no grites/.test(t) ? 'enfado' :
-                                /\[(tiembla|tartamudea|respiraci|jadea|se encoge)|miedo|asustad|no te acerques/.test(t) ? 'miedo' :
-                                /\[(solloza|suspira|llora|susurra)|triste|\bsolo\b|olvidad/.test(t) ? 'tristeza' :
-                                /\[(ríe|risa|canturrea|salta)|jaja|brillante/.test(t) ? 'energia' : null;
-                            if (mood) window.__setTiznoMood(mood, 8000);
+                            const tl = buildTimeline(message);
+                            if (tl) {
+                                window.__tiznoTimeline = tl;
+                                // fallback global: primer humor no neutro del parlamento
+                                const first = tl.segs.find(x => x.mood);
+                                if (first) window.__setTiznoMood(first.mood, 8000);
+                            }
                         }
                     },
                     onVadScore: (e) => {
