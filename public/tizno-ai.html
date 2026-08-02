@@ -979,11 +979,19 @@
            El texto llega antes que el audio: lo troceamos por acotaciones y
            frases, cada tramo con su humor, y estimamos cuándo suena cada uno
            (proporcional a caracteres, con velocidad auto-calibrada). */
+        /* Vocabulario bilingüe: las acotaciones que escribe el agente en español
+           Y los audio tags de ElevenLabs v3 (que salen en inglés: [Laughing],
+           [scared]…). Si añades un tag nuevo en el panel, mételo aquí también. */
         const MOOD_LEX = [
             [/grita|gruñe|ruge|amenaza|golpea|furios|rabia|\bira\b|maldit|¡no\b/, 'enfado'],
-            [/tiembla|tartamudea|respiraci|jadea|se encoge|susurra rápido|miedo|asustad|terror|no te acerques|peligro|huye/, 'miedo'],
-            [/solloza|suspira|llora|lament|triste|\bsolo\b|abandonad|olvidad|\bpena\b|vacío me llama/, 'tristeza'],
+            [/angr|shout|yell|growl|snarl|furious|roars?\b|annoyed|irritated/, 'enfado'],
+            [/tiembla|tartamudea|respiraci|jadea|se encoge|susurra|miedo|asustad|terror|no te acerques|peligro|huye/, 'miedo'],
+            [/scared|frightened|afraid|nervous|whisper|trembl|gasp|panick|terrified|worried|stammer/, 'miedo'],
+            [/solloza|suspira|llora|lament|triste|\bsolo\b|abandonad|olvidad|\bpena\b|queja|vacío me llama/, 'tristeza'],
+            [/\bsad|sigh|cry|cries|sobs?\b|mournful|melanchol|disappointed|weary|resigned/, 'tristeza'],
             [/ríe|risa|carcajada|canturrea|salta|celebra|brillante|jaja|maravill|tesoro/, 'energia'],
+            [/laugh|chuckl|giggl|excited|enthusiastic|cheerful|playful|delighted|gleeful|sings?\b/, 'energia'],
+            [/curio|confused|questioning|hesitan|puzzled|thoughtful|pondering|wondering|intrigued|duda|extrañad/, 'duda'],
         ];
         const moodOf = (txt) => {
             const t = txt.toLowerCase();
