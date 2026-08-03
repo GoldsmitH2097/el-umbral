@@ -507,10 +507,55 @@
                 o.onended = () => { try { o.disconnect(); bp.disconnect(); lp.disconnect(); g.disconnect(); } catch (_) {} };
             } catch (_) {}
         }
+        /* ══════ BANCO DE SONIDOS ══════
+           Deja los mp3 en /tizno-sfx/ con estos nombres y suenan solos.
+           Si un archivo no existe, simplemente no suena: nada se rompe.
+           Puedes ir añadiéndolos de uno en uno. */
+        const SFX_BASE = 'tizno-sfx/';
+        const SFX = {
+            susto:     { archivo: 'susto.mp3',     vol: 0.55 },
+            ronroneo:  { archivo: 'ronroneo.mp3',  vol: 0.45, bucle: true },
+            pop:       { archivo: 'pop.mp3',       vol: 0.5  },
+            enfado:    { archivo: 'enfado.mp3',    vol: 0.5  },
+            quejido:   { archivo: 'quejido.mp3',   vol: 0.45 },
+        };
+        const sfxCache = {};
+        function sfxObtener(nombre) {
+            const def = SFX[nombre];
+            if (!def || def.roto) return null;
+            if (!sfxCache[nombre]) {
+                const a = new Audio(SFX_BASE + def.archivo);
+                a.preload = 'auto';
+                a.volume = def.vol;
+                if (def.bucle) a.loop = true;
+                a.addEventListener('error', () => { def.roto = true; }, { once: true });
+                sfxCache[nombre] = a;
+            }
+            return sfxCache[nombre];
+        }
+        function sfxPlay(nombre) {
+            const a = sfxObtener(nombre);
+            if (!a) return false;
+            try { a.currentTime = 0; const pr = a.play(); if (pr) pr.catch(() => {}); return true; }
+            catch (_) { return false; }
+        }
+        function sfxLoopOn(nombre, vol) {
+            const a = sfxObtener(nombre);
+            if (!a) return false;
+            try { if (vol != null) a.volume = Math.max(0, Math.min(1, vol)); if (a.paused) { const pr = a.play(); if (pr) pr.catch(() => {}); } return true; }
+            catch (_) { return false; }
+        }
+        function sfxLoopOff(nombre) {
+            const a = sfxCache[nombre];
+            if (a) { try { a.pause(); } catch (_) {} }
+        }
+
         /* RONRONEO — se enciende al acariciarle y se apaga solo.
            Tono muy grave + LFO rápido sobre el volumen = ronroneo felino. */
         let purrOsc = null, purrLfo = null, purrGain = null, purrLfoGain = null, purrFilt = null;
+        const PURR_SINTETICO = false;   // apagado: sonaba inquietante. Se usa mp3.
         function purrStart() {
+            if (!PURR_SINTETICO) { sfxLoopOn('ronroneo', 0.25); return; }
             if (!sfxCtx || sfxCtx.state !== 'running' || purrOsc) return;
             try {
                 const t = sfxCtx.currentTime;
@@ -528,10 +573,12 @@
             } catch (_) {}
         }
         function purrLevel(v) {   // v 0..1 — el ronroneo sube con el mimo
+            if (!PURR_SINTETICO) { sfxLoopOn('ronroneo', 0.12 + v * 0.5); return; }
             if (!purrGain) return;
             try { purrGain.gain.value = 0.001 + v * 0.055; } catch (_) {}
         }
         function purrStop() {
+            if (!PURR_SINTETICO) { sfxLoopOff('ronroneo'); return; }
             if (!purrOsc) return;
             try {
                 const t = sfxCtx.currentTime;
@@ -546,6 +593,7 @@
         }
 
         function scareSfx() {
+            if (sfxPlay('susto')) return;        // mp3 tiene prioridad
             if (!sfxCtx || sfxCtx.state !== 'running') return;
             try {
                 const t = sfxCtx.currentTime;
@@ -606,6 +654,17 @@
            Una SACUDIDA le pega un susto. iOS pide permiso: se solicita al
            pulsar el botón de despertarle, que ya es un gesto del usuario. */
         let tocando = false, tiltX = 0, tiltY = 0, tiltActivo = false;
+
+        /* ══════ POP: entra y sale de la línea del suelo como un teleñeco ══════
+           Muelle con rebote: sale pasado de vuelta, se pasa de largo y se asienta.
+           Los ojos van cerrados durante el viaje y se abren después, con su propio
+           rebotito. Al asomar, salpica tinta y letras. */
+        const POP_HONDO = 640;        // cuánto se hunde bajo la niebla
+        let popPos = 0, popVel = 0, popTarget = 0;   // 0 = escondido · 1 = fuera
+        let popSalpicado = false, popOjosAbiertos = 0;
+        function popIn()  { popTarget = 1; }
+        function popOut() { popTarget = 0; popSalpicado = false; popOjosAbiertos = 0; }
+        window.__tiznoPop = (fuera) => (fuera === false ? popOut() : popIn());
 
         const comoRaton = (x, y) => window.dispatchEvent(new MouseEvent('mousemove', { clientX: x, clientY: y }));
 
@@ -727,6 +786,18 @@
                 mouseNormX = (ffX - fcx) / fcx;
                 mouseNormY = (ffY - fcy) / fcy;
             }
+
+            // ── muelle del pop (rebote de teleñeco) ──
+            popVel += (popTarget - popPos) * 0.028 - popVel * 0.20;
+            popPos += popVel;
+            if (popPos > 0.5 && !popSalpicado && popTarget === 1) {
+                popSalpicado = true;                      // rompe la superficie
+                sfxPlay('pop');
+                burstInk(0.9);
+                if (NIVEL !== 'bajo') burstLetters(5, 1);
+            }
+            // Los ojos se abren DESPUÉS de asomar, con un instante de retraso.
+            popOjosAbiertos += ((popPos > 0.94 && popTarget === 1 ? 1 : 0) - popOjosAbiertos) * 0.085;
 
             prevFear = inFear; inFear = false;
             prevBoxB = inBoxB; inBoxB = false;
@@ -1058,8 +1129,9 @@
 
             frameFlip = !frameFlip;
             if (frameFlip) {
+            const popY = (1 - popPos) * POP_HONDO;
             masterRigs.forEach(rig => {
-                rig.style.transform = `rotate(${c_RigRot}deg)`;
+                rig.style.transform = `translateY(${popY}px) rotate(${c_RigRot}deg)`;
             });
 
             trackers.forEach(tracker => {
@@ -1088,6 +1160,17 @@
             eyeRightWrapper.style.setProperty('--eye-y', `${pupilMoveY}px`);
             eyeRightWrapper.style.setProperty('--eye-sx', c_EyeR + add_EyeR);
             eyeRightWrapper.style.setProperty('--eye-sy', c_EyeR + add_EyeR);
+
+            // Durante el pop los ojos van cerrados; al abrirse se pasan un pelín
+            // de tamaño y vuelven — ese rebote es lo que lo hace teleñeco.
+            if (popOjosAbiertos < 0.995) {
+                const a = popOjosAbiertos;
+                const rebote = 1 + Math.max(0, Math.sin(a * Math.PI)) * 0.35;
+                for (const W of [eyeLeftWrapper, eyeRightWrapper]) {
+                    W.style.setProperty('--eye-sy', (0.02 + a * 0.98) * rebote * (c_EyeL + add_EyeL));
+                    W.style.setProperty('--eye-sx', (0.55 + a * 0.45) * (c_EyeL + add_EyeL));
+                }
+            }
 
             // Respiración (antes en CSS): ciclo de 2 s, ahora a 30 fps.
             const breathe = 0.5 - 0.5 * Math.cos(time * Math.PI / 1000);
@@ -1333,6 +1416,7 @@
         
         aplicarNivel();
         medirFps();
+        setTimeout(popIn, 700);       // asoma solo al abrir la página
         setInterval(spawnParticles, 140);
     </script>
 

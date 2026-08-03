@@ -1,0 +1,9 @@
+Deja aqui los mp3 de Tizno con estos nombres exactos:
+
+  susto.mp3     — chillido corto de sobresalto (~0.4s)
+  ronroneo.mp3  — ronroneo en BUCLE, sin silencio al principio ni al final (~3-5s)
+  pop.mp3       — el "plop" de asomar por la superficie (~0.5s)
+  enfado.mp3    — gruñido corto de rabia (~0.6s)
+  quejido.mp3   — lamento breve (~0.8s)
+
+Si falta alguno, simplemente no suena: nada se rompe.
