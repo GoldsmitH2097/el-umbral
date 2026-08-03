@@ -57,11 +57,6 @@
 
         /* --- FILTRO DE TINTA --- */
         .goo-layer {
-            /* Luz de contorno: una sombra proyectada HACIA la luciérnaga. Como el
-               cuerpo negro tapa el centro, solo asoma el borde del lado iluminado
-               — un rim light de verdad, con el borde despeinado del filtro goo,
-               así que conserva el aspecto de pelo. */
-            --rim-x: 0px; --rim-y: 0px; --rim-a: 0;
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             filter: url('#ink-goo'); z-index: 2; 
             display: flex; justify-content: center; align-items: flex-end;
@@ -335,8 +330,13 @@
     </svg>
 
     <!-- Fondo de luz -->
-    <div id="ambient-light"></div>
-    <div id="candle-flicker"></div>
+    <!-- Envoltorio: las dos capas animan su propia opacidad por keyframes y una
+         animación CSS gana a cualquier estilo inline. Atenuando el PADRE, las dos
+         opacidades se multiplican y el fundido sí manda. -->
+    <div id="luz-sala" style="position:fixed;inset:0;z-index:0;pointer-events:none">
+        <div id="ambient-light"></div>
+        <div id="candle-flicker"></div>
+    </div>
     
     <!-- UI Elements -->
     <div id="box-a" class="ui-box">COMPRAR PULSO DEL NÚCLEO</div>
@@ -399,12 +399,13 @@
     <script>
         /* Valores ajustables en vivo desde el panel (?tune=1). */
         const TUNE = {
-            microPorTick: 6,      // cuántas micro-letras por pulso (nivel alto)
-            microTamMin: 7,       // tamaño mínimo en px
-            microTamMax: 14,      // tamaño máximo en px
-            microAltura: 70,      // cuánto suben antes de evaporarse
-            microDuracion: 1300,  // vida en ms
-            microTope: 90,        // máximo de micro-letras vivas
+            microPorTick: 15,     // cuántas micro-letras por pulso (nivel alto)
+            microTamMin: 8,       // tamaño mínimo en px
+            microTamMax: 17,      // tamaño máximo en px
+            microAltura: 95,      // cuánto suben antes de evaporarse
+            microDuracion: 850,   // vida en ms — decay rápido
+            microTope: 190,       // máximo de micro-letras vivas
+            microDispersion: 26,  // cuánto se abren en horizontal (menos = más humo)
             gotasPorTick: 5,      // gotas de tinta por pulso
             desenfoque: 8,        // desenfoque del filtro de partículas
             popRigidez: 0.0092,   // muelle del salto: más alto = más rápido
@@ -443,14 +444,12 @@
         function aplicarNivel() {
             const cap = document.getElementById('goo-particles');
             if (!cap) return;
-            const rim = NIVEL === 'alto'
-                ? " drop-shadow(var(--rim-x) var(--rim-y) 5px rgba(255,198,132,var(--rim-a)))" : "";
-            cap.style.filter = (NIVEL === 'alto' ? "url('#ink-goo')"
-                             : NIVEL === 'medio' ? "url('#ink-goo-lite')" : 'none') + rim;
+            cap.style.filter = NIVEL === 'alto' ? "url('#ink-goo')"
+                             : NIVEL === 'medio' ? "url('#ink-goo-lite')" : 'none';
             // En nivel BAJO el cuerpo también renuncia a la turbulencia: en un
             // móvil modesto ese filtro es la mitad del gasto de toda la página.
             const cuerpo = document.querySelectorAll('.goo-layer')[0];
-            if (cuerpo) cuerpo.style.filter = (NIVEL === 'bajo' ? "url('#ink-goo-lite')" : "url('#ink-goo-body')") + rim;
+            if (cuerpo) cuerpo.style.filter = NIVEL === 'bajo' ? "url('#ink-goo-lite')" : "url('#ink-goo-body')";
             // La segunda lámina de niebla es puro adorno: fuera en nivel bajo.
             const niebla2 = document.getElementById('abyss-foreground-2');
             if (niebla2) niebla2.style.display = NIVEL === 'bajo' ? 'none' : '';
@@ -612,9 +611,7 @@
         const eyesBreathEl = document.getElementById('eyes-breathing-layer');
         const partWrapEl = document.getElementById('goo-particles');
         const goolayers = document.querySelectorAll('.goo-layer');
-        const luzAmbiente = document.getElementById('ambient-light');
-        const velaFlicker = document.getElementById('candle-flicker');
-        let rimX = 0, rimY = 0, rimA = 0;   // luz de contorno desde la luciérnaga
+        const luzSala = document.getElementById('luz-sala');
 
         /* El pendiente: péndulo amortiguado colgado de la oreja. El navegador
            nos da la posición real del ancla (con todas las transformaciones
@@ -1453,28 +1450,8 @@
                el personaje. Curva al cuadrado para que la caída se note pronto
                y el regreso llegue con la cabeza. */
             {
-                const luz = 0.10 + Math.pow(Math.max(0, Math.min(1, popPos)), 1.6) * 0.90;
-                luzAmbiente.style.opacity = luz.toFixed(3);
-                velaFlicker.style.opacity = luz.toFixed(3);
-            }
-
-            /* Dirección e intensidad del rim light: apunta la sombra HACIA la
-               luciérnaga y sube cuanto más cerca esté. Solo en calidad alta y
-               solo a 30 fps (dos custom properties, coste despreciable). */
-            if (NIVEL === 'alto') {
-                const hr = headBase.getBoundingClientRect();
-                const hx = hr.left + hr.width / 2, hy = hr.top + hr.height / 2;
-                const dx = ffX - hx, dy = ffY - hy;
-                const dist = Math.hypot(dx, dy) || 1;
-                const cerca = Math.max(0, 1 - dist / 520);          // 0 lejos · 1 pegada
-                rimX += ((dx / dist) * 7 - rimX) * 0.08;
-                rimY += ((dy / dist) * 7 - rimY) * 0.08;
-                rimA += (cerca * cerca * 0.75 - rimA) * 0.06;
-                for (const capa of goolayers) {
-                    capa.style.setProperty('--rim-x', rimX.toFixed(2) + 'px');
-                    capa.style.setProperty('--rim-y', rimY.toFixed(2) + 'px');
-                    capa.style.setProperty('--rim-a', rimA.toFixed(3));
-                }
+                const luz = 0.06 + Math.pow(Math.max(0, Math.min(1, popPos)), 1.5) * 0.94;
+                luzSala.style.opacity = luz.toFixed(3);
             }
 
             // Respiración (antes en CSS): ciclo de 2 s, ahora a 30 fps.
@@ -1668,12 +1645,15 @@
                 l.style.fontSize = (TUNE.microTamMin + Math.random() * Math.max(0, TUNE.microTamMax - TUNE.microTamMin)).toFixed(1) + 'px';
                 lettersLayer.appendChild(l);
                 // Brotan de una banda ancha sobre la cabeza y los hombros.
-                const desdeCabeza = Math.random() < 0.7;
-                const x0 = (desdeCabeza ? h.left + h.width * Math.random()
-                                        : b.left + b.width * (Math.random() * 1.6 - 0.3)) - w.left;
-                const y0 = (desdeCabeza ? h.top + h.height * (0.1 + Math.random() * 0.5)
-                                        : b.top + b.height * Math.random()) - w.top;
-                const dx = (Math.random() - 0.5) * 46;
+                /* Nacen MUY pegadas al cuerpo y muy juntas entre sí: es el solape
+                   lo que el filtro goo funde en humo. Si se dispersan, se ven
+                   letras sueltas; si se apelotonan, se ve tinta evaporándose. */
+                const desdeCabeza = Math.random() < 0.62;
+                const x0 = (desdeCabeza ? h.left + h.width * (0.12 + Math.random() * 0.76)
+                                        : b.left + b.width * (Math.random() * 1.1 - 0.05)) - w.left;
+                const y0 = (desdeCabeza ? h.top + h.height * (0.02 + Math.random() * 0.42)
+                                        : b.top + b.height * (Math.random() * 0.55)) - w.top;
+                const dx = (Math.random() - 0.5) * TUNE.microDispersion;
                 const dy = -(TUNE.microAltura * 0.55 + Math.random() * TUNE.microAltura * 0.9);
                 const rz = (Math.random() - 0.5) * 220;
                 l.animate([
@@ -1718,12 +1698,13 @@
            el portapapeles la lista lista para pegármela. */
         if (/[?&]tune=1/.test(location.search)) {
             const AJUSTES = [
-                ['microPorTick',  0, 16, 1,     'Micro-letras por pulso'],
+                ['microPorTick',  0, 40, 1,     'Micro-letras por pulso'],
                 ['microTamMin',   3, 16, 0.5,   'Tamaño mínimo (px)'],
                 ['microTamMax',   5, 30, 0.5,   'Tamaño máximo (px)'],
                 ['microAltura',  20, 260, 5,    'Altura de evaporación'],
                 ['microDuracion', 400, 3000, 50,'Duración de vida (ms)'],
-                ['microTope',    20, 260, 10,   'Tope de micro-letras vivas'],
+                ['microTope',    20, 400, 10,   'Tope de micro-letras vivas'],
+                ['microDispersion', 4, 120, 2,  'Dispersión horizontal (humo←)'],
                 ['gotasPorTick',  0, 12, 1,     'Gotas de tinta por pulso'],
                 ['desenfoque',    2, 16, 1,     'Desenfoque del filtro'],
                 ['popRigidez', 0.003, 0.03, 0.0005, 'Salto: rigidez (rápido→)'],
