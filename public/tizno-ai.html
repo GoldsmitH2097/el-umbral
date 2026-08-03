@@ -663,8 +663,10 @@
         const POP_HONDO = 640;        // cuánto se hunde bajo la niebla
         let popPos = 0, popVel = 0, popTarget = 0;   // 0 = escondido · 1 = fuera
         let popSalpicado = false, popOjosAbiertos = 0;
+        let popAterrizo = false;                       // ya llegó arriba
+        let earFlop = 0, earFlopVel = 0;               // orejas: caen y se abren de golpe
         let popCerrandoOjos = false;
-        function popIn()  { popCerrandoOjos = false; popTarget = 1; }
+        function popIn()  { popCerrandoOjos = false; popTarget = 1; popAterrizo = false; }
         /* Primero aprieta los ojos, y 200 ms DESPUÉS se hunde. Ese respiro
            entre las dos cosas es lo que convierte el gesto en teatro. */
         function popOut() {
@@ -803,9 +805,21 @@
                 mouseNormY = (ffY - fcy) / fcy;
             }
 
-            // ── muelle del pop (rebote de teleñeco) ──
-            popVel += (popTarget - popPos) * 0.028 - popVel * 0.20;
+            /* ── muelle del pop ──
+               Más blando (0.016) y menos amortiguado (0.105): sube despacio,
+               se pasa de largo un buen trecho y rebota varias veces. */
+            popVel += (popTarget - popPos) * 0.0092 - popVel * 0.108;
             popPos += popVel;
+
+            /* ATERRIZAJE: al llegar arriba, las orejas se desploman y suben de
+               golpe, bisagra arriba, con su propio rebote. */
+            if (!popAterrizo && popTarget === 1 && popPos > 0.92) {
+                popAterrizo = true;
+                earFlop = 1; earFlopVel = 0;         // caen de golpe
+            }
+            if (popTarget === 0) { popAterrizo = false; earFlop = 0; earFlopVel = 0; }
+            earFlopVel += (0 - earFlop) * 0.055 - earFlopVel * 0.135;
+            earFlop += earFlopVel;
             if (popPos > 0.5 && !popSalpicado && popTarget === 1) {
                 popSalpicado = true;                      // rompe la superficie
                 sfxPlay('pop');
@@ -816,7 +830,11 @@
             // Abrir es lento (rebote); cerrar es rápido: primero aprieta los ojos
             // y DESPUÉS se hunde. Ese orden es lo que lo hace teatral.
             {
-                const objetivo = (!popCerrandoOjos && popPos > 0.94 && popTarget === 1) ? 1 : 0;
+                // Solo abren cuando ya aterrizó, el cuerpo casi no se mueve y
+                // las orejas han terminado de subir.
+                const listo = !popCerrandoOjos && popTarget === 1 && popAterrizo
+                              && Math.abs(popVel) < 0.006 && Math.abs(earFlop) < 0.22;
+                const objetivo = listo ? 1 : 0;
                 const vel = objetivo > popOjosAbiertos ? 0.085 : 0.28;
                 popOjosAbiertos += (objetivo - popOjosAbiertos) * vel;
             }
@@ -1169,8 +1187,9 @@
             bodyTracker.style.transform = `translateY(${c_BodyY + add_BodyY}px) scale(${c_BodyScaleX + add_BodyScaleX}, ${c_BodyScaleY + add_BodyScaleY})`;
             neckBridge.style.transform = `scale(${c_NeckScaleX}, ${c_NeckScaleY})`;
             
-            earLeft.style.transform = `rotate(${c_EarL + add_EarL}deg)`;
-            earRight.style.transform = `rotate(${c_EarR + add_EarR}deg)`;
+            const flop = earFlop * 62;   // grados de caída al aterrizar
+            earLeft.style.transform = `rotate(${c_EarL + add_EarL + flop}deg)`;
+            earRight.style.transform = `rotate(${c_EarR + add_EarR - flop}deg)`;
 
             c_LetY += (t_LetY - c_LetY) * 0.35;
             c_LetScale += (t_LetScale - c_LetScale) * 0.35;
