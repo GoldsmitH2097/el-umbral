@@ -845,7 +845,9 @@
                     && Math.abs(popVel) < 0.006 && Math.abs(earFlop) < 0.22) popOjosListos = true;
                 if (popCerrandoOjos || popTarget === 0) popOjosListos = false;
                 const objetivo = popOjosListos ? 1 : 0;
-                const vel = objetivo > popOjosAbiertos ? 0.085 : 0.28;
+                // Cerrar es MUY rápido: deben estar apagados antes de que el
+                // cuerpo empiece a hundirse (200 ms), o se ve la raya luminosa.
+                const vel = objetivo > popOjosAbiertos ? 0.085 : 0.45;
                 popOjosAbiertos += (objetivo - popOjosAbiertos) * vel;
             }
 
@@ -1245,10 +1247,18 @@
             if (popOjosAbiertos < 0.995) {
                 const a = popOjosAbiertos;
                 const rebote = 1 + Math.max(0, Math.sin(a * Math.PI)) * 0.35;
+                /* Y se apagan del todo: un ojo aplastado sigue brillando y deja
+                   una raya luminosa deslizándose, que queda fatal. Con la opacidad
+                   a cero desaparecen, y al abrirse encienden de golpe (×2.6). */
+                const brillo = Math.min(1, Math.pow(a, 1.5) * 2.6);
                 for (const W of [eyeLeftWrapper, eyeRightWrapper]) {
                     W.style.setProperty('--eye-sy', (0.02 + a * 0.98) * rebote * (c_EyeL + add_EyeL));
                     W.style.setProperty('--eye-sx', (0.55 + a * 0.45) * (c_EyeL + add_EyeL));
+                    W.style.opacity = brillo;
                 }
+            } else if (eyeLeftWrapper.style.opacity !== '') {
+                eyeLeftWrapper.style.opacity = '';
+                eyeRightWrapper.style.opacity = '';
             }
 
             // Respiración (antes en CSS): ciclo de 2 s, ahora a 30 fps.
