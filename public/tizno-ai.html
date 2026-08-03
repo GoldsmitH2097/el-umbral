@@ -103,9 +103,9 @@
             transform-origin: top center;
         }
 
-        .ear-shape { position: absolute; top: 70px; width: 140px; height: 90px; }
-        #ear-left-wrapper { left: 20px; transform-origin: 100% 50%; }
-        #ear-right-wrapper { right: 20px; transform-origin: 0% 50%; }
+        .ear-shape { position: absolute; top: 64px; width: 168px; height: 108px; }
+        #ear-left-wrapper { left: 8px; transform-origin: 100% 50%; }
+        #ear-right-wrapper { right: 8px; transform-origin: 0% 50%; }
         .ear-svg { width: 100%; height: 100%; fill: var(--ink); }
 
         /* --- OJOS --- */
@@ -246,7 +246,7 @@
                 <!-- Borde vivo: ruido fractal que despeina el contorno del blob.
                      baseFrequency mas alto = pelusa fina; mas bajo = humo ancho.
                      scale = cuanto se despeina el borde. -->
-                <feTurbulence type="fractalNoise" baseFrequency="0.013 0.05" numOctaves="3" seed="7" result="smoke" />
+                <feTurbulence type="fractalNoise" baseFrequency="0.013 0.05" numOctaves="2" seed="7" result="smoke" />
                 <feDisplacementMap in="merged" in2="smoke" scale="20" xChannelSelector="R" yChannelSelector="G" />
             </filter>
             <filter id="ink-goo-body">
@@ -286,7 +286,7 @@
     </div>
 
     <!-- Partículas y letras: goo con el despeine FUERTE original -->
-    <div class="goo-layer" id="goo-particles" style="width: 1100px; left: 50%; margin-left: -550px;">
+    <div class="goo-layer" id="goo-particles" style="width: 720px; left: 50%; margin-left: -360px;">
         <div id="ink-particle-container" class="particle-canvas" style="z-index: 1;"></div>
         <div id="letters-layer" class="particle-canvas" style="z-index: 3;"></div>
     </div>
@@ -942,7 +942,9 @@
         const lettersLayer = document.getElementById('letters-layer');
         const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789§¶†‡";
 
+        const MAX_GOTAS = 130;   // techo: en un equipo lento nunca se dispara
         function spawnParticles() {
+            if (inkContainer.childElementCount > MAX_GOTAS) return;
             const leftEarRect = earLeft.getBoundingClientRect();
             const rightEarRect = earRight.getBoundingClientRect();
             const headRect = headBase.getBoundingClientRect();
@@ -951,7 +953,7 @@
             const leftEyeRect = eyeLeftWrapper.getBoundingClientRect();
             const rightEyeRect = eyeRightWrapper.getBoundingClientRect();
 
-            for(let i=0; i<3; i++) {
+            for(let i=0; i<6; i++) {
                 if (Math.random() > 0.4) {
                     const drop = document.createElement('div');
                     drop.classList.add('ink-drop');
