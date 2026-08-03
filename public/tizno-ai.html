@@ -357,11 +357,11 @@
 
         /* ── MESA DE MEZCLAS ── cuánto pesa cada fuente sobre la postura.
            Sube o baja estos cuatro faders a gusto:                       */
-        const W_RATON_HABLANDO = 0.6;  // seguimiento del cursor mientras habla (0-1)
+        const W_RATON_HABLANDO = 0.95; // seguimiento del cursor mientras habla (0-1)
         const W_VOZ_CUERPO     = 1.0;  // su voz empujando cuerpo y cuello
         const W_TELENECO       = 1.6;  // cabeceo muppet por sílaba (1 = moderado)
         const W_VOZ_USUARIO    = 1.0;  // tu voz empujándole mientras escucha
-        const W_RATON_ESCUCHANDO = 0.85; // seguimiento del cursor mientras te escucha
+        const W_RATON_ESCUCHANDO = 1.0;  // seguimiento del cursor mientras te escucha
         let sBass = 0, sMid = 0, sTreble = 0, sInVol = 0, sVad = 0;
         let prevTreble = 0, ticDirL = 1, ticDirR = -0.5;
         let c_LetY = 0, c_LetScale = 1;  // cadencia de la capa de letras
@@ -373,6 +373,7 @@
            El módulo SDK lo detecta y lo fija aquí con caducidad. */
         let aiMood = null, aiMoodUntil = 0;
         let shockUntil = 0;   // pupila contraída tras un sobresalto
+        let inBoxB = false, prevBoxB = false;   // flanco de entrada a la caja prohibida
         window.__setTiznoMood = (m, holdMs) => { aiMood = m; aiMoodUntil = Date.now() + (holdMs || 8000); };
         /* Línea de tiempo emocional: el módulo instala window.__tiznoTimeline
            ({segs, totalChars, cps}) por cada parlamento; el rig avanza un reloj
@@ -570,6 +571,7 @@
             }
 
             prevFear = inFear; inFear = false;
+            prevBoxB = inBoxB; inBoxB = false;
             // Reloj del parlamento: avanza solo mientras suena su voz.
             if (aiState === 'speaking') {
                 if (!wasSpeaking) { wasSpeaking = true; speakMs = 0; }
@@ -610,6 +612,7 @@
             prevTreble = sTreble;
             let t_LetY = 0, t_LetScale = 1;
             let add_EarL = 0, add_EarR = 0, add_HeadRot = 0;
+            let add_EyeL = 0, add_EyeR = 0;
 
             if (aiState === 'listening') {
                 // Escuchar NO es congelarse: sigue el cursor como en reposo y
@@ -704,6 +707,10 @@
                 t_EarR = mouseNormX * 20 - aiVolume * 8;
                 add_EarL = sTreble * 34 * ticDirL + transient * 10;
                 add_EarR = -sTreble * 34 * ticDirR - transient * 10;
+                // LOS OJOS PULSAN CON CADA SÍLABA: es lo que ata la voz al cuerpo.
+                // Va por canal aditivo (sin easing) para que el golpe sea seco.
+                add_EyeL = transient * 0.55 + aiVolFast * 0.12;
+                add_EyeR = transient * 0.55 + aiVolFast * 0.12;
                 // Las letras saltan con los golpes de voz, no con un vaivén fijo.
                 t_LetY = -(transient * 16);
                 t_LetScale = 1 + aiVolFast * 0.08;
@@ -712,7 +719,7 @@
                     add_HeadX += (Math.random() - 0.5) * 5;   // tiembla al hablar
                     t_EarL -= 25; t_EarR += 25;               // orejas gachas
                     t_HeadY += 10;
-                    t_EyeL = 1.28; t_EyeR = 1.28;             // ojos como platos
+                    t_EyeL = 1.18; t_EyeR = 1.18;             // ojos como platos
                 } else if (mood === 'enfado') {
                     t_EarL += 15; t_EarR -= 15;               // orejas tiesas
                     add_BodyScaleY += transient * 0.15;       // golpes más duros
@@ -723,12 +730,12 @@
                 } else if (mood === 'energia') {
                     add_BodyScaleY += transient * 0.2;
                     add_HeadY -= transient * 10;              // saltos más altos
-                    t_EyeL = 1.2 + transient * 0.3;           // brillan con cada sílaba
-                    t_EyeR = 1.2 + transient * 0.3;
+                    t_EyeL = 1.12 + transient * 0.22;         // brillan con cada sílaba
+                    t_EyeR = 1.12 + transient * 0.22;
                 } else if (mood === 'duda') {
                     t_HeadRot += 8;                           // cabeza ladeada
                     t_EarL += 20; t_EarR += 12;               // una oreja alzada
-                    t_EyeL = 1.45; t_EyeR = 1.15;             // ojos grandes y desiguales
+                    t_EyeL = 1.30; t_EyeR = 1.10;             // ojos grandes y desiguales
                 }
 
             } else if (distA < interactionThreshold) {
@@ -739,7 +746,7 @@
                 t_HeadY = boxANormY * 40; 
                 t_RigRot = boxANormX * 10;
                 t_EarL = 40; t_EarR = -40;
-                t_EyeL = 1.2; t_EyeR = 1.2;
+                t_EyeL = 1.22; t_EyeR = 1.22;             // ilusión: ojos muy abiertos
                 
                 t_NeckScaleX = 1 - (intensity * 0.1);
                 t_NeckScaleY = 1 + (intensity * 0.2);
@@ -750,8 +757,10 @@
                 add_BodyScaleY = bounce * 0.005;
                 add_BodyScaleX = -bounce * 0.005;
                 add_HeadY = nod - bounce;
+                add_EyeL = bounce * 0.0025; add_EyeR = bounce * 0.0025; // laten al saltar
 
             } else if (distB < interactionThreshold) {
+                inBoxB = true;
                 const intensity = (interactionThreshold - distB) / interactionThreshold;
                 eyeLeft.className = "eye left angry"; eyeRight.className = "eye right angry";
 
@@ -764,9 +773,14 @@
                 t_BodyScaleX = 1.3; t_BodyScaleY = 0.9; t_BodyY = 5;
                 t_NeckScaleX = 1.5; t_NeckScaleY = 0.3; 
 
+                if (!prevBoxB) shockUntil = time + 380;    // sobresalto al acercarse
                 const shake = Math.sin(time * 0.02) * 20 * intensity;
                 add_HeadX = shake + (Math.random() - 0.5) * 8 * intensity;
                 add_HeadY = (Math.random() - 0.5) * 8 * intensity;
+                // Ojos entornados que tiemblan: alarma contenida.
+                t_EyeL = 0.85; t_EyeR = 0.85;
+                add_EyeL = Math.abs(Math.sin(time * 0.03)) * 0.12 * intensity;
+                add_EyeR = add_EyeL;
 
             } else {
                 if (mouseDistance < 200) {
@@ -818,13 +832,39 @@
                 }
             }
 
+            /* LAS CAJAS NO SE APAGAN AL HABLAR. Durante la conversación se
+               superponen a la animación de voz en vez de sustituirla: la voz
+               sigue moviendo el cuerpo y las cajas añaden su reacción encima. */
+            if (aiState !== 'idle') {
+                if (distA < interactionThreshold) {
+                    const k = (interactionThreshold - distA) / interactionThreshold;
+                    t_HeadX += boxANormX * 45 * k;
+                    t_EarL += 32 * k; t_EarR -= 32 * k;
+                    t_RigRot += boxANormX * 7 * k;
+                    t_EyeL += 0.18 * k; t_EyeR += 0.18 * k;
+                    add_BodyY -= Math.abs(Math.sin(time * 0.01)) * 22 * k;   // sigue rebotando
+                    add_HeadY -= Math.abs(Math.sin(time * 0.01)) * 14 * k;
+                } else if (distB < interactionThreshold) {
+                    inBoxB = true;
+                    if (!prevBoxB) shockUntil = time + 380;
+                    const k = (interactionThreshold - distB) / interactionThreshold;
+                    eyeLeft.className = "eye left angry"; eyeRight.className = "eye right angry";
+                    t_HeadY += 34 * k;
+                    t_EarL += 48 * k; t_EarR -= 48 * k;
+                    t_RigRot -= boxBNormX * 9 * k;
+                    t_EyeL -= 0.14 * k; t_EyeR -= 0.14 * k;
+                    add_HeadX += Math.sin(time * 0.02) * 14 * k;             // sigue temblando
+                    add_BodyScaleX += 0.18 * k; add_BodyScaleY -= 0.12 * k;
+                }
+            }
+
             // SHOCK: los primeros 420 ms de un susto mandan sobre todo lo demás.
             if (time < shockUntil) {
                 eyeLeft.className = "eye left shock";
                 eyeRight.className = "eye right shock";
-                t_EyeL = 1.6; t_EyeR = 1.6;
-                c_EyeL += (1.6 - c_EyeL) * 0.5;   // salto inmediato, sin easing lento
-                c_EyeR += (1.6 - c_EyeR) * 0.5;
+                t_EyeL = 1.4; t_EyeR = 1.4;
+                c_EyeL += (1.4 - c_EyeL) * 0.5;   // salto inmediato, sin easing lento
+                c_EyeR += (1.4 - c_EyeR) * 0.5;
             }
 
             const ease = 0.12; 
@@ -867,13 +907,13 @@
             
             eyeLeftWrapper.style.setProperty('--eye-x', `${pupilMoveX}px`);
             eyeLeftWrapper.style.setProperty('--eye-y', `${pupilMoveY}px`);
-            eyeLeftWrapper.style.setProperty('--eye-sx', c_EyeL);
-            eyeLeftWrapper.style.setProperty('--eye-sy', c_EyeL);
+            eyeLeftWrapper.style.setProperty('--eye-sx', c_EyeL + add_EyeL);
+            eyeLeftWrapper.style.setProperty('--eye-sy', c_EyeL + add_EyeL);
 
             eyeRightWrapper.style.setProperty('--eye-x', `${pupilMoveX}px`);
             eyeRightWrapper.style.setProperty('--eye-y', `${pupilMoveY}px`);
-            eyeRightWrapper.style.setProperty('--eye-sx', c_EyeR);
-            eyeRightWrapper.style.setProperty('--eye-sy', c_EyeR);
+            eyeRightWrapper.style.setProperty('--eye-sx', c_EyeR + add_EyeR);
+            eyeRightWrapper.style.setProperty('--eye-sy', c_EyeR + add_EyeR);
 
             // Respiración (antes en CSS): ciclo de 2 s, ahora a 30 fps.
             const breathe = 0.5 - 0.5 * Math.cos(time * Math.PI / 1000);
