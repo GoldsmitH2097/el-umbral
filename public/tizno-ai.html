@@ -301,8 +301,8 @@
     <div id="candle-flicker"></div>
     
     <!-- UI Elements -->
-    <div id="box-a" class="ui-box">HAZ CLICK AQUI</div>
-    <div id="box-b" class="ui-box">NO HAGAS CLICK AQUI</div>
+    <div id="box-a" class="ui-box">COMPRAR PULSO DEL NÚCLEO</div>
+    <div id="box-b" class="ui-box">CERRAR DEMO DE TIZNO</div>
 
     <!-- EL ABISMO FRONTAL (Niebla dinámica limpia) -->
     <div id="abyss-foreground"></div>
@@ -410,6 +410,20 @@
            El módulo SDK lo detecta y lo fija aquí con caducidad. */
         let aiMood = null, aiMoodUntil = 0;
         let shockUntil = 0;   // pupila contraída tras un sobresalto
+
+        /* ══════ EL CHISTE DEL BOTÓN DE CERRAR ══════
+           "Cerrar demo" no cierra nada. Nunca. Los dos primeros clics no pasa
+           absolutamente nada — ese silencio es la mitad del chiste. Del tercero
+           en adelante Tizno se va descojonando, y cuanto más insistes, peor. */
+        let clicsCerrar = 0, risa = 0, risaHasta = 0;
+        document.getElementById('box-b').addEventListener('click', () => {
+            clicsCerrar++;
+            if (clicsCerrar < 3) return;                 // silencio absoluto al principio
+            risa = Math.min(1, risa + (clicsCerrar === 3 ? 0.45 : 0.3));
+            risaHasta = Date.now() + 2400 + risa * 1800;
+            sfxPlay('risa');
+            if (clicsCerrar >= 5) burstInk(0.7 + risa * 0.5, true);
+        });
         let sustosSeguidos = 0, ultimoSustoT = 0;   // 3 sustos rápidos y se esconde
 
         /* ── LE ESTÁN ACARICIANDO ──
@@ -519,6 +533,7 @@
             pop:       { archivo: 'pop.mp3',       vol: 0.5  },
             enfado:    { archivo: 'enfado.mp3',    vol: 0.5  },
             quejido:   { archivo: 'quejido.mp3',   vol: 0.45 },
+            risa:      { archivo: 'risa.mp3',      vol: 0.5  },
         };
         const sfxCache = {};
         function sfxObtener(nombre) {
@@ -854,6 +869,10 @@
             prevFear = inFear; inFear = false;
             prevBoxB = inBoxB; inBoxB = false;
 
+            // La risa se va apagando sola.
+            if (time > risaHasta) risa = Math.max(0, risa - 0.012);
+            const riendo = risa > 0.12 && aiState === 'idle';
+
             // El mimo se evapora si dejas de acariciarle.
             petLevel = Math.max(0, petLevel - 0.006);
             const mimado = petLevel > 0.55 && aiState !== 'speaking';
@@ -1014,6 +1033,26 @@
                     t_EarL += 20; t_EarR += 12;               // una oreja alzada
                     t_EyeL = 1.30; t_EyeR = 1.10;             // ojos grandes y desiguales
                 }
+
+            } else if (riendo) {
+                /* SE PARTE DE RISA: ojos en arco, cuerpo botando al ritmo de las
+                   carcajadas, cabeza echada atrás y orejas aleteando. Cuanto más
+                   insistes con el botón, más fuerte se ríe. */
+                const r = risa;
+                const carcajada = Math.sin(time * 0.028);          // ritmo de risa
+                const carcajada2 = Math.sin(time * 0.028 + 1.1);
+                eyeLeft.className = "eye left happy"; eyeRight.className = "eye right happy";
+                t_EyeL = 1 + r * 0.12; t_EyeR = 1 + r * 0.12;
+                t_HeadY = -14 * r;                                  // cabeza hacia atrás
+                t_HeadRot = carcajada2 * 6 * r;
+                t_RigRot = carcajada2 * 5 * r;
+                t_EarL = -18 * r; t_EarR = 18 * r;
+                t_BodyScaleX = 1 + r * 0.08; t_BodyScaleY = 1 - r * 0.05;
+                t_NeckScaleY = 1 - r * 0.1;
+                add_BodyY = -Math.abs(carcajada) * 26 * r;          // bota de risa
+                add_HeadY = -Math.abs(carcajada) * 18 * r;
+                add_EarL = carcajada * 26 * r; add_EarR = -carcajada * 26 * r;
+                add_EyeL = Math.abs(carcajada) * 0.12 * r; add_EyeR = add_EyeL;
 
             } else if (distA < interactionThreshold) {
                 const intensity = (interactionThreshold - distA) / interactionThreshold;
