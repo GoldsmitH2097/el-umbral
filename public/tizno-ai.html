@@ -664,7 +664,7 @@
         let popPos = 0, popVel = 0, popTarget = 0;   // 0 = escondido · 1 = fuera
         let popSalpicado = false, popOjosAbiertos = 0;
         let popAterrizo = false;                       // ya llegó arriba
-        let earFlop = 0, earFlopVel = 0;               // orejas: caen y se abren de golpe
+        let earFlop = 0, earFlopVel = 0, popPrevVel = 0, popOjosListos = false;
         let popCerrandoOjos = false;
         function popIn()  { popCerrandoOjos = false; popTarget = 1; popAterrizo = false; }
         /* Primero aprieta los ojos, y 200 ms DESPUÉS se hunde. Ese respiro
@@ -811,12 +811,14 @@
             popVel += (popTarget - popPos) * 0.0092 - popVel * 0.108;
             popPos += popVel;
 
-            /* ATERRIZAJE: al llegar arriba, las orejas se desploman y suben de
-               golpe, bisagra arriba, con su propio rebote. */
-            if (!popAterrizo && popTarget === 1 && popPos > 0.92) {
+            /* VÉRTICE: el golpe de orejas se dispara cuando el cuerpo deja de
+               subir (la velocidad cambia de signo). Ahí el arrastre del aire ya
+               es cero, así que el desplome se ve limpio y separado del ascenso. */
+            if (!popAterrizo && popTarget === 1 && popPrevVel > 0 && popVel <= 0 && popPos > 0.7) {
                 popAterrizo = true;
-                earFlop = 1; earFlopVel = 0;         // caen de golpe
+                earFlop = 1; earFlopVel = 0;         // se desploman de golpe
             }
+            popPrevVel = popVel;
             if (popTarget === 0) { popAterrizo = false; earFlop = 0; earFlopVel = 0; }
             earFlopVel += (0 - earFlop) * 0.055 - earFlopVel * 0.135;
             earFlop += earFlopVel;
@@ -832,9 +834,13 @@
             {
                 // Solo abren cuando ya aterrizó, el cuerpo casi no se mueve y
                 // las orejas han terminado de subir.
-                const listo = !popCerrandoOjos && popTarget === 1 && popAterrizo
-                              && Math.abs(popVel) < 0.006 && Math.abs(earFlop) < 0.22;
-                const objetivo = listo ? 1 : 0;
+                /* Pestillo: en cuanto se dan las condiciones, los ojos se abren
+                   y ya no vuelven a cerrarse. Sin esto la condición oscilaba con
+                   los rebotes y parecía un tic nervioso. */
+                if (!popCerrandoOjos && popTarget === 1 && popAterrizo
+                    && Math.abs(popVel) < 0.006 && Math.abs(earFlop) < 0.22) popOjosListos = true;
+                if (popCerrandoOjos || popTarget === 0) popOjosListos = false;
+                const objetivo = popOjosListos ? 1 : 0;
                 const vel = objetivo > popOjosAbiertos ? 0.085 : 0.28;
                 popOjosAbiertos += (objetivo - popOjosAbiertos) * vel;
             }
@@ -1187,7 +1193,13 @@
             bodyTracker.style.transform = `translateY(${c_BodyY + add_BodyY}px) scale(${c_BodyScaleX + add_BodyScaleX}, ${c_BodyScaleY + add_BodyScaleY})`;
             neckBridge.style.transform = `scale(${c_NeckScaleX}, ${c_NeckScaleY})`;
             
-            const flop = earFlop * 62;   // grados de caída al aterrizar
+            /* Las orejas se pliegan por DOS motivos: el aire mientras sube
+               disparado (arrastre, proporcional a la velocidad) y el golpe al
+               aterrizar (earFlop, con muelle propio). Mandan el mayor de los dos:
+               así van pegadas al cuerpo durante todo el ascenso y solo se abren
+               cuando ya ha llegado. Velocidad punta medida: 0.050 → pliegue total. */
+            const arrastre = Math.max(0, popVel) * 20;
+            const flop = Math.min(1.15, Math.max(earFlop, arrastre)) * 62;
             earLeft.style.transform = `rotate(${c_EarL + add_EarL + flop}deg)`;
             earRight.style.transform = `rotate(${c_EarR + add_EarR - flop}deg)`;
 
