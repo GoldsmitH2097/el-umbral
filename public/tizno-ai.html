@@ -169,11 +169,31 @@
         @keyframes breathe-body { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.03, 1.02); } }
         @keyframes breathe-head { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(5px) rotate(-1deg); } }
         
+        /* LUZ DE VELA: dos animaciones de periodos primos entre sí (7s y 2.3s)
+           que nunca vuelven a coincidir → el parpadeo no se repite nunca.
+           Coste cero: solo transform y opacity, compuesto en GPU. */
         @keyframes flicker-light {
-            0% { transform: scale(1) translate(0, 0); opacity: 0.7; }
-            33% { transform: scale(1.05) translate(-1%, 1%); opacity: 0.9; }
-            66% { transform: scale(0.98) translate(1%, -1%); opacity: 0.8; }
-            100% { transform: scale(1.02) translate(0%, 1%); opacity: 1; }
+            0%   { transform: scale(1)    translate(0, 0);      opacity: 0.72; }
+            25%  { transform: scale(1.06) translate(-0.8%, 1%); opacity: 0.93; }
+            50%  { transform: scale(0.97) translate(0.9%, -1%); opacity: 0.78; }
+            75%  { transform: scale(1.03) translate(-0.4%, 0.6%); opacity: 0.88; }
+            100% { transform: scale(1.01) translate(0.3%, 0.9%); opacity: 1; }
+        }
+        /* La segunda capa es el "temblor" corto de la llama. */
+        @keyframes candle-jitter {
+            0%   { opacity: 0.94; transform: scale(1); }
+            12%  { opacity: 1;    transform: scale(1.012); }
+            26%  { opacity: 0.88; transform: scale(0.994); }
+            41%  { opacity: 0.99; transform: scale(1.008); }
+            58%  { opacity: 0.85; transform: scale(0.99); }
+            73%  { opacity: 0.97; transform: scale(1.006); }
+            89%  { opacity: 0.91; transform: scale(0.997); }
+            100% { opacity: 0.96; transform: scale(1.002); }
+        }
+        #candle-flicker {
+            position: fixed; inset: 0; z-index: 1; pointer-events: none;
+            background: radial-gradient(circle at 50% 68%, rgba(255, 176, 92, 0.09) 0%, transparent 52%);
+            animation: candle-jitter 2.3s ease-in-out infinite alternate;
         }
 
         @keyframes breath-fog {
@@ -259,6 +279,12 @@
                 <feTurbulence type="fractalNoise" baseFrequency="0.013 0.05" numOctaves="2" seed="7" result="smoke" />
                 <feDisplacementMap in="merged" in2="smoke" scale="20" xChannelSelector="R" yChannelSelector="G" />
             </filter>
+            <!-- Nivel MEDIO: solo fusión, sin turbulencia ni desplazamiento. -->
+            <filter id="ink-goo-lite">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="7" result="blur" />
+                <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -8" result="g" />
+                <feBlend in="SourceGraphic" in2="g" />
+            </filter>
             <filter id="ink-goo-body">
                 <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
                 <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -9" result="ink-goo" />
@@ -272,6 +298,7 @@
 
     <!-- Fondo de luz -->
     <div id="ambient-light"></div>
+    <div id="candle-flicker"></div>
     
     <!-- UI Elements -->
     <div id="box-a" class="ui-box">HAZ CLICK AQUI</div>
@@ -573,6 +600,61 @@
             boxBNormY = (centerBY - centerY) / centerY;
         });
 
+        /* ══════ MÓVIL: dedo, inclinación y sacudida ══════
+           El dedo hace de cursor (arrastrar sobre él = acariciarle).
+           Sin dedo, la INCLINACIÓN del teléfono mueve su mirada.
+           Una SACUDIDA le pega un susto. iOS pide permiso: se solicita al
+           pulsar el botón de despertarle, que ya es un gesto del usuario. */
+        let tocando = false, tiltX = 0, tiltY = 0, tiltActivo = false;
+
+        const comoRaton = (x, y) => window.dispatchEvent(new MouseEvent('mousemove', { clientX: x, clientY: y }));
+
+        window.addEventListener('touchstart', (e) => {
+            tocando = true;
+            const t = e.touches[0]; if (t) comoRaton(t.clientX, t.clientY);
+        }, { passive: true });
+        window.addEventListener('touchmove', (e) => {
+            const t = e.touches[0]; if (t) comoRaton(t.clientX, t.clientY);
+        }, { passive: true });
+        window.addEventListener('touchend', () => { tocando = false; }, { passive: true });
+
+        window.addEventListener('deviceorientation', (e) => {
+            if (e.gamma == null) return;
+            tiltActivo = true;
+            // gamma: izquierda/derecha (-90..90) · beta: adelante/atrás
+            tiltX += (Math.max(-45, Math.min(45, e.gamma)) / 45 - tiltX) * 0.12;
+            tiltY += (Math.max(-45, Math.min(45, (e.beta || 0) - 45)) / 45 - tiltY) * 0.12;
+        });
+
+        let ultimaSacudida = 0;
+        window.addEventListener('devicemotion', (e) => {
+            const a = e.accelerationIncludingGravity; if (!a) return;
+            const fuerza = Math.hypot(a.x || 0, a.y || 0, a.z || 0);
+            const ahora = Date.now();
+            if (fuerza > 26 && ahora - ultimaSacudida > 1200) {
+                ultimaSacudida = ahora;
+                shockUntil = ahora + 500;
+                burstInk(1.2);
+                scareSfx();
+                petLevel = 0;              // el susto rompe cualquier mimo
+            }
+        });
+
+        // iOS exige pedir permiso desde un gesto: lo hacemos al primer toque.
+        function pedirSensores() {
+            try {
+                if (typeof DeviceOrientationEvent !== 'undefined' &&
+                    typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    DeviceOrientationEvent.requestPermission().catch(() => {});
+                }
+                if (typeof DeviceMotionEvent !== 'undefined' &&
+                    typeof DeviceMotionEvent.requestPermission === 'function') {
+                    DeviceMotionEvent.requestPermission().catch(() => {});
+                }
+            } catch (_) {}
+        }
+        window.addEventListener('touchstart', pedirSensores, { once: true });
+
         function updateRig() {
             const time = Date.now();
 
@@ -632,6 +714,13 @@
             // Ratón quieto >3 s: la luciérnaga sustituye sus coordenadas — Tizno
             // la sigue con ojos y cabeza, y si se le acerca, se asusta. El primer
             // mousemove real devuelve el control al cursor al instante.
+            // Sin dedo en pantalla, el teléfono inclinado dirige su mirada.
+            if (tiltActivo && !tocando && window.innerWidth > 0) {
+                mouseNormX = tiltX;
+                mouseNormY = tiltY;
+                mouseDistance = 430 + Math.hypot(tiltX, tiltY) * 260;   // zona curiosa: se estira y te sigue
+                lastMouseMove = time;                                   // la luciérnaga no interfiere
+            }
             if (time - lastMouseMove > 3000 && window.innerWidth > 0) {
                 const fcx = window.innerWidth / 2, fcy = window.innerHeight / 2;
                 mouseDistance = Math.hypot(ffX - fcx, ffY - fcy);
@@ -1027,6 +1116,51 @@
         const lettersLayer = document.getElementById('letters-layer');
         const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789§¶†‡";
 
+        /* ══════ NIVEL DE DETALLE SEGÚN LA MÁQUINA ══════
+           Primero una estimación por hardware; luego se mide el FPS real durante
+           los primeros segundos y se baja de nivel si no da la talla.
+           alto  = todo (turbulencia, estallidos, partículas al máximo)
+           medio = filtro simple, menos partículas, sin letras en estallidos
+           bajo  = partículas sin filtro y al mínimo (móviles modestos) */
+        const esMovil = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+                        || (navigator.maxTouchPoints > 1 && innerWidth <= 900);
+        let NIVEL = 'alto';
+        {
+            const nucleos = navigator.hardwareConcurrency || 4;
+            const mem = navigator.deviceMemory || 4;
+            if (esMovil || nucleos <= 4 || mem <= 4) NIVEL = 'medio';
+            if (esMovil && (nucleos <= 4 || mem <= 3)) NIVEL = 'bajo';
+        }
+        const FACTOR = { alto: 1, medio: 0.55, bajo: 0.3 };
+        function aplicarNivel() {
+            const cap = document.getElementById('goo-particles');
+            if (!cap) return;
+            cap.style.filter = NIVEL === 'alto' ? "url('#ink-goo')"
+                             : NIVEL === 'medio' ? "url('#ink-goo-lite')" : 'none';
+            document.documentElement.dataset.nivel = NIVEL;
+        }
+        function bajarNivel() {
+            if (NIVEL === 'alto') NIVEL = 'medio';
+            else if (NIVEL === 'medio') NIVEL = 'bajo';
+            else return false;
+            aplicarNivel();
+            return true;
+        }
+        /* Medidor: cuenta frames reales durante 3 s y degrada si va justo. */
+        function medirFps() {
+            let n = 0, t0 = performance.now();
+            const tick = () => {
+                n++;
+                const dt = performance.now() - t0;
+                if (dt < 3000) { requestAnimationFrame(tick); return; }
+                const fps = n / (dt / 1000);
+                if (fps < 30) { bajarNivel(); bajarNivel(); }
+                else if (fps < 46) bajarNivel();
+                document.documentElement.dataset.fps = Math.round(fps);
+            };
+            requestAnimationFrame(tick);
+        }
+
         const MAX_GOTAS = 100;   // techo: en un equipo lento nunca se dispara
 
         /* PRUEBA — ESTALLIDO DE TINTA
@@ -1044,7 +1178,8 @@
             const h = headBase.getBoundingClientRect();
             const cx = h.left + h.width / 2 - w.left;
             const cy = h.top + h.height / 2 - w.top;
-            for (let i = 0; i < BURST_GOTAS; i++) {
+            const nBurst = Math.max(4, Math.round(BURST_GOTAS * FACTOR[NIVEL]));
+            for (let i = 0; i < nBurst; i++) {
                 const d = document.createElement('div');
                 d.classList.add('ink-drop');
                 const size = Math.random() * 22 + 12;          // más gordas que las normales
@@ -1062,7 +1197,7 @@
                 ], { duration: 520 + Math.random() * 480, easing: 'cubic-bezier(0.1, 0.8, 0.3, 1)' })
                   .onfinish = () => d.remove();
             }
-            burstLetters(Math.round(4 * fuerza), fuerza);   // y letras escupidas
+            if (NIVEL === 'alto') burstLetters(Math.round(4 * fuerza), fuerza);
         }
         function spawnParticles() {
             if (document.hidden) return;             // pestaña de fondo: cero gasto
@@ -1077,7 +1212,8 @@
             const leftEyeRect = eyeLeftWrapper.getBoundingClientRect();
             const rightEyeRect = eyeRightWrapper.getBoundingClientRect();
 
-            for(let i=0; i<5; i++) {
+            const nGotas = Math.max(1, Math.round(5 * FACTOR[NIVEL]));
+            for(let i=0; i<nGotas; i++) {
                 if (Math.random() > 0.4) {
                     const drop = document.createElement('div');
                     drop.classList.add('ink-drop');
@@ -1147,7 +1283,7 @@
             }
 
             // Más letras que antes (55% por tick, y a veces dos).
-            const cuantasLetras = Math.random() > 0.45 ? (Math.random() > 0.75 ? 2 : 1) : 0;
+            const cuantasLetras = Math.random() > (0.45 + (1 - FACTOR[NIVEL]) * 0.4) ? (Math.random() > 0.75 ? 2 : 1) : 0;
             for (let L = 0; L < cuantasLetras; L++) {
                 const letter = document.createElement('div');
                 letter.classList.add('floating-letter');
@@ -1195,6 +1331,8 @@
             }
         }
         
+        aplicarNivel();
+        medirFps();
         setInterval(spawnParticles, 140);
     </script>
 
