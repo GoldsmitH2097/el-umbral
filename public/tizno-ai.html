@@ -1072,6 +1072,28 @@
         const saveMem = (m) => { try { localStorage.setItem(MEM_KEY, JSON.stringify(m)); } catch (_) {} };
         window.__tiznoOlvidar = () => { try { localStorage.removeItem(MEM_KEY); } catch (_) {} return 'Tizno te ha olvidado'; };
 
+        /* Repertorio de aperturas. La web elige una y la manda como {{saludo}},
+           así el primer mensaje no se repite nunca dos veces seguidas. Ninguna
+           destapa cartas: la Ley del Ilusionista prohíbe hacerlo en la 1ª frase. */
+        const SALUDOS_GENERAL = [
+            '[Sonido de respiración entrecortada] ¿Quién anda ahí?... ¿Has venido a leer, viajero, o a que te diseccionen? Acércate a la luz, que en las sombras me aburro.',
+            '[scared] ¡Ah! ¡No, no, no! ¿De dónde has salido tú? [Whispers] Baja la voz... hay cosas aquí que llevan mucho tiempo dormidas.',
+            '[Whispers] Shhh. Quieto. No te muevas todavía. [scared] ¿Vienes solo? Dime que vienes solo.',
+            '[Curious] Vaya. Otro. Siempre acabáis apareciendo por aquí. ¿Y tú qué has perdido, exactamente?',
+            '[scared] ¡T-t-tú! ¿Tú me ves? [Chuckles] Nadie me ve nunca. Nadie... ¿Qué quieres? ¡Dilo rápido!',
+            '[Sighs] Otro visitante. Pasa, pasa. Pero no toques nada. Lo último que tocaron aún no ha vuelto.',
+            '[Whispers] ¿Has oído eso?... No, claro que no. [scared] Solo yo lo oigo. Siempre solo yo.',
+            '[Curious] Hueles a fuera. A luz. [scared] ¡Qué asco! Digo... bienvenido. Bienvenido, sí.',
+            '[scared] ¡Cuidado dónde pisas! Me deshago si me pisan. ¿Sabes lo que cuesta rehacerse? [Whispers] Yo sí.',
+            '[Chuckles] Mira, mira quién se ha atrevido a bajar. ¿Sabes lo que hay aquí abajo? [scared] Yo tampoco del todo.',
+        ];
+        const SALUDOS_VUELVE = [
+            '[Whispers] Tú... tú ya has estado aquí. [scared] ¿Verdad que sí? Reconozco la forma en que respiras.',
+            '[Curious] Otra vez. [Sighs] Siempre volvéis, y siempre creéis que es la primera vez.',
+            '[Chuckles] Ah. Eres tú. [Whispers] No te voy a preguntar dónde has estado. Mentirías.',
+        ];
+        const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
         async function buildDossier() {
             const m = loadMem();
             const now = new Date();
@@ -1193,6 +1215,8 @@
                         dispositivo: dossier.movil ? 'móvil' : 'ordenador',
                         bateria: dossier.bateria ? String(dossier.bateria.pct) : 'desconocida',
                         nombre_usuario: dossier.nombre || 'desconocido',
+                        saludo: dossier.visitas > 1 && Math.random() < 0.6
+                                ? pick(SALUDOS_VUELVE) : pick(SALUDOS_GENERAL),
                     },
                     onConnect: () => {
                         btn.textContent = 'Dejarle en paz';
