@@ -272,7 +272,7 @@
     <div id="abyss-foreground"></div>
 
     <!-- Cuerpo: goo con despeine SUAVE en la silueta -->
-    <div class="goo-layer" style="filter: url('#ink-goo-body'); width: 800px; left: 50%; margin-left: -400px;">
+    <div class="goo-layer" style="filter: url('#ink-goo-body'); width: 660px; left: 50%; margin-left: -330px; height: 700px; top: auto; bottom: 0;">
         <div class="master-rig">
             <div id="body-tracking-container"><div id="body-shape"></div></div>
             <div class="head-tracker">
@@ -948,13 +948,13 @@
         const lettersLayer = document.getElementById('letters-layer');
         const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789§¶†‡";
 
-        const MAX_GOTAS = 180;   // techo: en un equipo lento nunca se dispara
+        const MAX_GOTAS = 100;   // techo: en un equipo lento nunca se dispara
 
         /* PRUEBA — ESTALLIDO DE TINTA
            Cuando se lleva un susto o se enfada de verdad, revienta un momento:
            una descarga de gotas grandes, rápidas y radiales, y se acabó.
            Para revertir: borrar esta función y sus tres llamadas (burstInk). */
-        const BURST_GOTAS = 16;      // gotas por estallido
+        const BURST_GOTAS = 12;      // gotas por estallido
         let lastBurst = 0;
         function burstInk(fuerza) {
             const ahora = Date.now();
@@ -983,8 +983,10 @@
                 ], { duration: 520 + Math.random() * 480, easing: 'cubic-bezier(0.1, 0.8, 0.3, 1)' })
                   .onfinish = () => d.remove();
             }
+            burstLetters(Math.round(4 * fuerza), fuerza);   // y letras escupidas
         }
         function spawnParticles() {
+            if (document.hidden) return;             // pestaña de fondo: cero gasto
             if (inkContainer.childElementCount > MAX_GOTAS) return;
             const leftEarRect = earLeft.getBoundingClientRect();
             const rightEarRect = earRight.getBoundingClientRect();
@@ -994,7 +996,7 @@
             const leftEyeRect = eyeLeftWrapper.getBoundingClientRect();
             const rightEyeRect = eyeRightWrapper.getBoundingClientRect();
 
-            for(let i=0; i<8; i++) {
+            for(let i=0; i<5; i++) {
                 if (Math.random() > 0.4) {
                     const drop = document.createElement('div');
                     drop.classList.add('ink-drop');
@@ -1063,7 +1065,9 @@
                 ], { duration: Math.random() * 1500 + 1000, easing: 'ease-out' }).onfinish = () => spark.remove();
             }
 
-            if (Math.random() > 0.7) {
+            // Más letras que antes (55% por tick, y a veces dos).
+            const cuantasLetras = Math.random() > 0.45 ? (Math.random() > 0.75 ? 2 : 1) : 0;
+            for (let L = 0; L < cuantasLetras; L++) {
                 const letter = document.createElement('div');
                 letter.classList.add('floating-letter');
                 letter.innerText = alphabet[Math.floor(Math.random() * alphabet.length)];
@@ -1085,8 +1089,32 @@
                 ], { duration: Math.random() * 5000 + 3500, easing: 'ease-in-out' }).onfinish = () => letter.remove();
             }
         }
+
+        /* Letras disparadas: salen escupidas con los estallidos, rápidas y girando. */
+        function burstLetters(n, fuerza) {
+            const w = partWrapEl.getBoundingClientRect();
+            const h = headBase.getBoundingClientRect();
+            const cx = h.left + h.width / 2 - w.left;
+            const cy = h.top + h.height / 2 - w.top;
+            for (let i = 0; i < n; i++) {
+                const l = document.createElement('div');
+                l.classList.add('floating-letter');
+                l.innerText = alphabet[Math.floor(Math.random() * alphabet.length)];
+                lettersLayer.appendChild(l);
+                const ang = Math.random() * Math.PI * 2;
+                const dist = (110 + Math.random() * 210) * fuerza;
+                const dx = Math.cos(ang) * dist, dy = Math.sin(ang) * dist - 80 * fuerza;
+                const rz = (Math.random() - 0.5) * 720;
+                l.animate([
+                    { transform: `translate(${cx}px, ${cy}px) rotateZ(0deg) scale(0.3)`, opacity: 0 },
+                    { transform: `translate(${cx + dx*0.4}px, ${cy + dy*0.4}px) rotateZ(${rz*0.4}deg) scale(1.1)`, opacity: 1, offset: 0.25 },
+                    { transform: `translate(${cx + dx}px, ${cy + dy}px) rotateZ(${rz}deg) scale(0)`, opacity: 0 }
+                ], { duration: 700 + Math.random() * 600, easing: 'cubic-bezier(0.1, 0.8, 0.3, 1)' })
+                 .onfinish = () => l.remove();
+            }
+        }
         
-        setInterval(spawnParticles, 120);
+        setInterval(spawnParticles, 140);
     </script>
 
     <!-- ═══ ELEVENLABS — módulo del SDK ═══
