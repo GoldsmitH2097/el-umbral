@@ -612,6 +612,8 @@
         const eyesBreathEl = document.getElementById('eyes-breathing-layer');
         const partWrapEl = document.getElementById('goo-particles');
         const goolayers = document.querySelectorAll('.goo-layer');
+        const luzAmbiente = document.getElementById('ambient-light');
+        const velaFlicker = document.getElementById('candle-flicker');
         let rimX = 0, rimY = 0, rimA = 0;   // luz de contorno desde la luciérnaga
 
         /* El pendiente: péndulo amortiguado colgado de la oreja. El navegador
@@ -1444,6 +1446,16 @@
             } else if (eyeLeftWrapper.style.opacity !== '') {
                 eyeLeftWrapper.style.opacity = '';
                 eyeRightWrapper.style.opacity = '';
+            }
+
+            /* LA VELA SE APAGA CON ÉL. Cuando Tizno se hunde, la luz del fondo
+               baja hasta casi nada y vuelve cuando él asoma: la sala respira con
+               el personaje. Curva al cuadrado para que la caída se note pronto
+               y el regreso llegue con la cabeza. */
+            {
+                const luz = 0.10 + Math.pow(Math.max(0, Math.min(1, popPos)), 1.6) * 0.90;
+                luzAmbiente.style.opacity = luz.toFixed(3);
+                velaFlicker.style.opacity = luz.toFixed(3);
             }
 
             /* Dirección e intensidad del rim light: apunta la sombra HACIA la
