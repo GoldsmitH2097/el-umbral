@@ -451,6 +451,11 @@
             if (clicsCerrar >= 5) burstInk(0.7 + risa * 0.5, true);
         });
         let sustosSeguidos = 0, ultimoSustoT = 0;   // 3 sustos rápidos y se esconde
+        /* REARME DEL SUSTO: un susto solo cuenta como nuevo si antes se alejó de
+           verdad. Sin esto, el cursor rondando el borde de los 200 px disparaba
+           el chillido cada segundo y medio: un pulso constante que no
+           correspondía a ninguna reacción. Todo sonido debe tener su gesto. */
+        let sustoArmado = true;
 
         /* ── LE ESTÁN ACARICIANDO ──
            Roce lento y continuo sobre su cuerpo o su cabeza => se derrite.
@@ -892,6 +897,7 @@
                 popOjosAbiertos += (objetivo - popOjosAbiertos) * vel;
             }
 
+            if (mouseDistance > 290) sustoArmado = true;   // se ha alejado: listo otra vez
             prevFear = inFear; inFear = false;
             prevBoxB = inBoxB; inBoxB = false;
 
@@ -1153,7 +1159,8 @@
                     const fear = (200 - mouseDistance) / 200 * calma;
                     
                     inFear = true;
-                    if (!prevFear && petLevel < 0.15) {
+                    if (!prevFear && petLevel < 0.15 && sustoArmado) {
+                        sustoArmado = false;
                         shockUntil = time + 420; burstInk(1);
                         /* Cuenta de sustos ANTI-TEMBLOR: rondando los 200 px el
                            borde del miedo entra y sale decenas de veces por segundo
@@ -1165,8 +1172,8 @@
                             ultimoSustoT = time;
                             if (sustosSeguidos >= 3) { sustosSeguidos = 0; popEscondite(2000); }
                         }
+                        scareSfx();   // el chillido va CON el susto, nunca solo
                     }
-                    if (!prevFear && time - lastScareSfx > 1500) { scareSfx(); lastScareSfx = time; }
                     // El cuerpo SUBE hacia la cabeza: bola compacta en alto,
                     // nada de cuello ancho (la niebla tapa el hueco inferior).
                     t_BodyScaleX = 1 + (fear * 0.4); t_BodyScaleY = 1 - (fear * 0.15); t_BodyY = -fear * 55;
