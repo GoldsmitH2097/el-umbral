@@ -304,13 +304,16 @@
             <filter id="ink-goo">
                 <!-- PRUEBA: desenfoque 8 (antes 10). Revertir = volver a 10. -->
                 <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur" />
-                <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -9" result="ink-goo" />
+                <!-- El contraste de alfa decide el carácter: alto (22) da pegotes
+                     duros de goma; bajo (13) da vapor que se funde. Cuesta lo
+                     mismo, cambia todo. -->
+                <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 13 -5.2" result="ink-goo" />
                 <feBlend in="SourceGraphic" in2="ink-goo" result="merged" />
-                <!-- Borde vivo: ruido fractal que despeina el contorno del blob.
-                     baseFrequency mas alto = pelusa fina; mas bajo = humo ancho.
-                     scale = cuanto se despeina el borde. -->
-                <feTurbulence type="fractalNoise" baseFrequency="0.013 0.05" numOctaves="2" seed="7" result="smoke" />
-                <feDisplacementMap in="merged" in2="smoke" scale="20" xChannelSelector="R" yChannelSelector="G" />
+                <!-- Ruido más ancho y grave (0.008/0.028): volutas grandes de humo
+                     en vez de pelusa fina. Y más desplazamiento: más líquido.
+                     Ninguno de los dos cambios cuesta un solo ciclo extra. -->
+                <feTurbulence type="fractalNoise" baseFrequency="0.008 0.028" numOctaves="2" seed="7" result="smoke" />
+                <feDisplacementMap in="merged" in2="smoke" scale="30" xChannelSelector="R" yChannelSelector="G" />
             </filter>
             <!-- Nivel MEDIO: solo fusión, sin turbulencia ni desplazamiento. -->
             <filter id="ink-goo-lite">
@@ -320,11 +323,11 @@
             </filter>
             <filter id="ink-goo-body">
                 <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
-                <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -9" result="ink-goo" />
+                <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7.5" result="ink-goo" />
                 <feBlend in="SourceGraphic" in2="ink-goo" result="merged" />
                 <!-- Mismo humo pero escala minima: la silueta respira, no se rompe. -->
-                <feTurbulence type="fractalNoise" baseFrequency="0.02 0.06" numOctaves="2" seed="7" result="smoke" />
-                <feDisplacementMap in="merged" in2="smoke" scale="6" xChannelSelector="R" yChannelSelector="G" />
+                <feTurbulence type="fractalNoise" baseFrequency="0.014 0.042" numOctaves="2" seed="7" result="smoke" />
+                <feDisplacementMap in="merged" in2="smoke" scale="9" xChannelSelector="R" yChannelSelector="G" />
             </filter>
         </defs>
     </svg>
@@ -399,13 +402,17 @@
     <script>
         /* Valores ajustables en vivo desde el panel (?tune=1). */
         const TUNE = {
-            microPorTick: 15,     // cuántas micro-letras por pulso (nivel alto)
+            microPorTick: 11,     // cuántas micro-letras por pulso (nivel alto)
             microTamMin: 8,       // tamaño mínimo en px
             microTamMax: 17,      // tamaño máximo en px
             microAltura: 95,      // cuánto suben antes de evaporarse
-            microDuracion: 850,   // vida en ms — decay rápido
+            microDuracion: 1650,  // vida en ms — suben despacio y se disuelven
             microTope: 190,       // máximo de micro-letras vivas
             microDispersion: 26,  // cuánto se abren en horizontal (menos = más humo)
+            focoSeguimiento: 0.22,// cuánto sigue el halo de fondo a Tizno (0 = fijo)
+            focoPereza: 0.025,    // más bajo = más perezoso, llega más tarde
+            gooContraste: 13,     // alto = pegotes duros · bajo = vapor
+            gooDistorsion: 30,    // cuánto se retuerce el humo (líquido)
             gotasPorTick: 5,      // gotas de tinta por pulso
             desenfoque: 8,        // desenfoque del filtro de partículas
             popRigidez: 0.0092,   // muelle del salto: más alto = más rápido
@@ -612,6 +619,7 @@
         const partWrapEl = document.getElementById('goo-particles');
         const goolayers = document.querySelectorAll('.goo-layer');
         const luzSala = document.getElementById('luz-sala');
+        let focoX = 0, focoY = 0;   // el halo de fondo va detrás de él, con pereza
 
         /* El pendiente: péndulo amortiguado colgado de la oreja. El navegador
            nos da la posición real del ancla (con todas las transformaciones
@@ -1451,7 +1459,18 @@
                y el regreso llegue con la cabeza. */
             {
                 const luz = 0.06 + Math.pow(Math.max(0, Math.min(1, popPos)), 1.5) * 0.94;
+                /* FOCO PEREZOSO: el halo del fondo se desplaza un poco tras él.
+                   Solo un 11% de su recorrido y con lerp muy lento, para que se
+                   intuya el movimiento sin que parezca un seguidor de teatro.
+                   Va en el envoltorio porque la capa de luz ya anima su propio
+                   transform por keyframes y ahí perdería la batalla. */
+                const hr = headBase.getBoundingClientRect();
+                const objX = (hr.left + hr.width / 2 - window.innerWidth / 2) * TUNE.focoSeguimiento;
+                const objY = (hr.top + hr.height / 2 - window.innerHeight * 0.62) * TUNE.focoSeguimiento * 0.8;
+                focoX += (objX - focoX) * TUNE.focoPereza;
+                focoY += (objY - focoY) * TUNE.focoPereza;
                 luzSala.style.opacity = luz.toFixed(3);
+                luzSala.style.transform = `translate(${focoX.toFixed(1)}px, ${focoY.toFixed(1)}px)`;
             }
 
             // Respiración (antes en CSS): ciclo de 2 s, ahora a 30 fps.
@@ -1657,9 +1676,12 @@
                 const dy = -(TUNE.microAltura * 0.55 + Math.random() * TUNE.microAltura * 0.9);
                 const rz = (Math.random() - 0.5) * 220;
                 l.animate([
-                    { transform: `translate(${x0}px, ${y0}px) rotate(0deg) scale(0.5)`, opacity: 0 },
-                    { transform: `translate(${x0 + dx * 0.35}px, ${y0 + dy * 0.35}px) rotate(${rz * 0.35}deg) scale(1)`, opacity: 0.95, offset: 0.3 },
-                    { transform: `translate(${x0 + dx}px, ${y0 + dy}px) rotate(${rz}deg) scale(0.3)`, opacity: 0 }
+                    /* Nacen pequeñas y densas, y al subir SE EXPANDEN mientras se
+                       aclaran: una mancha que crece y se diluye lee como humo,
+                       una que encoge lee como una letra alejándose. */
+                    { transform: `translate(${x0}px, ${y0}px) rotate(0deg) scale(0.45)`, opacity: 0 },
+                    { transform: `translate(${x0 + dx * 0.3}px, ${y0 + dy * 0.28}px) rotate(${rz * 0.3}deg) scale(1)`, opacity: 0.85, offset: 0.25 },
+                    { transform: `translate(${x0 + dx}px, ${y0 + dy}px) rotate(${rz}deg) scale(1.55)`, opacity: 0 }
                 ], { duration: TUNE.microDuracion * 0.7 + Math.random() * TUNE.microDuracion * 0.6, easing: 'ease-out' })
                  .onfinish = () => l.remove();
             }
@@ -1705,6 +1727,10 @@
                 ['microDuracion', 400, 3000, 50,'Duración de vida (ms)'],
                 ['microTope',    20, 400, 10,   'Tope de micro-letras vivas'],
                 ['microDispersion', 4, 120, 2,  'Dispersión horizontal (humo←)'],
+                ['focoSeguimiento', 0, 0.6, 0.02, 'Foco: cuánto le sigue'],
+                ['focoPereza', 0.005, 0.12, 0.005, 'Foco: pereza (lento←)'],
+                ['gooContraste', 5, 30, 0.5,    'Goo: contraste (vapor←duro→)'],
+                ['gooDistorsion', 0, 70, 2,     'Goo: distorsión líquida'],
                 ['gotasPorTick',  0, 12, 1,     'Gotas de tinta por pulso'],
                 ['desenfoque',    2, 16, 1,     'Desenfoque del filtro'],
                 ['popRigidez', 0.003, 0.03, 0.0005, 'Salto: rigidez (rápido→)'],
@@ -1733,6 +1759,15 @@
                     if (clave === 'desenfoque') {
                         const f = document.querySelector('#ink-goo feGaussianBlur');
                         if (f) f.setAttribute('stdDeviation', TUNE[clave]);
+                    }
+                    if (clave === 'gooContraste') {
+                        const m = document.querySelector('#ink-goo feColorMatrix');
+                        const k = TUNE.gooContraste;
+                        if (m) m.setAttribute('values', '1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 ' + k + ' ' + (-k * 0.4).toFixed(2));
+                    }
+                    if (clave === 'gooDistorsion') {
+                        const d = document.querySelector('#ink-goo feDisplacementMap');
+                        if (d) d.setAttribute('scale', TUNE.gooDistorsion);
                     }
                 });
                 fila.appendChild(sl);
