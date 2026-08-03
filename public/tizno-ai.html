@@ -57,6 +57,11 @@
 
         /* --- FILTRO DE TINTA --- */
         .goo-layer {
+            /* Luz de contorno: una sombra proyectada HACIA la luciérnaga. Como el
+               cuerpo negro tapa el centro, solo asoma el borde del lado iluminado
+               — un rim light de verdad, con el borde despeinado del filtro goo,
+               así que conserva el aspecto de pelo. */
+            --rim-x: 0px; --rim-y: 0px; --rim-a: 0;
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             filter: url('#ink-goo'); z-index: 2; 
             display: flex; justify-content: center; align-items: flex-end;
@@ -229,6 +234,16 @@
         .ink-drop { position: absolute; top: 0; left: 0; background-color: var(--ink); border-radius: 50%; transform-origin: center; }
         .eye-spark { position: absolute; top: 0; left: 0; background: #fff; border-radius: 50%; box-shadow: 0 0 6px 1px rgba(255, 255, 255, 0.5); z-index: 11; transform-origin: center; }
         
+        /* PRUEBA — MICRO-LETRAS: enjambre denso y diminuto que sube unos
+           centímetros y se evapora. Con tanto solape, la masa negra se mantiene
+           constante y el borde de Tizno parece deshacerse en texto.
+           Para revertir: borrar esta regla, spawnMicroLetras() y su llamada. */
+        .micro-letter {
+            position: absolute; top: 0; left: 0;
+            color: var(--ink);
+            font-family: 'Courier New', monospace; font-weight: 900;
+            transform-origin: center; will-change: transform, opacity;
+        }
         /* Letras gruesas para fusionarse con el filtro Goo */
         .floating-letter { 
             position: absolute; top: 0; left: 0; 
@@ -382,6 +397,98 @@
     </div>
 
     <script>
+        /* Valores ajustables en vivo desde el panel (?tune=1). */
+        const TUNE = {
+            microPorTick: 6,      // cuántas micro-letras por pulso (nivel alto)
+            microTamMin: 7,       // tamaño mínimo en px
+            microTamMax: 14,      // tamaño máximo en px
+            microAltura: 70,      // cuánto suben antes de evaporarse
+            microDuracion: 1300,  // vida en ms
+            microTope: 90,        // máximo de micro-letras vivas
+            gotasPorTick: 5,      // gotas de tinta por pulso
+            desenfoque: 8,        // desenfoque del filtro de partículas
+            popRigidez: 0.0092,   // muelle del salto: más alto = más rápido
+            popAmortigua: 0.108,  // más bajo = más rebotes
+            orejaPliegue: 62,     // grados que se pliegan las orejas
+        };
+        window.TUNE = TUNE;   // también editable desde la consola
+
+        /* ══════ NIVEL DE DETALLE SEGÚN LA MÁQUINA ══════
+           Primero una estimación por hardware; luego se mide el FPS real durante
+           los primeros segundos y se baja de nivel si no da la talla.
+           alto  = todo (turbulencia, estallidos, partículas al máximo)
+           medio = filtro simple, menos partículas, sin letras en estallidos
+           bajo  = partículas sin filtro y al mínimo (móviles modestos) */
+        const esMovil = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+                        || (navigator.maxTouchPoints > 1 && innerWidth <= 900);
+        let NIVEL = 'alto';
+        {
+            const nucleos = navigator.hardwareConcurrency || 4;
+            const mem = navigator.deviceMemory || 4;
+            if (esMovil || nucleos <= 4 || mem <= 4) NIVEL = 'medio';
+            if (esMovil && (nucleos <= 4 || mem <= 3)) NIVEL = 'bajo';
+            // Accesibilidad: quien ha pedido menos animación no merece un
+            // caldero de partículas — y de paso es el ajuste más barato.
+            if (matchMedia('(prefers-reduced-motion: reduce)').matches) NIVEL = 'bajo';
+            /* Safari (incluido todo iOS, que va por debajo con WebKit) tira los
+               filtros SVG por CPU y se ahoga con feTurbulence. Nunca arranca en
+               alto: si su máquina da de sí, el vigilante no lo bajará más. */
+            const esSafari = /^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent);
+            if (esSafari && NIVEL === 'alto') NIVEL = 'medio';
+            /* Pantallas muy densas multiplican el área real del filtro por el
+               cuadrado del DPR: en un móvil 3x son 9 veces más píxeles. */
+            if ((window.devicePixelRatio || 1) >= 2.5 && esMovil) NIVEL = 'bajo';
+        }
+        const FACTOR = { alto: 1, medio: 0.55, bajo: 0.3 };
+        function aplicarNivel() {
+            const cap = document.getElementById('goo-particles');
+            if (!cap) return;
+            const rim = NIVEL === 'alto'
+                ? " drop-shadow(var(--rim-x) var(--rim-y) 5px rgba(255,198,132,var(--rim-a)))" : "";
+            cap.style.filter = (NIVEL === 'alto' ? "url('#ink-goo')"
+                             : NIVEL === 'medio' ? "url('#ink-goo-lite')" : 'none') + rim;
+            // En nivel BAJO el cuerpo también renuncia a la turbulencia: en un
+            // móvil modesto ese filtro es la mitad del gasto de toda la página.
+            const cuerpo = document.querySelectorAll('.goo-layer')[0];
+            if (cuerpo) cuerpo.style.filter = (NIVEL === 'bajo' ? "url('#ink-goo-lite')" : "url('#ink-goo-body')") + rim;
+            // La segunda lámina de niebla es puro adorno: fuera en nivel bajo.
+            const niebla2 = document.getElementById('abyss-foreground-2');
+            if (niebla2) niebla2.style.display = NIVEL === 'bajo' ? 'none' : '';
+            document.documentElement.dataset.nivel = NIVEL;
+        }
+        function bajarNivel() {
+            if (NIVEL === 'alto') NIVEL = 'medio';
+            else if (NIVEL === 'medio') NIVEL = 'bajo';
+            else return false;
+            aplicarNivel();
+            return true;
+        }
+        /* VIGILANTE PERMANENTE DE FPS.
+           No basta con medir al arrancar: una máquina puede ir bien vacía y
+           ahogarse cuando se llena de partículas, o cuando el usuario abre otra
+           pestaña pesada. Esto vigila en ventanas de 2,5 s durante toda la vida
+           de la página y baja de nivel en cuanto ve que no llega. Solo baja,
+           nunca sube: subir y bajar en bucle se vería peor que ir en bajo. */
+        function medirFps() {
+            let n = 0, t0 = performance.now(), ventanas = 0;
+            const tick = () => {
+                n++;
+                const dt = performance.now() - t0;
+                if (dt >= 2500) {
+                    const fps = n / (dt / 1000);
+                    document.documentElement.dataset.fps = Math.round(fps);
+                    // La 1ª ventana incluye el arranque: es más tolerante.
+                    const umbralBajo = ventanas === 0 ? 30 : 34;
+                    const umbralMedio = ventanas === 0 ? 46 : 50;
+                    if (fps < umbralBajo) { bajarNivel(); bajarNivel(); }
+                    else if (fps < umbralMedio) bajarNivel();
+                    n = 0; t0 = performance.now(); ventanas++;
+                }
+                requestAnimationFrame(tick);
+            };
+            requestAnimationFrame(tick);
+        }
+
         const masterRigs = document.querySelectorAll('.master-rig');
         const trackers = document.querySelectorAll('.head-tracker');
         const bodyTracker = document.getElementById('body-tracking-container');
@@ -504,6 +611,8 @@
         const headBreathEl = document.getElementById('head-breathing-layer');
         const eyesBreathEl = document.getElementById('eyes-breathing-layer');
         const partWrapEl = document.getElementById('goo-particles');
+        const goolayers = document.querySelectorAll('.goo-layer');
+        let rimX = 0, rimY = 0, rimA = 0;   // luz de contorno desde la luciérnaga
 
         /* El pendiente: péndulo amortiguado colgado de la oreja. El navegador
            nos da la posición real del ancla (con todas las transformaciones
@@ -855,7 +964,7 @@
             /* ── muelle del pop ──
                Más blando (0.016) y menos amortiguado (0.105): sube despacio,
                se pasa de largo un buen trecho y rebota varias veces. */
-            popVel += (popTarget - popPos) * 0.0092 - popVel * 0.108;
+            popVel += (popTarget - popPos) * TUNE.popRigidez - popVel * TUNE.popAmortigua;
             popPos += popVel;
 
             /* VÉRTICE: el golpe de orejas se dispara cuando el cuerpo deja de
@@ -1285,8 +1394,12 @@
                aterrizar (earFlop, con muelle propio). Mandan el mayor de los dos:
                así van pegadas al cuerpo durante todo el ascenso y solo se abren
                cuando ya ha llegado. Velocidad punta medida: 0.050 → pliegue total. */
-            const arrastre = Math.max(0, popVel) * 20;
-            const flop = Math.min(1.15, Math.max(earFlop, arrastre)) * 62;
+            /* INERCIA DEL AIRE, con signo:
+               subiendo (velocidad +) las orejas se pliegan hacia ABAJO;
+               hundiéndose (velocidad −) se quedan tiesas hacia ARRIBA, como si la
+               propia inercia las sostuviera mientras el cuerpo se va. */
+            const aire = Math.max(-1.2, Math.min(1.2, popVel * 20));
+            const flop = (aire < 0 ? aire : Math.max(earFlop, aire)) * TUNE.orejaPliegue;
             /* PROFUNDIDAD: la oreja del lado que mira crece y la contraria mengua,
                en sintonía con los ojos. Uso la DIFERENCIA entre ambos ojos, no su
                tamaño: así solo responde a la perspectiva y no a los sustos, donde
@@ -1333,6 +1446,25 @@
                 eyeRightWrapper.style.opacity = '';
             }
 
+            /* Dirección e intensidad del rim light: apunta la sombra HACIA la
+               luciérnaga y sube cuanto más cerca esté. Solo en calidad alta y
+               solo a 30 fps (dos custom properties, coste despreciable). */
+            if (NIVEL === 'alto') {
+                const hr = headBase.getBoundingClientRect();
+                const hx = hr.left + hr.width / 2, hy = hr.top + hr.height / 2;
+                const dx = ffX - hx, dy = ffY - hy;
+                const dist = Math.hypot(dx, dy) || 1;
+                const cerca = Math.max(0, 1 - dist / 520);          // 0 lejos · 1 pegada
+                rimX += ((dx / dist) * 7 - rimX) * 0.08;
+                rimY += ((dy / dist) * 7 - rimY) * 0.08;
+                rimA += (cerca * cerca * 0.75 - rimA) * 0.06;
+                for (const capa of goolayers) {
+                    capa.style.setProperty('--rim-x', rimX.toFixed(2) + 'px');
+                    capa.style.setProperty('--rim-y', rimY.toFixed(2) + 'px');
+                    capa.style.setProperty('--rim-a', rimA.toFixed(3));
+                }
+            }
+
             // Respiración (antes en CSS): ciclo de 2 s, ahora a 30 fps.
             const breathe = 0.5 - 0.5 * Math.cos(time * Math.PI / 1000);
             bodyShapeEl.style.transform = `scale(${1 + breathe * 0.03}, ${1 + breathe * 0.02})`;
@@ -1360,79 +1492,6 @@
         const lettersLayer = document.getElementById('letters-layer');
         const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789§¶†‡";
 
-        /* ══════ NIVEL DE DETALLE SEGÚN LA MÁQUINA ══════
-           Primero una estimación por hardware; luego se mide el FPS real durante
-           los primeros segundos y se baja de nivel si no da la talla.
-           alto  = todo (turbulencia, estallidos, partículas al máximo)
-           medio = filtro simple, menos partículas, sin letras en estallidos
-           bajo  = partículas sin filtro y al mínimo (móviles modestos) */
-        const esMovil = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
-                        || (navigator.maxTouchPoints > 1 && innerWidth <= 900);
-        let NIVEL = 'alto';
-        {
-            const nucleos = navigator.hardwareConcurrency || 4;
-            const mem = navigator.deviceMemory || 4;
-            if (esMovil || nucleos <= 4 || mem <= 4) NIVEL = 'medio';
-            if (esMovil && (nucleos <= 4 || mem <= 3)) NIVEL = 'bajo';
-            // Accesibilidad: quien ha pedido menos animación no merece un
-            // caldero de partículas — y de paso es el ajuste más barato.
-            if (matchMedia('(prefers-reduced-motion: reduce)').matches) NIVEL = 'bajo';
-            /* Safari (incluido todo iOS, que va por debajo con WebKit) tira los
-               filtros SVG por CPU y se ahoga con feTurbulence. Nunca arranca en
-               alto: si su máquina da de sí, el vigilante no lo bajará más. */
-            const esSafari = /^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent);
-            if (esSafari && NIVEL === 'alto') NIVEL = 'medio';
-            /* Pantallas muy densas multiplican el área real del filtro por el
-               cuadrado del DPR: en un móvil 3x son 9 veces más píxeles. */
-            if ((window.devicePixelRatio || 1) >= 2.5 && esMovil) NIVEL = 'bajo';
-        }
-        const FACTOR = { alto: 1, medio: 0.55, bajo: 0.3 };
-        function aplicarNivel() {
-            const cap = document.getElementById('goo-particles');
-            if (!cap) return;
-            cap.style.filter = NIVEL === 'alto' ? "url('#ink-goo')"
-                             : NIVEL === 'medio' ? "url('#ink-goo-lite')" : 'none';
-            // En nivel BAJO el cuerpo también renuncia a la turbulencia: en un
-            // móvil modesto ese filtro es la mitad del gasto de toda la página.
-            const cuerpo = document.querySelectorAll('.goo-layer')[0];
-            if (cuerpo) cuerpo.style.filter = NIVEL === 'bajo' ? "url('#ink-goo-lite')" : "url('#ink-goo-body')";
-            // La segunda lámina de niebla es puro adorno: fuera en nivel bajo.
-            const niebla2 = document.getElementById('abyss-foreground-2');
-            if (niebla2) niebla2.style.display = NIVEL === 'bajo' ? 'none' : '';
-            document.documentElement.dataset.nivel = NIVEL;
-        }
-        function bajarNivel() {
-            if (NIVEL === 'alto') NIVEL = 'medio';
-            else if (NIVEL === 'medio') NIVEL = 'bajo';
-            else return false;
-            aplicarNivel();
-            return true;
-        }
-        /* VIGILANTE PERMANENTE DE FPS.
-           No basta con medir al arrancar: una máquina puede ir bien vacía y
-           ahogarse cuando se llena de partículas, o cuando el usuario abre otra
-           pestaña pesada. Esto vigila en ventanas de 2,5 s durante toda la vida
-           de la página y baja de nivel en cuanto ve que no llega. Solo baja,
-           nunca sube: subir y bajar en bucle se vería peor que ir en bajo. */
-        function medirFps() {
-            let n = 0, t0 = performance.now(), ventanas = 0;
-            const tick = () => {
-                n++;
-                const dt = performance.now() - t0;
-                if (dt >= 2500) {
-                    const fps = n / (dt / 1000);
-                    document.documentElement.dataset.fps = Math.round(fps);
-                    // La 1ª ventana incluye el arranque: es más tolerante.
-                    const umbralBajo = ventanas === 0 ? 30 : 34;
-                    const umbralMedio = ventanas === 0 ? 46 : 50;
-                    if (fps < umbralBajo) { bajarNivel(); bajarNivel(); }
-                    else if (fps < umbralMedio) bajarNivel();
-                    n = 0; t0 = performance.now(); ventanas++;
-                }
-                requestAnimationFrame(tick);
-            };
-            requestAnimationFrame(tick);
-        }
 
         const MAX_GOTAS = 100;   // techo: en un equipo lento nunca se dispara
 
@@ -1485,7 +1544,7 @@
             const leftEyeRect = eyeLeftWrapper.getBoundingClientRect();
             const rightEyeRect = eyeRightWrapper.getBoundingClientRect();
 
-            const nGotas = Math.max(1, Math.round(5 * FACTOR[NIVEL]));
+            const nGotas = Math.max(1, Math.round(TUNE.gotasPorTick * FACTOR[NIVEL]));
             for(let i=0; i<nGotas; i++) {
                 if (Math.random() > 0.4) {
                     const drop = document.createElement('div');
@@ -1580,6 +1639,40 @@
             }
         }
 
+        /* PRUEBA — enjambre de micro-letras. La densidad va atada al nivel de
+           calidad y hay tope duro de vivas: si la máquina flojea, el vigilante de
+           FPS baja el nivel y esto se reduce solo. */
+        function spawnMicroLetras() {
+            const n = NIVEL === 'alto' ? TUNE.microPorTick
+                    : NIVEL === 'medio' ? Math.round(TUNE.microPorTick * 0.5) : 0;
+            if (!n || lettersLayer.childElementCount > TUNE.microTope) return;
+            const w = partWrapEl.getBoundingClientRect();
+            const h = headBase.getBoundingClientRect();
+            const b = bodyTracker.getBoundingClientRect();
+            for (let i = 0; i < n; i++) {
+                const l = document.createElement('div');
+                l.classList.add('micro-letter');
+                l.innerText = alphabet[Math.floor(Math.random() * alphabet.length)];
+                l.style.fontSize = (TUNE.microTamMin + Math.random() * Math.max(0, TUNE.microTamMax - TUNE.microTamMin)).toFixed(1) + 'px';
+                lettersLayer.appendChild(l);
+                // Brotan de una banda ancha sobre la cabeza y los hombros.
+                const desdeCabeza = Math.random() < 0.7;
+                const x0 = (desdeCabeza ? h.left + h.width * Math.random()
+                                        : b.left + b.width * (Math.random() * 1.6 - 0.3)) - w.left;
+                const y0 = (desdeCabeza ? h.top + h.height * (0.1 + Math.random() * 0.5)
+                                        : b.top + b.height * Math.random()) - w.top;
+                const dx = (Math.random() - 0.5) * 46;
+                const dy = -(TUNE.microAltura * 0.55 + Math.random() * TUNE.microAltura * 0.9);
+                const rz = (Math.random() - 0.5) * 220;
+                l.animate([
+                    { transform: `translate(${x0}px, ${y0}px) rotate(0deg) scale(0.5)`, opacity: 0 },
+                    { transform: `translate(${x0 + dx * 0.35}px, ${y0 + dy * 0.35}px) rotate(${rz * 0.35}deg) scale(1)`, opacity: 0.95, offset: 0.3 },
+                    { transform: `translate(${x0 + dx}px, ${y0 + dy}px) rotate(${rz}deg) scale(0.3)`, opacity: 0 }
+                ], { duration: TUNE.microDuracion * 0.7 + Math.random() * TUNE.microDuracion * 0.6, easing: 'ease-out' })
+                 .onfinish = () => l.remove();
+            }
+        }
+
         /* Letras disparadas: salen escupidas con los estallidos, rápidas y girando. */
         function burstLetters(n, fuerza) {
             const w = partWrapEl.getBoundingClientRect();
@@ -1607,7 +1700,74 @@
         aplicarNivel();
         medirFps();
         setTimeout(popIn, 700);       // asoma solo al abrir la página
+        /* ══════ PANEL DE AJUSTE EN VIVO ══════
+           Se abre añadiendo ?tune=1 a la URL. Invisible para cualquier visitante.
+           Mueve los sliders, y cuando te guste pulsa "copiar valores": te deja en
+           el portapapeles la lista lista para pegármela. */
+        if (/[?&]tune=1/.test(location.search)) {
+            const AJUSTES = [
+                ['microPorTick',  0, 16, 1,     'Micro-letras por pulso'],
+                ['microTamMin',   3, 16, 0.5,   'Tamaño mínimo (px)'],
+                ['microTamMax',   5, 30, 0.5,   'Tamaño máximo (px)'],
+                ['microAltura',  20, 260, 5,    'Altura de evaporación'],
+                ['microDuracion', 400, 3000, 50,'Duración de vida (ms)'],
+                ['microTope',    20, 260, 10,   'Tope de micro-letras vivas'],
+                ['gotasPorTick',  0, 12, 1,     'Gotas de tinta por pulso'],
+                ['desenfoque',    2, 16, 1,     'Desenfoque del filtro'],
+                ['popRigidez', 0.003, 0.03, 0.0005, 'Salto: rigidez (rápido→)'],
+                ['popAmortigua', 0.04, 0.26, 0.004, 'Salto: amortiguación (rebotes←)'],
+                ['orejaPliegue',  0, 110, 2,    'Pliegue de orejas (grados)'],
+            ];
+            const caja = document.createElement('div');
+            caja.style.cssText = 'position:fixed;top:10px;left:10px;z-index:9999;background:rgba(8,8,8,.93);' +
+                'border:1px solid rgba(243,156,18,.35);border-radius:10px;padding:12px 14px;' +
+                'font:11px/1.5 -apple-system,sans-serif;color:#ddd;max-height:92vh;overflow:auto;width:290px;' +
+                'backdrop-filter:none;box-shadow:0 6px 30px rgba(0,0,0,.6)';
+            caja.innerHTML = '<div style="color:#f39c12;letter-spacing:2px;margin-bottom:8px;font-size:10px">AJUSTE EN VIVO</div>';
+            for (const [clave, min, max, paso, etiqueta] of AJUSTES) {
+                const fila = document.createElement('div');
+                fila.style.marginBottom = '9px';
+                const dec = paso < 0.01 ? 4 : paso < 1 ? 1 : 0;
+                fila.innerHTML = '<div style="display:flex;justify-content:space-between">' +
+                    '<span>' + etiqueta + '</span><b style="color:#f39c12" id="v_' + clave + '">' +
+                    TUNE[clave].toFixed(dec) + '</b></div>';
+                const sl = document.createElement('input');
+                sl.type = 'range'; sl.min = min; sl.max = max; sl.step = paso; sl.value = TUNE[clave];
+                sl.style.cssText = 'width:100%;accent-color:#f39c12;margin-top:2px';
+                sl.addEventListener('input', () => {
+                    TUNE[clave] = parseFloat(sl.value);
+                    document.getElementById('v_' + clave).textContent = TUNE[clave].toFixed(dec);
+                    if (clave === 'desenfoque') {
+                        const f = document.querySelector('#ink-goo feGaussianBlur');
+                        if (f) f.setAttribute('stdDeviation', TUNE[clave]);
+                    }
+                });
+                fila.appendChild(sl);
+                caja.appendChild(fila);
+            }
+            const btn = document.createElement('button');
+            btn.textContent = 'copiar valores';
+            btn.style.cssText = 'width:100%;margin-top:6px;padding:7px;background:#f39c12;border:0;' +
+                'border-radius:6px;color:#111;font-weight:700;cursor:pointer;font-size:11px';
+            btn.onclick = () => {
+                const txt = Object.entries(TUNE).map(([k,v]) => k + ': ' + v).join('\n');
+                navigator.clipboard.writeText(txt).then(() => { btn.textContent = '¡copiado! pégamelo';
+                    setTimeout(() => btn.textContent = 'copiar valores', 1800); })
+                    .catch(() => { btn.textContent = txt.replace(/\n/g, ' · '); });
+            };
+            caja.appendChild(btn);
+            const nota = document.createElement('div');
+            nota.style.cssText = 'margin-top:7px;opacity:.5;font-size:10px';
+            nota.textContent = 'Los cambios se ven al instante. El pop se prueba con la tecla P.';
+            caja.appendChild(nota);
+            document.body.appendChild(caja);
+            window.addEventListener('keydown', e => {
+                if (e.key === 'p' || e.key === 'P') popEscondite(900);
+            });
+        }
+
         setInterval(spawnParticles, 140);
+        setInterval(() => { if (!document.hidden) spawnMicroLetras(); }, 90);   // PRUEBA
     </script>
 
     <!-- ═══ ELEVENLABS — módulo del SDK ═══
