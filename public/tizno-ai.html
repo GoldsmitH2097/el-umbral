@@ -141,8 +141,17 @@
             background: rgba(255, 255, 255, 0.95); border-radius: 50%;
         }
 
-        .eye.angry.left { clip-path: polygon(0% 40%, 100% 10%, 100% 100%, 0% 100%); }
-        .eye.angry.right { clip-path: polygon(0% 10%, 100% 40%, 100% 100%, 0% 100%); }
+        /* Furia: cuña afilada, la ceja cae con fuerza hacia el centro. */
+        .eye.angry.left  { clip-path: polygon(0% 6%, 100% 56%, 100% 96%, 0% 82%); }
+        .eye.angry.right { clip-path: polygon(0% 56%, 100% 6%, 100% 82%, 0% 96%); }
+        /* Felicidad: dos arcos (^ ^) — ojos cerrados de gusto. */
+        /* El ojo es un círculo; para el arco hay que soltarlo del border-radius,
+           si no la circunferencia se come las puntas del arco. */
+        .eye.happy {
+            border-radius: 0;
+            clip-path: path('M 1,29 Q 20,-4 39,29 Q 20,14 1,29 Z');
+        }
+        .eye.happy::after { opacity: 0; }   /* sin brillo: están cerrados de gusto */
         .eye.sad.left { clip-path: polygon(0% 10%, 100% 40%, 100% 100%, 0% 100%); }
         .eye.sad.right { clip-path: polygon(0% 40%, 100% 10%, 100% 100%, 0% 100%); }
         .eye-wrapper.blinking { --eye-sy: 0.01 !important; }
@@ -374,6 +383,26 @@
            El módulo SDK lo detecta y lo fija aquí con caducidad. */
         let aiMood = null, aiMoodUntil = 0;
         let shockUntil = 0;   // pupila contraída tras un sobresalto
+
+        /* ── LE ESTÁN ACARICIANDO ──
+           Roce lento y continuo sobre su cuerpo o su cabeza => se derrite.
+           Rápido no vale (eso le asusta); quieto tampoco (eso no es una caricia). */
+        let petLevel = 0;                 // 0..1, cuánto mimo lleva acumulado
+        let petRects = null;              // cacheadas en spawnParticles: sin coste extra
+        let lastPetX = 0, lastPetY = 0, petPurring = false;
+        window.addEventListener('mousemove', (e) => {
+            const dx = e.clientX - lastPetX, dy = e.clientY - lastPetY;
+            const v = Math.hypot(dx, dy);
+            lastPetX = e.clientX; lastPetY = e.clientY;
+            if (!petRects) return;
+            const dentro = (r, mx, my) => e.clientX > r.left - mx && e.clientX < r.right + mx
+                                       && e.clientY > r.top - my && e.clientY < r.bottom + my;
+            const encima = dentro(petRects.head, 55, 45) || dentro(petRects.body, 45, 20);
+            // Sube MUY despacio: primero se asusta, y solo cede si insistes con
+            // suavidad unos segundos. Alejar la mano lo tira abajo enseguida.
+            if (encima && v > 1.2 && v < 30) petLevel = Math.min(1, petLevel + 0.013);
+            else if (!encima) petLevel = Math.max(0, petLevel - 0.05);
+        });
         let prevMoodHablando = null;   // flanco para el estallido de rabia
         let inBoxB = false, prevBoxB = false;   // flanco de entrada a la caja prohibida
         window.__setTiznoMood = (m, holdMs) => { aiMood = m; aiMoodUntil = Date.now() + (holdMs || 8000); };
@@ -451,6 +480,44 @@
                 o.onended = () => { try { o.disconnect(); bp.disconnect(); lp.disconnect(); g.disconnect(); } catch (_) {} };
             } catch (_) {}
         }
+        /* RONRONEO — se enciende al acariciarle y se apaga solo.
+           Tono muy grave + LFO rápido sobre el volumen = ronroneo felino. */
+        let purrOsc = null, purrLfo = null, purrGain = null, purrLfoGain = null, purrFilt = null;
+        function purrStart() {
+            if (!sfxCtx || sfxCtx.state !== 'running' || purrOsc) return;
+            try {
+                const t = sfxCtx.currentTime;
+                purrOsc = sfxCtx.createOscillator(); purrOsc.type = 'sawtooth';
+                purrOsc.frequency.value = 42;
+                purrFilt = sfxCtx.createBiquadFilter(); purrFilt.type = 'lowpass';
+                purrFilt.frequency.value = 260; purrFilt.Q.value = 4;
+                purrGain = sfxCtx.createGain(); purrGain.gain.value = 0.0001;
+                purrLfo = sfxCtx.createOscillator(); purrLfo.type = 'sine';
+                purrLfo.frequency.value = 24;                 // ritmo del ronroneo
+                purrLfoGain = sfxCtx.createGain(); purrLfoGain.gain.value = 0.5;
+                purrLfo.connect(purrLfoGain); purrLfoGain.connect(purrGain.gain);
+                purrOsc.connect(purrFilt).connect(purrGain).connect(sfxCtx.destination);
+                purrOsc.start(t); purrLfo.start(t);
+            } catch (_) {}
+        }
+        function purrLevel(v) {   // v 0..1 — el ronroneo sube con el mimo
+            if (!purrGain) return;
+            try { purrGain.gain.value = 0.001 + v * 0.055; } catch (_) {}
+        }
+        function purrStop() {
+            if (!purrOsc) return;
+            try {
+                const t = sfxCtx.currentTime;
+                const o = purrOsc, l = purrLfo, g = purrGain, lg = purrLfoGain, f = purrFilt;
+                g.gain.cancelScheduledValues(t);
+                g.gain.setValueAtTime(Math.max(g.gain.value, 0.0001), t);
+                g.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
+                o.stop(t + 0.4); l.stop(t + 0.4);
+                o.onended = () => { try { o.disconnect(); l.disconnect(); lg.disconnect(); f.disconnect(); g.disconnect(); } catch (_) {} };
+            } catch (_) {}
+            purrOsc = purrLfo = purrGain = purrLfoGain = purrFilt = null;
+        }
+
         function scareSfx() {
             if (!sfxCtx || sfxCtx.state !== 'running') return;
             try {
@@ -574,26 +641,18 @@
 
             prevFear = inFear; inFear = false;
             prevBoxB = inBoxB; inBoxB = false;
+
+            // El mimo se evapora si dejas de acariciarle.
+            petLevel = Math.max(0, petLevel - 0.006);
+            const mimado = petLevel > 0.55 && aiState !== 'speaking';
+            if (mimado && !petPurring) { purrStart(); petPurring = true; }
+            else if (!mimado && petPurring) { purrStop(); petPurring = false; }
+            if (petPurring) purrLevel(petLevel);
             // Reloj del parlamento: avanza solo mientras suena su voz.
             if (aiState === 'speaking') {
                 if (!wasSpeaking) { wasSpeaking = true; speakMs = 0; }
                 if (aiVolFast > 0.03) speakMs += 16;
             } else { wasSpeaking = false; }
-            // Refunfuño de rumia: sílabas cortas con pausas irregulares — VOZ,
-            // no ambiente. Cada sílaba con su propio contorno de tono.
-            if (aiState === 'thinking') {
-                if (time >= nextMutterAt) {
-                    const base = 130 + Math.random() * 70;
-                    const shape = Math.random();
-                    if (shape < 0.4)      tiznoVoice(base, base * 0.82, 0.14, 0.05);       // gruñido corto
-                    else if (shape < 0.7) tiznoVoice(base, base * 1.28, 0.18, 0.045);      // duda hacia arriba
-                    else                  tiznoVoice(base * 1.1, base * 0.75, 0.24, 0.05); // refunfuño largo
-                    nextMutterAt = time + 260 + Math.random() * 420 + (Math.random() < 0.35 ? 700 : 0);
-                }
-            } else {
-                nextMutterAt = time + 350; // pequeño respiro al entrar en rumia
-            }
-
             const sig = tiznoSignals();
             // Doble envolvente: la rápida sigue las sílabas, la lenta es la energía
             // base; su diferencia (transient) marca cada golpe de voz.
@@ -789,12 +848,32 @@
                 add_EyeR = add_EyeL;
 
             } else {
-                if (mouseDistance < 200) {
-                    eyeLeft.className = "eye left angry"; eyeRight.className = "eye right angry";
-                    const fear = (200 - mouseDistance) / 200;
+                if (mimado) {
+                    /* SE DERRITE DE GUSTO: ojos cerrados en arco, orejas caídas
+                       hacia atrás, cuerpo blando que se mece contra la mano. */
+                    const m = petLevel;
+                    eyeLeft.className = "eye left happy"; eyeRight.className = "eye right happy";
+                    t_EyeL = 1 + m * 0.1; t_EyeR = 1 + m * 0.1;
+                    t_HeadX = mouseNormX * 30 * m;                    // se apoya en la mano
+                    t_HeadY = 26 * m;                                 // cabeza baja, entregada
+                    t_HeadRot = Math.sin(time * 0.0022) * 7 * m;      // ladeo lento de gusto
+                    t_RigRot = Math.sin(time * 0.0018) * 4 * m;
+                    t_EarL = -32 * m; t_EarR = 32 * m;                // orejas hacia atrás
+                    t_BodyScaleX = 1 + m * 0.12; t_BodyScaleY = 1 - m * 0.06;
+                    t_NeckScaleY = 1 - m * 0.18;                      // cuello hundido, relajado
+                    // Vibración finísima del ronroneo.
+                    add_HeadY += Math.sin(time * 0.15) * 1.6 * m;
+                    add_BodyScaleY += Math.sin(time * 0.15) * 0.012 * m;
+
+                } else if (mouseDistance < 200) {
+                    // El pánico se va deshaciendo a medida que le ganas la confianza.
+                    const calma = 1 - petLevel * 0.8;
+                    eyeLeft.className = petLevel > 0.3 ? "eye left sad" : "eye left angry";
+                    eyeRight.className = petLevel > 0.3 ? "eye right sad" : "eye right angry";
+                    const fear = (200 - mouseDistance) / 200 * calma;
                     
                     inFear = true;
-                    if (!prevFear) { shockUntil = time + 420; burstInk(1); }   // pupila contraída + estallido
+                    if (!prevFear && petLevel < 0.15) { shockUntil = time + 420; burstInk(1); }
                     if (!prevFear && time - lastScareSfx > 1500) { scareSfx(); lastScareSfx = time; }
                     // El cuerpo SUBE hacia la cabeza: bola compacta en alto,
                     // nada de cuello ancho (la niebla tapa el hueco inferior).
@@ -987,6 +1066,8 @@
         }
         function spawnParticles() {
             if (document.hidden) return;             // pestaña de fondo: cero gasto
+            // Zonas acariciables, refrescadas aquí para no costar layout extra.
+            petRects = { head: headBase.getBoundingClientRect(), body: bodyTracker.getBoundingClientRect() };
             if (inkContainer.childElementCount > MAX_GOTAS) return;
             const leftEarRect = earLeft.getBoundingClientRect();
             const rightEarRect = earRight.getBoundingClientRect();
