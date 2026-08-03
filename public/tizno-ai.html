@@ -671,7 +671,8 @@
            entre las dos cosas es lo que convierte el gesto en teatro. */
         function popOut() {
             popCerrandoOjos = true;
-            setTimeout(() => { popTarget = 0; popSalpicado = false; }, 200);
+            popSalpicado = false;              // se rearma YA, no dentro del temporizador
+            setTimeout(() => { popTarget = 0; }, 200);
         }
         /* Se esconde y vuelve a asomar: el gesto de "me largo… bueno, vale". */
         let escondiendose = false;
@@ -822,11 +823,14 @@
             if (popTarget === 0) { popAterrizo = false; earFlop = 0; earFlopVel = 0; }
             earFlopVel += (0 - earFlop) * 0.055 - earFlopVel * 0.135;
             earFlop += earFlopVel;
-            if (popPos > 0.5 && !popSalpicado && popTarget === 1) {
-                popSalpicado = true;                      // rompe la superficie
+            /* La salpicadura va cuando de verdad ASOMA (0.86), no a media subida:
+               antes reventaba 300 px bajo la niebla y no se veía nada. Fuerza el
+               estallido saltándose el enfriamiento — es su entrada en escena. */
+            if (popPos > 0.86 && !popSalpicado && popTarget === 1) {
+                popSalpicado = true;
                 sfxPlay('pop');
-                burstInk(0.9);
-                if (NIVEL !== 'bajo') burstLetters(5, 1);
+                burstInk(1.35, true);
+                burstLetters(NIVEL === 'alto' ? 9 : NIVEL === 'medio' ? 6 : 3, 1.2);
             }
             // Los ojos se abren DESPUÉS de asomar, con un instante de retraso.
             // Abrir es lento (rebote); cerrar es rápido: primero aprieta los ojos
@@ -1054,7 +1058,10 @@
                 add_EyeR = add_EyeL;
 
             } else {
-                if (mimado) {
+                if (escondiendose || popPos < 0.9) {
+                    // Escondido o a medio camino: nada de sustos ni cuentas.
+                    eyeLeft.className = "eye left"; eyeRight.className = "eye right";
+                } else if (mimado) {
                     /* SE DERRITE DE GUSTO: ojos cerrados en arco, orejas caídas
                        hacia atrás, cuerpo blando que se mece contra la mano. */
                     const m = petLevel;
@@ -1081,10 +1088,16 @@
                     inFear = true;
                     if (!prevFear && petLevel < 0.15) {
                         shockUntil = time + 420; burstInk(1);
-                        // Tres sustos en menos de 7 s: se harta y se esconde.
-                        sustosSeguidos = (time - ultimoSustoT < 7000) ? sustosSeguidos + 1 : 1;
-                        ultimoSustoT = time;
-                        if (sustosSeguidos >= 3) { sustosSeguidos = 0; popEscondite(2000); }
+                        /* Cuenta de sustos ANTI-TEMBLOR: rondando los 200 px el
+                           borde del miedo entra y sale decenas de veces por segundo
+                           y contaba un susto en cada oscilación — por eso huía sin
+                           parar. Ahora solo cuenta si pasó más de 1,2 s desde el
+                           anterior, y hace falta alejarse de verdad entre sustos. */
+                        if (time - ultimoSustoT > 1200) {
+                            sustosSeguidos = (time - ultimoSustoT < 9000) ? sustosSeguidos + 1 : 1;
+                            ultimoSustoT = time;
+                            if (sustosSeguidos >= 3) { sustosSeguidos = 0; popEscondite(2000); }
+                        }
                     }
                     if (!prevFear && time - lastScareSfx > 1500) { scareSfx(); lastScareSfx = time; }
                     // El cuerpo SUBE hacia la cabeza: bola compacta en alto,
@@ -1200,8 +1213,15 @@
                cuando ya ha llegado. Velocidad punta medida: 0.050 → pliegue total. */
             const arrastre = Math.max(0, popVel) * 20;
             const flop = Math.min(1.15, Math.max(earFlop, arrastre)) * 62;
-            earLeft.style.transform = `rotate(${c_EarL + add_EarL + flop}deg)`;
-            earRight.style.transform = `rotate(${c_EarR + add_EarR - flop}deg)`;
+            /* PROFUNDIDAD: la oreja del lado que mira crece y la contraria mengua,
+               en sintonía con los ojos. Uso la DIFERENCIA entre ambos ojos, no su
+               tamaño: así solo responde a la perspectiva y no a los sustos, donde
+               los dos crecen por igual. Escala desde la bisagra, no desde el centro. */
+            const asimetria = (c_EyeL - c_EyeR) * 0.5;
+            const escOrejaL = 1 + asimetria * 0.7;
+            const escOrejaR = 1 - asimetria * 0.7;
+            earLeft.style.transform  = `rotate(${c_EarL + add_EarL + flop}deg) scale(${escOrejaL})`;
+            earRight.style.transform = `rotate(${c_EarR + add_EarR - flop}deg) scale(${escOrejaR})`;
 
             c_LetY += (t_LetY - c_LetY) * 0.35;
             c_LetScale += (t_LetScale - c_LetScale) * 0.35;
@@ -1311,9 +1331,9 @@
            Para revertir: borrar esta función y sus tres llamadas (burstInk). */
         const BURST_GOTAS = 12;      // gotas por estallido
         let lastBurst = 0;
-        function burstInk(fuerza) {
+        function burstInk(fuerza, forzar) {
             const ahora = Date.now();
-            if (ahora - lastBurst < 900) return;     // nunca dos seguidos
+            if (!forzar && ahora - lastBurst < 900) return;   // nunca dos seguidos
             if (inkContainer.childElementCount > MAX_GOTAS) return;
             lastBurst = ahora;
             const w = partWrapEl.getBoundingClientRect();
