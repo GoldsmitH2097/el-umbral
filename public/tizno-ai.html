@@ -410,6 +410,7 @@
            El módulo SDK lo detecta y lo fija aquí con caducidad. */
         let aiMood = null, aiMoodUntil = 0;
         let shockUntil = 0;   // pupila contraída tras un sobresalto
+        let sustosSeguidos = 0, ultimoSustoT = 0;   // 3 sustos rápidos y se esconde
 
         /* ── LE ESTÁN ACARICIANDO ──
            Roce lento y continuo sobre su cuerpo o su cabeza => se derrite.
@@ -662,8 +663,23 @@
         const POP_HONDO = 640;        // cuánto se hunde bajo la niebla
         let popPos = 0, popVel = 0, popTarget = 0;   // 0 = escondido · 1 = fuera
         let popSalpicado = false, popOjosAbiertos = 0;
-        function popIn()  { popTarget = 1; }
-        function popOut() { popTarget = 0; popSalpicado = false; popOjosAbiertos = 0; }
+        let popCerrandoOjos = false;
+        function popIn()  { popCerrandoOjos = false; popTarget = 1; }
+        /* Primero aprieta los ojos, y 200 ms DESPUÉS se hunde. Ese respiro
+           entre las dos cosas es lo que convierte el gesto en teatro. */
+        function popOut() {
+            popCerrandoOjos = true;
+            setTimeout(() => { popTarget = 0; popSalpicado = false; }, 200);
+        }
+        /* Se esconde y vuelve a asomar: el gesto de "me largo… bueno, vale". */
+        let escondiendose = false;
+        function popEscondite(msFuera) {
+            if (escondiendose) return;
+            escondiendose = true;
+            popOut();
+            setTimeout(() => { popIn(); escondiendose = false; }, msFuera);
+        }
+        window.__tiznoEscondite = popEscondite;
         window.__tiznoPop = (fuera) => (fuera === false ? popOut() : popIn());
 
         const comoRaton = (x, y) => window.dispatchEvent(new MouseEvent('mousemove', { clientX: x, clientY: y }));
@@ -797,7 +813,13 @@
                 if (NIVEL !== 'bajo') burstLetters(5, 1);
             }
             // Los ojos se abren DESPUÉS de asomar, con un instante de retraso.
-            popOjosAbiertos += ((popPos > 0.94 && popTarget === 1 ? 1 : 0) - popOjosAbiertos) * 0.085;
+            // Abrir es lento (rebote); cerrar es rápido: primero aprieta los ojos
+            // y DESPUÉS se hunde. Ese orden es lo que lo hace teatral.
+            {
+                const objetivo = (!popCerrandoOjos && popPos > 0.94 && popTarget === 1) ? 1 : 0;
+                const vel = objetivo > popOjosAbiertos ? 0.085 : 0.28;
+                popOjosAbiertos += (objetivo - popOjosAbiertos) * vel;
+            }
 
             prevFear = inFear; inFear = false;
             prevBoxB = inBoxB; inBoxB = false;
@@ -1033,7 +1055,13 @@
                     const fear = (200 - mouseDistance) / 200 * calma;
                     
                     inFear = true;
-                    if (!prevFear && petLevel < 0.15) { shockUntil = time + 420; burstInk(1); }
+                    if (!prevFear && petLevel < 0.15) {
+                        shockUntil = time + 420; burstInk(1);
+                        // Tres sustos en menos de 7 s: se harta y se esconde.
+                        sustosSeguidos = (time - ultimoSustoT < 7000) ? sustosSeguidos + 1 : 1;
+                        ultimoSustoT = time;
+                        if (sustosSeguidos >= 3) { sustosSeguidos = 0; popEscondite(2000); }
+                    }
                     if (!prevFear && time - lastScareSfx > 1500) { scareSfx(); lastScareSfx = time; }
                     // El cuerpo SUBE hacia la cabeza: bola compacta en alto,
                     // nada de cuello ancho (la niebla tapa el hueco inferior).
@@ -1709,6 +1737,7 @@
                         btn.disabled = false;
                         setState('idle');
                         setStatus('se ha evaporado');
+                        popEscondite(2200);          // se hunde y vuelve a asomar
                         window.__tiznoSignals = null;
                         conversation = null;
                         if (watchdog) { clearInterval(watchdog); watchdog = null; }
