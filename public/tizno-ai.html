@@ -233,6 +233,16 @@
            centímetros y se evapora. Con tanto solape, la masa negra se mantiene
            constante y el borde de Tizno parece deshacerse en texto.
            Para revertir: borrar esta regla, spawnMicroLetras() y su llamada. */
+        .corona-blob {
+            position: absolute; top: 0; left: 0;
+            background: var(--ink); border-radius: 50%;
+            transform-origin: center; will-change: transform, opacity;
+        }
+        .corona-letra {
+            position: absolute; top: 0; left: 0; color: var(--ink);
+            font-family: 'Courier New', monospace; font-weight: 900;
+            transform-origin: center; will-change: transform, opacity;
+        }
         .micro-letter {
             position: absolute; top: 0; left: 0;
             color: var(--ink);
@@ -351,6 +361,10 @@
 
     <!-- Cuerpo: goo con despeine SUAVE en la silueta -->
     <div class="goo-layer" style="filter: url('#ink-goo-body'); width: 660px; left: 50%; margin-left: -330px; height: 700px; top: auto; bottom: 0;">
+        <!-- La CORONA vive DENTRO de esta capa, así que su tinta pasa por el
+             mismo filtro que el cuerpo y se funde con él: el contorno superior
+             deja de ser una línea limpia y se convierte en mar de tinta. -->
+        <div id="corona" style="position:absolute;inset:0;pointer-events:none"></div>
         <div class="master-rig">
             <div id="body-tracking-container"><div id="body-shape"></div></div>
             <div class="head-tracker">
@@ -411,6 +425,10 @@
             microDispersion: 26,  // cuánto se abren en horizontal (menos = más humo)
             focoSeguimiento: 0.22,// cuánto sigue el halo de fondo a Tizno (0 = fijo)
             focoPereza: 0.025,    // más bajo = más perezoso, llega más tarde
+            coronaPorTick: 4,     // grumos de tinta en la coronilla por pulso
+            coronaTam: 15,        // tamaño de los grumos de la corona
+            coronaAlcance: 34,    // cuánto salen antes de disolverse
+            coronaVida: 1200,     // vida de la corona en ms
             gooContraste: 13,     // alto = pegotes duros · bajo = vapor
             gooDistorsion: 30,    // cuánto se retuerce el humo (líquido)
             gotasPorTick: 5,      // gotas de tinta por pulso
@@ -1647,6 +1665,52 @@
             }
         }
 
+        /* ══════ LA CORONA ══════
+           Grumos de tinta y letras que nacen PEGADOS al arco superior de la
+           cabeza, dentro del filtro del cuerpo. Al fundirse con la silueta, el
+           borde de arriba deja de ser una curva limpia: hierve. Son pocos y
+           pequeños — el trabajo lo hace la fusión del filtro, no la cantidad. */
+        const coronaEl = document.getElementById('corona');
+        const CORONA_MAX = 46;
+        function spawnCorona() {
+            if (NIVEL === 'bajo' || !coronaEl) return;
+            if (coronaEl.childElementCount > CORONA_MAX) return;
+            const c = coronaEl.getBoundingClientRect();
+            const h = headBase.getBoundingClientRect();
+            const cx = h.left + h.width / 2 - c.left;
+            const cy = h.top + h.height / 2 - c.top;
+            const r = h.width * 0.5;
+            const n = NIVEL === 'alto' ? TUNE.coronaPorTick : Math.round(TUNE.coronaPorTick * 0.5);
+            for (let i = 0; i < n; i++) {
+                const letra = Math.random() < 0.45;
+                const el = document.createElement('div');
+                el.className = letra ? 'corona-letra' : 'corona-blob';
+                // Arco superior: de -170° a -10°, es decir toda la coronilla.
+                const ang = (-170 + Math.random() * 160) * Math.PI / 180;
+                const rr = r * (0.82 + Math.random() * 0.22);
+                const x0 = cx + Math.cos(ang) * rr;
+                const y0 = cy + Math.sin(ang) * rr * 0.92;
+                if (letra) {
+                    el.innerText = alphabet[Math.floor(Math.random() * alphabet.length)];
+                    el.style.fontSize = (9 + Math.random() * 9).toFixed(1) + 'px';
+                } else {
+                    const d = TUNE.coronaTam * (0.55 + Math.random() * 0.9);
+                    el.style.width = d.toFixed(1) + 'px';
+                    el.style.height = d.toFixed(1) + 'px';
+                }
+                coronaEl.appendChild(el);
+                // Salen despacio en la dirección de su ángulo: hierven hacia fuera.
+                const dx = Math.cos(ang) * TUNE.coronaAlcance * (0.4 + Math.random() * 0.8);
+                const dy = Math.sin(ang) * TUNE.coronaAlcance * (0.6 + Math.random() * 0.9) - 8;
+                el.animate([
+                    { transform: `translate(${x0}px, ${y0}px) scale(0.35)`, opacity: 0.9 },
+                    { transform: `translate(${x0 + dx * 0.4}px, ${y0 + dy * 0.4}px) scale(1)`, opacity: 1, offset: 0.35 },
+                    { transform: `translate(${x0 + dx}px, ${y0 + dy}px) scale(0.15)`, opacity: 0 }
+                ], { duration: TUNE.coronaVida * (0.7 + Math.random() * 0.6), easing: 'ease-out' })
+                 .onfinish = () => el.remove();
+            }
+        }
+
         /* PRUEBA — enjambre de micro-letras. La densidad va atada al nivel de
            calidad y hay tope duro de vivas: si la máquina flojea, el vigilante de
            FPS baja el nivel y esto se reduce solo. */
@@ -1729,6 +1793,10 @@
                 ['microDispersion', 4, 120, 2,  'Dispersión horizontal (humo←)'],
                 ['focoSeguimiento', 0, 0.6, 0.02, 'Foco: cuánto le sigue'],
                 ['focoPereza', 0.005, 0.12, 0.005, 'Foco: pereza (lento←)'],
+                ['coronaPorTick', 0, 12, 1,     'Corona: grumos por pulso'],
+                ['coronaTam',     4, 40, 1,     'Corona: tamaño del grumo'],
+                ['coronaAlcance', 6, 90, 2,     'Corona: cuánto se alejan'],
+                ['coronaVida',  400, 2600, 50,  'Corona: vida (ms)'],
                 ['gooContraste', 5, 30, 0.5,    'Goo: contraste (vapor←duro→)'],
                 ['gooDistorsion', 0, 70, 2,     'Goo: distorsión líquida'],
                 ['gotasPorTick',  0, 12, 1,     'Gotas de tinta por pulso'],
@@ -1796,6 +1864,7 @@
 
         setInterval(spawnParticles, 140);
         setInterval(() => { if (!document.hidden) spawnMicroLetras(); }, 90);   // PRUEBA
+        setInterval(() => { if (!document.hidden) spawnCorona(); }, 110);
     </script>
 
     <!-- ═══ ELEVENLABS — módulo del SDK ═══
