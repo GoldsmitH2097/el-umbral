@@ -1085,6 +1085,13 @@
             } catch (_) {}
             const movil = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || innerWidth <= 768;
             const dias_desde = m.lastVisit ? Math.floor((Date.now() - m.lastVisit) / 86400000) : null;
+            // ¿Merece la pena mencionar la hora? Solo si es rara.
+            const finde = now.getDay() === 0 || now.getDay() === 6;
+            let horaRara = null;
+            if (h >= 0 && h < 5)        horaRara = 'de madrugada, pasada la medianoche';
+            else if (h === 23)          horaRara = 'a punto de pasar la medianoche';
+            else if (h >= 5 && h < 7)   horaRara = 'antes del amanecer';
+            else if (!finde && h >= 9 && h < 18) horaRara = 'en mitad de la jornada laboral de un día entre semana';
             return {
                 hora: now.toTimeString().slice(0, 5),
                 franja,
@@ -1097,6 +1104,7 @@
                 movil,
                 oscuro: matchMedia('(prefers-color-scheme: dark)').matches,
                 sinMovimiento: matchMedia('(prefers-reduced-motion: reduce)').matches,
+                horaRara,
                 visitas: (m.visits || 0) + 1,
                 diasDesde: dias_desde,
                 nombre: m.nombre || null,
@@ -1107,7 +1115,13 @@
         function dossierToText(d) {
             const L = [];
             L.push(`Son las ${d.hora} ${d.franja} del ${d.dia} donde está (zona ${d.zona}).`);
-            if (d.madrugada) L.push('ESTÁ DESPIERTO DE MADRUGADA — algo le quita el sueño.');
+            if (d.horaRara) {
+                L.push(`LA HORA ES UNA CARTA QUE PUEDES JUGAR: está aquí ${d.horaRara}. ` +
+                       'Cuando quieras inquietarle, insinúalo (¿no duerme?, ¿no debería estar trabajando?). ' +
+                       'Nunca en tu primera frase: guárdatelo.');
+            } else {
+                L.push('La hora no tiene nada de particular: NO la menciones, no impresionaría a nadie.');
+            }
             L.push(`Llegó ${d.origen}. Idioma del navegador: ${d.idioma}. Está en ${d.movil ? 'el móvil' : 'un ordenador'}.`);
             if (d.bateria) L.push(`Su batería está al ${d.bateria.pct}%${d.bateria.cargando ? ' y cargando' : ', sin cargar'}.`);
             if (d.oscuro) L.push('Tiene el sistema en modo oscuro: prefiere la penumbra.');
