@@ -998,11 +998,14 @@
         /* Vocabulario bilingüe: las acotaciones que escribe el agente en español
            Y los audio tags de ElevenLabs v3 (que salen en inglés: [Laughing],
            [scared]…). Si añades un tag nuevo en el panel, mételo aquí también. */
+        /* ORDEN IMPORTANTE: Tizno es una criatura aterrada, así que el MIEDO se
+           evalúa PRIMERO. El enfado es su emoción más rara y exige marcas
+           explícitas — nada de "¡no...!", que es su muletilla constante. */
         const MOOD_LEX = [
-            [/grita|gruñe|ruge|amenaza|golpea|furios|rabia|\bira\b|maldit|¡no\b/, 'enfado'],
-            [/angr|shout|yell|growl|snarl|furious|roars?\b|annoyed|irritated/, 'enfado'],
-            [/tiembla|tartamudea|respiraci|jadea|se encoge|susurra|miedo|asustad|terror|no te acerques|peligro|huye/, 'miedo'],
+            [/tiembla|tartamudea|respiraci|jadea|se encoge|susurra|miedo|asustad|terror|no te acerques|peligro|huye|cuidado|aléjate|no me toques/, 'miedo'],
             [/scared|frightened|afraid|nervous|whisper|trembl|gasp|panick|terrified|worried|stammer/, 'miedo'],
+            [/grita|gruñe|ruge|amenaza|golpea|furios|rabia|\bira\b|maldit|\bharto\b|déjame en paz/, 'enfado'],
+            [/angr|shout|yell|growl|snarl|furious|roars?\b|annoyed|irritated/, 'enfado'],
             [/solloza|suspira|llora|lament|triste|\bsolo\b|abandonad|olvidad|\bpena\b|queja|vacío me llama/, 'tristeza'],
             [/\bsad|sigh|cry|cries|sobs?\b|mournful|melanchol|disappointed|weary|resigned/, 'tristeza'],
             [/ríe|risa|carcajada|canturrea|salta|celebra|brillante|jaja|maravill|tesoro/, 'energia'],
