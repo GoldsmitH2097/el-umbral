@@ -196,6 +196,16 @@
             color: rgba(255,255,255,0.35); font-style: italic; font-size: 12px;
             letter-spacing: 1px; text-align: center;
         }
+        #tizno-aviso {
+            max-width: 640px; text-align: center; margin-top: 6px;
+            color: rgba(255,255,255,0.28); font-size: 11.5px; line-height: 1.65;
+        }
+        #tizno-aviso a {
+            color: rgba(243, 156, 18, 0.55); text-decoration: none;
+            border-bottom: 1px solid rgba(243, 156, 18, 0.25);
+        }
+        #tizno-aviso a:hover { color: rgba(243, 156, 18, 0.95); border-bottom-color: rgba(243, 156, 18, 0.6); }
+        #tizno-aviso.olvidado { color: rgba(243, 156, 18, 0.5); }
 
         /* --- LUCIÉRNAGA --- */
         #firefly {
@@ -293,6 +303,12 @@
     <div id="tizno-call-ui">
         <button id="tizno-call">Despertar a Tizno</button>
         <div id="tizno-status">pulsa para hablar con él</div>
+        <p id="tizno-aviso">
+            En esta web no usamos cookies: no queremos entrometernos en tu vida ni sacar
+            de ti nada que se pueda vender. Tizno recuerda cosas sobre ti, pero las guarda
+            dentro de tu propio dispositivo — nosotros no nos quedamos con nada.
+            Si te quedas más tranquilo, puedes <a href="#" id="tizno-olvido">borrar lo que sabe de ti</a>.
+        </p>
     </div>
 
     <script>
@@ -1315,6 +1331,15 @@
         }
 
         btn.addEventListener('click', () => conversation ? sleep() : wake());
+
+        // "Borrar lo que sabe de ti": la tarjeta de memoria, en manos del visitante.
+        document.getElementById('tizno-olvido').addEventListener('click', (e) => {
+            e.preventDefault();
+            window.__tiznoOlvidar();
+            const av = document.getElementById('tizno-aviso');
+            av.classList.add('olvidado');
+            av.textContent = 'Listo: Tizno ya no recuerda nada de ti. Vuelves a ser un desconocido.';
+        });
 
         // Pestaña oculta = colgar: nadie paga créditos a una pestaña de fondo.
         document.addEventListener('visibilitychange', () => {
