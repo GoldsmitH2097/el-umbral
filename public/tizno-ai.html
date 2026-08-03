@@ -147,9 +147,16 @@
         /* Felicidad: dos arcos (^ ^) — ojos cerrados de gusto. */
         /* El ojo es un círculo; para el arco hay que soltarlo del border-radius,
            si no la circunferencia se come las puntas del arco. */
+        /* Base: aproximación en polígono del arco, que funciona en TODOS los
+           navegadores (Safari solo admite path() desde 15.4). Si el navegador
+           soporta curvas, se sustituye por el trazo real más abajo. */
         .eye.happy {
             border-radius: 0;
-            clip-path: path('M 1,29 Q 20,-4 39,29 Q 20,14 1,29 Z');
+            clip-path: polygon(2.5% 72.5%, 26% 41.5%, 50% 31%, 74% 41.5%, 97.5% 72.5%,
+                               74% 58.5%, 50% 54%, 26% 58.5%);
+        }
+        @supports (clip-path: path('M 0,0 L 1,1 Z')) {
+            .eye.happy { clip-path: path('M 1,29 Q 20,-4 39,29 Q 20,14 1,29 Z'); }
         }
         .eye.happy::after { opacity: 0; }   /* sin brillo: están cerrados de gusto */
         .eye.sad.left { clip-path: polygon(0% 10%, 100% 40%, 100% 100%, 0% 100%); }
@@ -197,8 +204,24 @@
         }
 
         @keyframes breath-fog {
-            0% { transform: translateY(0) scaleY(1); opacity: 0.95; }
-            100% { transform: translateY(10px) scaleY(1.15); opacity: 1; }
+            0% { transform: translateY(0) scaleY(1) rotate(0deg); opacity: 0.95; }
+            100% { transform: translateY(10px) scaleY(1.15) rotate(0.35deg); opacity: 1; }
+        }
+        /* Segunda lámina de niebla con OTRO periodo (13s frente a 8s) y giro
+           contrario. Al no coincidir nunca, el borde de las dos parece ondular
+           solo. Coste: una capa más compuesta en GPU, transform y opacity. */
+        @keyframes breath-fog-2 {
+            0%   { transform: translateY(14px) scaleY(1.1) rotate(-0.5deg); opacity: 0.5; }
+            50%  { transform: translateY(-6px) scaleY(0.94) rotate(0.28deg); opacity: 0.72; }
+            100% { transform: translateY(9px)  scaleY(1.18) rotate(-0.2deg); opacity: 0.55; }
+        }
+        #abyss-foreground-2 {
+            position: fixed; bottom: -30px; left: -12vw;
+            width: 124vw; height: 230px;
+            background: linear-gradient(to top, var(--bg-color) 18%, rgba(3,3,3,0.8) 52%, transparent 100%);
+            z-index: 21; pointer-events: none;
+            transform-origin: bottom center;
+            animation: breath-fog-2 13s ease-in-out infinite alternate;
         }
 
         /* --- PARTÍCULAS --- */
@@ -306,6 +329,7 @@
 
     <!-- EL ABISMO FRONTAL (Niebla dinámica limpia) -->
     <div id="abyss-foreground"></div>
+    <div id="abyss-foreground-2"></div>
 
     <!-- Cuerpo: goo con despeine SUAVE en la silueta -->
     <div class="goo-layer" style="filter: url('#ink-goo-body'); width: 660px; left: 50%; margin-left: -330px; height: 700px; top: auto; bottom: 0;">
@@ -419,8 +443,10 @@
         document.getElementById('box-b').addEventListener('click', () => {
             clicsCerrar++;
             if (clicsCerrar < 3) return;                 // silencio absoluto al principio
-            risa = Math.min(1, risa + (clicsCerrar === 3 ? 0.45 : 0.3));
-            risaHasta = Date.now() + 2400 + risa * 1800;
+            // Carcajada CORTA: menos de un segundo y se apaga sola. Insistir no
+            // alarga la risa, la repite — que tiene más gracia que una risa larga.
+            risa = Math.min(1, risa + (clicsCerrar === 3 ? 0.5 : 0.35));
+            risaHasta = Date.now() + 620 + risa * 260;
             sfxPlay('risa');
             if (clicsCerrar >= 5) burstInk(0.7 + risa * 0.5, true);
         });
@@ -870,7 +896,7 @@
             prevBoxB = inBoxB; inBoxB = false;
 
             // La risa se va apagando sola.
-            if (time > risaHasta) risa = Math.max(0, risa - 0.012);
+            if (time > risaHasta) risa = Math.max(0, risa - 0.045);   // se apaga con suavidad
             const riendo = risa > 0.12 && aiState === 'idle';
 
             // El mimo se evapora si dejas de acariciarle.
@@ -1341,6 +1367,17 @@
             const mem = navigator.deviceMemory || 4;
             if (esMovil || nucleos <= 4 || mem <= 4) NIVEL = 'medio';
             if (esMovil && (nucleos <= 4 || mem <= 3)) NIVEL = 'bajo';
+            // Accesibilidad: quien ha pedido menos animación no merece un
+            // caldero de partículas — y de paso es el ajuste más barato.
+            if (matchMedia('(prefers-reduced-motion: reduce)').matches) NIVEL = 'bajo';
+            /* Safari (incluido todo iOS, que va por debajo con WebKit) tira los
+               filtros SVG por CPU y se ahoga con feTurbulence. Nunca arranca en
+               alto: si su máquina da de sí, el vigilante no lo bajará más. */
+            const esSafari = /^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent);
+            if (esSafari && NIVEL === 'alto') NIVEL = 'medio';
+            /* Pantallas muy densas multiplican el área real del filtro por el
+               cuadrado del DPR: en un móvil 3x son 9 veces más píxeles. */
+            if ((window.devicePixelRatio || 1) >= 2.5 && esMovil) NIVEL = 'bajo';
         }
         const FACTOR = { alto: 1, medio: 0.55, bajo: 0.3 };
         function aplicarNivel() {
@@ -1348,6 +1385,13 @@
             if (!cap) return;
             cap.style.filter = NIVEL === 'alto' ? "url('#ink-goo')"
                              : NIVEL === 'medio' ? "url('#ink-goo-lite')" : 'none';
+            // En nivel BAJO el cuerpo también renuncia a la turbulencia: en un
+            // móvil modesto ese filtro es la mitad del gasto de toda la página.
+            const cuerpo = document.querySelectorAll('.goo-layer')[0];
+            if (cuerpo) cuerpo.style.filter = NIVEL === 'bajo' ? "url('#ink-goo-lite')" : "url('#ink-goo-body')";
+            // La segunda lámina de niebla es puro adorno: fuera en nivel bajo.
+            const niebla2 = document.getElementById('abyss-foreground-2');
+            if (niebla2) niebla2.style.display = NIVEL === 'bajo' ? 'none' : '';
             document.documentElement.dataset.nivel = NIVEL;
         }
         function bajarNivel() {
@@ -1357,17 +1401,28 @@
             aplicarNivel();
             return true;
         }
-        /* Medidor: cuenta frames reales durante 3 s y degrada si va justo. */
+        /* VIGILANTE PERMANENTE DE FPS.
+           No basta con medir al arrancar: una máquina puede ir bien vacía y
+           ahogarse cuando se llena de partículas, o cuando el usuario abre otra
+           pestaña pesada. Esto vigila en ventanas de 2,5 s durante toda la vida
+           de la página y baja de nivel en cuanto ve que no llega. Solo baja,
+           nunca sube: subir y bajar en bucle se vería peor que ir en bajo. */
         function medirFps() {
-            let n = 0, t0 = performance.now();
+            let n = 0, t0 = performance.now(), ventanas = 0;
             const tick = () => {
                 n++;
                 const dt = performance.now() - t0;
-                if (dt < 3000) { requestAnimationFrame(tick); return; }
-                const fps = n / (dt / 1000);
-                if (fps < 30) { bajarNivel(); bajarNivel(); }
-                else if (fps < 46) bajarNivel();
-                document.documentElement.dataset.fps = Math.round(fps);
+                if (dt >= 2500) {
+                    const fps = n / (dt / 1000);
+                    document.documentElement.dataset.fps = Math.round(fps);
+                    // La 1ª ventana incluye el arranque: es más tolerante.
+                    const umbralBajo = ventanas === 0 ? 30 : 34;
+                    const umbralMedio = ventanas === 0 ? 46 : 50;
+                    if (fps < umbralBajo) { bajarNivel(); bajarNivel(); }
+                    else if (fps < umbralMedio) bajarNivel();
+                    n = 0; t0 = performance.now(); ventanas++;
+                }
+                requestAnimationFrame(tick);
             };
             requestAnimationFrame(tick);
         }
