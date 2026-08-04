@@ -1,56 +1,100 @@
 /**
- * TiznoTease.js — el cajón de contacto del footer + el candado de Tizno.
+ * TiznoTease.js — el cajón/popover de contacto + EL CANDADO DE TIZNO (fase 2).
  *
- * Antes: el teaser de ojos estilo Hollow Knight con un panel modal.
- * Ahora (fase 1 del footer del Umbral, Ruben 2026-08-04): el contenido del
- * panel vive en un cajón desplegable DENTRO del footer, y el teaser son las
- * luciérnagas rondando el candado. La clase conserva su nombre y su contrato
- * (init/open/close/toggle/getPosition/isOpen) para no tocar a sus llamantes.
+ * El candado ya no traquetea en vano: invoca. Al primer clic se crea un
+ * iframe lazy con /tizno-ai.html?embed=1 (transparente, escalado, sin UI de
+ * demo) y se le ordena el pop-in. El mismo botón encierra: pop-out y el
+ * marco queda dormido (sueño profundo del motor = coste cero).
  *
- * getPosition() ahora devuelve el centro del CANDADO: es el punto que orbita
- * la luciérnaga-compañera como invitación a pulsarlo.
+ * La madre reenvía el ratón de TODA la página (para que Tizno lo siga desde
+ * su esquina) y la distancia del cursor al candado — que hereda el papel de
+ * "botón temido" del demo. La rueda sobre el marco vuelve como scroll.
  *
- * Fase 2 cableará el candado al pop-in real de Tizno; de momento la cerradura
- * se resiste con un traqueteo y un susurro.
+ * getPosition() sigue devolviendo el candado: es lo que orbita la
+ * luciérnaga-compañera.
  */
+
+import { t } from '../core/i18n.js';
 
 export class TiznoTease {
   constructor() {
-    this._panel      = document.getElementById('contact-popover');
-    this._navBtn     = document.getElementById('nav-contacto');
-    this._candado    = document.getElementById('liberar-tizno-btn');
-    this._susurro    = document.getElementById('liberar-susurro');
-    this._open       = false;
-    this._susurroT   = null;
+    this._panel   = document.getElementById('contact-popover');
+    this._navBtn  = document.getElementById('nav-contacto');
+    this._candado = document.getElementById('liberar-tizno-btn');
+    this._open    = false;
+    this._frame   = null;
+    this._libre   = false;
+    this._ultimoEnvio = 0;
   }
 
   init() {
-    // main.js llama a init() desde DOS rutas de arranque (intro y salto):
-    // sin este pestillo cada botón recibía dos listeners y un clic hacía
-    // toggle doble — abrir y cerrar en el mismo gesto.
-    // OJO: el clic del CONTACTO de la cabecera NO se cablea aquí — lo
-    // despacha ArchiveDOM vía [data-action="scroll-contact"] → toggle().
+    // main.js llama a init() desde DOS rutas de arranque: pestillo obligatorio.
     if (this._inited || !this._panel) return;
     this._inited = true;
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && this._open) this.close(); });
-    // clic fuera del panelito = cerrarlo
     document.addEventListener('click', e => {
       if (this._open && !e.target.closest('#contact-popover, #nav-contacto')) this.close();
     });
 
-    // Fase 1: la cerradura resiste. Traqueteo + susurro, nada más.
-    this._candado?.addEventListener('click', () => {
-      this._candado.classList.remove('traqueteo');
-      void this._candado.offsetWidth;          // reinicia la animación
-      this._candado.classList.add('traqueteo');
-      if (this._susurro) {
-        this._susurro.textContent = this._susurro.dataset.texto || 'Todavía no… la cerradura resiste.';
-        this._susurro.classList.add('visible');
-        clearTimeout(this._susurroT);
-        this._susurroT = setTimeout(() => this._susurro.classList.remove('visible'), 2600);
-      }
+    this._candado?.addEventListener('click', () => this._libre ? this._encerrar() : this._liberar());
+
+    // la rueda sobre el marco de Tizno vuelve como scroll de la página
+    window.addEventListener('message', (ev) => {
+      if (ev.origin !== location.origin || ev.data?.tipo !== 'rueda') return;
+      document.getElementById('main-site')?.scrollBy({ top: ev.data.dy });
     });
   }
+
+  _liberar() {
+    if (!this._frame) {
+      this._frame = document.createElement('iframe');
+      this._frame.id = 'tizno-frame';
+      this._frame.src = '/tizno-ai.html?embed=1';
+      this._frame.title = 'Tizno';
+      this._frame.setAttribute('allow', 'microphone');   // fase 3: la voz
+      document.body.appendChild(this._frame);
+      this._frame.addEventListener('load', () => this._enviar({ tipo: 'liberar' }), { once: true });
+
+      // reenvío de ratón a ~30 fps + distancia al candado (el botón temido)
+      window.addEventListener('mousemove', (e) => {
+        const ahora = performance.now();
+        if (ahora - this._ultimoEnvio < 33 || !this._libre) return;
+        this._ultimoEnvio = ahora;
+        const r = this._candado.getBoundingClientRect();
+        const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+        const dx = e.clientX - cx, dy = e.clientY - cy;
+        this._enviar({
+          tipo: 'raton', x: e.clientX, y: e.clientY,
+          candadoDist: Math.hypot(dx, dy),
+          candadoNX: Math.max(-1, Math.min(1, dx / 200)),
+          candadoNY: Math.max(-1, Math.min(1, dy / 200)),
+        });
+      }, { passive: true });
+    } else {
+      this._enviar({ tipo: 'liberar' });
+    }
+    this._libre = true;
+    this._pintarCandado();
+  }
+
+  _encerrar() {
+    this._enviar({ tipo: 'encerrar' });
+    this._libre = false;
+    this._pintarCandado();
+  }
+
+  _pintarCandado() {
+    const span = this._candado?.querySelector('span');
+    if (span) span.textContent = t(this._libre ? 'footer.encerrar' : 'footer.liberar');
+    this._candado?.classList.toggle('abierto', this._libre);
+    this._candado?.setAttribute('aria-label', t(this._libre ? 'footer.encerrar-aria' : 'footer.liberar-aria'));
+  }
+
+  _enviar(m) {
+    try { this._frame?.contentWindow?.postMessage(m, location.origin); } catch (_) {}
+  }
+
+  estaLibre() { return this._libre; }
 
   toggle() { this._open ? this.close() : this.open(); }
 
@@ -58,9 +102,7 @@ export class TiznoTease {
     if (!this._panel) return;
     this._open = true;
     this._panel.hidden = false;
-    // reflow forzado antes de la clase: la transición anima. Síncrono — nada
-    // de rAF, que hay entornos que lo estrangulan.
-    void this._panel.offsetHeight;
+    void this._panel.offsetHeight;   // reflow: la transición anima
     this._panel.classList.add('open');
     this._navBtn?.setAttribute('aria-expanded', 'true');
   }

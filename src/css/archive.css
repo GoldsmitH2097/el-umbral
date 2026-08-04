@@ -526,11 +526,11 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
 .footer-legal a:focus-visible { color: #c8922a; outline: none; }
 /* Cierre de página: la marca, quieta y ceremonial, como último contenido. */
 .page-brand {
-  text-align: center; padding: 9vh 5vw 6vh; color: #444;
+  text-align: center; padding: 3.5vh 5vw 2.5vh; color: #444;
   font-size: 11px; letter-spacing: 4px; text-transform: uppercase;
 }
-.page-brand img { display: block; margin: 0 auto 18px; opacity: 0.9; }
-.page-brand p { margin: 0 0 10px; }
+.page-brand img { display: block; margin: 0 auto 10px; opacity: 0.9; }
+.page-brand p { margin: 0 0 6px; }
 .page-brand-lema { font-style: italic; text-transform: none; letter-spacing: 2.5px; color: #3d3d3d; }
 .fb-right { display: flex; align-items: center; gap: 12px; position: relative; }
 .footer-puerta {
@@ -547,6 +547,18 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
 }
 .footer-puerta:focus-visible { outline: 1px solid rgba(200,146,42,0.5); outline-offset: 2px; }
 .candado-icono { flex-shrink: 0; }
+/* candado abierto = Tizno suelto */
+.footer-puerta--candado.abierto { color: #c8922a; border-color: rgba(200,146,42,0.5); }
+/* LA MORADA DE TIZNO: iframe lazy, esquina inferior derecha, sobre el
+   contenido y bajo la barra (z 30) — asoma desde detrás de ella. */
+#tizno-frame {
+  position: fixed; right: 8px; bottom: 46px; z-index: 28;
+  width: 500px; height: 420px; border: 0; background: transparent;
+  color-scheme: normal;
+}
+@media (max-width: 820px) {
+  #tizno-frame { width: 96vw; right: 2vw; height: 390px; bottom: 88px; }
+}
 .footer-puerta--candado.traqueteo { animation: candadoTraqueteo 0.5s ease; }
 @keyframes candadoTraqueteo {
   0%, 100% { transform: translateX(0) rotate(0); }
