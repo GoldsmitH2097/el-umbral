@@ -224,38 +224,10 @@
             animation: breath-fog-2 13s ease-in-out infinite alternate;
         }
 
-        /* --- PARTÍCULAS --- */
+        /* --- PARTÍCULAS ---
+           Dibujadas en canvas desde el motor de tinta (ver script): los viejos
+           divs .ink-drop/.floating-letter/.micro-letter/.corona-* ya no existen. */
         .particle-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; }
-        .ink-drop { position: absolute; top: 0; left: 0; background-color: var(--ink); border-radius: 50%; transform-origin: center; }
-        .eye-spark { position: absolute; top: 0; left: 0; background: #fff; border-radius: 50%; box-shadow: 0 0 6px 1px rgba(255, 255, 255, 0.5); z-index: 11; transform-origin: center; }
-        
-        /* PRUEBA — MICRO-LETRAS: enjambre denso y diminuto que sube unos
-           centímetros y se evapora. Con tanto solape, la masa negra se mantiene
-           constante y el borde de Tizno parece deshacerse en texto.
-           Para revertir: borrar esta regla, spawnMicroLetras() y su llamada. */
-        .corona-blob {
-            position: absolute; top: 0; left: 0;
-            background: var(--ink); border-radius: 50%;
-            transform-origin: center; will-change: transform, opacity;
-        }
-        .corona-letra {
-            position: absolute; top: 0; left: 0; color: var(--ink);
-            font-family: 'Courier New', monospace; font-weight: 900;
-            transform-origin: center; will-change: transform, opacity;
-        }
-        .micro-letter {
-            position: absolute; top: 0; left: 0;
-            color: var(--ink);
-            font-family: 'Courier New', monospace; font-weight: 900;
-            transform-origin: center; will-change: transform, opacity;
-        }
-        /* Letras gruesas para fusionarse con el filtro Goo */
-        .floating-letter { 
-            position: absolute; top: 0; left: 0; 
-            color: var(--ink); 
-            font-family: 'Courier New', monospace; font-size: 36px; font-weight: 900; 
-            transform-origin: center;
-        }
 
         /* ═══ ELEVENLABS 1/4 — call UI ═══ */
         #tizno-call-ui {
@@ -299,13 +271,9 @@
            Silueta negra pura: aparece en negativo contra el glow de los ojos.
            Radios desiguales + skew en el transform = aro imperfecto, artesanal. */
         #earring {
-            position: fixed; top: 0; left: 0; width: 23px; height: 26px;
-            border: 3px solid #0b0a09;
+            position: fixed; top: 0; left: 0; width: 17px; height: 19px;
+            border: 2.5px solid var(--ink);
             border-radius: 48% 52% 46% 54% / 55% 50% 50% 45%;
-            /* Un filo tenue que capta la luz de la sala: sigue leyéndose como
-               silueta, pero deja de perderse contra el fondo negro. */
-            box-shadow: 0 0 4px rgba(243, 196, 130, 0.16),
-                        inset 0 0 3px rgba(243, 196, 130, 0.10);
             transform-origin: 50% 0;   /* cuelga de su borde superior */
             pointer-events: none; z-index: 9;
         }
@@ -368,13 +336,13 @@
         <!-- La CORONA vive DENTRO de esta capa, así que su tinta pasa por el
              mismo filtro que el cuerpo y se funde con él: el contorno superior
              deja de ser una línea limpia y se convierte en mar de tinta. -->
-        <div id="corona" style="position:absolute;inset:0;pointer-events:none"></div>
+        <canvas id="corona" style="position:absolute;inset:0;pointer-events:none"></canvas>
         <div class="master-rig">
             <div id="body-tracking-container"><div id="body-shape"></div></div>
             <div class="head-tracker">
                 <div id="head-breathing-layer">
                     <div class="ear-shape" id="ear-left-wrapper"><svg viewBox="0 0 150 100" class="ear-svg"><path d="M 150 50 Q 70 20 0 40 Q 60 90 150 80 Z" /></svg></div>
-                    <div class="ear-shape" id="ear-right-wrapper"><svg viewBox="0 0 150 100" class="ear-svg"><path d="M 0 50 Q 80 20 150 40 Q 90 90 0 80 Z" /></svg><div id="earring-anchor" style="position: absolute; left: 80%; top: 66%; width: 2px; height: 2px;"></div></div>
+                    <div class="ear-shape" id="ear-right-wrapper"><svg viewBox="0 0 150 100" class="ear-svg"><path d="M 0 50 Q 80 20 150 40 Q 90 90 0 80 Z" /></svg><div id="earring-anchor" style="position: absolute; left: 83%; top: 57%; width: 2px; height: 2px;"></div></div>
                     <div id="head-base"></div>
                     <div id="neck-bridge"></div>
                 </div>
@@ -384,8 +352,7 @@
 
     <!-- Partículas y letras: goo con el despeine FUERTE original -->
     <div class="goo-layer" id="goo-particles" style="width: 720px; left: 50%; margin-left: -360px;">
-        <div id="ink-particle-container" class="particle-canvas" style="z-index: 1;"></div>
-        <div id="letters-layer" class="particle-canvas" style="z-index: 3;"></div>
+        <canvas id="lienzo-particulas"></canvas>
     </div>
 
     <div id="eyes-layer-container">
@@ -400,7 +367,7 @@
     </div>
     
     <!-- Chispas Mágicas FUERA del Goo Filter -->
-    <div id="eye-particle-container" class="particle-canvas" style="z-index: 11;"></div>
+    <canvas id="lienzo-chispas" style="position:fixed;left:50%;margin-left:-320px;bottom:140px;z-index:11;pointer-events:none"></canvas>
 
     <div id="firefly"></div>
     <div id="earring"></div>
@@ -499,18 +466,30 @@
            nunca sube: subir y bajar en bucle se vería peor que ir en bajo. */
         function medirFps() {
             let n = 0, t0 = performance.now(), ventanas = 0;
+            let prev = t0, huecoMax = 0;
             const tick = () => {
                 n++;
-                const dt = performance.now() - t0;
+                const ahora = performance.now();
+                huecoMax = Math.max(huecoMax, ahora - prev);
+                prev = ahora;
+                const dt = ahora - t0;
                 if (dt >= 2500) {
                     const fps = n / (dt / 1000);
                     document.documentElement.dataset.fps = Math.round(fps);
-                    // La 1ª ventana incluye el arranque: es más tolerante.
-                    const umbralBajo = ventanas === 0 ? 30 : 34;
-                    const umbralMedio = ventanas === 0 ? 46 : 50;
-                    if (fps < umbralBajo) { bajarNivel(); bajarNivel(); }
-                    else if (fps < umbralMedio) bajarNivel();
-                    n = 0; t0 = performance.now(); ventanas++;
+                    /* Un hueco grande entre fotogramas no es lentitud: es el
+                       navegador estrangulando el rAF porque la pestaña estaba
+                       tapada u oculta. Juzgar esa ventana degradaría la calidad
+                       para siempre por culpa de un alt-tab. Se descarta. */
+                    const valida = !document.hidden && huecoMax < 400;
+                    if (valida) {
+                        // La 1ª ventana incluye el arranque: es más tolerante.
+                        const umbralBajo = ventanas === 0 ? 30 : 34;
+                        const umbralMedio = ventanas === 0 ? 46 : 50;
+                        if (fps < umbralBajo) { bajarNivel(); bajarNivel(); }
+                        else if (fps < umbralMedio) bajarNivel();
+                        ventanas++;
+                    }
+                    n = 0; t0 = performance.now(); prev = t0; huecoMax = 0;
                 }
                 requestAnimationFrame(tick);
             };
@@ -561,8 +540,7 @@
         let sBass = 0, sMid = 0, sTreble = 0, sInVol = 0, sVad = 0;
         let prevTreble = 0, ticDirL = 1, ticDirR = -0.5;
         let c_LetY = 0, c_LetScale = 1;  // cadencia de la capa de letras
-        const lettersLayerEl = document.getElementById('letters-layer');
-        lettersLayerEl.style.transformOrigin = '50% 80%';
+        // (la cadencia de letras ahora se aplica al dibujar en el lienzo)
         window.__setTiznoAI = (s) => { aiState = s; };
         /* Matiz emocional mientras habla, derivado del TEXTO de su respuesta
            (las acotaciones que el propio agente escribe: [Tiembla], [Gruñe]…).
@@ -634,11 +612,10 @@
            se escriben a 30 (el ojo no lo nota; los filtros SVG repintan la mitad).
            La respiración vive aquí — como animación CSS mantenía los filtros
            calientes a 60 fps incluso con Tizno completamente quieto. */
-        let frameFlip = false;
+        let ultimoDibujo = 0;   // puerta de 30 fps por tiempo real (los 120 Hz no la doblan)
         const bodyShapeEl = document.getElementById('body-shape');
         const headBreathEl = document.getElementById('head-breathing-layer');
         const eyesBreathEl = document.getElementById('eyes-breathing-layer');
-        const partWrapEl = document.getElementById('goo-particles');
         const goolayers = document.querySelectorAll('.goo-layer');
         const luzSala = document.getElementById('luz-sala');
         let focoX = 0, focoY = 0;   // el halo de fondo va detrás de él, con pereza
@@ -917,6 +894,7 @@
         }
         window.addEventListener('touchstart', pedirSensores, { once: true });
 
+        let erDrawX = 0, erDrawY = 0;   // posición del pendiente, escrita a 30 fps
         function updateRig() {
             const time = Date.now();
 
@@ -937,7 +915,7 @@
                 erOmega += alpha * dt;          // Euler semi-implícito: estable
                 erTheta += erOmega * dt;
                 erVX = vx; erVY = vy; erPX = px; erPY = py; erLastT = time;
-                earringEl.style.transform = `translate(${px - 12}px, ${py + 2}px) rotate(${erTheta * 180 / Math.PI}deg) skew(-12deg)`;
+                erDrawX = px; erDrawY = py;   // la escritura al DOM va con el resto, a 30 fps
             }
             const interactionThreshold = 180; 
 
@@ -971,8 +949,6 @@
             ffVY += (ffTY - ffY) * 0.0005 + (Math.random() - 0.5) * 0.3;
             ffVX *= 0.94; ffVY *= 0.94;
             ffX += ffVX; ffY += ffVY;
-            fireflyEl.style.transform = `translate(${ffX}px, ${ffY}px)`;
-            fireflyEl.style.opacity = 0.55 + Math.sin(time * 0.006) * 0.35 + Math.random() * 0.1;
             // Ratón quieto >3 s: la luciérnaga sustituye sus coordenadas — Tizno
             // la sigue con ojos y cabeza, y si se le acerca, se asusta. El primer
             // mousemove real devuelve el control al cursor al instante.
@@ -1404,8 +1380,11 @@
             c_EyeL += (t_EyeL - c_EyeL) * ease;
             c_EyeR += (t_EyeR - c_EyeR) * ease;
 
-            frameFlip = !frameFlip;
-            if (frameFlip) {
+            if (time - ultimoDibujo >= 31) {
+            ultimoDibujo = time;
+            earringEl.style.transform = `translate(${erDrawX - 9}px, ${erDrawY - 3}px) rotate(${erTheta * 180 / Math.PI}deg) skew(-12deg)`;
+            fireflyEl.style.transform = `translate(${ffX}px, ${ffY}px)`;
+            fireflyEl.style.opacity = (0.55 + Math.sin(time * 0.006) * 0.35).toFixed(2);
             const popY = (1 - popPos) * POP_HONDO;
             masterRigs.forEach(rig => {
                 rig.style.transform = `translateY(${popY}px) rotate(${c_RigRot}deg)`;
@@ -1441,7 +1420,6 @@
 
             c_LetY += (t_LetY - c_LetY) * 0.35;
             c_LetScale += (t_LetScale - c_LetScale) * 0.35;
-            lettersLayerEl.style.transform = `translateY(${c_LetY}px) scale(${c_LetScale})`;
 
             const pupilMoveX = mouseNormX * 14;
             const pupilMoveY = mouseNormY * 14;
@@ -1501,11 +1479,12 @@
             const breathT = `translateY(${breathe * 5}px) rotate(${-breathe}deg)`;
             headBreathEl.style.transform = breathT;
             eyesBreathEl.style.transform = breathT;
-            } // fin frameFlip
+            dibujarTinta(time);
+            } // fin de la puerta de 30 fps
 
             requestAnimationFrame(updateRig);
         }
-        updateRig();
+        // el bucle arranca al final del script, cuando el motor de tinta ya existe
 
         function blinkEye(wrapperElement) {
             wrapperElement.classList.add('blinking');
@@ -1517,82 +1496,221 @@
         setTimeout(() => blinkEye(eyeLeftWrapper), 800);
         setTimeout(() => blinkEye(eyeRightWrapper), 1500);
 
-        const inkContainer = document.getElementById('ink-particle-container');
-        const eyeParticleContainer = document.getElementById('eye-particle-container');
-        const lettersLayer = document.getElementById('letters-layer');
+        /* ══════════════ MOTOR DE TINTA EN CANVAS ══════════════
+           Antes cada gota, letra y grumo era un DIV con su propia animación
+           WAAPI (hasta ~370 a la vez) DENTRO de las capas filtradas: cada
+           fotograma de cada uno obligaba al filtro SVG a re-renderizarse, a
+           60 fps, sobre contenedores de pantalla completa.
+           Ahora todo se dibuja en tres lienzos (partículas, corona, chispas)
+           una vez por fotograma de rig — 30 fps. El filtro goo se aplica al
+           lienzo entero, así que el look es idéntico, pero:
+           · el filtro trabaja la mitad de veces y sobre un área acotada,
+           · desaparecen ~370 capas compuestas y sus animaciones,
+           · no hay churn de nodos (crear y borrar 40 divs por segundo).
+           Las curvas de movimiento son las mismas de las animaciones CSS a
+           las que sustituyen, aplicadas por segmento como hacía WAAPI.    */
         const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789§¶†‡";
+        const lienzoP = document.getElementById('lienzo-particulas');
+        const lienzoC = document.getElementById('corona');
+        const lienzoS = document.getElementById('lienzo-chispas');
+        const ctxP = lienzoP.getContext('2d');
+        const ctxC = lienzoC.getContext('2d');
+        const ctxS = lienzoS.getContext('2d');
+        const INK = (getComputedStyle(document.documentElement).getPropertyValue('--ink') || '#0d0c0a').trim();
+        function ajustarLienzos() {
+            /* 1:1 con píxeles CSS — doctrina del proyecto: nada de DPR, la
+               tinta desenfocada no necesita retina y el filtro sí paga el área. */
+            lienzoP.width = 720;
+            lienzoP.height = Math.min(window.innerHeight || 900, 900);
+            lienzoP.style.width = lienzoP.width + 'px';
+            lienzoP.style.height = lienzoP.height + 'px';
+            const capaCuerpo = lienzoC.parentElement;
+            lienzoC.width = capaCuerpo.offsetWidth || 660;
+            lienzoC.height = capaCuerpo.offsetHeight || 700;
+            lienzoS.width = 640; lienzoS.height = 560;
+            lienzoS.style.width = '640px'; lienzoS.style.height = '560px';
+        }
+        ajustarLienzos();
+        window.addEventListener('resize', ajustarLienzos);
 
+        /* Atlas de sprites: fillText con cientos de fuentes distintas por
+           fotograma era lo más caro de todo el dibujo (el DOM rasterizaba cada
+           letra una vez; aquí hay que hacerlo también una vez, no por frame).
+           Tamaños cuantizados a enteros → pocas decenas de sprites en total. */
+        const ATLAS = new Map();
+        function glifo(gl, px) {
+            const clave = gl + '|' + px;
+            let c = ATLAS.get(clave);
+            if (!c) {
+                c = document.createElement('canvas');
+                c.width = Math.ceil(px * 1.3) + 2;
+                c.height = Math.ceil(px * 1.5) + 2;
+                const g = c.getContext('2d');
+                g.font = '900 ' + px + 'px "Courier New", monospace';
+                g.textAlign = 'center'; g.textBaseline = 'middle';
+                g.fillStyle = INK;
+                g.fillText(gl, c.width / 2, c.height / 2);
+                ATLAS.set(clave, c);
+            }
+            return c;
+        }
+        const sprGota = (() => {
+            const c = document.createElement('canvas'); c.width = c.height = 64;
+            const g = c.getContext('2d');
+            g.fillStyle = INK; g.beginPath(); g.arc(32, 32, 32, 0, 6.2832); g.fill();
+            return c;
+        })();
+        const sprChispa = (() => {
+            const c = document.createElement('canvas'); c.width = c.height = 48;
+            const g = c.getContext('2d');
+            const rg = g.createRadialGradient(24, 24, 0, 24, 24, 24);
+            rg.addColorStop(0, 'rgba(255,255,255,1)');
+            rg.addColorStop(0.42, 'rgba(255,255,255,0.95)');
+            rg.addColorStop(0.5, 'rgba(255,255,255,0.3)');
+            rg.addColorStop(1, 'rgba(255,255,255,0)');
+            g.fillStyle = rg; g.fillRect(0, 0, 48, 48);
+            return c;
+        })();
+
+        const POOL_P = [], POOL_C = [], POOL_S = [];
+        let contGotas = 0, contLetras = 0;
+        const DEG = Math.PI / 180;
+        // Equivalentes de los easings CSS de las animaciones sustituidas.
+        const EASE = {
+            io:  t => t < 0.5 ? 2 * t * t : 1 - ((-2 * t + 2) ** 2) / 2,   // ease-in-out
+            out: t => 1 - (1 - t) * (1 - t),                               // ease-out
+            pop: t => 1 - (1 - t) ** 3,             // ≈ cubic-bezier(.1,.8,.3,1)
+        };
+
+        /* Cada partícula lleva sus 3 keyframes (nacer / clímax / morir) y se
+           evalúa por tiempo absoluto: robusta ante caídas de fotogramas y
+           gratis de mover — no hay que integrar nada. */
+        function pintar(ctx, lienzo, pool, ahora, esP, ox, oy) {
+            if (!lienzo.width) return;
+            if (!pool.length) {
+                if (lienzo._sucio) { ctx.clearRect(0, 0, lienzo.width, lienzo.height); lienzo._sucio = false; }
+                return;
+            }
+            lienzo._sucio = true;
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.clearRect(0, 0, lienzo.width, lienzo.height);
+            let g = 0, l = 0;
+            const k = esP ? c_LetScale : 1, dy = esP ? c_LetY : 0;
+            for (let i = pool.length - 1; i >= 0; i--) {
+                const p = pool[i];
+                const u = (ahora - p.t0) / p.dur;
+                if (u >= 1) { pool[i] = pool[pool.length - 1]; pool.pop(); continue; }
+                if (u < 0) continue;   // aún no ha nacido (reloj ajustado): no extrapolar
+                const e = EASE[p.e];
+                let x, y, sc, o, r;
+                if (u < p.off) {
+                    const t = e(u / p.off);
+                    x = p.x0 + (p.x1 - p.x0) * t; y = p.y0 + (p.y1 - p.y0) * t;
+                    sc = p.s0 + (p.s1 - p.s0) * t; o = p.o0 + (p.o1 - p.o0) * t;
+                    r = p.r0 + (p.r1 - p.r0) * t;
+                } else {
+                    const t = e((u - p.off) / (1 - p.off));
+                    x = p.x1 + (p.x2 - p.x1) * t; y = p.y1 + (p.y2 - p.y1) * t;
+                    sc = p.s1 + (p.s2 - p.s1) * t; o = p.o1 + (p.o2 - p.o1) * t;
+                    r = p.r1 + (p.r2 - p.r1) * t;
+                }
+                ctx.globalAlpha = Math.max(0, Math.min(1, o));
+                if (p.gl) {
+                    l++;
+                    // Cadencia del habla: mismo translateY+scale que llevaba la
+                    // capa de letras, aplicado aquí en matemática pura.
+                    const xx = ox + (x - ox) * k;
+                    const yy = oy + (y - oy) * k + dy;
+                    const spr = glifo(p.gl, p.px);
+                    const rad = r * DEG, cos = Math.cos(rad), sin = Math.sin(rad);
+                    const sx = sc * k;
+                    const sy = sx * (p.rx ? Math.max(0.08, Math.abs(Math.cos(p.rx * u * DEG))) : 1);
+                    ctx.setTransform(cos * sx, sin * sx, -sin * sy, cos * sy, xx, yy);
+                    ctx.drawImage(spr, -spr.width / 2, -spr.height / 2);
+                } else if (p.chispa) {
+                    const d = p.tam * 5.2 * sc;
+                    ctx.setTransform(1, 0, 0, 1, 0, 0);
+                    ctx.drawImage(sprChispa, x - d / 2, y - d / 2, d, d);
+                } else {
+                    g++;
+                    const d = p.tam * sc;
+                    ctx.setTransform(1, 0, 0, 1, 0, 0);
+                    ctx.drawImage(sprGota, x - d / 2, y - d / 2, d, d);
+                }
+            }
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.globalAlpha = 1;
+            if (esP) { contGotas = g; contLetras = l; }
+        }
+
+        function dibujarTinta(ahora) {
+            // Origen de la cadencia: el 50%/80% del viewport que usaba la capa.
+            const rP = lienzoP.getBoundingClientRect();
+            pintar(ctxP, lienzoP, POOL_P, ahora, true,
+                   window.innerWidth / 2 - rP.left, window.innerHeight * 0.8 - rP.top);
+            pintar(ctxC, lienzoC, POOL_C, ahora, false, 0, 0);
+            pintar(ctxS, lienzoS, POOL_S, ahora, false, 0, 0);
+        }
 
         const MAX_GOTAS = 100;   // techo: en un equipo lento nunca se dispara
-
-        /* PRUEBA — ESTALLIDO DE TINTA
-           Cuando se lleva un susto o se enfada de verdad, revienta un momento:
-           una descarga de gotas grandes, rápidas y radiales, y se acabó.
-           Para revertir: borrar esta función y sus tres llamadas (burstInk). */
-        const BURST_GOTAS = 12;      // gotas por estallido
+        const BURST_GOTAS = 12;  // gotas por estallido
         let lastBurst = 0;
+
+        /* ESTALLIDO DE TINTA: susto o enfado de verdad → descarga radial. */
         function burstInk(fuerza, forzar) {
             const ahora = Date.now();
-            if (!forzar && ahora - lastBurst < 900) return;   // nunca dos seguidos
-            if (inkContainer.childElementCount > MAX_GOTAS) return;
+            if (!forzar && ahora - lastBurst < 900) return;
+            if (contGotas > MAX_GOTAS) return;
             lastBurst = ahora;
-            const w = partWrapEl.getBoundingClientRect();
+            const rP = lienzoP.getBoundingClientRect();
             const h = headBase.getBoundingClientRect();
-            const cx = h.left + h.width / 2 - w.left;
-            const cy = h.top + h.height / 2 - w.top;
+            const cx = h.left + h.width / 2 - rP.left;
+            const cy = h.top + h.height / 2 - rP.top;
             const nBurst = Math.max(4, Math.round(BURST_GOTAS * FACTOR[NIVEL]));
             for (let i = 0; i < nBurst; i++) {
-                const d = document.createElement('div');
-                d.classList.add('ink-drop');
-                const size = Math.random() * 22 + 12;          // más gordas que las normales
-                d.style.width = size + 'px'; d.style.height = size + 'px';
-                inkContainer.appendChild(d);
-                // radial: sale despedida en todas direcciones, con sesgo hacia arriba
+                const tam = Math.random() * 22 + 12;
                 const ang = Math.random() * Math.PI * 2;
                 const dist = (70 + Math.random() * 190) * fuerza;
                 const dx = Math.cos(ang) * dist;
-                const dy = Math.sin(ang) * dist - 60 * fuerza;
-                d.animate([
-                    { transform: `translate(${cx}px, ${cy}px) scale(0.2)`, opacity: 0 },
-                    { transform: `translate(${cx + dx * 0.45}px, ${cy + dy * 0.45}px) scale(1)`, opacity: 1, offset: 0.22 },
-                    { transform: `translate(${cx + dx}px, ${cy + dy}px) scale(0)`, opacity: 0 }
-                ], { duration: 520 + Math.random() * 480, easing: 'cubic-bezier(0.1, 0.8, 0.3, 1)' })
-                  .onfinish = () => d.remove();
+                const dyy = Math.sin(ang) * dist - 60 * fuerza;
+                const x = cx + tam / 2, y = cy + tam / 2;
+                POOL_P.push({ t0: ahora, dur: 520 + Math.random() * 480, off: 0.22, e: 'pop', tam,
+                    x0: x, y0: y, s0: 0.2, o0: 0, r0: 0,
+                    x1: x + dx * 0.45, y1: y + dyy * 0.45, s1: 1, o1: 1, r1: 0,
+                    x2: x + dx, y2: y + dyy, s2: 0, o2: 0, r2: 0 });
+                contGotas++;
             }
             if (NIVEL === 'alto') burstLetters(Math.round(4 * fuerza), fuerza);
         }
+
         function spawnParticles() {
             if (document.hidden) return;             // pestaña de fondo: cero gasto
             // Zonas acariciables, refrescadas aquí para no costar layout extra.
             petRects = { head: headBase.getBoundingClientRect(), body: bodyTracker.getBoundingClientRect() };
-            if (inkContainer.childElementCount > MAX_GOTAS) return;
+            if (contGotas > MAX_GOTAS) return;
             const leftEarRect = earLeft.getBoundingClientRect();
             const rightEarRect = earRight.getBoundingClientRect();
-            const headRect = headBase.getBoundingClientRect();
-            const bodyRect = bodyTracker.getBoundingClientRect();
-            const wOff = partWrapEl.getBoundingClientRect();
+            const headRect = petRects.head;
+            const bodyRect = petRects.body;
+            const rP = lienzoP.getBoundingClientRect();
             const leftEyeRect = eyeLeftWrapper.getBoundingClientRect();
             const rightEyeRect = eyeRightWrapper.getBoundingClientRect();
+            const ahora = Date.now();
 
             const nGotas = Math.max(1, Math.round(TUNE.gotasPorTick * FACTOR[NIVEL]));
-            for(let i=0; i<nGotas; i++) {
+            for (let i = 0; i < nGotas; i++) {
                 if (Math.random() > 0.4) {
-                    const drop = document.createElement('div');
-                    drop.classList.add('ink-drop');
-                    const size = Math.random() * 15 + 8;
-                    drop.style.width = `${size}px`; drop.style.height = `${size}px`;
-                    
+                    const tam = Math.random() * 15 + 8;
                     let spawnZone = Math.random();
                     let startX = 0, startY = 0;
-
                     if (spawnZone < 0.3) {
-                        startX = leftEarRect.left + (leftEarRect.width / 2);
-                        startY = leftEarRect.top + (leftEarRect.height / 2);
+                        startX = leftEarRect.left + leftEarRect.width / 2;
+                        startY = leftEarRect.top + leftEarRect.height / 2;
                     } else if (spawnZone < 0.6) {
-                        startX = rightEarRect.left + (rightEarRect.width / 2);
-                        startY = rightEarRect.top + (rightEarRect.height / 2);
+                        startX = rightEarRect.left + rightEarRect.width / 2;
+                        startY = rightEarRect.top + rightEarRect.height / 2;
                     } else if (spawnZone < 0.75) {
-                        startX = headRect.left + (headRect.width / 2);
+                        startX = headRect.left + headRect.width / 2;
                         startY = headRect.top + 20;
                     } else if (spawnZone < 0.9) {
                         // Torso: brotan del pecho y los costados
@@ -1603,182 +1721,144 @@
                         startX = bodyRect.left + bodyRect.width * Math.random();
                         startY = bodyRect.bottom - 15;
                     }
-
-                    startX -= wOff.left; startY -= wOff.top;
-
-                    inkContainer.appendChild(drop);
-
-                    const destX = (Math.random() * 100 - 50);
-                    const destY = -(Math.random() * 150 + 80); 
-
-                    drop.animate([
-                        { transform: `translate(${startX}px, ${startY}px) scale(0)`, opacity: 0 },
-                        { transform: `translate(${startX + destX * 0.3}px, ${startY + destY * 0.3}px) scale(1)`, opacity: 1, offset: 0.3 },
-                        { transform: `translate(${startX + destX}px, ${startY + destY}px) scale(0)`, opacity: 0 }
-                    ], { duration: Math.random() * 2500 + 1500, easing: 'ease-in-out' }).onfinish = () => drop.remove();
+                    const x = startX - rP.left + tam / 2, y = startY - rP.top + tam / 2;
+                    const destX = Math.random() * 100 - 50;
+                    const destY = -(Math.random() * 150 + 80);
+                    POOL_P.push({ t0: ahora, dur: Math.random() * 2500 + 1500, off: 0.3, e: 'io', tam,
+                        x0: x, y0: y, s0: 0, o0: 0, r0: 0,
+                        x1: x + destX * 0.3, y1: y + destY * 0.3, s1: 1, o1: 1, r1: 0,
+                        x2: x + destX, y2: y + destY, s2: 0, o2: 0, r2: 0 });
+                    contGotas++;
                 }
             }
 
             if (Math.random() > 0.4) {
-                const spark = document.createElement('div');
-                spark.classList.add('eye-spark');
-                const size = Math.random() * 4 + 2;
-                spark.style.width = `${size}px`; spark.style.height = `${size}px`;
-                
+                const rS = lienzoS.getBoundingClientRect();
+                const tam = (Math.random() * 4 + 2) / 2;
                 const targetEye = Math.random() > 0.5 ? leftEyeRect : rightEyeRect;
                 // Nacen cerca del borde del ojo (75-90% del radio), no del centro.
                 const ang = Math.random() * Math.PI * 2;
                 const rad = (targetEye.width / 2) * (0.75 + Math.random() * 0.15);
-                const startX = targetEye.left + targetEye.width / 2 + Math.cos(ang) * rad;
-                const startY = targetEye.top + targetEye.height / 2 + Math.sin(ang) * rad;
-
-                eyeParticleContainer.appendChild(spark);
-
-                const destX = (Math.random() * 60 - 30);
+                const x = targetEye.left + targetEye.width / 2 + Math.cos(ang) * rad - rS.left;
+                const y = targetEye.top + targetEye.height / 2 + Math.sin(ang) * rad - rS.top;
+                const destX = Math.random() * 60 - 30;
                 const destY = -(Math.random() * 80 + 40);
-
-                spark.animate([
-                    { transform: `translate(${startX}px, ${startY}px) scale(0)`, opacity: 0 },
-                    { transform: `translate(${startX + destX * 0.3}px, ${startY + destY * 0.3}px) scale(1)`, opacity: 1, offset: 0.2 },
-                    { transform: `translate(${startX + destX}px, ${startY + destY}px) scale(0)`, opacity: 0 }
-                ], { duration: Math.random() * 1500 + 1000, easing: 'ease-out' }).onfinish = () => spark.remove();
+                POOL_S.push({ t0: ahora, dur: Math.random() * 1500 + 1000, off: 0.2, e: 'out', tam, chispa: 1,
+                    x0: x, y0: y, s0: 0, o0: 0, r0: 0,
+                    x1: x + destX * 0.3, y1: y + destY * 0.3, s1: 1, o1: 1, r1: 0,
+                    x2: x + destX, y2: y + destY, s2: 0, o2: 0, r2: 0 });
             }
 
-            // Más letras que antes (55% por tick, y a veces dos).
+            // Letras sueltas que se van volando alto, girando en 3D.
             const cuantasLetras = Math.random() > (0.45 + (1 - FACTOR[NIVEL]) * 0.4) ? (Math.random() > 0.75 ? 2 : 1) : 0;
             for (let L = 0; L < cuantasLetras; L++) {
-                const letter = document.createElement('div');
-                letter.classList.add('floating-letter');
-                letter.innerText = alphabet[Math.floor(Math.random() * alphabet.length)];
-                
-                const startX = headRect.left + (headRect.width / 2) - wOff.left;
-                const startY = headRect.top + 10 - wOff.top;
-                
-                lettersLayer.appendChild(letter);
-
-                const destX = (Math.random() * 200 - 100);
+                const x = headRect.left + headRect.width / 2 - rP.left;
+                const y = headRect.top + 10 - rP.top;
+                const destX = Math.random() * 200 - 100;
                 const destY = -(Math.random() * 300 + 150);
                 const rotZ = Math.random() * 360;
-                const rotX = Math.random() * 180;
-
-                letter.animate([
-                    { transform: `translate(${startX}px, ${startY}px) rotateZ(0deg) rotateX(0deg) scale(0)`, opacity: 0 },
-                    { transform: `translate(${startX + destX * 0.4}px, ${startY + destY * 0.4}px) rotateZ(${rotZ*0.5}deg) rotateX(${rotX*0.5}deg) scale(1)`, opacity: 0.9, offset: 0.4 },
-                    { transform: `translate(${startX + destX}px, ${startY + destY}px) rotateZ(${rotZ}deg) rotateX(${rotX}deg) scale(0)`, opacity: 0 }
-                ], { duration: Math.random() * 5000 + 3500, easing: 'ease-in-out' }).onfinish = () => letter.remove();
+                POOL_P.push({ t0: ahora, dur: Math.random() * 5000 + 3500, off: 0.4, e: 'io',
+                    gl: alphabet[Math.floor(Math.random() * alphabet.length)], px: 36,
+                    rx: Math.random() * 180,
+                    x0: x, y0: y, s0: 0, o0: 0, r0: 0,
+                    x1: x + destX * 0.4, y1: y + destY * 0.4, s1: 1, o1: 0.9, r1: rotZ * 0.5,
+                    x2: x + destX, y2: y + destY, s2: 0, o2: 0, r2: rotZ });
+                contLetras++;
             }
         }
 
         /* ══════ LA CORONA ══════
-           Grumos de tinta y letras que nacen PEGADOS al arco superior de la
-           cabeza, dentro del filtro del cuerpo. Al fundirse con la silueta, el
-           borde de arriba deja de ser una curva limpia: hierve. Son pocos y
-           pequeños — el trabajo lo hace la fusión del filtro, no la cantidad. */
-        const coronaEl = document.getElementById('corona');
+           Tinta y letras que nacen PEGADAS al arco superior de la cabeza, en el
+           lienzo que vive dentro del filtro del cuerpo: se funden con la
+           silueta y el borde de arriba hierve en vez de ser una curva limpia. */
         const CORONA_MAX = 46;
         function spawnCorona() {
-            if (NIVEL === 'bajo' || !coronaEl) return;
-            if (coronaEl.childElementCount > CORONA_MAX) return;
-            const c = coronaEl.getBoundingClientRect();
+            if (NIVEL === 'bajo') return;
+            if (POOL_C.length > CORONA_MAX) return;
+            const rC = lienzoC.getBoundingClientRect();
             const h = headBase.getBoundingClientRect();
-            const cx = h.left + h.width / 2 - c.left;
-            const cy = h.top + h.height / 2 - c.top;
+            const cx = h.left + h.width / 2 - rC.left;
+            const cy = h.top + h.height / 2 - rC.top;
             const r = h.width * 0.5;
+            const ahora = Date.now();
             const n = NIVEL === 'alto' ? TUNE.coronaPorTick : Math.round(TUNE.coronaPorTick * 0.5);
             for (let i = 0; i < n; i++) {
                 const letra = Math.random() < 0.45;
-                const el = document.createElement('div');
-                el.className = letra ? 'corona-letra' : 'corona-blob';
-                // Arco superior: de -170° a -10°, es decir toda la coronilla.
-                const ang = (-170 + Math.random() * 160) * Math.PI / 180;
+                // Arco superior: de -170° a -10°, toda la coronilla.
+                const ang = (-170 + Math.random() * 160) * DEG;
                 const rr = r * (0.82 + Math.random() * 0.22);
                 const x0 = cx + Math.cos(ang) * rr;
                 const y0 = cy + Math.sin(ang) * rr * 0.92;
-                if (letra) {
-                    el.innerText = alphabet[Math.floor(Math.random() * alphabet.length)];
-                    el.style.fontSize = (9 + Math.random() * 9).toFixed(1) + 'px';
-                } else {
-                    const d = TUNE.coronaTam * (0.55 + Math.random() * 0.9);
-                    el.style.width = d.toFixed(1) + 'px';
-                    el.style.height = d.toFixed(1) + 'px';
-                }
-                coronaEl.appendChild(el);
-                // Salen despacio en la dirección de su ángulo: hierven hacia fuera.
                 const dx = Math.cos(ang) * TUNE.coronaAlcance * (0.4 + Math.random() * 0.8);
-                const dy = Math.sin(ang) * TUNE.coronaAlcance * (0.6 + Math.random() * 0.9) - 8;
-                el.animate([
-                    { transform: `translate(${x0}px, ${y0}px) scale(0.35)`, opacity: 0.9 },
-                    { transform: `translate(${x0 + dx * 0.4}px, ${y0 + dy * 0.4}px) scale(1)`, opacity: 1, offset: 0.35 },
-                    { transform: `translate(${x0 + dx}px, ${y0 + dy}px) scale(0.15)`, opacity: 0 }
-                ], { duration: TUNE.coronaVida * (0.7 + Math.random() * 0.6), easing: 'ease-out' })
-                 .onfinish = () => el.remove();
+                const dyy = Math.sin(ang) * TUNE.coronaAlcance * (0.6 + Math.random() * 0.9) - 8;
+                const base = { t0: ahora, dur: TUNE.coronaVida * (0.7 + Math.random() * 0.6), off: 0.35, e: 'out',
+                    x0, y0, s0: 0.35, o0: 0.9, r0: 0,
+                    x1: x0 + dx * 0.4, y1: y0 + dyy * 0.4, s1: 1, o1: 1, r1: 0,
+                    x2: x0 + dx, y2: y0 + dyy, s2: 0.15, o2: 0, r2: 0 };
+                if (letra) {
+                    base.gl = alphabet[Math.floor(Math.random() * alphabet.length)];
+                    base.px = 9 + Math.floor(Math.random() * 10);
+                } else {
+                    base.tam = TUNE.coronaTam * (0.55 + Math.random() * 0.9);
+                }
+                POOL_C.push(base);
             }
         }
 
-        /* PRUEBA — enjambre de micro-letras. La densidad va atada al nivel de
-           calidad y hay tope duro de vivas: si la máquina flojea, el vigilante de
-           FPS baja el nivel y esto se reduce solo. */
+        /* Enjambre de micro-letras: humo de texto. Densidad atada al nivel. */
         function spawnMicroLetras() {
             const n = NIVEL === 'alto' ? TUNE.microPorTick
                     : NIVEL === 'medio' ? Math.round(TUNE.microPorTick * 0.5) : 0;
-            if (!n || lettersLayer.childElementCount > TUNE.microTope) return;
-            const w = partWrapEl.getBoundingClientRect();
+            if (!n || contLetras > TUNE.microTope) return;
+            const rP = lienzoP.getBoundingClientRect();
             const h = headBase.getBoundingClientRect();
             const b = bodyTracker.getBoundingClientRect();
+            const ahora = Date.now();
             for (let i = 0; i < n; i++) {
-                const l = document.createElement('div');
-                l.classList.add('micro-letter');
-                l.innerText = alphabet[Math.floor(Math.random() * alphabet.length)];
-                l.style.fontSize = (TUNE.microTamMin + Math.random() * Math.max(0, TUNE.microTamMax - TUNE.microTamMin)).toFixed(1) + 'px';
-                lettersLayer.appendChild(l);
-                // Brotan de una banda ancha sobre la cabeza y los hombros.
-                /* Nacen MUY pegadas al cuerpo y muy juntas entre sí: es el solape
-                   lo que el filtro goo funde en humo. Si se dispersan, se ven
-                   letras sueltas; si se apelotonan, se ve tinta evaporándose. */
+                const fs = Math.round(TUNE.microTamMin + Math.random() * Math.max(0, TUNE.microTamMax - TUNE.microTamMin));
+                /* Nacen MUY pegadas al cuerpo y muy juntas: es el solape lo que
+                   el filtro goo funde en humo. Al subir SE EXPANDEN mientras se
+                   aclaran — una mancha que crece y se diluye lee como humo. */
                 const desdeCabeza = Math.random() < 0.62;
                 const x0 = (desdeCabeza ? h.left + h.width * (0.12 + Math.random() * 0.76)
-                                        : b.left + b.width * (Math.random() * 1.1 - 0.05)) - w.left;
+                                        : b.left + b.width * (Math.random() * 1.1 - 0.05)) - rP.left;
                 const y0 = (desdeCabeza ? h.top + h.height * (0.02 + Math.random() * 0.42)
-                                        : b.top + b.height * (Math.random() * 0.55)) - w.top;
+                                        : b.top + b.height * (Math.random() * 0.55)) - rP.top;
                 const dx = (Math.random() - 0.5) * TUNE.microDispersion;
-                const dy = -(TUNE.microAltura * 0.55 + Math.random() * TUNE.microAltura * 0.9);
+                const dyy = -(TUNE.microAltura * 0.55 + Math.random() * TUNE.microAltura * 0.9);
                 const rz = (Math.random() - 0.5) * 220;
-                l.animate([
-                    /* Nacen pequeñas y densas, y al subir SE EXPANDEN mientras se
-                       aclaran: una mancha que crece y se diluye lee como humo,
-                       una que encoge lee como una letra alejándose. */
-                    { transform: `translate(${x0}px, ${y0}px) rotate(0deg) scale(0.45)`, opacity: 0 },
-                    { transform: `translate(${x0 + dx * 0.3}px, ${y0 + dy * 0.28}px) rotate(${rz * 0.3}deg) scale(1)`, opacity: 0.85, offset: 0.25 },
-                    { transform: `translate(${x0 + dx}px, ${y0 + dy}px) rotate(${rz}deg) scale(1.55)`, opacity: 0 }
-                ], { duration: TUNE.microDuracion * 0.7 + Math.random() * TUNE.microDuracion * 0.6, easing: 'ease-out' })
-                 .onfinish = () => l.remove();
+                POOL_P.push({ t0: ahora, dur: TUNE.microDuracion * 0.7 + Math.random() * TUNE.microDuracion * 0.6,
+                    off: 0.25, e: 'out',
+                    gl: alphabet[Math.floor(Math.random() * alphabet.length)], px: fs,
+                    x0, y0, s0: 0.45, o0: 0, r0: 0,
+                    x1: x0 + dx * 0.3, y1: y0 + dyy * 0.28, s1: 1, o1: 0.85, r1: rz * 0.3,
+                    x2: x0 + dx, y2: y0 + dyy, s2: 1.55, o2: 0, r2: rz });
+                contLetras++;
             }
         }
 
-        /* Letras disparadas: salen escupidas con los estallidos, rápidas y girando. */
+        /* Letras disparadas: salen escupidas con los estallidos, girando. */
         function burstLetters(n, fuerza) {
-            const w = partWrapEl.getBoundingClientRect();
+            const rP = lienzoP.getBoundingClientRect();
             const h = headBase.getBoundingClientRect();
-            const cx = h.left + h.width / 2 - w.left;
-            const cy = h.top + h.height / 2 - w.top;
+            const cx = h.left + h.width / 2 - rP.left;
+            const cy = h.top + h.height / 2 - rP.top;
+            const ahora = Date.now();
             for (let i = 0; i < n; i++) {
-                const l = document.createElement('div');
-                l.classList.add('floating-letter');
-                l.innerText = alphabet[Math.floor(Math.random() * alphabet.length)];
-                lettersLayer.appendChild(l);
                 const ang = Math.random() * Math.PI * 2;
                 const dist = (110 + Math.random() * 210) * fuerza;
-                const dx = Math.cos(ang) * dist, dy = Math.sin(ang) * dist - 80 * fuerza;
+                const dx = Math.cos(ang) * dist, dyy = Math.sin(ang) * dist - 80 * fuerza;
                 const rz = (Math.random() - 0.5) * 720;
-                l.animate([
-                    { transform: `translate(${cx}px, ${cy}px) rotateZ(0deg) scale(0.3)`, opacity: 0 },
-                    { transform: `translate(${cx + dx*0.4}px, ${cy + dy*0.4}px) rotateZ(${rz*0.4}deg) scale(1.1)`, opacity: 1, offset: 0.25 },
-                    { transform: `translate(${cx + dx}px, ${cy + dy}px) rotateZ(${rz}deg) scale(0)`, opacity: 0 }
-                ], { duration: 700 + Math.random() * 600, easing: 'cubic-bezier(0.1, 0.8, 0.3, 1)' })
-                 .onfinish = () => l.remove();
+                POOL_P.push({ t0: ahora, dur: 700 + Math.random() * 600, off: 0.25, e: 'pop',
+                    gl: alphabet[Math.floor(Math.random() * alphabet.length)], px: 36,
+                    x0: cx, y0: cy, s0: 0.3, o0: 0, r0: 0,
+                    x1: cx + dx * 0.4, y1: cy + dyy * 0.4, s1: 1.1, o1: 1, r1: rz * 0.4,
+                    x2: cx + dx, y2: cy + dyy, s2: 0, o2: 0, r2: rz });
+                contLetras++;
             }
         }
-        
+
+        updateRig();
         aplicarNivel();
         medirFps();
         setTimeout(popIn, 700);       // asoma solo al abrir la página
