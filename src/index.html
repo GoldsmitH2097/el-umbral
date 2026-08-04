@@ -237,8 +237,8 @@
 
 <!-- SCENE 1: THE TOMB -->
 <div id="gallery-container">
-  <video id="char-video" loop muted playsinline preload="none" poster="/posters/reina-sin-corona.webp" fetchpriority="high" aria-hidden="true"></video>
-  <video id="char-video-preload" muted playsinline preload="none" style="display:none" aria-hidden="true"></video>
+  <video disablepictureinpicture id="char-video" loop muted playsinline preload="none" poster="/posters/reina-sin-corona.webp" fetchpriority="high" aria-hidden="true"></video>
+  <video disablepictureinpicture id="char-video-preload" muted playsinline preload="none" style="display:none" aria-hidden="true"></video>
   <div id="char-text"><h3 id="char-title" class="loading-state">Despertando<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span></h3><p id="char-desc"></p></div>
 </div>
 <div id="ambient-light" aria-hidden="true"></div>
@@ -310,7 +310,7 @@
 
 <!-- SCENE 5: READING VIEW — Author + Books tabs -->
 <div id="reading-view" role="dialog" aria-modal="true" aria-labelledby="read-title" inert aria-hidden="true">
-  <video id="reading-bg-video" loop muted playsinline preload="none" aria-hidden="true"></video>
+  <video disablepictureinpicture id="reading-bg-video" loop muted playsinline preload="none" aria-hidden="true"></video>
   <nav class="reading-tabs" role="tablist" data-i18n-attr-aria-label="reading.sections-aria" aria-label="Secciones">
     <button class="reading-tab reading-tab--active" data-tab="autor" role="tab" aria-selected="true" data-i18n="nav.author">Autor</button>
     <button class="reading-tab" data-tab="libros" role="tab" aria-selected="false" data-i18n="nav.books">Libros</button>
@@ -332,7 +332,7 @@
 <div id="mobile-char-detail" role="dialog" aria-modal="true" aria-labelledby="mobile-detail-title" inert aria-hidden="true">
   <!-- Sticky header: video + tabs + close — does NOT scroll -->
   <div class="mobile-detail-header">
-    <video id="mobile-char-video-bg" loop muted playsinline preload="none" aria-hidden="true"></video>
+    <video disablepictureinpicture id="mobile-char-video-bg" loop muted playsinline preload="none" aria-hidden="true"></video>
     <button id="mobile-char-close" data-i18n="mobile-detail.back">← Volver</button>
     <nav class="reading-tabs reading-tabs--mobile" role="tablist">
       <button class="reading-tab reading-tab--active" data-tab="autor" data-i18n="nav.author">Autor</button>

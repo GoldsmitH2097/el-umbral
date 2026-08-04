@@ -227,8 +227,9 @@ export class AudioEngine {
   }
 
   /**
-   * Soft metallic shimmer on active buy-button hover.
-   * Filtered noise sweep — like a sword catching light.
+   * Warm, quiet swell on active buy-button hover.
+   * Two sines (root + fifth of the session chord) with a slow attack and a
+   * long tail — replaces the old filtered-noise shimmer, which read as hiss.
    */
   playButtonHover() {
     if (!this.audioCtx || this.audioCtx.state !== 'running') return;
@@ -237,22 +238,17 @@ export class AudioEngine {
     this._lastBtnHoverT = t;
     try {
       const ctx = this.audioCtx, now = ctx.currentTime;
-      // Short white-noise burst → bandpass filter sweeping high-to-low → quick decay
-      const size = Math.floor(ctx.sampleRate * 0.25);
-      const buf = ctx.createBuffer(1, size, ctx.sampleRate);
-      const data = buf.getChannelData(0);
-      for (let i = 0; i < size; i++) data[i] = Math.random() * 2 - 1;
-      const src = ctx.createBufferSource(); src.buffer = buf;
-      const filter = ctx.createBiquadFilter();
-      filter.type = 'bandpass'; filter.Q.value = 4;
-      filter.frequency.setValueAtTime(5200, now);
-      filter.frequency.exponentialRampToValueAtTime(1800, now + 0.22);
-      const g = ctx.createGain();
-      g.gain.setValueAtTime(0, now);
-      g.gain.linearRampToValueAtTime(0.025, now + 0.02);
-      g.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
-      src.connect(filter); filter.connect(g); g.connect(this.masterOut || ctx.destination);
-      src.onended = () => { try { src.disconnect(); filter.disconnect(); g.disconnect(); } catch(_){} }; src.start(); src.stop(now + 0.35);
+      [[CHAR_FREQUENCIES[0], 0.014], [CHAR_FREQUENCIES[2], 0.008]].forEach(([f, vol]) => {
+        const osc = ctx.createOscillator(), g = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(f * 2, now);   // una octava arriba: presencia sin peso
+        g.gain.setValueAtTime(0, now);
+        g.gain.linearRampToValueAtTime(vol, now + 0.07);
+        g.gain.exponentialRampToValueAtTime(0.0006, now + 0.55);
+        osc.connect(g); g.connect(this.masterOut || ctx.destination);
+        if (this.masterDelay) g.connect(this.masterDelay);
+        osc.start(); osc.stop(now + 0.6);
+      });
     } catch(_) {}
   }
 

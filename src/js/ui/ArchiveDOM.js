@@ -238,6 +238,9 @@ export class ArchiveDOM {
       // pillar a beautiful frozen-portrait look on mobile / slow connections
       // before any video bytes load, instead of pure-black panels.
       video.loop = true; video.muted = true; video.playsInline = true; video.preload = 'none';
+      // Sin Picture-in-Picture: el PiP automático de Chrome (y extensiones)
+      // sacaba el vídeo flotando al abrir la pestaña de la tienda.
+      video.disablePictureInPicture = true;
       video.poster = char.src.replace(/^\/(.+)\.mp4$/, '/posters/$1.webp');
       video.setAttribute('aria-hidden', 'true'); // decorative ambient — no captions needed
       // Pillars ALWAYS use 720p — see pickPillarSrc(). They display at ~250 px

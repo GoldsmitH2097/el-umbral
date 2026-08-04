@@ -578,3 +578,35 @@ _umbralBtn.addEventListener('touchend', function(e) {
     init();
   }
 })();
+
+
+// ── Higiene de vídeo al salir de la página ─────────────────────────────────
+// Dos momentos en que TODOS los vídeos deben callar:
+// 1. El visitante pulsa un enlace de compra (target=_blank): el navegador
+//    tiene que levantar un proceso nuevo para la tienda; cuatro descodificadores
+//    de vídeo funcionando aquí es justo lo que congelaba la página unos
+//    segundos en máquinas modestas (y a algún visitante le llegó a tumbar la
+//    pestaña).
+// 2. La pestaña pasa a segundo plano: sin esto, el vídeo seguía descodificando
+//    a escondidas y el PiP automático de Chrome lo sacaba en un cuadradito.
+// Al volver, solo se reanuda lo que estaba sonando.
+(() => {
+  const pausados = new Set();
+  const pausarTodos = () => {
+    document.querySelectorAll('video').forEach(v => {
+      if (!v.paused && !v.ended) {
+        pausados.add(v);
+        try { v.pause(); } catch (_) {}
+      }
+    });
+  };
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { pausarTodos(); return; }
+    pausados.forEach(v => { if (document.contains(v)) v.play().catch(() => {}); });
+    pausados.clear();
+  });
+  // captura: se ejecuta antes de que el navegador abra la pestaña nueva
+  document.addEventListener('click', (e) => {
+    if (e.target.closest && e.target.closest('a[target="_blank"]')) pausarTodos();
+  }, { capture: true, passive: true });
+})();
