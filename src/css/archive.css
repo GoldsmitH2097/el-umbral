@@ -125,7 +125,8 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
 .archive-grid {
   display: flex; width: 100%;
   border-top: 1px solid rgba(255,255,255,0.05);
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  /* sin border-bottom: dibujaba una línea huérfana sobre el logo del cierre
+     (el separador entre rejillas ya lo pone el border-top de la siguiente) */
 }
 
 .archive-col {
