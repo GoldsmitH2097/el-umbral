@@ -23,10 +23,12 @@
             transition: opacity 1.1s ease;
         }
         html.embed #ambient-light {
-            background: radial-gradient(ellipse 44% 40% at 50% 66%, #2b2420 0%, transparent 72%) !important;
+            /* +20% de halo y algo más alto: las letras que brotan de su
+               cabeza vuelven a leerse contra la luz */
+            background: radial-gradient(ellipse 53% 48% at 50% 58%, #2b2420 0%, transparent 72%) !important;
         }
         html.embed #candle-flicker {
-            background: radial-gradient(ellipse 40% 36% at 50% 64%, rgba(255,182,102,0.14) 0%, transparent 67%) !important;
+            background: radial-gradient(ellipse 48% 43% at 50% 56%, rgba(255,182,102,0.14) 0%, transparent 67%) !important;
         }
         html.embed #abyss-foreground {
             background: radial-gradient(ellipse 46% 90% at 50% 100%, var(--bg-color) 32%, rgba(3,3,3,0.88) 55%, transparent 74%) !important;
@@ -423,6 +425,11 @@
         const EMBED = /[?&]embed=1/.test(location.search);
         if (EMBED) document.documentElement.classList.add('embed');
         window.__ESC = 1;   // escala real del marco (el puente embed la actualiza)
+        if (EMBED) {
+            /* El foco perezoso del demo seguía la cabeza al 22%; en la esquina
+               le sube al 50% (Ruben) — la mitad del viaje, nunca calcado. */
+            TUNE.focoSeguimiento = 0.5;
+        }
 
         /* Valores ajustables en vivo desde el panel (?tune=1). */
         const TUNE = {
