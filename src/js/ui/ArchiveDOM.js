@@ -989,7 +989,14 @@ export class ArchiveDOM {
         }
       });
       const wrap = doc.querySelector('.legal-wrap, main, article, body');
-      return wrap ? wrap.innerHTML : '';
+      if (!wrap) return { titulo: null, html: '' };
+      /* El primer encabezado del documento pasa a ser EL título del modal
+         (completo, en dorado) y se retira del cuerpo — antes salía duplicado:
+         'Privacidad' arriba y 'POLÍTICA DE PRIVACIDAD' justo debajo. */
+      const h = wrap.querySelector('h1, h2');
+      const titulo = h ? h.textContent.trim() : null;
+      if (h) h.remove();
+      return { titulo, html: wrap.innerHTML };
     };
     // Warm the cache after first user interaction — by the time anyone clicks
     // a legal link, the content is already in memory and the modal opens
@@ -1057,13 +1064,13 @@ export class ArchiveDOM {
       if (slug === 'tizno') { _abrirPactoTizno(); return; }
       const key = _cacheKey(slug);
       // Cache hit → render synchronously. No loading flash.
-      if (legalCache.has(key)) { _showLegal(title, legalCache.get(key)); return; }
+      if (legalCache.has(key)) { const c = legalCache.get(key); _showLegal(c.titulo || title, c.html); return; }
       // Cache miss → fetch in the background, modal stays unopened until ready.
       try {
         const html = await (await fetch(_legalUrl(slug))).text();
         const content = _parseLegal(html);
         legalCache.set(key, content);
-        _showLegal(title, content);
+        _showLegal(content.titulo || title, content.html);
       } catch {
         _showLegal(title, `<p style="color:#555;">${lang === 'en' ? 'Content could not be loaded.' : 'No se pudo cargar el contenido.'}</p>`);
       }

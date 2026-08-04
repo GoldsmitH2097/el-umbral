@@ -553,6 +553,7 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
 .page-brand p { margin: 0 0 6px; }
 .page-brand-lema { font-style: italic; text-transform: none; letter-spacing: 2.5px; color: #3d3d3d; }
 .fb-right { display: flex; align-items: center; gap: 12px; position: relative; }
+.footer-puerta[hidden] { display: none; }   /* el display de la clase vencía al atributo hidden */
 .footer-puerta {
   background: transparent; border: 1px solid rgba(200,146,42,0.28);
   border-radius: 3px; padding: 7px 14px; cursor: pointer;
@@ -569,6 +570,9 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
 .candado-icono { flex-shrink: 0; }
 /* candado abierto = Tizno suelto */
 .footer-puerta--candado.abierto { color: #c8922a; border-color: rgba(200,146,42,0.5); }
+/* libre → el candado se encoge a icono; 'Hablar con Tizno' toma la palabra */
+.footer-puerta--candado.abierto span { display: none; }
+.footer-puerta--candado.abierto { padding: 7px 11px; }
 /* LA MORADA DE TIZNO: iframe lazy, esquina inferior derecha, sobre el
    contenido y bajo la barra (z 30) — asoma desde detrás de ella. */
 #tizno-frame {
@@ -577,7 +581,7 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
   /* SOBRE la barra (Ruben: la línea entera y Tizno encima) y transparente a
      eventos: los botones se pulsan A TRAVÉS del marco; caricias, toques y
      miradas viajan por el puente de mensajes. */
-  position: fixed; right: 8px; bottom: 12px; z-index: 31;
+  position: fixed; right: 8px; bottom: 12px; z-index: 28;   /* bajo la barra: botones y línea SIEMPRE visibles */
   width: 910px; height: 780px; border: 0; background: transparent;
   transform: scale(0.55); transform-origin: bottom right;
   color-scheme: normal;

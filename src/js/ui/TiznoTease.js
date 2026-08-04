@@ -139,7 +139,8 @@ export class TiznoTease {
     if (span) span.textContent = t(this._libre ? 'footer.encerrar' : 'footer.liberar');
     this._candado?.classList.toggle('abierto', this._libre);
     this._candado?.setAttribute('aria-label', t(this._libre ? 'footer.encerrar-aria' : 'footer.liberar-aria'));
-    // el botón de hablar existe SOLO con Tizno libre, y siempre renace en 'Hablarle'
+    /* Coreografía (Ruben): preso → un solo botón LIBERAR A TIZNO.
+       Libre → [candado icono] [Hablar con Tizno]. Encerrar lo pliega todo. */
     if (this._hablarBtn) {
       this._hablarBtn.hidden = !this._libre;
       this._llamando = false;
