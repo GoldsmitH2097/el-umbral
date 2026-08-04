@@ -1,9 +1,17 @@
-Deja aqui los mp3 de Tizno con estos nombres exactos:
+BANCO DE SONIDOS DE TIZNO — tomas grabadas por Ruben (voz Parasyte, 2026-08-04)
+Procesadas: recorte de silencios + normalización de sonoridad (ffmpeg).
 
-  susto.mp3     — chillido corto de sobresalto (~0.4s)
-  ronroneo.mp3  — ronroneo en BUCLE, sin silencio al principio ni al final (~3-5s)
-  pop.mp3       — el "plop" de asomar por la superficie (~0.5s)
-  enfado.mp3    — gruñido corto de rabia (~0.6s)
-  quejido.mp3   — lamento breve (~0.8s)
+Cada reacción tiene VARIANTES y suena una al azar (nunca la misma dos veces
+seguidas). Para añadir una toma nueva: nómbrala siguiendo la serie (p.ej.
+susto-5.mp3) y añádela al mapa SFX en tizno-ai.html.
 
-Si falta alguno, simplemente no suena: nada se rompe.
+susto-1..4        chillido al acercarse de golpe (ratón/dedo del usuario)
+ronroneo          bucle al acariciarle despacio (una sola toma, empalme fundido)
+pop-1..5          salpicadura al asomar (entrada en escena)
+enfado-1..4       gruñido al entrar el cursor en "CERRAR DEMO"
+quejido-1..2      lloriqueo cuando el tercer susto le hace esconderse
+risa-1..2         risita del gag del botón CERRAR (3er clic)
+frase-sin-micro-1..2   súplica cuando el micrófono está bloqueado
+
+En el banquillo (en Downloads de Ruben, sin usar): Risa_01/_04 (largas para el
+gag de ~1,5 s), DejameSalir_01 (14 s), Ronroneo_01/_02 (menos estables).

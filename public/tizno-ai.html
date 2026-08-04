@@ -651,28 +651,40 @@
            Si un archivo no existe, simplemente no suena: nada se rompe.
            Puedes ir añadiéndolos de uno en uno. */
         const SFX_BASE = 'tizno-sfx/';
+        /* Cada reacción tiene un POOL de tomas (grabadas por Ruben con la voz
+           de Tizno, 2026-08-04) y suena una al azar, nunca la misma dos veces
+           seguidas: la repetición exacta es lo que delata a una máquina.
+           El ronroneo es bucle: una única toma estable, con empalme fundido. */
         const SFX = {
-            susto:     { archivo: 'susto.mp3',     vol: 0.55 },
-            ronroneo:  { archivo: 'ronroneo.mp3',  vol: 0.45, bucle: true },
-            pop:       { archivo: 'pop.mp3',       vol: 0.5  },
-            enfado:    { archivo: 'enfado.mp3',    vol: 0.5  },
-            quejido:   { archivo: 'quejido.mp3',   vol: 0.45 },
-            risa:      { archivo: 'risa.mp3',      vol: 0.5  },
-            sinMicro:  { archivo: 'frase-sin-micro.mp3', vol: 0.8 },
+            susto:    { archivos: ['susto-1.mp3', 'susto-2.mp3', 'susto-3.mp3', 'susto-4.mp3'], vol: 0.55 },
+            ronroneo: { archivos: ['ronroneo.mp3'], vol: 0.45, bucle: true },
+            pop:      { archivos: ['pop-1.mp3', 'pop-2.mp3', 'pop-3.mp3', 'pop-4.mp3', 'pop-5.mp3'], vol: 0.5 },
+            enfado:   { archivos: ['enfado-1.mp3', 'enfado-2.mp3', 'enfado-3.mp3', 'enfado-4.mp3'], vol: 0.5 },
+            quejido:  { archivos: ['quejido-1.mp3', 'quejido-2.mp3'], vol: 0.5 },
+            risa:     { archivos: ['risa-1.mp3', 'risa-2.mp3'], vol: 0.55 },
+            sinMicro: { archivos: ['frase-sin-micro-1.mp3', 'frase-sin-micro-2.mp3'], vol: 0.85 },
         };
         const sfxCache = {};
         function sfxObtener(nombre) {
             const def = SFX[nombre];
-            if (!def || def.roto) return null;
-            if (!sfxCache[nombre]) {
-                const a = new Audio(SFX_BASE + def.archivo);
-                a.preload = 'auto';
-                a.volume = def.vol;
-                if (def.bucle) a.loop = true;
-                a.addEventListener('error', () => { def.roto = true; }, { once: true });
-                sfxCache[nombre] = a;
+            if (!def) return null;
+            const vivos = def.archivos.filter(f => !def[f + '_roto']);
+            if (!vivos.length) return null;
+            // al azar, evitando repetir la última toma si hay más de una
+            let f = vivos[Math.floor(Math.random() * vivos.length)];
+            if (vivos.length > 1 && f === def._ultima) {
+                f = vivos[(vivos.indexOf(f) + 1) % vivos.length];
             }
-            return sfxCache[nombre];
+            def._ultima = f;
+            if (!sfxCache[f]) {
+                const a = new Audio(SFX_BASE + f);
+                a.preload = 'auto';
+                if (def.bucle) a.loop = true;
+                a.addEventListener('error', () => { def[f + '_roto'] = true; }, { once: true });
+                sfxCache[f] = a;
+            }
+            sfxCache[f].volume = def.vol;
+            return sfxCache[f];
         }
         function sfxPlay(nombre) {
             const a = sfxObtener(nombre);
@@ -687,8 +699,8 @@
             catch (_) { return false; }
         }
         function sfxLoopOff(nombre) {
-            const a = sfxCache[nombre];
-            if (a) { try { a.pause(); } catch (_) {} }
+            // el bucle solo tiene una toma: apaga su Audio si existe
+            (SFX[nombre]?.archivos || []).forEach(f => { const a = sfxCache[f]; if (a) { try { a.pause(); } catch (_) {} } });
         }
 
         /* RONRONEO — se enciende al acariciarle y se apaga solo.
@@ -1187,6 +1199,10 @@
 
             } else if (distB < interactionThreshold) {
                 inBoxB = true;
+                /* Gruñido al cruzar el umbral de la caja prohibida: flanco de
+                   entrada, solo con cursor real (distB únicamente lo mueve el
+                   ratón, así que la luciérnaga jamás lo dispara). */
+                if (!prevBoxB && (time - lastMouseMove < 3000 || tocando)) sfxPlay('enfado');
                 const intensity = (interactionThreshold - distB) / interactionThreshold;
                 eyeLeft.className = "eye left angry"; eyeRight.className = "eye right angry";
 
@@ -1245,17 +1261,21 @@
                            y contaba un susto en cada oscilación — por eso huía sin
                            parar. Ahora solo cuenta si pasó más de 1,2 s desde el
                            anterior, y hace falta alejarse de verdad entre sustos. */
+                        let seEsconde = false;
                         if (time - ultimoSustoT > 1200) {
                             sustosSeguidos = (time - ultimoSustoT < 9000) ? sustosSeguidos + 1 : 1;
                             ultimoSustoT = time;
-                            if (sustosSeguidos >= 3) { sustosSeguidos = 0; popEscondite(2000); }
+                            if (sustosSeguidos >= 3) { sustosSeguidos = 0; seEsconde = true; popEscondite(2000); }
                         }
                         /* Suena solo si el susto lo ha causado EL USUARIO
                            (ratón o dedo). Los sustos de la luciérnaga — que
                            roba el control de la mirada tras 3 s de ratón
                            quieto — son visuales y mudos: si no, suena un
-                           "algo" periódico que nadie ha provocado. */
-                        if (time - lastMouseMove < 3000 || tocando) scareSfx();
+                           "algo" periódico que nadie ha provocado.
+                           Al tercer susto no chilla: se QUEJA y se esconde. */
+                        if (time - lastMouseMove < 3000 || tocando) {
+                            if (seEsconde) sfxPlay('quejido'); else scareSfx();
+                        }
                     }
                     // El cuerpo SUBE hacia la cabeza: bola compacta en alto,
                     // nada de cuello ancho (la niebla tapa el hueco inferior).
