@@ -1416,7 +1416,13 @@
                    ese botón hereda el papel de caja prohibida — ojos de rabia,
                    gruñido con enfriamiento, temblor. Las cajas del demo no
                    existen aquí. */
-                distA = 1000;
+                /* LO QUE LE GUSTA (portadas y cofres de compra) entra por el
+                   canal de la caja A del demo: la postura ilusionada — rebote,
+                   orejas arriba, ojos grandes. Lo que teme (el candado), por
+                   la B. La madre calcula ambas distancias en px físicos. */
+                distA = window.__gustoDist ?? 1000;
+                boxANormX = window.__gustoNX || 0;
+                boxANormY = window.__gustoNY || 0;
                 distB = window.__candadoDist ?? 1000;
                 boxBNormX = window.__candadoNX || 0;
                 boxBNormY = window.__candadoNY || 0;
@@ -2010,6 +2016,9 @@
                     const cx = ax + ex * SEMI_X, cy = ay + ey * SEMI_Y;
                     window.dispatchEvent(new MouseEvent('mousemove', { clientX: cx, clientY: cy }));
                     window.__candadoDist = (m.candadoDist != null) ? m.candadoDist / p.esc : 1000;
+                    window.__gustoDist = (m.gustoDist != null) ? m.gustoDist / p.esc : 1000;
+                    window.__gustoNX = m.gustoNX || 0;
+                    window.__gustoNY = m.gustoNY || 0;
                     window.__candadoNX = m.candadoNX || 0;
                     window.__candadoNY = m.candadoNY || 0;
                 } else if (m.tipo === 'luciernaga') {
