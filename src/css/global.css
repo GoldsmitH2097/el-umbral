@@ -10,7 +10,7 @@ body { cursor: default; }
    default arrow everywhere, pointer on clickables, text ONLY in the email input. */
 a, button, [role="button"], label[for], input[type="checkbox"],
 .archive-pillar, .obra-cover--clickable, .obra-btn, .reading-tab, .obra-tab,
-#tizno-tease, .footer-legal a, .site-nav .links span,
+.footer-legal a, .site-nav .links span,
 #skip-btn, #btn-volver, #replay-intro-btn { cursor: pointer; }
 
 input[type="text"]:not([readonly]), input[type="email"], textarea { cursor: text; }

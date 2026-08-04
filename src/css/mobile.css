@@ -167,7 +167,6 @@
 
 /* ── Tizno — reposition on mobile so it clears the footer + iOS home indicator ── */
 @media (max-width: 768px) {
-  #tizno-tease { bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
 }
 
 /* ── Mobile Scene 1 instruction ───────────────────────────────────────────── */

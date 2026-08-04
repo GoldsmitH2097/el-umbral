@@ -289,15 +289,16 @@ export class ArchiveFireflies {
     this._fireflies.forEach((ff, i) => {
       let tx = W2, ty = this._obrasY, att = 0;
 
-      if (idle > INACTIVITY_TIZNO && this._tizno) {
-        // Orbit Tizno tease — circular motion around its position
+      if (idle > INACTIVITY_TIZNO && this._tizno && i === 0) {
+        /* Solo la COMPAÑERA (la primera) ronda el candado de Tizno como
+           invitación a pulsarlo. Seis luciérnagas acosando un botón sería
+           ruido; una que insiste es una señal (Ruben, 4-ago). */
         this._orbitAngle += 0.008;
         const tPos = this._tizno.getPosition();
         if (tPos) {
-          const radius = 40 + i * 18;
-          const angle  = this._orbitAngle + (i * Math.PI / 2);
-          tx = tPos.x + Math.cos(angle) * radius;
-          ty = tPos.y + Math.sin(angle) * radius * 0.5;
+          const radius = 26;
+          tx = tPos.x + Math.cos(this._orbitAngle) * radius;
+          ty = tPos.y + Math.sin(this._orbitAngle) * radius * 0.5;
           att = 0.003;
         }
       } else if (idle > INACTIVITY_CONTACT) {
