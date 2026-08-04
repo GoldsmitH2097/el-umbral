@@ -657,9 +657,9 @@
            seguidas: la repetición exacta es lo que delata a una máquina.
            El ronroneo es bucle: una única toma estable, con empalme fundido. */
         const SFX = {
-            susto:    { archivos: ['susto-1.mp3', 'susto-2.mp3'], vol: 0.55 },
+            susto:    { archivos: ['susto-1.mp3'], vol: 0.55 },
             ronroneo: { archivos: ['ronroneo.mp3'], vol: 0.45, bucle: true },
-            pop:      { archivos: ['pop-1.mp3', 'pop-2.mp3', 'pop-3.mp3', 'pop-4.mp3'], vol: 0.5 },
+            pop:      { archivos: ['pop-1.mp3', 'pop-2.mp3', 'pop-3.mp3', 'pop-4.mp3', 'pop-5.mp3', 'pop-6.mp3'], vol: 0.5 },
             enfado:   { archivos: ['enfado-1.mp3', 'enfado-2.mp3', 'enfado-3.mp3', 'enfado-4.mp3'], vol: 0.5 },
             quejido:  { archivos: ['quejido-1.mp3', 'quejido-2.mp3'], vol: 0.5 },
             risa:     { archivos: ['risa-1.mp3', 'risa-2.mp3'], vol: 0.55 },
@@ -701,7 +701,10 @@
             if (!def) return false;
             const ahora = Date.now();
             if (typeof aiState !== 'undefined' && aiState !== 'idle' && nombre !== 'sinMicro') return false;
-            const prioridad = nombre === 'risa' || nombre === 'quejido' || nombre === 'sinMicro';
+            /* El pop es prioritario: su animación y su sonido son UNA cosa —
+               una salpicadura muda "looks off" (Ruben). Corta la cola de lo
+               que suene (p. ej. el quejido de la huida 2 s antes). */
+            const prioridad = nombre === 'risa' || nombre === 'quejido' || nombre === 'sinMicro' || nombre === 'pop';
             if (!prioridad && ahora < sfxSonandoHasta) return false;
             const a = sfxObtener(nombre);
             if (!a) return false;
@@ -1288,26 +1291,31 @@
                     inFear = true;
                     if (!prevFear && petLevel < 0.15 && sustoArmado) {
                         sustoArmado = false;
-                        shockUntil = time + 420; burstInk(1);
-                        /* Cuenta de sustos ANTI-TEMBLOR: rondando los 200 px el
-                           borde del miedo entra y sale decenas de veces por segundo
-                           y contaba un susto en cada oscilación — por eso huía sin
-                           parar. Ahora solo cuenta si pasó más de 1,2 s desde el
-                           anterior, y hace falta alejarse de verdad entre sustos. */
-                        let seEsconde = false;
-                        if (time - ultimoSustoT > 1200) {
-                            sustosSeguidos = (time - ultimoSustoT < 9000) ? sustosSeguidos + 1 : 1;
+                        /* SUSTO COMPLETO solo si (Ruben, 4-ago):
+                           1. Lo causa EL USUARIO — ratón o dedo. Los picados de
+                              la luciérnaga (que roba la "distancia" tras 3 s de
+                              ratón quieto) ya solo provocan la postura de bola:
+                              sin shock, sin estallido, sin sonido y SIN CUENTA.
+                              Antes contaban para esconderse — por eso Tizno
+                              "desaparecía por nada": tres picados y adiós.
+                           2. Han pasado 4 s desde el último — enfriamiento de
+                              verdad; acercarse en frío solo acobarda, no
+                              revienta un susto cada vez.
+                           La ventana de racha sube a 12 s para que tres sustos
+                           deliberados (ya espaciados por el enfriamiento)
+                           sigan llevándole a esconderse. */
+                        const esDelUsuario = time - lastMouseMove < 3000 || tocando;
+                        if (esDelUsuario && time - ultimoSustoT > 4000) {
+                            shockUntil = time + 420; burstInk(1);
+                            sustosSeguidos = (time - ultimoSustoT < 12000) ? sustosSeguidos + 1 : 1;
                             ultimoSustoT = time;
-                            if (sustosSeguidos >= 3) { sustosSeguidos = 0; seEsconde = true; popEscondite(2000); }
-                        }
-                        /* Suena solo si el susto lo ha causado EL USUARIO
-                           (ratón o dedo). Los sustos de la luciérnaga — que
-                           roba el control de la mirada tras 3 s de ratón
-                           quieto — son visuales y mudos: si no, suena un
-                           "algo" periódico que nadie ha provocado.
-                           Al tercer susto no chilla: se QUEJA y se esconde. */
-                        if (time - lastMouseMove < 3000 || tocando) {
-                            if (seEsconde) sfxPlay('quejido'); else scareSfx();
+                            if (sustosSeguidos >= 3) {
+                                sustosSeguidos = 0;
+                                popEscondite(2000);
+                                sfxPlay('quejido');   // al tercero no chilla: se queja y se va
+                            } else {
+                                scareSfx();
+                            }
                         }
                     }
                     // El cuerpo SUBE hacia la cabeza: bola compacta en alto,
