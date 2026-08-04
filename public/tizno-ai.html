@@ -12,7 +12,14 @@
            Fondo transparente, sin cajas ni UI de llamada ni luciérnaga propia:
            la página madre pone el mundo; aquí solo vive él, al 62%. */
         html.embed, html.embed body { background: transparent !important; }
-        html.embed body { zoom: 0.55; }
+        /* SIN zoom interno: mezclaba px escalados con % del viewport y las
+           capas fijas (cuerpo vs ojos) se desalineaban según el ancho de la
+           ventana. La madre escala el iframe entero con transform. */
+        html.embed #luz-sala {
+            /* el velo de luz muere antes de tocar los bordes del marco */
+            -webkit-mask-image: radial-gradient(ellipse 60% 55% at 50% 68%, #000 35%, transparent 72%);
+            mask-image: radial-gradient(ellipse 60% 55% at 50% 68%, #000 35%, transparent 72%);
+        }
         html.embed #box-a, html.embed #box-b, html.embed #tizno-call-ui,
         html.embed #firefly, html.embed #earring { }
         html.embed #box-a, html.embed #box-b { display: none !important; }
@@ -1954,9 +1961,16 @@
            y encerrar. Nosotros devolvemos la rueda para que el scroll no
            muera sobre el marco. */
         if (EMBED) {
+            /* La escala no se presupone: se lee del propio marco (la madre
+               aplica 0.55 en escritorio y 0.42 en móvil). rect.width es el
+               ancho YA escalado; innerWidth es el ancho interior real. */
+            const escalaReal = () => {
+                const r = window.frameElement && window.frameElement.getBoundingClientRect();
+                return r && r.width ? { r, esc: r.width / window.innerWidth } : { r: { left: 0, top: 0 }, esc: 1 };
+            };
             const aLocal = (px, py) => {
-                const r = window.frameElement ? window.frameElement.getBoundingClientRect() : { left: 0, top: 0 };
-                return { x: (px - r.left) / EMBED_ZOOM, y: (py - r.top) / EMBED_ZOOM };
+                const { r, esc } = escalaReal();
+                return { x: (px - r.left) / esc, y: (py - r.top) / esc, esc };
             };
             window.addEventListener('message', (ev) => {
                 if (ev.origin !== location.origin || !ev.data) return;
@@ -1964,7 +1978,7 @@
                 if (m.tipo === 'raton') {
                     const p = aLocal(m.x, m.y);
                     window.dispatchEvent(new MouseEvent('mousemove', { clientX: p.x, clientY: p.y }));
-                    window.__candadoDist = (m.candadoDist != null) ? m.candadoDist / EMBED_ZOOM : 1000;
+                    window.__candadoDist = (m.candadoDist != null) ? m.candadoDist / p.esc : 1000;
                     window.__candadoNX = m.candadoNX || 0;
                     window.__candadoNY = m.candadoNY || 0;
                 } else if (m.tipo === 'liberar') {

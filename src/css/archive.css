@@ -552,12 +552,15 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
 /* LA MORADA DE TIZNO: iframe lazy, esquina inferior derecha, sobre el
    contenido y bajo la barra (z 30) — asoma desde detrás de ella. */
 #tizno-frame {
+  /* El marco interior va a tamaño NATIVO del demo (geometría probada) y se
+     escala aquí entero, como una unidad: imposible que las capas se separen. */
   position: fixed; right: 8px; bottom: 46px; z-index: 28;
-  width: 500px; height: 420px; border: 0; background: transparent;
+  width: 910px; height: 780px; border: 0; background: transparent;
+  transform: scale(0.55); transform-origin: bottom right;
   color-scheme: normal;
 }
 @media (max-width: 820px) {
-  #tizno-frame { width: 96vw; right: 2vw; height: 390px; bottom: 88px; }
+  #tizno-frame { right: 0; bottom: 88px; transform: scale(0.42); }
 }
 .footer-puerta--candado.traqueteo { animation: candadoTraqueteo 0.5s ease; }
 @keyframes candadoTraqueteo {
