@@ -18,10 +18,10 @@
         /* SIN MÁSCARAS (coste GPU continuo sobre capas animadas): el fundido
            oval va horneado en el propio degradado — mismo charco, gratis. */
         html.embed #ambient-light {
-            background: radial-gradient(ellipse 42% 38% at 50% 66%, #1f1a18 0%, transparent 70%) !important;
+            background: radial-gradient(ellipse 44% 40% at 50% 66%, #2b2420 0%, transparent 72%) !important;
         }
         html.embed #candle-flicker {
-            background: radial-gradient(ellipse 38% 34% at 50% 64%, rgba(255,176,92,0.09) 0%, transparent 65%) !important;
+            background: radial-gradient(ellipse 40% 36% at 50% 64%, rgba(255,182,102,0.14) 0%, transparent 67%) !important;
         }
         html.embed #abyss-foreground {
             background: radial-gradient(ellipse 46% 90% at 50% 100%, var(--bg-color) 32%, rgba(3,3,3,0.88) 55%, transparent 74%) !important;
@@ -1469,7 +1469,13 @@
                 c_EyeR += (1.4 - c_EyeR) * 0.5;
             }
 
-            const ease = 0.12; 
+            const ease = 0.12;
+            /* CINTURÓN: ninguna combinación de canales (ratón+gusto+candado+
+               rebotes) puede dislocarle la cabeza — límites duros de salida. */
+            t_HeadX = Math.max(-95, Math.min(95, t_HeadX));
+            t_HeadY = Math.max(-80, Math.min(130, t_HeadY));
+            t_HeadRot = Math.max(-24, Math.min(24, t_HeadRot));
+            t_RigRot = Math.max(-15, Math.min(15, t_RigRot));
             c_HeadX += (t_HeadX - c_HeadX) * ease;
             c_HeadY += (t_HeadY - c_HeadY) * ease;
             c_HeadRot += (t_HeadRot - c_HeadRot) * ease;
@@ -2023,11 +2029,11 @@
                las cosquillas?»). La llamada de voz vive en el botón Hablarle
                de la madre; así el gesto de tocar es solo juego. */
             let ultimoToqueT = 0;
-            window.addEventListener('click', (e) => {
+            const toqueEn = (cx2, cy2) => {
                 const h = headBase.getBoundingClientRect();
                 const b = bodyTracker.getBoundingClientRect();
-                const dentroDeEl = (e.clientX > Math.min(h.left, b.left) - 30 && e.clientX < Math.max(h.right, b.right) + 30
-                                 && e.clientY > h.top - 30 && e.clientY < b.bottom + 30);
+                const dentroDeEl = (cx2 > Math.min(h.left, b.left) - 30 && cx2 < Math.max(h.right, b.right) + 30
+                                 && cy2 > h.top - 30 && cy2 < b.bottom + 30);
                 if (!dentroDeEl || popPos < 0.8) return;
                 const ahora = Date.now();
                 if (ahora - ultimoToqueT < 1500) return;   // sin ametrallar
@@ -2035,11 +2041,15 @@
                 shockUntil = ahora + 260;
                 burstInk(0.55);
                 sfxPlay('toque');
-            });
+            };
+            window.addEventListener('click', (e) => toqueEn(e.clientX, e.clientY));
             window.addEventListener('message', (ev) => {
                 if (ev.origin !== location.origin || !ev.data) return;
                 const m = ev.data;
-                if (m.tipo === 'hablar') {
+                if (m.tipo === 'clic') {
+                    const p = aLocal(m.x, m.y);
+                    toqueEn(p.x, p.y);
+                } else if (m.tipo === 'hablar') {
                     if (window.__tiznoLlamar) window.__tiznoLlamar();
                 } else if (m.tipo === 'raton') {
                     const p = aLocal(m.x, m.y);
@@ -2075,10 +2085,7 @@
                     popOut();
                 }
             });
-            // la rueda sobre el marco sigue moviendo la página madre
-            window.addEventListener('wheel', (e) => {
-                try { parent.postMessage({ tipo: 'rueda', dy: e.deltaY }, location.origin); } catch (_) {}
-            }, { passive: true });
+            // (la rueda ya no se reenvía: el marco es transparente a eventos)
         }
         /* ══════ PANEL DE AJUSTE EN VIVO ══════
            Se abre añadiendo ?tune=1 a la URL. Invisible para cualquier visitante.

@@ -44,9 +44,7 @@ export class TiznoTease {
     window.addEventListener('message', (ev) => {
       if (ev.origin !== location.origin || !ev.data) return;
       const m = ev.data;
-      if (m.tipo === 'rueda') {
-        document.getElementById('main-site')?.scrollBy({ top: m.dy });
-      } else if (m.tipo === 'ai') {
+      if (m.tipo === 'ai') {
         // la etiqueta del botón sigue el estado real de la llamada
         this._llamando = m.estado !== 'idle';
         const span = this._hablarBtn?.querySelector('span');
@@ -85,7 +83,7 @@ export class TiznoTease {
       this._gustos = [...document.querySelectorAll('.obra-cover, .obra-editions--shop')];
       window.addEventListener('mousemove', (e) => {
         const ahora = performance.now();
-        if (ahora - this._ultimoEnvio < 33 || !this._libre) return;
+        if (ahora - this._ultimoEnvio < 16 || !this._libre) return;
         this._ultimoEnvio = ahora;
         const r = this._candado.getBoundingClientRect();
         const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
@@ -113,19 +111,25 @@ export class TiznoTease {
           gustoNY: Math.max(-1, Math.min(1, gy)),
         });
       }, { passive: true });
+      // el marco es transparente a eventos: los clics sobre su zona se reenvían
+      window.addEventListener('click', (e) => {
+        if (!this._libre || !this._frame) return;
+        const fr = this._frame.getBoundingClientRect();
+        if (e.clientX >= fr.left && e.clientX <= fr.right && e.clientY >= fr.top && e.clientY <= fr.bottom) {
+          this._enviar({ tipo: 'clic', x: e.clientX, y: e.clientY });
+        }
+      }, { passive: true });
     } else {
       this._enviar({ tipo: 'liberar' });
     }
     this._libre = true;
     this._pintarCandado();
-    if (this._hablarBtn) this._hablarBtn.hidden = false;
   }
 
   _encerrar() {
     this._enviar({ tipo: 'encerrar' });
     this._libre = false;
     this._pintarCandado();
-    if (this._hablarBtn) { this._hablarBtn.hidden = true; this._llamando = false; }
   }
 
   _susurroEl() { return document.getElementById('liberar-susurro'); }
@@ -135,6 +139,13 @@ export class TiznoTease {
     if (span) span.textContent = t(this._libre ? 'footer.encerrar' : 'footer.liberar');
     this._candado?.classList.toggle('abierto', this._libre);
     this._candado?.setAttribute('aria-label', t(this._libre ? 'footer.encerrar-aria' : 'footer.liberar-aria'));
+    // el botón de hablar existe SOLO con Tizno libre, y siempre renace en 'Hablarle'
+    if (this._hablarBtn) {
+      this._hablarBtn.hidden = !this._libre;
+      this._llamando = false;
+      const hs = this._hablarBtn.querySelector('span');
+      if (hs) hs.textContent = t('footer.hablar');
+    }
   }
 
   /** La posición de la luciérnaga compañera, a ~20 Hz (la llaman a 30). */

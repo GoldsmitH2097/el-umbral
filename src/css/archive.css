@@ -516,7 +516,7 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
   background: rgba(6,5,4,0.96);
   /* opaca: sobre la mancha negra de Tizno se transparentaba y parecía cortarse */
-  border-top: 1px solid rgba(200,146,42,0.62);
+  border-top: 1px solid rgba(200,146,42,0.85);
   font-size: 10px; color: #444; letter-spacing: 3px; text-transform: uppercase;
 }
 .footer-bar {
@@ -574,10 +574,14 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
 #tizno-frame {
   /* El marco interior va a tamaño NATIVO del demo (geometría probada) y se
      escala aquí entero, como una unidad: imposible que las capas se separen. */
-  position: fixed; right: 8px; bottom: 46px; z-index: 28;
+  /* SOBRE la barra (Ruben: la línea entera y Tizno encima) y transparente a
+     eventos: los botones se pulsan A TRAVÉS del marco; caricias, toques y
+     miradas viajan por el puente de mensajes. */
+  position: fixed; right: 8px; bottom: 12px; z-index: 31;
   width: 910px; height: 780px; border: 0; background: transparent;
   transform: scale(0.55); transform-origin: bottom right;
   color-scheme: normal;
+  pointer-events: none;
   /* nace invisible: el primer pintado del iframe destellaba en blanco */
   opacity: 0; transition: opacity 0.35s ease;
 }
