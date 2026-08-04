@@ -2,6 +2,9 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <link rel="preconnect" href="https://esm.sh" crossorigin>
+    <link rel="preconnect" href="https://api.elevenlabs.io">
+    <link rel="dns-prefetch" href="https://api.us.elevenlabs.io">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tizno: Elegant Dynamic Fog & Gooey Runes</title>
     <style>
@@ -643,31 +646,6 @@
         window.addEventListener('pointerdown', sfxEnable);
         window.addEventListener('keydown', sfxEnable);
 
-        /* ── LA VOZ DE TIZNO ──
-           Nada de ambientes: sílabas cortas tipo muppet. Sierra + filtro
-           formante (boca cerrada nasal) + contorno de tono por sílaba:
-           subida = duda, bajada = gruñido. */
-        let nextMutterAt = 0;
-        function tiznoVoice(f0, f1, dur, vol) {
-            if (!sfxCtx || sfxCtx.state !== 'running') return;
-            try {
-                const t = sfxCtx.currentTime;
-                const o = sfxCtx.createOscillator(); o.type = 'sawtooth';
-                o.frequency.setValueAtTime(f0, t);
-                o.frequency.exponentialRampToValueAtTime(Math.max(f1, 30), t + dur);
-                const bp = sfxCtx.createBiquadFilter(); bp.type = 'bandpass';
-                bp.frequency.value = 550; bp.Q.value = 1.4;
-                const lp = sfxCtx.createBiquadFilter(); lp.type = 'lowpass';
-                lp.frequency.value = 1400;
-                const g = sfxCtx.createGain();
-                g.gain.setValueAtTime(0.0001, t);
-                g.gain.exponentialRampToValueAtTime(vol, t + 0.025);
-                g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-                o.connect(bp); bp.connect(lp); lp.connect(g); g.connect(sfxCtx.destination);
-                o.start(t); o.stop(t + dur + 0.02);
-                o.onended = () => { try { o.disconnect(); bp.disconnect(); lp.disconnect(); g.disconnect(); } catch (_) {} };
-            } catch (_) {}
-        }
         /* ══════ BANCO DE SONIDOS ══════
            Deja los mp3 en /tizno-sfx/ con estos nombres y suenan solos.
            Si un archivo no existe, simplemente no suena: nada se rompe.
@@ -755,26 +733,11 @@
         }
 
         function scareSfx() {
-            if (sfxPlay('susto')) return;        // mp3 tiene prioridad
-            if (!sfxCtx || sfxCtx.state !== 'running') return;
-            try {
-                const t = sfxCtx.currentTime;
-                // ¡Uip! — chillidito descendente con la voz de Tizno.
-                tiznoVoice(420, 110, 0.26, 0.09);
-                const nb = sfxCtx.createBuffer(1, Math.floor(sfxCtx.sampleRate * 0.3), sfxCtx.sampleRate);
-                const d = nb.getChannelData(0);
-                for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
-                const ns = sfxCtx.createBufferSource(); ns.buffer = nb;
-                const nf = sfxCtx.createBiquadFilter(); nf.type = 'lowpass';
-                nf.frequency.value = 500; nf.Q.value = 2;
-                const ng = sfxCtx.createGain();
-                ng.gain.setValueAtTime(0.0001, t);
-                ng.gain.exponentialRampToValueAtTime(0.12, t + 0.02);
-                ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
-                ns.connect(nf).connect(ng).connect(sfxCtx.destination);
-                ns.start(t); ns.stop(t + 0.3);
-                ns.onended = () => { ns.disconnect(); nf.disconnect(); ng.disconnect(); };
-            } catch (_) {}
+            /* Solo el mp3 (susto.mp3). El chillido sintético de respaldo se
+               eliminó: sonaba a "gulp" y se disparaba también con los sustos
+               de la luciérnaga — un sonido periódico sin gesto del usuario,
+               justo lo que la doctrina prohíbe. */
+            sfxPlay('susto');
         }
 
         /* Paleta de señales — TODO 0..1, seguro llamar cada frame.
@@ -1286,7 +1249,12 @@
                             ultimoSustoT = time;
                             if (sustosSeguidos >= 3) { sustosSeguidos = 0; popEscondite(2000); }
                         }
-                        scareSfx();   // el chillido va CON el susto, nunca solo
+                        /* Suena solo si el susto lo ha causado EL USUARIO
+                           (ratón o dedo). Los sustos de la luciérnaga — que
+                           roba el control de la mirada tras 3 s de ratón
+                           quieto — son visuales y mudos: si no, suena un
+                           "algo" periódico que nadie ha provocado. */
+                        if (time - lastMouseMove < 3000 || tocando) scareSfx();
                     }
                     // El cuerpo SUBE hacia la cabeza: bola compacta en alto,
                     // nada de cuello ancho (la niebla tapa el hueco inferior).
@@ -1382,9 +1350,19 @@
 
             if (time - ultimoDibujo >= 31) {
             ultimoDibujo = time;
-            earringEl.style.transform = `translate(${erDrawX - 9}px, ${erDrawY - 3}px) rotate(${erTheta * 180 / Math.PI}deg) skew(-12deg)`;
+            // La luciérnaga vive siempre, esté Tizno o no.
             fireflyEl.style.transform = `translate(${ffX}px, ${ffY}px)`;
             fireflyEl.style.opacity = (0.55 + Math.sin(time * 0.006) * 0.35).toFixed(2);
+            /* SUEÑO PROFUNDO: hundido del todo y sin partícula viva → ni una
+               escritura de estilo, ni un repintado de lienzo, ni una pasada de
+               filtro. Escondite = GPU prácticamente a cero. Despierta en el
+               instante en que popIn() mueve el objetivo. */
+            if (popTarget === 0 && popPos < 0.02
+                && !POOL_P.length && !POOL_C.length && !POOL_S.length) {
+                requestAnimationFrame(updateRig);
+                return;
+            }
+            earringEl.style.transform = `translate(${erDrawX - 9}px, ${erDrawY - 3}px) rotate(${erTheta * 180 / Math.PI}deg) skew(-12deg)`;
             const popY = (1 - popPos) * POP_HONDO;
             masterRigs.forEach(rig => {
                 rig.style.transform = `translateY(${popY}px) rotate(${c_RigRot}deg)`;
@@ -1517,6 +1495,7 @@
         const ctxC = lienzoC.getContext('2d');
         const ctxS = lienzoS.getContext('2d');
         const INK = (getComputedStyle(document.documentElement).getPropertyValue('--ink') || '#0d0c0a').trim();
+        let rectP, rectC, rectS;   // los lienzos son fijos: su rect solo cambia con resize
         function ajustarLienzos() {
             /* 1:1 con píxeles CSS — doctrina del proyecto: nada de DPR, la
                tinta desenfocada no necesita retina y el filtro sí paga el área. */
@@ -1529,6 +1508,9 @@
             lienzoC.height = capaCuerpo.offsetHeight || 700;
             lienzoS.width = 640; lienzoS.height = 560;
             lienzoS.style.width = '640px'; lienzoS.style.height = '560px';
+            rectP = lienzoP.getBoundingClientRect();
+            rectC = lienzoC.getBoundingClientRect();
+            rectS = lienzoS.getBoundingClientRect();
         }
         ajustarLienzos();
         window.addEventListener('resize', ajustarLienzos);
@@ -1645,9 +1627,8 @@
 
         function dibujarTinta(ahora) {
             // Origen de la cadencia: el 50%/80% del viewport que usaba la capa.
-            const rP = lienzoP.getBoundingClientRect();
             pintar(ctxP, lienzoP, POOL_P, ahora, true,
-                   window.innerWidth / 2 - rP.left, window.innerHeight * 0.8 - rP.top);
+                   window.innerWidth / 2 - rectP.left, window.innerHeight * 0.8 - rectP.top);
             pintar(ctxC, lienzoC, POOL_C, ahora, false, 0, 0);
             pintar(ctxS, lienzoS, POOL_S, ahora, false, 0, 0);
         }
@@ -1662,7 +1643,7 @@
             if (!forzar && ahora - lastBurst < 900) return;
             if (contGotas > MAX_GOTAS) return;
             lastBurst = ahora;
-            const rP = lienzoP.getBoundingClientRect();
+            const rP = rectP;
             const h = headBase.getBoundingClientRect();
             const cx = h.left + h.width / 2 - rP.left;
             const cy = h.top + h.height / 2 - rP.top;
@@ -1685,6 +1666,7 @@
 
         function spawnParticles() {
             if (document.hidden) return;             // pestaña de fondo: cero gasto
+            if (popTarget === 0 && popPos < 0.2) return;   // escondido: nada que emitir
             // Zonas acariciables, refrescadas aquí para no costar layout extra.
             petRects = { head: headBase.getBoundingClientRect(), body: bodyTracker.getBoundingClientRect() };
             if (contGotas > MAX_GOTAS) return;
@@ -1692,7 +1674,7 @@
             const rightEarRect = earRight.getBoundingClientRect();
             const headRect = petRects.head;
             const bodyRect = petRects.body;
-            const rP = lienzoP.getBoundingClientRect();
+            const rP = rectP;
             const leftEyeRect = eyeLeftWrapper.getBoundingClientRect();
             const rightEyeRect = eyeRightWrapper.getBoundingClientRect();
             const ahora = Date.now();
@@ -1733,7 +1715,7 @@
             }
 
             if (Math.random() > 0.4) {
-                const rS = lienzoS.getBoundingClientRect();
+                const rS = rectS;
                 const tam = (Math.random() * 4 + 2) / 2;
                 const targetEye = Math.random() > 0.5 ? leftEyeRect : rightEyeRect;
                 // Nacen cerca del borde del ojo (75-90% del radio), no del centro.
@@ -1775,7 +1757,8 @@
         function spawnCorona() {
             if (NIVEL === 'bajo') return;
             if (POOL_C.length > CORONA_MAX) return;
-            const rC = lienzoC.getBoundingClientRect();
+            if (popTarget === 0 && popPos < 0.2) return;   // escondido: nada que emitir
+            const rC = rectC;
             const h = headBase.getBoundingClientRect();
             const cx = h.left + h.width / 2 - rC.left;
             const cy = h.top + h.height / 2 - rC.top;
@@ -1810,7 +1793,8 @@
             const n = NIVEL === 'alto' ? TUNE.microPorTick
                     : NIVEL === 'medio' ? Math.round(TUNE.microPorTick * 0.5) : 0;
             if (!n || contLetras > TUNE.microTope) return;
-            const rP = lienzoP.getBoundingClientRect();
+            if (popTarget === 0 && popPos < 0.2) return;   // escondido: nada que emitir
+            const rP = rectP;
             const h = headBase.getBoundingClientRect();
             const b = bodyTracker.getBoundingClientRect();
             const ahora = Date.now();
@@ -1839,7 +1823,7 @@
 
         /* Letras disparadas: salen escupidas con los estallidos, girando. */
         function burstLetters(n, fuerza) {
-            const rP = lienzoP.getBoundingClientRect();
+            const rP = rectP;
             const h = headBase.getBoundingClientRect();
             const cx = h.left + h.width / 2 - rP.left;
             const cy = h.top + h.height / 2 - rP.top;
@@ -1956,7 +1940,17 @@
          'thinking' no existe como evento del SDK: se deriva — transcripción
          final del usuario => thinking, hasta que el modo pasa a speaking. -->
     <script type="module">
-        import { Conversation } from 'https://esm.sh/@elevenlabs/client';
+        /* El SDK se carga BAJO DEMANDA en el primer clic de "Despertar":
+           quien solo viene a mirar (la inmensa mayoría) no descarga ni parsea
+           ni un byte de ElevenLabs. El preconnect del <head> deja el apretón
+           de manos TLS hecho para que el clic no lo pague. */
+        let ConversationClase = null;
+        async function cargarSDK() {
+            if (!ConversationClase) {
+                ({ Conversation: ConversationClase } = await import('https://esm.sh/@elevenlabs/client'));
+            }
+            return ConversationClase;
+        }
 
         const AGENT_ID = 'agent_2101kyzjd6e6ehhaaq9m4mhn8dhq';
         const btn = document.getElementById('tizno-call');
@@ -2184,6 +2178,14 @@
                 return;
             }
             setStatus('invocando a Tizno…');
+            let Conversation;
+            try {
+                Conversation = await cargarSDK();
+            } catch (err) {
+                btn.disabled = false;
+                setStatus('el vacío no responde (sin conexión) — reintenta');
+                return;
+            }
             const dossier = await buildDossier();
             const briefing = dossierToText(dossier);
             { const m = loadMem(); m.visits = dossier.visitas; m.lastVisit = Date.now(); saveMem(m); }
