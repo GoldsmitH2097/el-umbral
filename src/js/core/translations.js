@@ -56,6 +56,8 @@ export const STRINGS = {
     'footer.liberar-soon':    'Todavía no… la cerradura resiste.',
     'footer.encerrar':        'Encerrar a Tizno',
     'footer.encerrar-aria':   'Encerrar a Tizno de nuevo',
+    'footer.hablar':          'Hablarle',
+    'footer.colgar':          'Silenciarle',
     'tizno.info-aria':        'Sobre Tizno y tu privacidad',
     'tizno.disclaimer':       'En esta web no usamos cookies: no queremos entrometernos en tu vida ni sacar de ti nada que se pueda vender. Tizno recuerda cosas sobre ti, pero las guarda dentro de tu propio dispositivo — nosotros no nos quedamos con nada.',
     'tizno.olvidar':          'Borrar lo que sabe de ti',
@@ -123,6 +125,7 @@ export const STRINGS = {
     'footer.legal.legal':     'Aviso Legal',
     'footer.legal.privacy':   'Privacidad',
     'footer.legal.cookies':   'Cookies',
+    'footer.legal.tizno':     'Tizno',
 
     // ── Reading view ────────────────────────────────────────────────────────
     'reading.sections-aria':  'Secciones',
@@ -177,6 +180,8 @@ export const STRINGS = {
     'footer.liberar-soon':    'Not yet… the lock holds.',
     'footer.encerrar':        'Cage Tizno',
     'footer.encerrar-aria':   'Cage Tizno again',
+    'footer.hablar':          'Speak to him',
+    'footer.colgar':          'Silence him',
     'tizno.info-aria':        'About Tizno and your privacy',
     'tizno.disclaimer':       'This site uses no cookies: we have no wish to pry into your life or extract anything sellable from you. Tizno remembers things about you, but keeps them inside your own device — we keep nothing.',
     'tizno.olvidar':          'Erase what he knows about you',
@@ -244,6 +249,7 @@ export const STRINGS = {
     'footer.legal.legal':     'Legal Notice',
     'footer.legal.privacy':   'Privacy',
     'footer.legal.cookies':   'Cookies',
+    'footer.legal.tizno':     'Tizno',
 
     // ── Reading view ────────────────────────────────────────────────────────
     'reading.sections-aria':  'Sections',

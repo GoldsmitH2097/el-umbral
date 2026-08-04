@@ -700,6 +700,7 @@
             quejido:  { archivos: ['quejido-1.mp3', 'quejido-2.mp3'], vol: 0.5 },
             risa:     { archivos: ['risa-1.mp3', 'risa-2.mp3'], vol: 0.55 },
             sinMicro: { archivos: ['frase-sin-micro-1.mp3', 'frase-sin-micro-2.mp3'], vol: 0.85 },
+            toque:    { archivos: ['toque-1.mp3', 'toque-2.mp3', 'toque-3.mp3'], vol: 0.6 },
         };
         const sfxCache = {};
         function sfxObtener(nombre) {
@@ -1362,7 +1363,7 @@
                             ultimoSustoT = time;
                             if (sustosSeguidos >= 3) {
                                 sustosSeguidos = 0;
-                                popEscondite(2000);
+                                popEscondite(3500);   // que se le eche un poco de menos (Ruben)
                                 sfxPlay('quejido');   // al tercero no chilla: se queja y se va
                             } else {
                                 scareSfx();
@@ -1420,9 +1421,12 @@
                    canal de la caja A del demo: la postura ilusionada — rebote,
                    orejas arriba, ojos grandes. Lo que teme (el candado), por
                    la B. La madre calcula ambas distancias en px físicos. */
+                /* Arco del gusto (Ruben): la ilusión gira la cabeza HACIA el
+                   objeto, pero capada a ±0.55 — un cofre en la otra punta de
+                   la página ya no le disloca el cuello. */
                 distA = window.__gustoDist ?? 1000;
-                boxANormX = window.__gustoNX || 0;
-                boxANormY = window.__gustoNY || 0;
+                boxANormX = Math.max(-0.55, Math.min(0.55, window.__gustoNX || 0));
+                boxANormY = Math.max(-0.55, Math.min(0.55, window.__gustoNY || 0));
                 distB = window.__candadoDist ?? 1000;
                 boxBNormX = window.__candadoNX || 0;
                 boxBNormY = window.__candadoNY || 0;
@@ -1998,10 +2002,44 @@
                 const { r, esc } = escalaReal();
                 return { x: (px - r.left) / esc, y: (py - r.top) / esc, esc };
             };
+            /* El estado de la llamada viaja a la madre: envuelve el puente que
+               el módulo ya usa para pintar el rig (__setTiznoAI). */
+            const setOrig = window.__setTiznoAI;
+            if (setOrig) {
+                window.__setTiznoAI = (...a) => {
+                    setOrig(...a);
+                    try { parent.postMessage({ tipo: 'ai', estado: a[0] }, location.origin); } catch (_) {}
+                };
+            }
+            /* El estado de texto (invocando…, micrófono bloqueado…) viaja a la
+               madre: el módulo llama a este gancho desde su setStatus. */
+            window.__tiznoSetStatus = (t) => {
+                try { parent.postMessage({ tipo: 'estado', texto: t }, location.origin); } catch (_) {}
+            };
+            /* EL TOQUE: un clic sobre su cuerpo es un piquito en las costillas —
+               respingo, tinta y una queja grabada («¡ay!», «¿me estás buscando
+               las cosquillas?»). La llamada de voz vive en el botón Hablarle
+               de la madre; así el gesto de tocar es solo juego. */
+            let ultimoToqueT = 0;
+            window.addEventListener('click', (e) => {
+                const h = headBase.getBoundingClientRect();
+                const b = bodyTracker.getBoundingClientRect();
+                const dentroDeEl = (e.clientX > Math.min(h.left, b.left) - 30 && e.clientX < Math.max(h.right, b.right) + 30
+                                 && e.clientY > h.top - 30 && e.clientY < b.bottom + 30);
+                if (!dentroDeEl || popPos < 0.8) return;
+                const ahora = Date.now();
+                if (ahora - ultimoToqueT < 1500) return;   // sin ametrallar
+                ultimoToqueT = ahora;
+                shockUntil = ahora + 260;
+                burstInk(0.55);
+                sfxPlay('toque');
+            });
             window.addEventListener('message', (ev) => {
                 if (ev.origin !== location.origin || !ev.data) return;
                 const m = ev.data;
-                if (m.tipo === 'raton') {
+                if (m.tipo === 'hablar') {
+                    if (window.__tiznoLlamar) window.__tiznoLlamar();
+                } else if (m.tipo === 'raton') {
                     const p = aLocal(m.x, m.y);
                     /* ARCO MÁXIMO (Ruben): más allá de una elipse alrededor de
                        Tizno, el cursor "se queda en el borde" — conserva la
@@ -2030,6 +2068,7 @@
                 } else if (m.tipo === 'liberar') {
                     popIn();
                 } else if (m.tipo === 'encerrar') {
+                    if (window.__tiznoColgar) window.__tiznoColgar();   // preso = mudo
                     popCerrandoOjos = true;
                     popOut();
                 }
@@ -2150,7 +2189,10 @@
         const statusEl = document.getElementById('tizno-status');
         let conversation = null;
 
-        const setStatus = (t) => { statusEl.textContent = t; };
+        const setStatus = (t) => {
+            statusEl.textContent = t;
+            if (window.__tiznoSetStatus) window.__tiznoSetStatus(t);   // relé embed
+        };
         let lastState = 'idle', lastStateAt = Date.now();
         const setState = (s) => { lastState = s; lastStateAt = Date.now(); window.__setTiznoAI(s); };
         let lastVad = 0;          // último vadScore recibido (push del SDK, no pull)
@@ -2537,6 +2579,9 @@
         }
 
         btn.addEventListener('click', () => conversation ? sleep() : wake());
+        /* Puente embed: la madre (o un toque sobre Tizno) alterna la llamada. */
+        window.__tiznoLlamar = () => { conversation ? sleep() : wake(); };
+        window.__tiznoColgar = () => { if (conversation) sleep(); };
 
         // "Borrar lo que sabe de ti": la tarjeta de memoria, en manos del visitante.
         document.getElementById('tizno-olvido').addEventListener('click', (e) => {

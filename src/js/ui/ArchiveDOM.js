@@ -1028,7 +1028,33 @@ export class ArchiveDOM {
       document.body.style.overflow = 'hidden';
     };
 
+    // El pacto de Tizno: contenido inline (no hay página que descargar) —
+    // el disclaimer, lo que su memoria guarda (vive en el dispositivo del
+    // visitante) y el botón del olvido.
+    const _tiznoSabe = () => {
+      let m = null;
+      try { m = JSON.parse(localStorage.getItem('tizno_memoria') || 'null'); } catch (_) {}
+      if (!m || (!m.visits && !m.nombre)) return t('tizno.sabe-nada');
+      const partes = [];
+      if (m.visits) partes.push(t('tizno.sabe-visitas') + ' ' + m.visits);
+      if (m.nombre) partes.push(t('tizno.sabe-nombre') + ' ' + m.nombre);
+      if (m.lastVisit) partes.push(t('tizno.sabe-ultima') + ' ' + new Date(m.lastVisit).toLocaleDateString());
+      return t('tizno.sabe-intro') + ' ' + partes.join(' · ');
+    };
+    const _abrirPactoTizno = () => {
+      _showLegal('Tizno', `
+        <p>${t('tizno.disclaimer')}</p>
+        <p id="tizno-sabe" style="font-style:italic;color:#59493a;">${_tiznoSabe()}</p>
+        <button id="tizno-olvidar-btn" class="obra-btn obra-btn--buy">${t('tizno.olvidar')}</button>`);
+      document.getElementById('tizno-olvidar-btn')?.addEventListener('click', () => {
+        try { localStorage.removeItem('tizno_memoria'); localStorage.removeItem('tizno_daily'); } catch (_) {}
+        const el = document.getElementById('tizno-sabe');
+        if (el) el.textContent = t('tizno.olvidado');
+      });
+    };
+
     const openLegal = async (slug, title) => {
+      if (slug === 'tizno') { _abrirPactoTizno(); return; }
       const key = _cacheKey(slug);
       // Cache hit → render synchronously. No loading flash.
       if (legalCache.has(key)) { _showLegal(title, legalCache.get(key)); return; }

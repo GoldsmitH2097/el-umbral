@@ -15,7 +15,9 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     X-Frame-Options = "SAMEORIGIN"
-    Permissions-Policy = "geolocation=(), microphone=(), camera=()"
+    # microphone=(self): Tizno habla con el visitante (opcional, solo al pulsar
+    # el candado y tocar a Tizno — ver el pacto de privacidad en el footer).
+    Permissions-Policy = "geolocation=(), microphone=(self), camera=()"
 
 # Videos & unversioned assets: these filenames do NOT carry a content hash,
 # so "immutable" was a lie — replacing a video or cover under the same name

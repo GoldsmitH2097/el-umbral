@@ -321,6 +321,7 @@
             <a href="/aviso-legal.html" data-legal="aviso-legal" data-legal-title="Aviso Legal" data-i18n="footer.legal.legal">Aviso Legal</a>
             <a href="/privacidad.html" data-legal="privacidad" data-legal-title="Privacidad" data-i18n="footer.legal.privacy">Privacidad</a>
             <a href="/cookies.html" data-legal="cookies" data-legal-title="Cookies" data-i18n="footer.legal.cookies">Cookies</a>
+            <a href="#" data-legal="tizno" data-legal-title="Tizno" data-i18n="footer.legal.tizno">Tizno</a>
           </nav>
         </div>
         <div class="fb-right">
@@ -331,15 +332,10 @@
             </svg>
             <span data-i18n="footer.liberar">Liberar a Tizno</span>
           </button>
-          <button id="tizno-info-btn" aria-expanded="false" aria-controls="tizno-popover" data-i18n-attr-aria-label="tizno.info-aria" aria-label="Sobre Tizno y tu privacidad">?</button>
-          <p id="liberar-susurro" aria-live="polite" data-i18n-attr-data-texto="footer.liberar-soon"></p>
-          <!-- EL PACTO DE TIZNO: su disclaimer, lo que sabe, y el olvido -->
-          <div id="tizno-popover" hidden>
-            <p class="tizno-pop-titulo">Tizno</p>
-            <p class="tizno-pop-texto" data-i18n="tizno.disclaimer">En esta web no usamos cookies: no queremos entrometernos en tu vida ni sacar de ti nada que se pueda vender. Tizno recuerda cosas sobre ti, pero las guarda dentro de tu propio dispositivo — nosotros no nos quedamos con nada.</p>
-            <p class="tizno-pop-sabe" id="tizno-sabe" aria-live="polite"></p>
-            <button id="tizno-olvidar-btn" class="footer-puerta" data-i18n="tizno.olvidar">Borrar lo que sabe de ti</button>
-          </div>
+          <button id="hablar-tizno-btn" class="footer-puerta" hidden>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+            <span data-i18n="footer.hablar">Hablarle</span>
+          </button>
         </div>
       </div>
       <!-- El Pacto duerme oculto: si desapareciera del HTML, Netlify daría de
@@ -437,8 +433,8 @@
 
 <!-- LEGAL MODAL — content fetched on demand, never navigate away -->
 <div id="legal-modal" role="dialog" aria-modal="true" aria-labelledby="legal-modal-title" inert aria-hidden="true">
-  <button id="legal-modal-close" data-i18n-attr-aria-label="ui.close" aria-label="Cerrar">&#215;</button>
   <div id="legal-modal-inner">
+    <button id="legal-modal-close" data-i18n-attr-aria-label="ui.close" aria-label="Cerrar">&#215;</button>
     <h2 id="legal-modal-title"><span class="sr-only">Documento legal</span></h2>
     <div id="legal-modal-body"></div>
   </div>

@@ -38,31 +38,26 @@ export class TiznoTease {
 
     this._candado?.addEventListener('click', () => this._libre ? this._encerrar() : this._liberar());
 
-    // ── el pacto de Tizno: disclaimer + lo que sabe + el olvido ──
-    this._infoBtn = document.getElementById('tizno-info-btn');
-    this._infoPop = document.getElementById('tizno-popover');
-    this._infoBtn?.addEventListener('click', () => {
-      const abrir = this._infoPop.hidden;
-      if (abrir) { this._pintarSabe(); this._infoPop.hidden = false; void this._infoPop.offsetHeight; this._infoPop.classList.add('open'); }
-      else { this._infoPop.classList.remove('open'); setTimeout(() => { this._infoPop.hidden = true; }, 320); }
-      this._infoBtn.setAttribute('aria-expanded', String(abrir));
-    });
-    document.getElementById('tizno-olvidar-btn')?.addEventListener('click', () => {
-      try { localStorage.removeItem('tizno_memoria'); localStorage.removeItem('tizno_daily'); } catch (_) {}
-      this._pintarSabe(true);
-    });
-    document.addEventListener('click', e => {
-      if (this._infoPop && !this._infoPop.hidden && !e.target.closest('#tizno-popover, #tizno-info-btn')) {
-        this._infoPop.classList.remove('open');
-        this._infoPop.hidden = true;
-        this._infoBtn?.setAttribute('aria-expanded', 'false');
-      }
-    });
-
-    // la rueda sobre el marco de Tizno vuelve como scroll de la página
+    // mensajes del marco: rueda (scroll), estado de la llamada y textos
+    this._hablarBtn = document.getElementById('hablar-tizno-btn');
+    this._hablarBtn?.addEventListener('click', () => this._enviar({ tipo: 'hablar' }));
     window.addEventListener('message', (ev) => {
-      if (ev.origin !== location.origin || ev.data?.tipo !== 'rueda') return;
-      document.getElementById('main-site')?.scrollBy({ top: ev.data.dy });
+      if (ev.origin !== location.origin || !ev.data) return;
+      const m = ev.data;
+      if (m.tipo === 'rueda') {
+        document.getElementById('main-site')?.scrollBy({ top: m.dy });
+      } else if (m.tipo === 'ai') {
+        // la etiqueta del botón sigue el estado real de la llamada
+        this._llamando = m.estado !== 'idle';
+        const span = this._hablarBtn?.querySelector('span');
+        if (span) span.textContent = t(this._llamando ? 'footer.colgar' : 'footer.hablar');
+      } else if (m.tipo === 'estado' && this._susurroEl()) {
+        const el = this._susurroEl();
+        el.textContent = m.texto;
+        el.classList.add('visible');
+        clearTimeout(this._susurroT);
+        this._susurroT = setTimeout(() => el.classList.remove('visible'), 4000);
+      }
     });
   }
 
@@ -123,34 +118,23 @@ export class TiznoTease {
     }
     this._libre = true;
     this._pintarCandado();
+    if (this._hablarBtn) this._hablarBtn.hidden = false;
   }
 
   _encerrar() {
     this._enviar({ tipo: 'encerrar' });
     this._libre = false;
     this._pintarCandado();
+    if (this._hablarBtn) { this._hablarBtn.hidden = true; this._llamando = false; }
   }
+
+  _susurroEl() { return document.getElementById('liberar-susurro'); }
 
   _pintarCandado() {
     const span = this._candado?.querySelector('span');
     if (span) span.textContent = t(this._libre ? 'footer.encerrar' : 'footer.liberar');
     this._candado?.classList.toggle('abierto', this._libre);
     this._candado?.setAttribute('aria-label', t(this._libre ? 'footer.encerrar-aria' : 'footer.liberar-aria'));
-  }
-
-  /** Qué recuerda Tizno de este visitante (vive en SU dispositivo). */
-  _pintarSabe(recienOlvidado) {
-    const el = document.getElementById('tizno-sabe');
-    if (!el) return;
-    if (recienOlvidado) { el.textContent = t('tizno.olvidado'); return; }
-    let m = null;
-    try { m = JSON.parse(localStorage.getItem('tizno_memoria') || 'null'); } catch (_) {}
-    if (!m || (!m.visits && !m.nombre)) { el.textContent = t('tizno.sabe-nada'); return; }
-    const partes = [];
-    if (m.visits) partes.push(t('tizno.sabe-visitas') + ' ' + m.visits);
-    if (m.nombre) partes.push(t('tizno.sabe-nombre') + ' ' + m.nombre);
-    if (m.lastVisit) partes.push(t('tizno.sabe-ultima') + ' ' + new Date(m.lastVisit).toLocaleDateString());
-    el.textContent = t('tizno.sabe-intro') + ' ' + partes.join(' · ');
   }
 
   /** La posición de la luciérnaga compañera, a ~20 Hz (la llaman a 30). */
