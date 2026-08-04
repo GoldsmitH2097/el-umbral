@@ -41,7 +41,7 @@ export const RETAILERS = {
   // shop:false — it's a format, not a retailer, so the aria-label reads
   // "Edición Digital" rather than the nonsense "Comprar en Edición Digital".
   ebook:         { name: 'Edición Digital', name_en: 'Digital Edition',
-                   shop: false, logo: '/assets/retailers/ebook.svg' },
+                   shop: false, logo: '/assets/retailers/ebook-fino.svg' },
   casadellibro:  { name: 'Casa del Libro',  brand: '#e30613',
                    logo: '/assets/retailers/casadellibro.svg' },
   elcorteingles: { name: 'El Corte Inglés', brand: '#00843d',
