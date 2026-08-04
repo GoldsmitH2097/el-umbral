@@ -453,11 +453,16 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
 #legal-modal {
   /* El mundo se difumina; en el centro, la caja dorada (Ruben, 4-ago). */
   position: fixed; inset: 0; background: rgba(3,3,3,0.55); z-index: 70;
-  -webkit-backdrop-filter: blur(9px); backdrop-filter: blur(9px);
   display: flex; align-items: center; justify-content: center;
   opacity: 0; pointer-events: none; transition: opacity 0.4s ease; padding: 5vw;
+  /* OJO: el backdrop-filter va SOLO en .open — presente siempre, Chrome
+     pagaba el desenfoque del viewport entero en cada fotograma aunque el
+     modal fuera invisible (la página entera se arrastraba con Tizno vivo). */
 }
-#legal-modal.open { opacity: 1; pointer-events: auto; }
+#legal-modal.open {
+  opacity: 1; pointer-events: auto;
+  -webkit-backdrop-filter: blur(9px); backdrop-filter: blur(9px);
+}
 #legal-modal-close {
   position: absolute; top: 10px; right: 14px;
   background: transparent; border: none; color: #555;

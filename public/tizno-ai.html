@@ -15,17 +15,19 @@
         /* SIN zoom interno: mezclaba px escalados con % del viewport y las
            capas fijas (cuerpo vs ojos) se desalineaban según el ancho de la
            ventana. La madre escala el iframe entero con transform. */
-        html.embed #luz-sala {
-            /* el velo de luz muere antes de tocar los bordes del marco */
-            -webkit-mask-image: radial-gradient(ellipse 60% 55% at 50% 68%, #000 35%, transparent 72%);
-            mask-image: radial-gradient(ellipse 60% 55% at 50% 68%, #000 35%, transparent 72%);
+        /* SIN MÁSCARAS (coste GPU continuo sobre capas animadas): el fundido
+           oval va horneado en el propio degradado — mismo charco, gratis. */
+        html.embed #ambient-light {
+            background: radial-gradient(ellipse 42% 38% at 50% 66%, #1f1a18 0%, transparent 70%) !important;
         }
-        html.embed #abyss-foreground, html.embed #abyss-foreground-2 {
-            /* CHARCO DE TINTA (Ruben): la niebla del suelo era un rectángulo de
-               bordes duros; enmascarada en elipse lee como un charco oval a sus
-               pies que se funde con la página. */
-            -webkit-mask-image: radial-gradient(ellipse 44% 100% at 50% 100%, #000 40%, transparent 72%);
-            mask-image: radial-gradient(ellipse 44% 100% at 50% 100%, #000 40%, transparent 72%);
+        html.embed #candle-flicker {
+            background: radial-gradient(ellipse 38% 34% at 50% 64%, rgba(255,176,92,0.09) 0%, transparent 65%) !important;
+        }
+        html.embed #abyss-foreground {
+            background: radial-gradient(ellipse 46% 90% at 50% 100%, var(--bg-color) 32%, rgba(3,3,3,0.88) 55%, transparent 74%) !important;
+        }
+        html.embed #abyss-foreground-2 {
+            background: radial-gradient(ellipse 50% 80% at 50% 100%, rgba(3,3,3,0.8) 30%, transparent 70%) !important;
         }
         html.embed #box-a, html.embed #box-b, html.embed #tizno-call-ui,
         html.embed #firefly, html.embed #earring { }
@@ -700,7 +702,7 @@
             quejido:  { archivos: ['quejido-1.mp3', 'quejido-2.mp3'], vol: 0.5 },
             risa:     { archivos: ['risa-1.mp3', 'risa-2.mp3'], vol: 0.55 },
             sinMicro: { archivos: ['frase-sin-micro-1.mp3', 'frase-sin-micro-2.mp3'], vol: 0.85 },
-            toque:    { archivos: ['toque-1.mp3', 'toque-2.mp3', 'toque-3.mp3'], vol: 0.6 },
+            toque:    { archivos: ['toque-1.mp3', 'toque-2.mp3', 'toque-5.mp3'], vol: 0.6 },   // 3 y 4 al banquillo: largas para un piquito
         };
         const sfxCache = {};
         function sfxObtener(nombre) {
