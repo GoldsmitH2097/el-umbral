@@ -1482,6 +1482,15 @@
             t_HeadY = Math.max(-80, Math.min(130, t_HeadY));
             t_HeadRot = Math.max(-24, Math.min(24, t_HeadRot));
             t_RigRot = Math.max(-15, Math.min(15, t_RigRot));
+            if (EMBED) {
+                /* En la esquina (55%) el cuello fino-y-alto del estirón curioso
+                   se rompía visualmente: el goo no llega a fundir un hilo. La
+                   cabeza viaja menos y el cuello conserva carne siempre. */
+                t_HeadX *= 0.72;
+                t_HeadY = t_HeadY < 0 ? t_HeadY * 0.7 : t_HeadY * 0.85;
+                t_NeckScaleY = Math.min(t_NeckScaleY, 1.28);
+                t_NeckScaleX = Math.max(t_NeckScaleX, 0.82);
+            }
             c_HeadX += (t_HeadX - c_HeadX) * ease;
             c_HeadY += (t_HeadY - c_HeadY) * ease;
             c_HeadRot += (t_HeadRot - c_HeadRot) * ease;
