@@ -408,7 +408,7 @@
         /* ¿Vivimos dentro de la web madre? */
         const EMBED = /[?&]embed=1/.test(location.search);
         if (EMBED) document.documentElement.classList.add('embed');
-        const EMBED_ZOOM = 0.55;
+        window.__ESC = 1;   // escala real del marco (el puente embed la actualiza)
 
         /* Valores ajustables en vivo desde el panel (?tune=1). */
         const TUNE = {
@@ -603,12 +603,19 @@
         let lastPetX = 0, lastPetY = 0, petPurring = false;
         window.addEventListener('mousemove', (e) => {
             const dx = e.clientX - lastPetX, dy = e.clientY - lastPetY;
-            const v = Math.hypot(dx, dy);
+            /* En embed los px internos son mayores que los físicos (escala
+               0.55): sin corregir, una caricia normal parecía un manotazo y
+               el umbral de mimos casi no se alcanzaba. */
+            const v = Math.hypot(dx, dy) * (window.__ESC || 1);
             lastPetX = e.clientX; lastPetY = e.clientY;
             if (!petRects) return;
             const dentro = (r, mx, my) => e.clientX > r.left - mx && e.clientX < r.right + mx
                                        && e.clientY > r.top - my && e.clientY < r.bottom + my;
-            const encima = dentro(petRects.head, 55, 45) || dentro(petRects.body, 45, 20);
+            /* Márgenes en px FÍSICOS: al 55% de escala, 55 px internos eran solo
+               30 reales — la zona de mimos quedaba un 45% más pequeña que en el
+               demo y la mano se salía sin saberlo. */
+            const me = 1 / (window.__ESC || 1);
+            const encima = dentro(petRects.head, 55 * me, 45 * me) || dentro(petRects.body, 45 * me, 20 * me);
             // Sube MUY despacio: primero se asusta, y solo cede si insistes con
             // suavidad unos segundos. Alejar la mano lo tira abajo enseguida.
             if (encima && v > 1.2 && v < 30) petLevel = Math.min(1, petLevel + 0.013);
@@ -1966,8 +1973,12 @@
                ancho YA escalado; innerWidth es el ancho interior real. */
             const escalaReal = () => {
                 const r = window.frameElement && window.frameElement.getBoundingClientRect();
-                return r && r.width ? { r, esc: r.width / window.innerWidth } : { r: { left: 0, top: 0 }, esc: 1 };
+                const out = r && r.width ? { r, esc: r.width / window.innerWidth } : { r: { left: 0, top: 0 }, esc: 1 };
+                window.__ESC = out.esc;
+                return out;
             };
+            escalaReal();
+            window.addEventListener('resize', escalaReal);
             const aLocal = (px, py) => {
                 const { r, esc } = escalaReal();
                 return { x: (px - r.left) / esc, y: (py - r.top) / esc, esc };
@@ -1977,7 +1988,18 @@
                 const m = ev.data;
                 if (m.tipo === 'raton') {
                     const p = aLocal(m.x, m.y);
-                    window.dispatchEvent(new MouseEvent('mousemove', { clientX: p.x, clientY: p.y }));
+                    /* ARCO MÁXIMO (Ruben): más allá de una elipse alrededor de
+                       Tizno, el cursor "se queda en el borde" — conserva la
+                       dirección de la mirada pero ya nada crece. Sin esto, un
+                       cursor a 2000 px metía valores 3× fuera del rango con el
+                       que se afinaron las posturas y el rig se descuadernaba. */
+                    const ax = window.innerWidth / 2, ay = window.innerHeight / 2;
+                    const SEMI_X = ax * 0.96, SEMI_Y = ay * 0.94;
+                    let ex = (p.x - ax) / SEMI_X, ey = (p.y - ay) / SEMI_Y;
+                    const e2 = Math.hypot(ex, ey);
+                    if (e2 > 1) { ex /= e2; ey /= e2; }
+                    const cx = ax + ex * SEMI_X, cy = ay + ey * SEMI_Y;
+                    window.dispatchEvent(new MouseEvent('mousemove', { clientX: cx, clientY: cy }));
                     window.__candadoDist = (m.candadoDist != null) ? m.candadoDist / p.esc : 1000;
                     window.__candadoNX = m.candadoNX || 0;
                     window.__candadoNY = m.candadoNY || 0;
