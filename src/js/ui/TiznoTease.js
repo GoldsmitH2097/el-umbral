@@ -38,35 +38,42 @@ export class TiznoTease {
 
     this._candado?.addEventListener('click', () => this._libre ? this._encerrar() : this._liberar());
 
-    /* LAS SÚPLICAS DEL CANDADO — solo en hover y con REPOSO (Ruben): el
-       cursor debe quedarse 450 ms sobre el botón; un roce de pasada no
-       dispara nada. Preso → pide que le liberen (frase-sin-micro). Libre →
-       suplica que no le encierren (no-encierres). */
-    this._suplicaT = 0;
+    /* LAS SÚPLICAS DEL CANDADO (Ruben): la del preso ("dale al candado")
+       ya NO vive en el hover — rozar el candado es el preludio del clic,
+       así que la frase nacía condenada a que el pop de Tizno la pisara.
+       Ahora es una sirena de los ratos QUIETOS (ver _latidoSuplica). El
+       hover con reposo (450 ms) queda solo para el Tizno libre, que
+       suplica que no le encierren — ahí el orden dramático es el bueno:
+       ruega antes del clic y, si caes igual, se hunde con el ruego en la
+       boca. */
     this._suplicaToma = 1;
     this._suplicaEncierroT = 0;
     this._hoverTimer = null;
     this._candado?.addEventListener('mouseenter', () => {
       clearTimeout(this._hoverTimer);
+      if (!this._libre) return;
       this._hoverTimer = setTimeout(() => {
         const ahora = Date.now();
-        if (this._libre) {
-          if (ahora - this._suplicaEncierroT < 30000) return;
-          this._suplicaEncierroT = ahora;
-          this._enviar({ tipo: 'suplica-encierro' });
-        } else {
-          if (ahora - this._suplicaT < 60000) return;
-          this._suplicaT = ahora;
-          try {
-            const a = new Audio('/tizno-sfx/frase-sin-micro-' + this._suplicaToma + '.mp3');
-            this._suplicaToma = this._suplicaToma === 1 ? 2 : 1;
-            a.volume = 0.85;
-            const pr = a.play(); if (pr) pr.catch(() => {});
-          } catch (_) {}
-        }
+        if (ahora - this._suplicaEncierroT < 30000) return;
+        this._suplicaEncierroT = ahora;
+        this._enviar({ tipo: 'suplica-encierro' });
       }, 450);
     });
     this._candado?.addEventListener('mouseleave', () => clearTimeout(this._hoverTimer));
+
+    // la sirena del preso: late cada 3 s y decide si toca susurrar
+    this._suplicaAudio = null;
+    this._suplicasDichas = 0;
+    this._ultimaSuplicaT = 0;
+    this._candadoVistoT = 0;
+    this._ultimoGesto = 0;   // 0 = ni un gesto aún → el navegador vetaría el audio
+    const gesto = () => { this._ultimoGesto = Date.now(); };
+    window.addEventListener('pointerdown', gesto, { passive: true });
+    window.addEventListener('wheel', gesto, { passive: true });
+    window.addEventListener('keydown', gesto);
+    window.addEventListener('scroll', gesto, { passive: true });
+    document.addEventListener('visibilitychange', () => { if (document.hidden) this._cortarSuplica(); });
+    setInterval(() => this._latidoSuplica(), 3000);
 
     /* BACKSTAGE (Ruben): al abrir la vista de lectura de un libro, Tizno se
        hunde en silencio y su marco se desvanece — cero solapes con el
@@ -78,6 +85,7 @@ export class TiznoTease {
         const abierta = !lectura.hasAttribute('inert');
         if (abierta === this._enLectura) return;
         this._enLectura = abierta;
+        if (abierta) this._cortarSuplica();   // que no siga "dale al candado" sobre la lectura
         if (!this._libre || !this._frame) return;
         if (abierta) {
           this._enviar({ tipo: 'ocultar' });
@@ -111,6 +119,11 @@ export class TiznoTease {
   }
 
   _liberar() {
+    // quien libera calla a la sirena: el clic corta el "dale al candado" a
+    // medias (ya no está preso) y no volverá a sonar en toda la visita —
+    // quien ya le soltó una vez conoce el truco
+    this._cortarSuplica();
+    this._yaLiberado = true;
     // el miedo al candado se arma cuando el cursor SALE del botón: si no,
     // aparecía ya enfadado (el ratón está sobre el botón al liberarlo)
     this._candadoArmado = false;
@@ -188,6 +201,39 @@ export class TiznoTease {
     this._enviar({ tipo: 'encerrar' });
     this._libre = false;
     this._pintarCandado();
+  }
+
+  /* ¿Toca el susurro del preso? Solo si: preso y jamás liberado en esta
+     visita, página visible, fuera de la lectura, candado en pantalla desde
+     hace ≥18 s (si no, acaba de llegar al archivo), algún gesto previo
+     (sin él, el navegador vetaría el play) pero ninguno en 9 s — mover el
+     ratón no cuenta como trastear: clics, rueda y teclas sí. Y sin abusar:
+     2 veces por visita, con 90 s entre ellas. */
+  _latidoSuplica() {
+    if (this._libre || this._yaLiberado || this._enLectura || document.hidden) return;
+    const r = this._candado?.getBoundingClientRect();
+    if (!r || !r.width) { this._candadoVistoT = 0; return; }
+    const ahora = Date.now();
+    if (!this._candadoVistoT) this._candadoVistoT = ahora;
+    if (this._suplicasDichas >= 2 || !this._ultimoGesto) return;
+    if (ahora - this._candadoVistoT < 18000) return;
+    if (ahora - this._ultimoGesto < 9000) return;
+    if (ahora - this._ultimaSuplicaT < 90000) return;
+    this._ultimaSuplicaT = ahora;
+    this._suplicasDichas++;
+    try {
+      const a = new Audio('/tizno-sfx/frase-sin-micro-' + this._suplicaToma + '.mp3');
+      this._suplicaToma = this._suplicaToma === 1 ? 2 : 1;
+      a.volume = 0.8;
+      this._suplicaAudio = a;
+      const pr = a.play(); if (pr) pr.catch(() => {});
+    } catch (_) {}
+  }
+
+  _cortarSuplica() {
+    if (!this._suplicaAudio) return;
+    try { this._suplicaAudio.pause(); } catch (_) {}
+    this._suplicaAudio = null;
   }
 
   _susurroEl() { return document.getElementById('liberar-susurro'); }
