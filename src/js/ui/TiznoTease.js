@@ -90,6 +90,14 @@ export class TiznoTease {
     this._candado?.setAttribute('aria-label', t(this._libre ? 'footer.encerrar-aria' : 'footer.liberar-aria'));
   }
 
+  /** La posición de la luciérnaga compañera, a ~20 Hz (la llaman a 30). */
+  enviarLuciernaga(x, y) {
+    const ahora = performance.now();
+    if (ahora - (this._ultimaLuci || 0) < 50) return;
+    this._ultimaLuci = ahora;
+    this._enviar({ tipo: 'luciernaga', x, y });
+  }
+
   _enviar(m) {
     try { this._frame?.contentWindow?.postMessage(m, location.origin); } catch (_) {}
   }

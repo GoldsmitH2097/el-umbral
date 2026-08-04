@@ -20,6 +20,13 @@
             -webkit-mask-image: radial-gradient(ellipse 60% 55% at 50% 68%, #000 35%, transparent 72%);
             mask-image: radial-gradient(ellipse 60% 55% at 50% 68%, #000 35%, transparent 72%);
         }
+        html.embed #abyss-foreground, html.embed #abyss-foreground-2 {
+            /* CHARCO DE TINTA (Ruben): la niebla del suelo era un rectángulo de
+               bordes duros; enmascarada en elipse lee como un charco oval a sus
+               pies que se funde con la página. */
+            -webkit-mask-image: radial-gradient(ellipse 44% 100% at 50% 100%, #000 40%, transparent 72%);
+            mask-image: radial-gradient(ellipse 44% 100% at 50% 100%, #000 40%, transparent 72%);
+        }
         html.embed #box-a, html.embed #box-b, html.embed #tizno-call-ui,
         html.embed #firefly, html.embed #earring { }
         html.embed #box-a, html.embed #box-b { display: none !important; }
@@ -972,6 +979,7 @@
                Cajas y ratón mandan SOLO sin llamada. En los estados AI las
                posturas se imponen; señales suavizadas con ataque rápido / caída lenta. */
             // ── vuelo de la luciérnaga ──
+            if (!EMBED) {
             ffTimer -= 16;
             if (ffTimer <= 0) {
                 ffTimer = 2800 + Math.random() * 2500;
@@ -988,6 +996,7 @@
             ffVY += (ffTY - ffY) * 0.0005 + (Math.random() - 0.5) * 0.3;
             ffVX *= 0.94; ffVY *= 0.94;
             ffX += ffVX; ffY += ffVY;
+            }
             // Ratón quieto >3 s: la luciérnaga sustituye sus coordenadas — Tizno
             // la sigue con ojos y cabeza, y si se le acerca, se asusta. El primer
             // mousemove real devuelve el control al cursor al instante.
@@ -998,7 +1007,7 @@
                 mouseDistance = 430 + Math.hypot(tiltX, tiltY) * 260;   // zona curiosa: se estira y te sigue
                 lastMouseMove = time;                                   // la luciérnaga no interfiere
             }
-            if (!EMBED && time - lastMouseMove > 3000 && window.innerWidth > 0) {
+            if (time - lastMouseMove > 3000 && window.innerWidth > 0) {
                 const fcx = window.innerWidth / 2, fcy = window.innerHeight / 2;
                 mouseDistance = Math.hypot(ffX - fcx, ffY - fcy);
                 mouseNormX = (ffX - fcx) / fcx;
@@ -2003,6 +2012,12 @@
                     window.__candadoDist = (m.candadoDist != null) ? m.candadoDist / p.esc : 1000;
                     window.__candadoNX = m.candadoNX || 0;
                     window.__candadoNY = m.candadoNY || 0;
+                } else if (m.tipo === 'luciernaga') {
+                    /* La COMPAÑERA de la web dirige su mirada cuando el ratón
+                       calla: sin ella, Tizno se quedaba de piedra al parar el
+                       cursor o hacer scroll. */
+                    const p = aLocal(m.x, m.y);
+                    ffX = p.x; ffY = p.y;
                 } else if (m.tipo === 'liberar') {
                     popIn();
                 } else if (m.tipo === 'encerrar') {

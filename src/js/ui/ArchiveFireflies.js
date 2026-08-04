@@ -289,7 +289,7 @@ export class ArchiveFireflies {
     this._fireflies.forEach((ff, i) => {
       let tx = W2, ty = this._obrasY, att = 0;
 
-      if (idle > INACTIVITY_TIZNO && this._tizno && i === 0) {
+      if (idle > INACTIVITY_TIZNO && this._tizno && i === 0 && !this._tizno.estaLibre?.()) {
         /* Solo la COMPAÑERA (la primera) ronda el candado de Tizno como
            invitación a pulsarlo. Seis luciérnagas acosando un botón sería
            ruido; una que insiste es una señal (Ruben, 4-ago). */
@@ -313,6 +313,13 @@ export class ArchiveFireflies {
 
       ff.update(tx, ty, att, scrollDY, cursor);
     });
+
+    // Tizno libre: la compañera le retransmite su posición — él la mira
+    // cuando el ratón calla (y ella deja de rondar el candado).
+    if (this._tizno?.estaLibre?.()) {
+      const c = this._fireflies[0];
+      if (c) this._tizno.enviarLuciernaga?.(c.x, c.y);
+    }
 
     if (this._particles) this._particles.draw();
   }
