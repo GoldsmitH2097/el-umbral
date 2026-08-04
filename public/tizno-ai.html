@@ -425,11 +425,6 @@
         const EMBED = /[?&]embed=1/.test(location.search);
         if (EMBED) document.documentElement.classList.add('embed');
         window.__ESC = 1;   // escala real del marco (el puente embed la actualiza)
-        if (EMBED) {
-            /* El foco perezoso del demo seguía la cabeza al 22%; en la esquina
-               le sube al 50% (Ruben) — la mitad del viaje, nunca calcado. */
-            TUNE.focoSeguimiento = 0.5;
-        }
 
         /* Valores ajustables en vivo desde el panel (?tune=1). */
         const TUNE = {
@@ -455,6 +450,13 @@
             orejaPliegue: 40,     // grados que se pliegan las orejas
         };
         window.TUNE = TUNE;   // también editable desde la consola
+        if (EMBED) {
+            /* El foco perezoso del demo seguía la cabeza al 22%; en la esquina
+               le sube al 50% (Ruben) — la mitad del viaje, nunca calcado.
+               (Y va AQUÍ, después de nacer TUNE: puesto antes, el const en zona
+               muerta temporal mataba el script entero en embed — Tizno tieso.) */
+            TUNE.focoSeguimiento = 0.5;
+        }
 
         /* ══════ NIVEL DE DETALLE SEGÚN LA MÁQUINA ══════
            Primero una estimación por hardware; luego se mide el FPS real durante
