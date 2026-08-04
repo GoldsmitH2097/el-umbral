@@ -641,7 +641,9 @@
             const encima = dentro(petRects.head, 55 * me, 45 * me) || dentro(petRects.body, 45 * me, 20 * me);
             // Sube MUY despacio: primero se asusta, y solo cede si insistes con
             // suavidad unos segundos. Alejar la mano lo tira abajo enseguida.
-            if (encima && v > 1.2 && v < 30) petLevel = Math.min(1, petLevel + 0.013);
+            /* Gana rápido (0.02): ~1.5 s de caricia hasta ojos felices — a
+               0.013 la gente abandonaba antes de ver nada. */
+            if (encima && v > 1.2 && v < 30) petLevel = Math.min(1, petLevel + 0.02);
             else if (!encima) petLevel = Math.max(0, petLevel - 0.05);
         });
         let prevMoodHablando = null;   // flanco para el estallido de rabia
@@ -717,6 +719,7 @@
             risa:     { archivos: ['risa-1.mp3', 'risa-2.mp3'], vol: 0.55 },
             sinMicro: { archivos: ['frase-sin-micro-1.mp3', 'frase-sin-micro-2.mp3'], vol: 0.85 },
             toque:    { archivos: ['toque-1.mp3', 'toque-2.mp3', 'toque-5.mp3'], vol: 0.6 },   // 3 y 4 al banquillo: largas para un piquito
+            noEncierres: { archivos: ['no-encierres-1.mp3', 'no-encierres-2.mp3', 'no-encierres-3.mp3'], vol: 0.8 },
         };
         const sfxCache = {};
         function sfxObtener(nombre) {
@@ -757,7 +760,7 @@
             /* El pop es prioritario: su animación y su sonido son UNA cosa —
                una salpicadura muda "looks off" (Ruben). Corta la cola de lo
                que suene (p. ej. el quejido de la huida 2 s antes). */
-            const prioridad = nombre === 'risa' || nombre === 'quejido' || nombre === 'sinMicro' || nombre === 'pop';
+            const prioridad = nombre === 'risa' || nombre === 'quejido' || nombre === 'sinMicro' || nombre === 'pop' || nombre === 'noEncierres';
             if (!prioridad && ahora < sfxSonandoHasta) return false;
             const a = sfxObtener(nombre);
             if (!a) return false;
@@ -1096,7 +1099,7 @@
 
             // El mimo se evapora si dejas de acariciarle.
             petLevel = Math.max(0, petLevel - 0.006);
-            const mimado = petLevel > 0.55 && aiState !== 'speaking';
+            const mimado = petLevel > 0.45 && aiState !== 'speaking';
             if (mimado && !petPurring) { purrStart(); petPurring = true; }
             else if (!mimado && petPurring) { purrStop(); petPurring = false; }
             if (petPurring) purrLevel(petLevel);
@@ -1303,7 +1306,7 @@
                    no un roce de pasada), con 8 s de enfriamiento, y solo con
                    cursor real — la luciérnaga jamás mueve distB. */
                 const enfadoCerca = distB < interactionThreshold * 0.62;
-                if (enfadoCerca && !enfadoDentro && time - ultimoEnfadoT > 8000
+                if (enfadoCerca && !enfadoDentro && time - ultimoEnfadoT > 20000
                     && (time - lastMouseMove < 3000 || tocando)) {
                     if (sfxPlay('enfado')) ultimoEnfadoT = time;
                 }
@@ -1353,8 +1356,8 @@
                 } else if (mouseDistance < 200) {
                     // El pánico se va deshaciendo a medida que le ganas la confianza.
                     const calma = 1 - petLevel * 0.8;
-                    eyeLeft.className = petLevel > 0.3 ? "eye left sad" : "eye left angry";
-                    eyeRight.className = petLevel > 0.3 ? "eye right sad" : "eye right angry";
+                    eyeLeft.className = petLevel > 0.22 ? "eye left sad" : "eye left angry";
+                    eyeRight.className = petLevel > 0.22 ? "eye right sad" : "eye right angry";
                     const fear = (200 - mouseDistance) / 200 * calma;
                     
                     inFear = true;
@@ -2113,8 +2116,11 @@
                     ffX = p.x; ffY = p.y;
                 } else if (m.tipo === 'liberar') {
                     popIn();
+                } else if (m.tipo === 'suplica-encierro') {
+                    if (popPos > 0.8 && popTarget === 1) sfxPlay('noEncierres');
                 } else if (m.tipo === 'encerrar') {
                     if (window.__tiznoColgar) window.__tiznoColgar();   // preso = mudo
+                    sfxPlay('noEncierres');   // se hunde suplicando
                     popCerrandoOjos = true;
                     popOut();
                 }

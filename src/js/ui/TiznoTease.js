@@ -44,6 +44,15 @@ export class TiznoTease {
        ya permite audio (algún clic previo en la página). */
     this._suplicaT = 0;
     this._suplicaToma = 1;
+    this._suplicaEncierroT = 0;
+    // con él LIBRE, rondar el candado = súplica de no-encierro (30 s de tregua)
+    this._candado?.addEventListener('mouseenter', () => {
+      if (!this._libre) return;
+      const ahora = Date.now();
+      if (ahora - this._suplicaEncierroT < 30000) return;
+      this._suplicaEncierroT = ahora;
+      this._enviar({ tipo: 'suplica-encierro' });
+    });
     this._candado?.addEventListener('mouseenter', () => {
       if (this._libre) return;
       const ahora = Date.now();
@@ -127,7 +136,9 @@ export class TiznoTease {
         }
         this._enviar({
           tipo: 'raton', x: e.clientX, y: e.clientY,
-          candadoDist: this._candadoArmado ? dCandado : 1000,
+          /* solo cuenta PEGADO al icono: el botón de Hablar es vecino y
+             rondarlo disparaba el gruñido cada dos por tres */
+          candadoDist: this._candadoArmado && dCandado < 120 ? dCandado : 1000,
           candadoNX: Math.max(-1, Math.min(1, dx / 200)),
           candadoNY: Math.max(-1, Math.min(1, dy / 200)),
           gustoDist: gusto,

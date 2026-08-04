@@ -317,8 +317,12 @@ export class ArchiveFireflies {
         } else {
           if (ahora > this._vagarHasta) {
             this._vagarHasta = ahora + 4000 + Math.random() * 3500;
-            this._vagarX = 40 + Math.random() * (window.innerWidth - 80);
-            this._vagarY = 60 + Math.random() * (window.innerHeight * 0.8);
+            /* Territorio de Tizno (Ruben): vaga alrededor DE ÉL (±350 px),
+               no por toda la página — viviendo lejos, él quedaba con
+               tortícolis eterna mirando arriba-izquierda. */
+            const tp = this._tizno.posicionDeTizno?.() || { x: window.innerWidth * 0.75, y: window.innerHeight * 0.6 };
+            this._vagarX = Math.max(40, Math.min(window.innerWidth - 40, tp.x + (Math.random() - 0.5) * 700));
+            this._vagarY = Math.max(60, Math.min(window.innerHeight - 80, tp.y + (Math.random() - 0.72) * 520));
           }
           tx = this._vagarX; ty = this._vagarY; att = 0.0009;
         }
