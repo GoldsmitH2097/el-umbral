@@ -580,6 +580,9 @@
 .retailer-logo {
   color: rgba(232,236,239,0.62);
   position: relative;
+  /* capa propia: la respiración del drop-shadow repinta solo el logo (44px),
+     no la tarjeta del cofre entera */
+  will-change: transform;
   animation: markBreath 6s ease-in-out infinite;
   transition: color 0.45s ease, filter 0.45s ease, transform 0.45s ease;
 }
@@ -699,15 +702,25 @@
 @property --loot-ang { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
 .loot-glint {
   position: absolute; inset: -2px; padding: 2px; pointer-events: none; z-index: 5;
-  background: conic-gradient(from var(--loot-ang),
-    transparent 0 80%, rgba(232,200,122,0.85) 88%, rgba(200,146,42,0.2) 94%, transparent 100%);
+  overflow: hidden;
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor; mask-composite: exclude;
+}
+/* El cono vive en un hijo GRANDE que gira por transform (compositor, sin
+   repintado). Animar la variable del conic-gradient repintaba el marco
+   entero en cada fotograma — media tormenta de pintura del cofre. */
+.loot-glint::before {
+  content: ''; position: absolute; left: 50%; top: 50%;
+  width: 340%; aspect-ratio: 1 / 1;
+  background: conic-gradient(from 0deg,
+    transparent 0 80%, rgba(232,200,122,0.85) 88%, rgba(200,146,42,0.2) 94%, transparent 100%);
+  will-change: transform;
+  transform: translate(-50%, -50%) rotate(0deg);
   animation: lootGlint 7s linear infinite;
 }
-@keyframes lootGlint { to { --loot-ang: 360deg; } }
+@keyframes lootGlint { to { transform: translate(-50%, -50%) rotate(360deg); } }
 /* art-deco corners: stepped double-L + twinkling diamond tip */
-.loot-corner { position: absolute; width: 24px; height: 24px; pointer-events: none; transition: filter 0.5s ease; z-index: 6; }
+.loot-corner { position: absolute; width: 24px; height: 24px; pointer-events: none; transition: filter 0.5s ease; z-index: 6; will-change: transform; }
 .loot-corner--tl { top: -8px; left: -8px; }
 .loot-corner--tr { top: -8px; right: -8px; transform: scaleX(-1); }
 .loot-corner--bl { bottom: -8px; left: -8px; transform: scaleY(-1); }
@@ -756,6 +769,7 @@
     rgba(232,200,122,0.8) 85%, rgba(200,146,42,0.25));
   background-size: 220% 100%;
   filter: blur(0.6px);
+  will-change: background-position;
   animation: lootMelt 9s ease-in-out infinite alternate;
 }
 @keyframes lootMelt { from { background-position: 0% 0; } to { background-position: 100% 0; } }
