@@ -1262,25 +1262,26 @@
                 add_EyeL = Math.abs(carcajada) * 0.12 * r; add_EyeR = add_EyeL;
 
             } else if (distA < interactionThreshold) {
+                /* ILUSIÓN CONTENIDA (Ruben, 4-ago): nada de botes. Un
+                   asentimiento vertical — sí, sí — con la mirada encendida
+                   y las orejas altas. Los add_ pequeños hacen que el paso
+                   desde/hacia otras posturas se funda suave (el easing global
+                   ya mezcla los objetivos; eran los saltos los que rompían). */
                 const intensity = (interactionThreshold - distA) / interactionThreshold;
                 eyeLeft.className = "eye left"; eyeRight.className = "eye right";
 
-                t_HeadX = boxANormX * 60; 
-                t_HeadY = boxANormY * 40; 
-                t_RigRot = boxANormX * 10;
-                t_EarL = 40; t_EarR = -40;
-                t_EyeL = 1.22; t_EyeR = 1.22;             // ilusión: ojos muy abiertos
-                
-                t_NeckScaleX = 1 - (intensity * 0.1);
-                t_NeckScaleY = 1 + (intensity * 0.2);
+                t_HeadX = boxANormX * 38;
+                t_HeadY = boxANormY * 22;
+                t_RigRot = boxANormX * 5;
+                t_EarL = 26; t_EarR = -26;
+                t_EyeL = 1.15; t_EyeR = 1.15;
 
-                const bounce = Math.abs(Math.sin(time * 0.01)) * 40 * intensity;
-                const nod = Math.sin(time * 0.008) * 15 * intensity;
-                add_BodyY = -bounce;
-                add_BodyScaleY = bounce * 0.005;
-                add_BodyScaleX = -bounce * 0.005;
-                add_HeadY = nod - bounce;
-                add_EyeL = bounce * 0.0025; add_EyeR = bounce * 0.0025; // laten al saltar
+                t_NeckScaleX = 1 - (intensity * 0.05);
+                t_NeckScaleY = 1 + (intensity * 0.1);
+
+                const nod = Math.sin(time * 0.013) * 7 * intensity;   // ~2 asentimientos/s
+                add_HeadY = nod;
+                add_EyeL = Math.max(0, nod) * 0.008; add_EyeR = add_EyeL;
 
             } else if (distB < interactionThreshold) {
                 inBoxB = true;

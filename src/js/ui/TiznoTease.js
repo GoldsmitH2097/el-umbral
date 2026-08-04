@@ -38,6 +38,25 @@ export class TiznoTease {
 
     this._candado?.addEventListener('click', () => this._libre ? this._encerrar() : this._liberar());
 
+    /* LA SÚPLICA: al rondar el candado con Tizno preso, su voz pide ayuda
+       desde dentro («¿Hola? ¿Hay alguien ahí?… dale al candado»). Suena como
+       mucho una vez por minuto, nunca con él libre, y solo si el navegador
+       ya permite audio (algún clic previo en la página). */
+    this._suplicaT = 0;
+    this._suplicaToma = 1;
+    this._candado?.addEventListener('mouseenter', () => {
+      if (this._libre) return;
+      const ahora = Date.now();
+      if (ahora - this._suplicaT < 60000) return;
+      this._suplicaT = ahora;
+      try {
+        const a = new Audio('/tizno-sfx/frase-sin-micro-' + this._suplicaToma + '.mp3');
+        this._suplicaToma = this._suplicaToma === 1 ? 2 : 1;
+        a.volume = 0.85;
+        const pr = a.play(); if (pr) pr.catch(() => {});
+      } catch (_) {}
+    });
+
     // mensajes del marco: rueda (scroll), estado de la llamada y textos
     this._hablarBtn = document.getElementById('hablar-tizno-btn');
     this._hablarBtn?.addEventListener('click', () => this._enviar({ tipo: 'hablar' }));
@@ -185,6 +204,14 @@ export class TiznoTease {
     this._panel.classList.remove('open');
     this._navBtn?.setAttribute('aria-expanded', 'false');
     setTimeout(() => { if (!this._open) this._panel.hidden = true; }, 320);
+  }
+
+  /** Dónde está Tizno (su cabeza, aprox) para la órbita de la polilla. */
+  posicionDeTizno() {
+    if (!this._libre || !this._frame) return null;
+    const r = this._frame.getBoundingClientRect();
+    if (!r.width) return null;
+    return { x: r.left + r.width * 0.5, y: r.top + r.height * 0.42 };
   }
 
   /** El punto que ronda la luciérnaga-compañera: el candado. */

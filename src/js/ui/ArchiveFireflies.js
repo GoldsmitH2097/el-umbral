@@ -255,10 +255,17 @@ export class ArchiveFireflies {
     if (obrasEl) {
       const r = obrasEl.getBoundingClientRect();
       this._obrasY = r.top + r.height * 0.4;
+    } else {
+      this._obrasY = window.innerHeight * 0.42;
     }
     if (contactEl) {
       const r = contactEl.getBoundingClientRect();
       this._contactY = r.top + 80;
+    } else {
+      /* #contact-section ya no existe (el contacto vive en la cabecera):
+         sin este respaldo la coordenada quedaba undefined, la luciérnaga
+         se evaporaba en NaN y le retransmitía NaN a Tizno — congelado. */
+      this._contactY = window.innerHeight * 0.62;
     }
   }
 
@@ -289,7 +296,17 @@ export class ArchiveFireflies {
     this._fireflies.forEach((ff, i) => {
       let tx = W2, ty = this._obrasY, att = 0;
 
-      if (idle > INACTIVITY_TIZNO && this._tizno && i === 0 && !this._tizno.estaLibre?.()) {
+      if (this._tizno?.estaLibre?.() && i === 0) {
+        /* Tizno LIBRE: la compañera es su polilla — le orbita a él, visible,
+           y el arroyo de posiciones le da a su mirada algo vivo que seguir. */
+        this._orbitAngle += 0.0065;
+        const tp = this._tizno.posicionDeTizno?.();
+        if (tp) {
+          tx = tp.x + Math.cos(this._orbitAngle) * 85;
+          ty = tp.y + Math.sin(this._orbitAngle) * 48;
+          att = 0.0025;
+        }
+      } else if (idle > INACTIVITY_TIZNO && this._tizno && i === 0 && !this._tizno.estaLibre?.()) {
         /* Solo la COMPAÑERA (la primera) ronda el candado de Tizno como
            invitación a pulsarlo. Seis luciérnagas acosando un botón sería
            ruido; una que insiste es una señal (Ruben, 4-ago). */
