@@ -20,7 +20,13 @@
 
 
 /* 3-column grid on desktop — wide and shallow */
-#tizno-panel-inner {  /* rejilla heredada del panel viejo */
+.contacto-simple {
+  display: flex; align-items: center; justify-content: center;
+  gap: 38px; flex-wrap: wrap;
+  padding: 30px 5vw 10px; box-sizing: border-box;
+}
+.contacto-simple .tizno-social-row { margin: 0; }
+#tizno-panel-inner {  /* (muerta — se conserva por si el cajón crece) */
   max-width: 1100px; margin: 0 auto;
   display: grid;
   grid-template-columns: 1fr 1.2fr 1.2fr;
