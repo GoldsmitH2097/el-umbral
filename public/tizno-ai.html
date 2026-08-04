@@ -838,7 +838,11 @@
            entre las dos cosas es lo que convierte el gesto en teatro. */
         function popOut() {
             popCerrandoOjos = true;
-            popSalpicado = false;              // se rearma YA, no dentro del temporizador
+            /* OJO: aquí NO se rearma la salpicadura. Rearmarla al salir hacía
+               que se disparase otra vez EN LA HUIDA (posición aún >0.86 y
+               objetivo aún 1 durante los 200 ms del cierre de ojos): pop y
+               tinta al irse, y silencio al volver. Ahora se rearma sola
+               cuando de verdad está hundido (posición < 0.5, bajo la niebla). */
             setTimeout(() => { popTarget = 0; }, 200);
         }
         /* Se esconde y vuelve a asomar: el gesto de "me largo… bueno, vale". */
@@ -977,6 +981,14 @@
                se pasa de largo un buen trecho y rebota varias veces. */
             popVel += (popTarget - popPos) * TUNE.popRigidez - popVel * TUNE.popAmortigua;
             popPos += popVel;
+            /* El sobreimpulso del muelle (popPos > 1) levantaba el cuerpo entero
+               por encima del reposo y se veía la base despegarse del suelo de
+               niebla. La energía del rebote no se tira: se convierte en
+               APLASTAMIENTO — ancho +, alto − — que es el gag teleñeco de
+               aterrizar, y el pie no se separa del suelo jamás. */
+            const excesoPop = Math.max(0, popPos - 1);
+            add_BodyScaleX += excesoPop * 1.1;
+            add_BodyScaleY -= excesoPop * 1.3;
 
             /* VÉRTICE: el golpe de orejas se dispara cuando el cuerpo deja de
                subir (la velocidad cambia de signo). Ahí el arrastre del aire ya
@@ -992,6 +1004,7 @@
             /* La salpicadura va cuando de verdad ASOMA (0.86), no a media subida:
                antes reventaba 300 px bajo la niebla y no se veía nada. Fuerza el
                estallido saltándose el enfriamiento — es su entrada en escena. */
+            if (popPos < 0.5) popSalpicado = false;   // hundido: lista para la próxima entrada
             if (popPos > 0.86 && !popSalpicado && popTarget === 1) {
                 popSalpicado = true;
                 sfxPlay('pop');
@@ -1425,7 +1438,7 @@
                 return;
             }
             earringEl.style.transform = `translate(${erDrawX - 9}px, ${erDrawY - 3}px) rotate(${erTheta * 180 / Math.PI}deg) skew(-12deg)`;
-            const popY = (1 - popPos) * POP_HONDO;
+            const popY = Math.max(0, (1 - popPos) * POP_HONDO);   // nunca por encima del reposo
             masterRigs.forEach(rig => {
                 rig.style.transform = `translateY(${popY}px) rotate(${c_RigRot}deg)`;
             });
