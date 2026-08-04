@@ -594,6 +594,7 @@
         });
         let prevMoodHablando = null;   // flanco para el estallido de rabia
         let inBoxB = false, prevBoxB = false;   // flanco de entrada a la caja prohibida
+        let enfadoDentro = false, ultimoEnfadoT = 0;   // gruñido: entrada profunda + enfriamiento
         window.__setTiznoMood = (m, holdMs) => { aiMood = m; aiMoodUntil = Date.now() + (holdMs || 8000); };
         /* Línea de tiempo emocional: el módulo instala window.__tiznoTimeline
            ({segs, totalChars, cps}) por cada parlamento; el rig avanza un reloj
@@ -656,9 +657,9 @@
            seguidas: la repetición exacta es lo que delata a una máquina.
            El ronroneo es bucle: una única toma estable, con empalme fundido. */
         const SFX = {
-            susto:    { archivos: ['susto-1.mp3', 'susto-2.mp3', 'susto-3.mp3', 'susto-4.mp3'], vol: 0.55 },
+            susto:    { archivos: ['susto-1.mp3', 'susto-2.mp3'], vol: 0.55 },
             ronroneo: { archivos: ['ronroneo.mp3'], vol: 0.45, bucle: true },
-            pop:      { archivos: ['pop-1.mp3', 'pop-2.mp3', 'pop-3.mp3', 'pop-4.mp3', 'pop-5.mp3'], vol: 0.5 },
+            pop:      { archivos: ['pop-1.mp3', 'pop-2.mp3', 'pop-3.mp3', 'pop-4.mp3'], vol: 0.5 },
             enfado:   { archivos: ['enfado-1.mp3', 'enfado-2.mp3', 'enfado-3.mp3', 'enfado-4.mp3'], vol: 0.5 },
             quejido:  { archivos: ['quejido-1.mp3', 'quejido-2.mp3'], vol: 0.5 },
             risa:     { archivos: ['risa-1.mp3', 'risa-2.mp3'], vol: 0.55 },
@@ -686,11 +687,37 @@
             sfxCache[f].volume = def.vol;
             return sfxCache[f];
         }
+        /* DISCIPLINA DE VOZ (Ruben, 4-ago): «demasiados sonidos solapados».
+           Tres reglas:
+           1. UNA reacción a la vez — si aún resuena una toma, la nueva no entra.
+           2. risa / quejido / frase-sin-micro tienen prioridad: cortan la cola
+              de lo que suene (son el remate de su gesto, no pueden perderse).
+           3. Durante la conversación manda la voz EN VIVO de ElevenLabs: las
+              tomas enlatadas se callan todas (salvo la frase sin micro, que
+              por definición solo existe fuera de la llamada). */
+        let sfxSonandoHasta = 0, sfxActual = null;
         function sfxPlay(nombre) {
+            const def = SFX[nombre];
+            if (!def) return false;
+            const ahora = Date.now();
+            if (typeof aiState !== 'undefined' && aiState !== 'idle' && nombre !== 'sinMicro') return false;
+            const prioridad = nombre === 'risa' || nombre === 'quejido' || nombre === 'sinMicro';
+            if (!prioridad && ahora < sfxSonandoHasta) return false;
             const a = sfxObtener(nombre);
             if (!a) return false;
-            try { a.currentTime = 0; const pr = a.play(); if (pr) pr.catch(() => {}); return true; }
-            catch (_) { return false; }
+            try {
+                if (prioridad && sfxActual && sfxActual !== a && !sfxActual.paused) {
+                    try { sfxActual.pause(); } catch (_) {}
+                }
+                a.currentTime = 0;
+                const pr = a.play(); if (pr) pr.catch(() => {});
+                if (!def.bucle) {
+                    const dur = (isFinite(a.duration) && a.duration > 0) ? a.duration : 1.6;
+                    sfxSonandoHasta = ahora + Math.min(2600, dur * 1000) + 350;
+                    sfxActual = a;
+                }
+                return true;
+            } catch (_) { return false; }
         }
         function sfxLoopOn(nombre, vol) {
             const a = sfxObtener(nombre);
@@ -990,6 +1017,7 @@
             if (mouseDistance > 290) sustoArmado = true;   // se ha alejado: listo otra vez
             prevFear = inFear; inFear = false;
             prevBoxB = inBoxB; inBoxB = false;
+            if (distB >= interactionThreshold * 0.62) enfadoDentro = false;
 
             // La risa se va apagando sola.
             if (time > risaHasta) risa = Math.max(0, risa - 0.045);   // se apaga con suavidad
@@ -1199,10 +1227,15 @@
 
             } else if (distB < interactionThreshold) {
                 inBoxB = true;
-                /* Gruñido al cruzar el umbral de la caja prohibida: flanco de
-                   entrada, solo con cursor real (distB únicamente lo mueve el
-                   ratón, así que la luciérnaga jamás lo dispara). */
-                if (!prevBoxB && (time - lastMouseMove < 3000 || tocando)) sfxPlay('enfado');
+                /* Gruñido solo si el cursor se mete DE VERDAD (62% del radio,
+                   no un roce de pasada), con 8 s de enfriamiento, y solo con
+                   cursor real — la luciérnaga jamás mueve distB. */
+                const enfadoCerca = distB < interactionThreshold * 0.62;
+                if (enfadoCerca && !enfadoDentro && time - ultimoEnfadoT > 8000
+                    && (time - lastMouseMove < 3000 || tocando)) {
+                    if (sfxPlay('enfado')) ultimoEnfadoT = time;
+                }
+                enfadoDentro = enfadoCerca;
                 const intensity = (interactionThreshold - distB) / interactionThreshold;
                 eyeLeft.className = "eye left angry"; eyeRight.className = "eye right angry";
 

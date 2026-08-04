@@ -5,9 +5,9 @@ Cada reacción tiene VARIANTES y suena una al azar (nunca la misma dos veces
 seguidas). Para añadir una toma nueva: nómbrala siguiendo la serie (p.ej.
 susto-5.mp3) y añádela al mapa SFX en tizno-ai.html.
 
-susto-1..4        chillido al acercarse de golpe (ratón/dedo del usuario)
+susto-1..2        chillido al acercarse de golpe (las tomas Susto_04 y _05 de Ruben)
 ronroneo          bucle al acariciarle despacio (una sola toma, empalme fundido)
-pop-1..5          salpicadura al asomar (entrada en escena)
+pop-1..4          salpicadura al asomar (los 4 WetInk; el Plop se retiró)
 enfado-1..4       gruñido al entrar el cursor en "CERRAR DEMO"
 quejido-1..2      lloriqueo cuando el tercer susto le hace esconderse
 risa-1..2         risita del gag del botón CERRAR (3er clic)
