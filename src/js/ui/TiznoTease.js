@@ -70,7 +70,12 @@ export class TiznoTease {
       this._frame.title = 'Tizno';
       this._frame.setAttribute('allow', 'microphone');   // fase 3: la voz
       this._frame.setAttribute('allowtransparency', 'true');
-      document.body.appendChild(this._frame);
+      /* DENTRO de #main-site: ese contenedor crea un contexto de apilamiento
+         (z-index 20). Colgado de body, el marco comparaba su z contra el del
+         sitio ENTERO y flotaba sobre la barra por mucho z que le diéramos.
+         Como hermano del footer, 28 < 30 y la barra manda. position:fixed
+         sigue siendo fiel al viewport (main-site no tiene transform). */
+      (document.getElementById('main-site') || document.body).appendChild(this._frame);
       this._frame.addEventListener('load', () => {
         this._enviar({ tipo: 'liberar' });
         // el marco nace invisible: sin esto, el primer pintado del iframe
