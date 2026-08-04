@@ -751,29 +751,33 @@
            3. Durante la conversación manda la voz EN VIVO de ElevenLabs: las
               tomas enlatadas se callan todas (salvo la frase sin micro, que
               por definición solo existe fuera de la llamada). */
-        let sfxSonandoHasta = 0, sfxActual = null;
+        /* v2 (Ruben: «se montan las frases»): el tope de 2,6 s se quedó corto
+           con las súplicas de 7 s y por esa grieta entraba el gruñido a mitad
+           de frase. Ahora se le pregunta al PROPIO Audio si sigue sonando —
+           mientras suene, nada normal entra — y las prioritarias cortan a las
+           normales pero NUNCA se pisan entre sí. */
+        let sfxSonandoHasta = 0, sfxActual = null, sfxActualPrioritario = false;
         function sfxPlay(nombre) {
             const def = SFX[nombre];
             if (!def) return false;
             const ahora = Date.now();
             if (typeof aiState !== 'undefined' && aiState !== 'idle' && nombre !== 'sinMicro') return false;
-            /* El pop es prioritario: su animación y su sonido son UNA cosa —
-               una salpicadura muda "looks off" (Ruben). Corta la cola de lo
-               que suene (p. ej. el quejido de la huida 2 s antes). */
             const prioridad = nombre === 'risa' || nombre === 'quejido' || nombre === 'sinMicro' || nombre === 'pop' || nombre === 'noEncierres';
-            if (!prioridad && ahora < sfxSonandoHasta) return false;
+            const sonando = sfxActual && !sfxActual.paused && !sfxActual.ended;
+            if (!prioridad && (sonando || ahora < sfxSonandoHasta)) return false;
+            if (prioridad && sonando && sfxActualPrioritario) return false;   // no se pisan entre sí
             const a = sfxObtener(nombre);
             if (!a) return false;
             try {
-                if (prioridad && sfxActual && sfxActual !== a && !sfxActual.paused) {
+                if (prioridad && sonando && sfxActual !== a) {
                     try { sfxActual.pause(); } catch (_) {}
                 }
                 a.currentTime = 0;
                 const pr = a.play(); if (pr) pr.catch(() => {});
                 if (!def.bucle) {
-                    const dur = (isFinite(a.duration) && a.duration > 0) ? a.duration : 1.6;
-                    sfxSonandoHasta = ahora + Math.min(2600, dur * 1000) + 350;
+                    sfxSonandoHasta = ahora + 1600;   // red de seguridad pre-metadatos
                     sfxActual = a;
+                    sfxActualPrioritario = prioridad;
                 }
                 return true;
             } catch (_) { return false; }
@@ -1308,6 +1312,7 @@
                 const enfadoCerca = distB < interactionThreshold * 0.62;
                 if (enfadoCerca && !enfadoDentro) enfadoDesde = time;   // acaba de entrar
                 if (enfadoCerca && time - enfadoDesde > 400 && time - ultimoEnfadoT > 20000
+                    && time - (window.__ultimaSuplica || 0) > 10000
                     && (time - lastMouseMove < 3000 || tocando)) {
                     if (sfxPlay('enfado')) ultimoEnfadoT = time;
                 }
@@ -2118,7 +2123,9 @@
                 } else if (m.tipo === 'liberar') {
                     popIn();
                 } else if (m.tipo === 'suplica-encierro') {
-                    if (popPos > 0.8 && popTarget === 1) sfxPlay('noEncierres');
+                    if (popPos > 0.8 && popTarget === 1 && sfxPlay('noEncierres')) {
+                        window.__ultimaSuplica = Date.now();
+                    }
                 } else if (m.tipo === 'encerrar' || m.tipo === 'ocultar') {
                     /* 'ocultar' = backstage (vista de lectura): mismo hundimiento,
                        sin drama. La súplica vive SOLO en el hover del candado. */
