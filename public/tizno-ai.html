@@ -648,7 +648,7 @@
         });
         let prevMoodHablando = null;   // flanco para el estallido de rabia
         let inBoxB = false, prevBoxB = false;   // flanco de entrada a la caja prohibida
-        let enfadoDentro = false, ultimoEnfadoT = 0;   // gruñido: entrada profunda + enfriamiento
+        let enfadoDentro = false, ultimoEnfadoT = 0, enfadoDesde = 0;   // gruñido: entrada profunda + permanencia + enfriamiento
         window.__setTiznoMood = (m, holdMs) => { aiMood = m; aiMoodUntil = Date.now() + (holdMs || 8000); };
         /* Línea de tiempo emocional: el módulo instala window.__tiznoTimeline
            ({segs, totalChars, cps}) por cada parlamento; el rig avanza un reloj
@@ -719,7 +719,7 @@
             risa:     { archivos: ['risa-1.mp3', 'risa-2.mp3'], vol: 0.55 },
             sinMicro: { archivos: ['frase-sin-micro-1.mp3', 'frase-sin-micro-2.mp3'], vol: 0.85 },
             toque:    { archivos: ['toque-1.mp3', 'toque-2.mp3', 'toque-5.mp3'], vol: 0.6 },   // 3 y 4 al banquillo: largas para un piquito
-            noEncierres: { archivos: ['no-encierres-1.mp3', 'no-encierres-2.mp3', 'no-encierres-3.mp3'], vol: 0.8 },
+            noEncierres: { archivos: ['no-encierres-1.mp3', 'no-encierres-2.mp3', 'no-encierres-3.mp3', 'no-encierres-4.mp3', 'no-encierres-5.mp3'], vol: 0.8 },
         };
         const sfxCache = {};
         function sfxObtener(nombre) {
@@ -1306,7 +1306,8 @@
                    no un roce de pasada), con 8 s de enfriamiento, y solo con
                    cursor real — la luciérnaga jamás mueve distB. */
                 const enfadoCerca = distB < interactionThreshold * 0.62;
-                if (enfadoCerca && !enfadoDentro && time - ultimoEnfadoT > 20000
+                if (enfadoCerca && !enfadoDentro) enfadoDesde = time;   // acaba de entrar
+                if (enfadoCerca && time - enfadoDesde > 400 && time - ultimoEnfadoT > 20000
                     && (time - lastMouseMove < 3000 || tocando)) {
                     if (sfxPlay('enfado')) ultimoEnfadoT = time;
                 }
@@ -2118,9 +2119,10 @@
                     popIn();
                 } else if (m.tipo === 'suplica-encierro') {
                     if (popPos > 0.8 && popTarget === 1) sfxPlay('noEncierres');
-                } else if (m.tipo === 'encerrar') {
+                } else if (m.tipo === 'encerrar' || m.tipo === 'ocultar') {
+                    /* 'ocultar' = backstage (vista de lectura): mismo hundimiento,
+                       sin drama. La súplica vive SOLO en el hover del candado. */
                     if (window.__tiznoColgar) window.__tiznoColgar();   // preso = mudo
-                    sfxPlay('noEncierres');   // se hunde suplicando
                     popCerrandoOjos = true;
                     popOut();
                 }

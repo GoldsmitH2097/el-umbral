@@ -38,33 +38,56 @@ export class TiznoTease {
 
     this._candado?.addEventListener('click', () => this._libre ? this._encerrar() : this._liberar());
 
-    /* LA SÚPLICA: al rondar el candado con Tizno preso, su voz pide ayuda
-       desde dentro («¿Hola? ¿Hay alguien ahí?… dale al candado»). Suena como
-       mucho una vez por minuto, nunca con él libre, y solo si el navegador
-       ya permite audio (algún clic previo en la página). */
+    /* LAS SÚPLICAS DEL CANDADO — solo en hover y con REPOSO (Ruben): el
+       cursor debe quedarse 450 ms sobre el botón; un roce de pasada no
+       dispara nada. Preso → pide que le liberen (frase-sin-micro). Libre →
+       suplica que no le encierren (no-encierres). */
     this._suplicaT = 0;
     this._suplicaToma = 1;
     this._suplicaEncierroT = 0;
-    // con él LIBRE, rondar el candado = súplica de no-encierro (30 s de tregua)
+    this._hoverTimer = null;
     this._candado?.addEventListener('mouseenter', () => {
-      if (!this._libre) return;
-      const ahora = Date.now();
-      if (ahora - this._suplicaEncierroT < 30000) return;
-      this._suplicaEncierroT = ahora;
-      this._enviar({ tipo: 'suplica-encierro' });
+      clearTimeout(this._hoverTimer);
+      this._hoverTimer = setTimeout(() => {
+        const ahora = Date.now();
+        if (this._libre) {
+          if (ahora - this._suplicaEncierroT < 30000) return;
+          this._suplicaEncierroT = ahora;
+          this._enviar({ tipo: 'suplica-encierro' });
+        } else {
+          if (ahora - this._suplicaT < 60000) return;
+          this._suplicaT = ahora;
+          try {
+            const a = new Audio('/tizno-sfx/frase-sin-micro-' + this._suplicaToma + '.mp3');
+            this._suplicaToma = this._suplicaToma === 1 ? 2 : 1;
+            a.volume = 0.85;
+            const pr = a.play(); if (pr) pr.catch(() => {});
+          } catch (_) {}
+        }
+      }, 450);
     });
-    this._candado?.addEventListener('mouseenter', () => {
-      if (this._libre) return;
-      const ahora = Date.now();
-      if (ahora - this._suplicaT < 60000) return;
-      this._suplicaT = ahora;
-      try {
-        const a = new Audio('/tizno-sfx/frase-sin-micro-' + this._suplicaToma + '.mp3');
-        this._suplicaToma = this._suplicaToma === 1 ? 2 : 1;
-        a.volume = 0.85;
-        const pr = a.play(); if (pr) pr.catch(() => {});
-      } catch (_) {}
-    });
+    this._candado?.addEventListener('mouseleave', () => clearTimeout(this._hoverTimer));
+
+    /* BACKSTAGE (Ruben): al abrir la vista de lectura de un libro, Tizno se
+       hunde en silencio y su marco se desvanece — cero solapes con el
+       contenido y cero reacciones. Al cerrarla, pop de vuelta. */
+    const lectura = document.getElementById('reading-view');
+    if (lectura) {
+      this._enLectura = false;
+      new MutationObserver(() => {
+        const abierta = !lectura.hasAttribute('inert');
+        if (abierta === this._enLectura) return;
+        this._enLectura = abierta;
+        if (!this._libre || !this._frame) return;
+        if (abierta) {
+          this._enviar({ tipo: 'ocultar' });
+          this._frame.classList.add('backstage');
+        } else {
+          this._frame.classList.remove('backstage');
+          setTimeout(() => { if (!this._enLectura && this._libre) this._enviar({ tipo: 'liberar' }); }, 350);
+        }
+      }).observe(lectura, { attributes: true, attributeFilter: ['inert'] });
+    }
 
     // mensajes del marco: rueda (scroll), estado de la llamada y textos
     this._hablarBtn = document.getElementById('hablar-tizno-btn');
@@ -116,7 +139,7 @@ export class TiznoTease {
       this._gustos = [...document.querySelectorAll('.obra-cover, .obra-editions--shop')];
       window.addEventListener('mousemove', (e) => {
         const ahora = performance.now();
-        if (ahora - this._ultimoEnvio < 16 || !this._libre) return;
+        if (ahora - this._ultimoEnvio < 16 || !this._libre || this._enLectura) return;
         this._ultimoEnvio = ahora;
         const r = this._candado.getBoundingClientRect();
         const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
@@ -186,6 +209,7 @@ export class TiznoTease {
 
   /** La posición de la luciérnaga compañera, a ~20 Hz (la llaman a 30). */
   enviarLuciernaga(x, y) {
+    if (this._enLectura) return;
     const ahora = performance.now();
     if (ahora - (this._ultimaLuci || 0) < 50) return;
     this._ultimaLuci = ahora;
