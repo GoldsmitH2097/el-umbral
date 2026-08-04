@@ -16,8 +16,8 @@
 
 export class TiznoTease {
   constructor() {
-    this._cajon      = document.getElementById('footer-contacto');
-    this._contactBtn = document.getElementById('footer-contacto-btn');
+    this._panel      = document.getElementById('contact-popover');
+    this._navBtn     = document.getElementById('nav-contacto');
     this._candado    = document.getElementById('liberar-tizno-btn');
     this._susurro    = document.getElementById('liberar-susurro');
     this._open       = false;
@@ -28,10 +28,15 @@ export class TiznoTease {
     // main.js llama a init() desde DOS rutas de arranque (intro y salto):
     // sin este pestillo cada botón recibía dos listeners y un clic hacía
     // toggle doble — abrir y cerrar en el mismo gesto.
-    if (this._inited || !this._cajon) return;
+    // OJO: el clic del CONTACTO de la cabecera NO se cablea aquí — lo
+    // despacha ArchiveDOM vía [data-action="scroll-contact"] → toggle().
+    if (this._inited || !this._panel) return;
     this._inited = true;
-    this._contactBtn?.addEventListener('click', () => this.toggle());
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && this._open) this.close(); });
+    // clic fuera del panelito = cerrarlo
+    document.addEventListener('click', e => {
+      if (this._open && !e.target.closest('#contact-popover, #nav-contacto')) this.close();
+    });
 
     // Fase 1: la cerradura resiste. Traqueteo + susurro, nada más.
     this._candado?.addEventListener('click', () => {
@@ -50,25 +55,22 @@ export class TiznoTease {
   toggle() { this._open ? this.close() : this.open(); }
 
   open() {
-    if (!this._cajon) return;
+    if (!this._panel) return;
     this._open = true;
-    this._cajon.hidden = false;
-    // reflow forzado: el navegador registra el estado cerrado (max-height 0)
-    // ANTES de la clase, y la transición anima. Síncrono — nada de rAF, que
-    // hay entornos que lo estrangulan.
-    void this._cajon.offsetHeight;
-    this._cajon.classList.add('open');
-    this._contactBtn?.setAttribute('aria-expanded', 'true');
-    this._cajon.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    this._panel.hidden = false;
+    // reflow forzado antes de la clase: la transición anima. Síncrono — nada
+    // de rAF, que hay entornos que lo estrangulan.
+    void this._panel.offsetHeight;
+    this._panel.classList.add('open');
+    this._navBtn?.setAttribute('aria-expanded', 'true');
   }
 
   close() {
-    if (!this._cajon) return;
+    if (!this._panel) return;
     this._open = false;
-    this._cajon.classList.remove('open');
-    this._contactBtn?.setAttribute('aria-expanded', 'false');
-    // espera el final de la transición antes de sacarlo del árbol accesible
-    setTimeout(() => { if (!this._open) this._cajon.hidden = true; }, 450);
+    this._panel.classList.remove('open');
+    this._navBtn?.setAttribute('aria-expanded', 'false');
+    setTimeout(() => { if (!this._open) this._panel.hidden = true; }, 320);
   }
 
   /** El punto que ronda la luciérnaga-compañera: el candado. */
