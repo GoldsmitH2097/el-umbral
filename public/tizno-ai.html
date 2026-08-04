@@ -2443,9 +2443,17 @@
         // Ventana de inspección: mira en consola exactamente lo que Tizno sabrá.
         window.__tiznoVerDossier = async () => dossierToText(await buildDossier());
 
+        let despertando = false;   // pestillo: entre el clic y la sesión viva pasan segundos
         async function wake() {
+            /* DOS TIZNO A LA VEZ (Ruben, 4-ago): un segundo clic mientras la
+               sesión aún se establecía (SDK + permiso de micro + WebSocket)
+               lanzaba OTRA conversación en paralelo, a destiempo. El pestillo
+               hace que solo la primera invocación entre; las demás rebotan. */
+            if (despertando || conversation) return;
+            despertando = true;
             if (dailyUsed() >= DAILY_MAX_S) {
                 setStatus('Tizno ya ha hablado mucho hoy… vuelve mañana');
+                despertando = false;
                 return;
             }
             btn.disabled = true;
@@ -2464,6 +2472,7 @@
                 } else {
                     setStatus('sin micrófono no hay conversación (' + err.name + ')');
                 }
+                despertando = false;
                 return;
             }
             setStatus('invocando a Tizno…');
@@ -2473,6 +2482,7 @@
             } catch (err) {
                 btn.disabled = false;
                 setStatus('el vacío no responde (sin conexión) — reintenta');
+                despertando = false;
                 return;
             }
             const dossier = await buildDossier();
@@ -2622,11 +2632,18 @@
                 setState('idle');
                 setStatus('no se pudo invocar: ' + (err?.message || err));
                 console.error('[tizno-ai] startSession', err);
+            } finally {
+                despertando = false;   // haya ido bien o mal, el pestillo se suelta
             }
         }
 
         async function sleep() {
-            if (conversation) { try { await conversation.endSession(); } catch (_) {} }
+            /* La referencia muere SIEMPRE: si endSession falla por red, la
+               sesión vieja quedaba viva bajo la nueva — dos voces a destiempo.
+               El servidor corta la huérfana por su cuenta al poco. */
+            const c = conversation;
+            conversation = null;
+            if (c) { try { await c.endSession(); } catch (_) {} }
         }
 
         btn.addEventListener('click', () => conversation ? sleep() : wake());
