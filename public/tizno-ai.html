@@ -658,6 +658,7 @@
             enfado:    { archivo: 'enfado.mp3',    vol: 0.5  },
             quejido:   { archivo: 'quejido.mp3',   vol: 0.45 },
             risa:      { archivo: 'risa.mp3',      vol: 0.5  },
+            sinMicro:  { archivo: 'frase-sin-micro.mp3', vol: 0.8 },
         };
         const sfxCache = {};
         function sfxObtener(nombre) {
@@ -2170,8 +2171,11 @@
                 btn.disabled = false;
                 if (err.name === 'NotAllowedError') {
                     setStatus('micrófono bloqueado — pulsa el candado de la barra de direcciones → Micrófono → Permitir, y recarga');
+                    // Tizno lo pide con su propia voz (frase pregrabada, si existe)
+                    if (window.sfxPlay) window.sfxPlay('sinMicro');
                 } else if (err.name === 'NotFoundError') {
                     setStatus('no encuentro ningún micrófono en este dispositivo');
+                    if (window.sfxPlay) window.sfxPlay('sinMicro');
                 } else {
                     setStatus('sin micrófono no hay conversación (' + err.name + ')');
                 }
