@@ -17,6 +17,11 @@
            ventana. La madre escala el iframe entero con transform. */
         /* SIN MÁSCARAS (coste GPU continuo sobre capas animadas): el fundido
            oval va horneado en el propio degradado — mismo charco, gratis. */
+        html.embed #luz-sala {
+            /* fundido del contraluz: la escritura por frames persigue el pop,
+               y esta transición la vuelve terciopelo al aparecer y al irse */
+            transition: opacity 1.1s ease;
+        }
         html.embed #ambient-light {
             background: radial-gradient(ellipse 44% 40% at 50% 66%, #2b2420 0%, transparent 72%) !important;
         }
@@ -2030,6 +2035,7 @@
                las cosquillas?»). La llamada de voz vive en el botón Hablarle
                de la madre; así el gesto de tocar es solo juego. */
             let ultimoToqueT = 0;
+            let toquesSeguidos = 0;
             const toqueEn = (cx2, cy2) => {
                 const h = headBase.getBoundingClientRect();
                 const b = bodyTracker.getBoundingClientRect();
@@ -2038,7 +2044,16 @@
                 if (!dentroDeEl || popPos < 0.8) return;
                 const ahora = Date.now();
                 if (ahora - ultimoToqueT < 1500) return;   // sin ametrallar
+                /* ESCONDITE JUSTIFICADO (Ruben): irse porque sí es random;
+                   irse al CUARTO piquito en 25 s es un personaje harto. */
+                toquesSeguidos = (ahora - ultimoToqueT < 25000) ? toquesSeguidos + 1 : 1;
                 ultimoToqueT = ahora;
+                if (toquesSeguidos >= 4) {
+                    toquesSeguidos = 0;
+                    popEscondite(3500);
+                    sfxPlay('quejido');
+                    return;
+                }
                 shockUntil = ahora + 260;
                 burstInk(0.55);
                 sfxPlay('toque');

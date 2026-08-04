@@ -64,10 +64,13 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
   display: block; opacity: 0; transform: translateY(12px);
   filter: blur(3px);
 }
-.archive-visible .hero-frase { animation: heroFrase 1.4s cubic-bezier(0.2, 0.9, 0.25, 1) forwards; }
+.archive-visible .site-hero-sub .hero-frase { animation: heroFrase 1.4s cubic-bezier(0.2, 0.9, 0.25, 1) forwards; }
 .archive-visible .site-hero-sub .hero-frase:nth-child(1) { animation-delay: 1.15s; }
-.archive-visible .site-hero-sub .hero-frase:nth-child(2) { animation-delay: 1.55s; }
-.archive-visible .site-hero-editorial.hero-frase { animation-delay: 2.05s; }
+.archive-visible .site-hero-sub .hero-frase:nth-child(2) { animation-delay: 1.6s; }
+.archive-visible .site-hero-sub .hero-frase:nth-child(3) { animation-delay: 2.0s; }
+/* las dos primeras comparten línea: pausa entre ellas, no salto de línea */
+.hero-frase--inline { display: inline-block; }
+.hero-frase--inline + .hero-frase--inline { margin-left: 0.6em; }
 @keyframes heroFrase {
   to { opacity: 1; transform: translateY(0); filter: blur(0); }
 }
@@ -92,10 +95,12 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
 .archive-visible .site-hero h2 {
   animation: heroTitleReveal 2.4s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards;
 }
-.archive-visible .site-hero p {
+.archive-visible .site-hero .site-hero-sub {
   /* el contenedor solo se hace visible; el teatro es de cada .hero-frase */
-  animation: heroSubReveal 0.1s ease forwards;
-  animation-delay: 1.0s;
+  animation: heroSubReveal 0.1s ease 1s forwards;
+}
+.archive-visible .site-hero-editorial.hero-frase {
+  animation: heroFrase 1.4s cubic-bezier(0.2, 0.9, 0.25, 1) 2.45s forwards;
 }
 
 /* ── Las Crónicas — per-letter drift (vector only) ──────────────────────── */

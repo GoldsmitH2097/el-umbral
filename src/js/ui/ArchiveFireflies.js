@@ -297,14 +297,30 @@ export class ArchiveFireflies {
       let tx = W2, ty = this._obrasY, att = 0;
 
       if (this._tizno?.estaLibre?.() && i === 0) {
-        /* Tizno LIBRE: la compañera es su polilla — le orbita a él, visible,
-           y el arroyo de posiciones le da a su mirada algo vivo que seguir. */
-        this._orbitAngle += 0.0065;
-        const tp = this._tizno.posicionDeTizno?.();
-        if (tp) {
-          tx = tp.x + Math.cos(this._orbitAngle) * 85;
-          ty = tp.y + Math.sin(this._orbitAngle) * 48;
-          att = 0.0025;
+        /* LA POLILLA (Ruben): vaga libre por TODA la página, y cada cierto
+           tiempo hace una visita — se lanza hacia Tizno un par de segundos
+           (él se encoge al verla cerca) y vuelve a su vagabundeo (él la
+           sigue con la mirada si el ratón calla). */
+        const ahora = Date.now();
+        if (!this._proximaVisita) {
+          this._proximaVisita = ahora + 6000 + Math.random() * 8000;
+          this._vagarX = Math.random() * window.innerWidth;
+          this._vagarY = Math.random() * window.innerHeight * 0.8;
+          this._vagarHasta = 0;
+        }
+        if (ahora < this._visitaHasta) {
+          const tp = this._tizno.posicionDeTizno?.();
+          if (tp) { tx = tp.x + (Math.random() - 0.5) * 50; ty = tp.y + (Math.random() - 0.5) * 30; att = 0.004; }
+        } else if (ahora > this._proximaVisita) {
+          this._visitaHasta = ahora + 2200 + Math.random() * 1300;
+          this._proximaVisita = ahora + 9000 + Math.random() * 9000;
+        } else {
+          if (ahora > this._vagarHasta) {
+            this._vagarHasta = ahora + 4000 + Math.random() * 3500;
+            this._vagarX = 40 + Math.random() * (window.innerWidth - 80);
+            this._vagarY = 60 + Math.random() * (window.innerHeight * 0.8);
+          }
+          tx = this._vagarX; ty = this._vagarY; att = 0.0009;
         }
       } else if (idle > INACTIVITY_TIZNO && this._tizno && i === 0 && !this._tizno.estaLibre?.()) {
         /* Solo la COMPAÑERA (la primera) ronda el candado de Tizno como
