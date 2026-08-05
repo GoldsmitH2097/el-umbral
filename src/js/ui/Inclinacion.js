@@ -85,11 +85,39 @@ export function initInclinacion() {
  * cuando el mundo empieza a responderte, así que preguntarlo ahí no
  * interrumpe la historia, forma parte de ella.
  */
+let pedido = false;
+
 export function pedirInclinacion() {
   const D = window.DeviceOrientationEvent;
-  if (!D) return;
-  if (typeof D.requestPermission !== 'function') { initInclinacion(); return; }
-  try {
-    D.requestPermission().then((r) => { if (r === 'granted') initInclinacion(); }).catch(() => {});
-  } catch (_) {}
+  if (!D || pedido) return;
+  if (typeof D.requestPermission !== 'function') { pedido = true; initInclinacion(); return; }
+
+  const intentar = () => {
+    if (pedido) return true;
+    try {
+      const p = D.requestPermission();
+      /* Si iOS no nos considera dentro de un gesto, rechaza. Solo damos la
+         petición por gastada cuando llega respuesta: así un rechazo por falta
+         de gesto no nos deja sin segunda oportunidad. */
+      p.then((r) => { pedido = true; desarmar(); if (r === 'granted') initInclinacion(); })
+       .catch(() => {});
+      return true;
+    } catch (_) { return false; }
+  };
+
+  /* El umbral se cruza de dos maneras: pulsando ADENTRARSE (hay gesto, el
+     cartel sale en el acto) o dejando que el trance avance solo (no hay gesto
+     y iOS rechaza sin preguntar nada). Para el segundo caso dejamos la
+     petición armada: salta en el primer toque dentro del archivo, que sigue
+     siendo el umbral recién cruzado y no un momento cualquiera. */
+  const alTocar = () => { intentar(); };
+  function desarmar() {
+    window.removeEventListener('touchend', alTocar, true);
+    window.removeEventListener('click', alTocar, true);
+  }
+  intentar();
+  if (!pedido) {
+    window.addEventListener('touchend', alTocar, true);
+    window.addEventListener('click', alTocar, true);
+  }
 }

@@ -33,10 +33,26 @@ export function initDiagnostico() {
       <div class="diag-fila"><span>lienzos</span><b id="diag-lienzos">—</b></div>
       <div class="diag-fila"><span>animaciones vivas</span><b id="diag-anim">—</b></div>
       <button type="button" id="diag-censo">recontar animaciones</button>
+      <button type="button" id="diag-filtros">filtros de Tizno: sí</button>
     </div>`;
   document.body.appendChild(panel);
 
   const $ = (id) => document.getElementById(id);
+
+  /* Interruptor de los filtros SVG de Tizno. WebKit los resuelve por software,
+     así que son el primer sospechoso de cualquier caída de fotogramas en el
+     móvil — pero sospechar no es medir. Este botón los apaga y los enciende en
+     caliente: si al apagarlos los fps suben de golpe, el gasto es suyo y hay
+     que llevarlos a GPU; si no se mueven, el problema está en otro sitio y no
+     hay por qué tocarle la cara. */
+  $('diag-filtros').addEventListener('click', () => {
+    const marco = document.getElementById('tizno-frame');
+    if (!marco?.contentWindow) return;
+    marco.contentWindow.postMessage({ tipo: 'filtros' }, location.origin);
+    const btn = $('diag-filtros');
+    const apagados = btn.textContent.endsWith('sí');
+    btn.textContent = 'filtros de Tizno: ' + (apagados ? 'no' : 'sí');
+  });
   $('diag-plegar').parentElement.addEventListener('click', () => {
     const c = $('diag-cuerpo');
     const oculto = c.style.display === 'none';

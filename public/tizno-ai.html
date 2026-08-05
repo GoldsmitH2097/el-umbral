@@ -339,6 +339,18 @@
                 <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -8" result="g" />
                 <feBlend in="SourceGraphic" in2="g" />
             </filter>
+            <!-- Nivel BAJO. WebKit resuelve los filtros SVG por software, y el
+                 coste de un desenfoque gaussiano sube con el radio: a DPR 3 un
+                 stdDeviation de 7 son 21 píxeles reales de radio sobre cuatro
+                 millones de píxeles, cada fotograma. Bajarlo a 3 recorta el
+                 gasto a menos de la mitad, y el umbral de alfa se sube a la vez
+                 para que la tinta siga cerrando en formas sólidas en vez de
+                 quedarse en niebla: sigue siendo Tizno, no una mancha. -->
+            <filter id="ink-goo-movil">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
+                <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 26 -10" result="g" />
+                <feBlend in="SourceGraphic" in2="g" />
+            </filter>
             <filter id="ink-goo-body">
                 <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
                 <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7.5" result="ink-goo" />
@@ -493,7 +505,7 @@
             // En nivel BAJO el cuerpo también renuncia a la turbulencia: en un
             // móvil modesto ese filtro es la mitad del gasto de toda la página.
             const cuerpo = document.querySelectorAll('.goo-layer')[0];
-            if (cuerpo) cuerpo.style.filter = NIVEL === 'bajo' ? "url('#ink-goo-lite')" : "url('#ink-goo-body')";
+            if (cuerpo) cuerpo.style.filter = NIVEL === 'bajo' ? "url('#ink-goo-movil')" : "url('#ink-goo-body')";
             // La segunda lámina de niebla es puro adorno: fuera en nivel bajo.
             const niebla2 = document.getElementById('abyss-foreground-2');
             if (niebla2) niebla2.style.display = NIVEL === 'bajo' ? 'none' : '';
@@ -1725,18 +1737,31 @@
         const ctxS = lienzoS.getContext('2d');
         const INK = (getComputedStyle(document.documentElement).getPropertyValue('--ink') || '#0d0c0a').trim();
         let rectP, rectC, rectS;   // los lienzos son fijos: su rect solo cambia con resize
+        /* RESOLUCIÓN DE LA TINTA. El rig se dibuja siempre en su espacio de
+           720×900, pero en un móvil se enseña a menos de la mitad de ese
+           tamaño: cada fotograma pintábamos cuatro o cinco píxeles por cada
+           uno que llega a verse. Bajando solo el búfer y dejando la medida CSS
+           intacta, el navegador lo estira al mostrarlo y el dibujo cuesta la
+           cuarta parte. Con setTransform las coordenadas del dibujo siguen
+           siendo las de siempre, así que no hay una sola constante del rig que
+           reajustar: es gratis en todo menos en nitidez, y la tinta va
+           desenfocada de todos modos. */
+        const RESOL = esMovil ? 0.5 : 1;
+        function medirLienzo(lienzo, ctx, w, h) {
+            lienzo.width = Math.round(w * RESOL);
+            lienzo.height = Math.round(h * RESOL);
+            lienzo.style.width = w + 'px';
+            lienzo.style.height = h + 'px';
+            lienzo._w = w; lienzo._h = h;      // medidas de dibujo, no las del búfer
+            /* El bucle de pintado se administra su propia matriz y borra en
+               coordenadas del búfer, así que aquí se deja en identidad. */
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+        }
         function ajustarLienzos() {
-            /* 1:1 con píxeles CSS — doctrina del proyecto: nada de DPR, la
-               tinta desenfocada no necesita retina y el filtro sí paga el área. */
-            lienzoP.width = 720;
-            lienzoP.height = Math.min(window.innerHeight || 900, 900);
-            lienzoP.style.width = lienzoP.width + 'px';
-            lienzoP.style.height = lienzoP.height + 'px';
             const capaCuerpo = lienzoC.parentElement;
-            lienzoC.width = capaCuerpo.offsetWidth || 660;
-            lienzoC.height = capaCuerpo.offsetHeight || 700;
-            lienzoS.width = 640; lienzoS.height = 560;
-            lienzoS.style.width = '640px'; lienzoS.style.height = '560px';
+            medirLienzo(lienzoP, ctxP, 720, Math.min(window.innerHeight || 900, 900));
+            medirLienzo(lienzoC, ctxC, capaCuerpo.offsetWidth || 660, capaCuerpo.offsetHeight || 700);
+            medirLienzo(lienzoS, ctxS, 640, 560);
             rectP = lienzoP.getBoundingClientRect();
             rectC = lienzoC.getBoundingClientRect();
             rectS = lienzoS.getBoundingClientRect();
@@ -1836,16 +1861,19 @@
                     const rad = r * DEG, cos = Math.cos(rad), sin = Math.sin(rad);
                     const sx = sc * k;
                     const sy = sx * (p.rx ? Math.max(0.08, Math.abs(Math.cos(p.rx * u * DEG))) : 1);
-                    ctx.setTransform(cos * sx, sin * sx, -sin * sy, cos * sy, xx, yy);
+                    /* RESOL premultiplica la matriz del sprite: el búfer es más
+                       pequeño que el espacio de dibujo, pero las coordenadas
+                       que se calculan arriba siguen siendo las de siempre. */
+                    ctx.setTransform(cos * sx * RESOL, sin * sx * RESOL, -sin * sy * RESOL, cos * sy * RESOL, xx * RESOL, yy * RESOL);
                     ctx.drawImage(spr, -spr.width / 2, -spr.height / 2);
                 } else if (p.chispa) {
                     const d = p.tam * 5.2 * sc;
-                    ctx.setTransform(1, 0, 0, 1, 0, 0);
+                    ctx.setTransform(RESOL, 0, 0, RESOL, 0, 0);
                     ctx.drawImage(sprChispa, x - d / 2, y - d / 2, d, d);
                 } else {
                     g++;
                     const d = p.tam * sc;
-                    ctx.setTransform(1, 0, 0, 1, 0, 0);
+                    ctx.setTransform(RESOL, 0, 0, RESOL, 0, 0);
                     ctx.drawImage(sprGota, x - d / 2, y - d / 2, d, d);
                 }
             }
@@ -2182,6 +2210,22 @@
                 } else if (m.tipo === 'liberar') {
                     preso = false;
                     popIn();
+                } else if (m.tipo === 'filtros') {
+                    /* Interruptor de medición: apaga de golpe TODOS los filtros
+                       SVG. Sirve para dejar de discutir y ver el número — si al
+                       apagarlos los fotogramas se disparan, el gasto es suyo y
+                       toca llevarlos a GPU; si no se mueven, el problema está
+                       en otra parte y no hay que tocar el aspecto de Tizno. */
+                    window.__sinFiltros = !window.__sinFiltros;
+                    document.querySelectorAll('.goo-layer, #goo-particles').forEach((el) => {
+                        if (window.__sinFiltros) {
+                            el.dataset.filtroPrevio = el.style.filter || '';
+                            el.style.filter = 'none';
+                        } else {
+                            el.style.filter = el.dataset.filtroPrevio || '';
+                        }
+                    });
+                    document.documentElement.dataset.filtros = window.__sinFiltros ? 'no' : 'si';
                 } else if (m.tipo === 'suplica-encierro') {
                     if (popPos > 0.8 && popTarget === 1 && sfxPlay('noEncierres')) {
                         window.__ultimaSuplica = Date.now();
