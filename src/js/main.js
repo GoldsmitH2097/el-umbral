@@ -281,7 +281,10 @@ window._onIgnitionComplete = () => {
 };
 
 const isDeepLink = router.init();
-if (!isDeepLink) {
+// Único sitio donde se enciende el intro: solo si de verdad se va a ver.
+// Quien pide menos movimiento salta directo al archivo (arriba), así que
+// tampoco debe pagar el lienzo ni el vídeo del primer personaje.
+if (!isDeepLink && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
   // Always show the cinematic intro on every visit.
   // Returning visitors can press 'Romper el trance' to skip.
   visual.start();
@@ -318,7 +321,11 @@ function skipIntroAndEnterArchive() {
   if (_s2HintInterval) { clearInterval(_s2HintInterval); _s2HintInterval = null; }
 
   transitionTo(4);
-  visual.start();
+  /* Aquí NO se enciende el motor del intro. Entrar por un enlace directo o
+     romper el trance lleva a la escena 4, donde el bucle se suspende solo —
+     así que este start() no dibujaba nada, pero sí cargaba el MP4 de 1080p
+     del primer personaje y su lienzo a pantalla completa. Si veníamos del
+     intro, el bucle ya estaba en marcha desde el arranque. */
   try { localStorage.setItem('sw_seen', '1'); } catch (_) {}
   archive.showArchive({skipIntro:true});
   document.body.style.cursor='auto';
