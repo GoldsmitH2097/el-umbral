@@ -286,9 +286,11 @@ export function initMenuMovil() {
   const cunaIdioma  = idioma?.parentElement;
   const estrecho = window.matchMedia('(max-width: 768px)');
 
+  const nav = burger.parentElement;   // la cabecera, que marca el estado abierto
   const cerrar = () => {
     panel.classList.remove('abierto');
     burger.classList.remove('abierto');
+    nav.classList.remove('menu-abierto');
     burger.setAttribute('aria-expanded', 'false');
   };
 
@@ -315,6 +317,7 @@ export function initMenuMovil() {
     e.stopPropagation();
     const abierto = panel.classList.toggle('abierto');
     burger.classList.toggle('abierto', abierto);
+    nav.classList.toggle('menu-abierto', abierto);
     burger.setAttribute('aria-expanded', abierto ? 'true' : 'false');
   });
 

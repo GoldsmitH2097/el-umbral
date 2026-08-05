@@ -45,10 +45,10 @@
      quedan en una malla del doble de ancha y el ojo los lee como un remate
      del tejido, no como una cuadrícula de puntos. */
   background-image:
-    radial-gradient(rgba(200,146,42,0.17) 0.55px, transparent 0.65px),
-    linear-gradient(45deg,  transparent 47.6%, rgba(200,146,42,0.06) 47.6% 52.4%, transparent 52.4%),
-    linear-gradient(-45deg, transparent 47.6%, rgba(200,146,42,0.06) 47.6% 52.4%, transparent 52.4%);
-  background-size: 16px 16px;
+    radial-gradient(rgba(200,146,42,0.15) 0.45px, transparent 0.55px),
+    linear-gradient(45deg,  transparent 47.7%, rgba(200,146,42,0.055) 47.7% 52.3%, transparent 52.3%),
+    linear-gradient(-45deg, transparent 47.7%, rgba(200,146,42,0.055) 47.7% 52.3%, transparent 52.3%);
+  background-size: 10px 10px;
 }
 /* La versión con prefijo NO es decorativa: hoy mismo descubrimos que
    Firefox ignoraba una máscara declarada solo con -webkit-. Las dos, y en

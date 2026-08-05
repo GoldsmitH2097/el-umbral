@@ -309,3 +309,34 @@
 @media (max-width: 820px) {
   #tizno-frame { bottom: 6px; }
 }
+
+/* ── Segunda pasada del iPhone (Ruben) ──────────────────────────────────── */
+@media (max-width: 768px) {
+
+  /* EL «FADE OUT» DE LA EMPERATRIZ TENÍA NOMBRE: el párrafo nace con
+     opacidad 0,75 y una transición de 0,4 s, y solo sube a 1 en la columna
+     activa. Al deslizar a otra, la anterior se atenuaba — eso era el
+     desvanecimiento. En escritorio distingue la columna que miras de las
+     tres vecinas; en un teléfono NO PINTA NADA, porque solo se ve una
+     columna cada vez. Aquí todas van a plena opacidad. */
+  .archive-pillar .pillar-content p,
+  .archive-pillar .pillar-content h3 { opacity: 1 !important; }
+
+  /* El velo, un poco más firme: el retrato de la Emperatriz es luminoso
+     hasta arriba y el texto necesita más suelo del que le puse. */
+  .archive-pillar::after {
+    height: 70%;
+    background: linear-gradient(to top, rgba(2,2,2,0.96) 0%, rgba(2,2,2,0.82) 42%, transparent 100%);
+  }
+
+  /* EL FINAL DE LA PÁGINA SEGUÍA CORTADO, y el hueco no era el problema:
+     100vh en iOS mide HASTA DEBAJO de la barra del navegador, así que el
+     último tramo del contenedor vive en una zona que nunca se ve. dvh mide
+     lo que de verdad hay en pantalla. */
+  #main-site { height: 100dvh; padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+
+  /* El idioma solo cuando el menú está abierto: es parte del menú, no de la
+     cabecera (Ruben). Aparece junto a la X, con su aire de separación. */
+  .site-nav > .lang-toggle { display: none; }
+  .site-nav.menu-abierto > .lang-toggle { display: inline-flex; }
+}
