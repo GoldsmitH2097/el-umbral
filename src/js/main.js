@@ -34,8 +34,11 @@ import { ArchiveDOM } from './ui/ArchiveDOM.js';
 import { ArchiveFireflies } from './ui/ArchiveFireflies.js';
 import { TiznoTease } from './ui/TiznoTease.js';
 import { initMobileScene2, initMobileArchive, initMenuMovil } from './mobile.js';
+import { initDiagnostico } from './ui/Diagnostico.js';
 
 const isMobile = () => window.innerWidth <= 768;
+
+initDiagnostico();   // solo hace algo con ?diag=1 en la URL
 
 const audio    = new AudioEngine();
 const tizno    = new TiznoTease();

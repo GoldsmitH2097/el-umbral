@@ -887,3 +887,22 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
   #instruccion.visible, #instruccion-mobile.visible { animation: none; opacity: 0.6; filter: none; }
 }
 }
+
+/* ── Panel de diagnóstico (?diag=1) ──────────────────────────────────────
+   Invisible para cualquier visitante. Existe para poder medir en un teléfono
+   sin cable ni herramientas: se abre la URL, se mira y se manda la captura. */
+#panel-diag {
+  position: fixed; top: 8px; left: 8px; z-index: 9999;
+  background: rgba(4,4,4,0.93); border: 1px solid rgba(200,146,42,0.4);
+  color: #cfc5b4; font-family: ui-monospace, Menlo, monospace; font-size: 11px;
+  padding: 8px 10px; min-width: 178px; line-height: 1.5;
+  backdrop-filter: blur(4px); border-radius: 3px;
+}
+#panel-diag .diag-fila { display: flex; justify-content: space-between; gap: 14px; }
+#panel-diag .diag-cabecera { cursor: pointer; color: #e8c07a; margin-bottom: 4px; letter-spacing: 1px; }
+#panel-diag b { color: #f0e2c2; font-weight: normal; font-variant-numeric: tabular-nums; }
+#panel-diag button {
+  margin-top: 6px; width: 100%; background: transparent; cursor: pointer;
+  border: 1px solid rgba(200,146,42,0.35); color: #a8917a;
+  font-family: inherit; font-size: 10px; padding: 4px;
+}
