@@ -181,6 +181,8 @@ export class ArchiveFireflies {
     this._running   = false;
     this._obrasY    = 0;
     this._contactY  = 0;
+    this._objetivosSucios = true;   // primera vuelta: hay que leerlos una vez
+    window.addEventListener('resize', () => { this._objetivosSucios = true; }, { passive: true });
     this._orbitAngle = 0;
     this._lastFrame = 0;
     this._lastScrollY = 0;
@@ -230,6 +232,7 @@ export class ArchiveFireflies {
     mainSite.addEventListener('click',     reset, { passive: true });
     mainSite.addEventListener('scroll', () => {
       this._lastActivity = Date.now();
+      this._objetivosSucios = true;   // el scroll es lo único que mueve los destinos
       const y = mainSite.scrollTop;
       // Capture instantaneous delta — applied to fireflies as a "wake" force
       this._scrollDY = (y - this._lastScrollY) * 0.5;
@@ -290,10 +293,16 @@ export class ArchiveFireflies {
     this._lastFrame = t;
 
     const idle = Date.now() - this._lastActivity;
-    // Only refresh layout-reading targets when we're about to need them (idle approaching).
-    // Calling getBoundingClientRect every frame forces synchronous layout — verified as
-    // the main UpdateLayoutTree contributor in the 2026-05-14 perf trace.
-    if (idle > INACTIVITY_OBRAS - 1500) this._getTargets();
+    /* LOS DESTINOS SE LEEN CUANDO CAMBIAN, NO CADA FOTOGRAMA.
+       El aviso de arriba era bueno —getBoundingClientRect fuerza un recálculo
+       de layout síncrono— pero la guarda hacía lo contrario de lo que quería:
+       mientras usabas la página no se llamaba nunca, y en cuanto te quedabas
+       quieto pasaba a llamarse en TODOS los fotogramas, para siempre. Treinta
+       recálculos de layout por segundo justo en el estado en el que una
+       pestaña se queda horas abierta. Los destinos son coordenadas relativas
+       al viewport de un contenedor fijo: solo se mueven al hacer scroll o
+       redimensionar, así que se recalculan ahí. */
+    if (this._objetivosSucios) { this._objetivosSucios = false; this._getTargets(); }
 
     const W2 = window.innerWidth / 2;
 
