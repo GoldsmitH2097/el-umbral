@@ -26,6 +26,8 @@ export function initDiagnostico() {
     <div id="diag-cuerpo">
       <div class="diag-fila"><span>fps página</span><b id="diag-fps">—</b></div>
       <div class="diag-fila"><span>fps Tizno</span><b id="diag-fps-tizno">—</b></div>
+      <div class="diag-fila"><span>calidad Tizno</span><b id="diag-nivel">—</b></div>
+      <div class="diag-fila"><span>pantalla</span><b id="diag-pantalla">—</b></div>
       <div class="diag-fila"><span>peor fotograma</span><b id="diag-peor">—</b></div>
       <div class="diag-fila"><span>vídeos con fuente</span><b id="diag-videos">—</b></div>
       <div class="diag-fila"><span>lienzos</span><b id="diag-lienzos">—</b></div>
@@ -82,6 +84,13 @@ export function initDiagnostico() {
       else if (marco) fpsT = 'sin dato';
     } catch (_) { fpsT = 'sin acceso'; }
     $('diag-fps-tizno').textContent = marco ? fpsT : 'preso';
+    /* El nivel de calidad lo decide el propio motor al arrancar (móvil,
+       núcleos, memoria, densidad). Verlo evita discutir a ciegas si el
+       teléfono está o no en modo reducido. */
+    let nivel = '—';
+    try { nivel = marco?.contentDocument?.documentElement?.dataset?.nivel || (marco ? 'sin dato' : 'preso'); } catch (_) { nivel = 'sin acceso'; }
+    $('diag-nivel').textContent = nivel;
+    $('diag-pantalla').textContent = innerWidth + '×' + innerHeight + ' @' + (window.devicePixelRatio || 1) + 'x';
 
     const conFuente = [...document.querySelectorAll('video')].filter(v => v.getAttribute('src')).length;
     $('diag-videos').textContent = conFuente + ' / ' + document.querySelectorAll('video').length;
