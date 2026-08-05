@@ -901,7 +901,6 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
 @media (prefers-reduced-motion: reduce) {
   #instruccion.visible, #instruccion-mobile.visible { animation: none; opacity: 0.6; filter: none; }
 }
-}
 
 /* ── Panel de diagnóstico (?diag=1) ──────────────────────────────────────
    Invisible para cualquier visitante. Existe para poder medir en un teléfono
