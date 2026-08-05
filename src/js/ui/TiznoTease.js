@@ -196,6 +196,13 @@ export class TiznoTease {
       // el marco es transparente a eventos: los clics sobre su zona se reenvían
       window.addEventListener('click', (e) => {
         if (!this._libre || !this._frame) return;
+        /* PERO NO SI HAS PULSADO ALGO. El marco deja pasar los toques a los
+           botones de debajo, y además reenviábamos ESE MISMO toque a Tizno
+           como un piquito: en el móvil, donde su cuerpo tapa media barra,
+           cada intento de pulsar «Hablar con Tizno» le sacaba un «¡ay!» y el
+           gesto se convertía en dos cosas a la vez. Un toque, una intención:
+           si ha caído sobre un control o sobre la barra, no es para él. */
+        if (e.target.closest?.('button, a, input, select, textarea, [role="button"], .site-footer, .site-nav')) return;
         const fr = this._frame.getBoundingClientRect();
         if (e.clientX >= fr.left && e.clientX <= fr.right && e.clientY >= fr.top && e.clientY <= fr.bottom) {
           this._enviar({ tipo: 'clic', x: e.clientX, y: e.clientY });
