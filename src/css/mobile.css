@@ -270,3 +270,42 @@
 @media (max-width: 420px) {
   #skip-btn { top: max(14px, env(safe-area-inset-top, 14px)); font-size: 11px; letter-spacing: 2px; padding: 7px 11px; }
 }
+
+/* ── Correcciones del iPhone de Ruben (5-ago, 22:57) ────────────────────── */
+@media (max-width: 768px) {
+
+  /* LA EMPERATRIZ SE LEÍA LAVADA. No era opacidad —arriba ya se fuerza a 1—
+     sino contraste: su retrato es el más luminoso de los cuatro y el texto
+     caía encima sin nada que lo separase. Un velo que sube desde abajo
+     resuelve las cuatro columnas a la vez, sea cual sea la imagen. */
+  .archive-pillar { position: relative; }
+  .archive-pillar::after {
+    content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 62%;
+    background: linear-gradient(to top, rgba(2,2,2,0.92) 0%, rgba(2,2,2,0.72) 38%, transparent 100%);
+    pointer-events: none; z-index: 1;
+  }
+  .archive-pillar .pillar-content { position: relative; z-index: 2; }
+
+  /* EL LOGO DEL FINAL SALÍA CORTADO: la barra fija se comía el último tramo
+     de página porque aquí el hueco inferior estaba en 20 px, sin contar con
+     ella. Ahora reserva su altura real más el área segura del iPhone. */
+  #main-site { padding-bottom: calc(58px + env(safe-area-inset-bottom, 0px)); }
+
+  /* Del menú (Ruben): la palabra CONTACTO sobra, porque sus tres enlaces
+     están ahí mismo desplegados. */
+  .site-nav .links #nav-contacto { display: none; }
+
+  /* Los legales, centrados. */
+  .site-nav .links .footer-legal { justify-content: center; }
+
+  /* El idioma se muda a la cabecera, junto a la X: mobile.js lo recoloca ahí.
+     Separado del botón para que no se toquen sin querer. */
+  .site-nav > .lang-toggle { margin-left: auto; margin-right: 14px; flex: none; }
+}
+
+/* TIZNO, PEGADO A SU BARRA. El desplazamiento de 88 px se calculó para el
+   footer viejo, el de tres líneas. Con la barra reducida a un solo propósito
+   quedaba flotando en mitad de la página, despegado de donde nace. */
+@media (max-width: 820px) {
+  #tizno-frame { bottom: 6px; }
+}

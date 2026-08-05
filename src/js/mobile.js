@@ -280,8 +280,10 @@ export function initMenuMovil() {
 
   const legales = document.querySelector('.footer-legal');
   const volver  = document.getElementById('replay-intro-btn');
+  const idioma  = document.getElementById('lang-selector');
   const cunaLegales = legales?.parentElement;   // de dónde salieron, para devolverlos
   const cunaVolver  = volver?.parentElement;
+  const cunaIdioma  = idioma?.parentElement;
   const estrecho = window.matchMedia('(max-width: 768px)');
 
   const cerrar = () => {
@@ -296,10 +298,16 @@ export function initMenuMovil() {
     if (estrecho.matches) {
       if (volver && volver.parentElement !== panel) panel.appendChild(volver);
       if (legales && legales.parentElement !== panel) panel.appendChild(legales);
+      /* El idioma NO va dentro del panel sino en la propia cabecera, junto a
+         la X (Ruben): cambiar de idioma no debería obligar a abrir un menú. */
+      if (idioma && idioma.parentElement !== burger.parentElement) {
+        burger.parentElement.insertBefore(idioma, burger);
+      }
     } else {
       cerrar();
       if (volver && cunaVolver && volver.parentElement !== cunaVolver) cunaVolver.prepend(volver);
       if (legales && cunaLegales && legales.parentElement !== cunaLegales) cunaLegales.appendChild(legales);
+      if (idioma && cunaIdioma && idioma.parentElement !== cunaIdioma) cunaIdioma.appendChild(idioma);
     }
   };
 
