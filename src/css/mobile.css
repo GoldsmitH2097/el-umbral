@@ -399,3 +399,20 @@
   .archive-pillar .pillar-content h3 { color: #f0e2c2 !important; text-shadow: 0 1px 6px rgba(0,0,0,0.9); }
   .archive-pillar .pillar-content p  { color: #cfc8bd !important; text-shadow: 0 1px 5px rgba(0,0,0,0.9); }
 }
+
+/* La trama también en el menú, emanando de su línea dorada inferior — la
+   misma regla que en las dos barras: la textura es consecuencia de la
+   línea, no relleno. */
+@media (max-width: 768px) {
+  .site-nav .links.abierto::before {
+    content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+    background-image:
+      radial-gradient(rgba(200,146,42,0.15) 0.45px, transparent 0.55px),
+      linear-gradient(45deg,  transparent 47.7%, rgba(200,146,42,0.055) 47.7% 52.3%, transparent 52.3%),
+      linear-gradient(-45deg, transparent 47.7%, rgba(200,146,42,0.055) 47.7% 52.3%, transparent 52.3%);
+    background-size: 10px 10px;
+    -webkit-mask-image: linear-gradient(to top, #000 0%, rgba(0,0,0,0) 88%);
+            mask-image: linear-gradient(to top, #000 0%, rgba(0,0,0,0) 88%);
+  }
+  .site-nav .links > * { position: relative; z-index: 1; }
+}

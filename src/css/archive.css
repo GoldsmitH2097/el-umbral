@@ -813,3 +813,8 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
    moment the page turns into a shop. */
 .obra-editions--detail { gap: 10px; margin-top: 30px; }
 .obra-editions--detail .obra-edition-invite { margin-bottom: 2px; }
+
+/* La hamburguesa NO EXISTE en escritorio. Solo la estilé dentro del media
+   query de móvil, así que aquí salía con el aspecto por defecto del
+   navegador: una barrita blanca en la esquina. */
+#nav-burger { display: none; }
