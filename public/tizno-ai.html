@@ -1072,8 +1072,20 @@
             // mousemove real devuelve el control al cursor al instante.
             // Sin dedo en pantalla, el teléfono inclinado dirige su mirada.
             if (tiltActivo && !tocando && window.innerWidth > 0) {
-                mouseNormX = tiltX;
-                mouseNormY = tiltY;
+                /* EL SENTIDO DE LA INCLINACIÓN. Hay dos lecturas y ninguna es
+                   obviamente la buena, así que se prueba:
+                     +1 · Tizno mira HACIA donde inclinas. Se lee como que el
+                          teléfono es un mando y él obedece.
+                     -1 · Tizno se queda quieto respecto al mundo, así que
+                          contra la pantalla parece irse al otro lado. Es lo
+                          que hace el agua en un vaso y lo que hace cualquier
+                          cosa colgada: no sigue al recipiente, se queda con la
+                          gravedad. Se lee como que él es real y la ventana es
+                          lo que se mueve — que es la ficción que queremos.
+                   Volver atrás es cambiar este signo y nada más. */
+                const TILT_SENTIDO = -1;
+                mouseNormX = tiltX * TILT_SENTIDO;
+                mouseNormY = tiltY * TILT_SENTIDO;
                 mouseDistance = 430 + Math.hypot(tiltX, tiltY) * 260;   // zona curiosa: se estira y te sigue
                 lastMouseMove = time;                                   // la luciérnaga no interfiere
             }
