@@ -373,9 +373,15 @@
     height: 52%;
     background: linear-gradient(to top, rgba(2,2,2,0.78) 0%, rgba(2,2,2,0.42) 46%, transparent 100%);
   }
+  /* LA PLACA SE DESVANECÍA JUSTO DONDE ESTÁ EL TÍTULO. El degradado moría
+     en transparente por arriba, y el h3 va arriba del todo: la descripción
+     tenía suelo y el nombre del arquetipo no. Se ve clarísimo en la
+     Emperatriz, cuyo retrato es el más luminoso. Ahora la placa cubre el
+     bloque entero y solo se afila en el borde superior, para no cortar. */
   .archive-pillar .pillar-content {
-    background: linear-gradient(to top, rgba(2,2,2,0.72), rgba(2,2,2,0.45) 60%, transparent);
-    padding: 14px 16px 10px; margin: 0 -16px -8px;
+    background: linear-gradient(to top,
+      rgba(2,2,2,0.86) 0%, rgba(2,2,2,0.78) 55%, rgba(2,2,2,0.5) 88%, rgba(2,2,2,0) 100%);
+    padding: 16px 16px 10px; margin: 0 -16px -8px;
   }
   /* Y el texto, legible en las cuatro columnas pase lo que pase detrás. */
   .archive-pillar .pillar-content h3 { color: #f0e2c2 !important; text-shadow: 0 1px 6px rgba(0,0,0,0.9); }

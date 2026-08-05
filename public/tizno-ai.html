@@ -945,8 +945,12 @@
             if (e.gamma == null) return;
             tiltActivo = true;
             // gamma: izquierda/derecha (-90..90) · beta: adelante/atrás
-            tiltX += (Math.max(-45, Math.min(45, e.gamma)) / 45 - tiltX) * 0.12;
-            tiltY += (Math.max(-45, Math.min(45, (e.beta || 0) - 45)) / 45 - tiltY) * 0.12;
+            const _pt = Math.max(1, Math.min(4, Math.round(Math.min((Date.now() - (window.__tiltT || Date.now())) / 1000, 0.1) * 60)));
+            window.__tiltT = Date.now();
+            for (let _p = 0; _p < _pt; _p++) {
+              tiltX += (Math.max(-45, Math.min(45, e.gamma)) / 45 - tiltX) * 0.12;
+              tiltY += (Math.max(-45, Math.min(45, (e.beta || 0) - 45)) / 45 - tiltY) * 0.12;
+            }
         });
 
         let ultimaSacudida = 0;
@@ -981,6 +985,22 @@
         let erDrawX = 0, erDrawY = 0;   // posición del pendiente, escrita a 30 fps
         function updateRig() {
             const time = Date.now();
+
+            /* ── PASOS DE TIEMPO FIJOS ────────────────────────────────────
+               Todos los muelles de este rig —el del pop, el de las orejas,
+               el de la inclinación, el de la luciérnaga— se integraban UNA
+               VEZ POR FOTOGRAMA. A 60 fps el resultado es el afinado; a 20
+               en un móvil, cada muelle recibe un tercio de los empujones y
+               todo ocurre a un tercio de velocidad. Eso es la cámara lenta
+               que Ruben describió, y no se arregla haciendo el motor más
+               rápido: hay que desacoplar la física del dibujado.
+               Aquí se calcula cuántos pasos de 60 Hz han cabido de verdad en
+               este intervalo, y cada muelle se integra ese número de veces.
+               Se limita a 4 para que volver de una pestaña dormida no
+               desate una avalancha de pasos atrasados. */
+            const dtRig = Math.min((time - (window.__rigT || time)) / 1000, 0.1);
+            window.__rigT = time;
+            const pasos = Math.max(1, Math.min(4, Math.round(dtRig * 60)));
 
             // ── física del pendiente (péndulo con pivote acelerado) ──
             {
@@ -1055,8 +1075,10 @@
             /* ── muelle del pop ──
                Más blando (0.016) y menos amortiguado (0.105): sube despacio,
                se pasa de largo un buen trecho y rebota varias veces. */
-            popVel += (popTarget - popPos) * TUNE.popRigidez - popVel * TUNE.popAmortigua;
-            popPos += popVel;
+            for (let _p = 0; _p < pasos; _p++) {
+                popVel += (popTarget - popPos) * TUNE.popRigidez - popVel * TUNE.popAmortigua;
+                popPos += popVel;
+            }
             /* El sobreimpulso del muelle (popPos > 1) levantaba el cuerpo entero
                por encima del reposo y se veía la base despegarse del suelo de
                niebla. La energía del rebote no se tira: se convierte en
@@ -1075,7 +1097,7 @@
             }
             popPrevVel = popVel;
             if (popTarget === 0) { popAterrizo = false; earFlop = 0; earFlopVel = 0; }
-            earFlopVel += (0 - earFlop) * 0.055 - earFlopVel * 0.135;
+            for (let _p = 0; _p < pasos; _p++) earFlopVel += (0 - earFlop) * 0.055 - earFlopVel * 0.135;
             earFlop += earFlopVel;
             /* La salpicadura va cuando de verdad ASOMA (0.86), no a media subida:
                antes reventaba 300 px bajo la niebla y no se veía nada. Fuerza el
@@ -1524,8 +1546,6 @@
                cambia con el rendimiento es cuantos pasos intermedios se ven.
                El intervalo se acota a 100 ms para que volver de una pestana
                dormida no dispare al personaje de golpe. */
-            const dtRig = Math.min((time - (window.__rigT || time)) / 1000, 0.1);
-            window.__rigT = time;
             const easeBase = 0.12;
             const ease = dtRig > 0 ? 1 - Math.pow(1 - easeBase, dtRig * 60) : easeBase;
             /* CINTURÓN: ninguna combinación de canales (ratón+gusto+candado+
