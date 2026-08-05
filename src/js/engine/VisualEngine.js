@@ -157,7 +157,16 @@ export class VisualEngine {
     // thread can go idle. Lighthouse-based tools (which never move the cursor)
     // can finish their measurement instead of seeing the RAF loop forever.
     this._lastInteraction = Date.now();
-    const wake = () => { this._lastInteraction = Date.now(); this._resumeIfSuspended(); };
+    /* EN EL ARCHIVO ESTE MOTOR ESTÁ MUERTO. Antes, cada movimiento del ratón
+       en la escena 4 lo despertaba: reanudaba el bucle, hacía un clearRect de
+       un lienzo a pantalla completa y se volvía a dormir. Un fotograma
+       compositado entero por cada movimiento del cursor, para siempre, sin
+       pintar nada visible. */
+    const wake = () => {
+      if (state.activeScene >= 4) return;
+      this._lastInteraction = Date.now();
+      this._resumeIfSuspended();
+    };
     ['mousemove','mousedown','touchstart','touchmove','keydown','scroll'].forEach(ev => {
       document.addEventListener(ev, wake, { passive: true });
     });
@@ -329,8 +338,10 @@ export class VisualEngine {
 
   /** Re-start the RAF loop if it was suspended by the idle-pause or scene>=4 check. */
   _resumeIfSuspended() {
+    if (state.activeScene >= 4) return;   // en el archivo no se resucita
     if (this._suspended) {
       this._suspended = false;
+      this._canvas.style.display = 'block';   // volver de la escena 4 lo reenciende
       this._lastFrameTime = 0;
       requestAnimationFrame((ts) => this._tick(ts));
     }
@@ -351,6 +362,10 @@ export class VisualEngine {
       if (!this._suspended) {
         const ctx = this._ctx, W = this._canvas.width, H = this._canvas.height;
         ctx.clearRect(0, 0, W, H);
+        /* Y SE APAGA LA CAPA. Un enlace directo ya no lo crea, pero quien
+           llega por el intro se dejaba un lienzo de pantalla completa
+           compositándose para siempre encima del archivo, vacío. */
+        this._canvas.style.display = 'none';
         this._suspended = true;
       }
       return;

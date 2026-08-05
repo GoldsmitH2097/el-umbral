@@ -906,12 +906,19 @@
             setTimeout(() => { popTarget = 0; }, 200);
         }
         /* Se esconde y vuelve a asomar: el gesto de "me largo… bueno, vale". */
-        let escondiendose = false;
+        let escondiendose = false, esconditeT = null;
         function popEscondite(msFuera) {
             if (escondiendose) return;
             escondiendose = true;
             popOut();
-            setTimeout(() => { popIn(); escondiendose = false; }, msFuera);
+            esconditeT = setTimeout(() => { popIn(); escondiendose = false; esconditeT = null; }, msFuera);
+        }
+        /* El candado manda sobre el berrinche: si le encierran mientras está
+           escondido, hay que ANULAR el regreso pendiente. Si no, se hundía y
+           reaparecía solo unos segundos después, con la web creyéndolo preso. */
+        function cancelarEscondite() {
+            if (!esconditeT) return;
+            clearTimeout(esconditeT); esconditeT = null; escondiendose = false;
         }
         window.__tiznoEscondite = popEscondite;
         window.__tiznoPop = (fuera) => (fuera === false ? popOut() : popIn());
@@ -2129,6 +2136,7 @@
                 } else if (m.tipo === 'encerrar' || m.tipo === 'ocultar') {
                     /* 'ocultar' = backstage (vista de lectura): mismo hundimiento,
                        sin drama. La súplica vive SOLO en el hover del candado. */
+                    cancelarEscondite();                                // sin regresos pendientes
                     if (window.__tiznoColgar) window.__tiznoColgar();   // preso = mudo
                     popCerrandoOjos = true;
                     popOut();
