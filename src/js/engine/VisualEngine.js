@@ -57,9 +57,32 @@ class DustParticle {
       this.blur=this.z>0.8?this.size*1.5:0;
     }
     this.vy=this.baseVy; this.vx=(Math.random()-0.5)*0.1;
+    /* CADA MOTA, SU PROPIO RITMO. Antes todas compartian una sola oscilacion
+       —mismo seno, misma frecuencia, solo cambiaba la fase—, y por eso el
+       conjunto leia como un campo de estrellas a la deriva en vez de polvo.
+       Dos frecuencias distintas por mota, una rapida y otra lenta, bastan
+       para que ninguna repita el camino de otra: de ahi salen los rizos. */
+    this.f1 = 0.55 + Math.random() * 1.15;      // el vaiven corto
+    this.f2 = 0.17 + Math.random() * 0.42;      // la deriva ancha
+    this.amp = 0.13 + Math.random() * 0.30;
+    this.ampY = 0.03 + Math.random() * 0.13;    // el polvo tambien sube y baja
+    /* Y NO TODAS CAEN. En un haz de luz real hay motas que se hunden, otras
+       que flotan casi quietas y unas pocas que ascienden. Una de cada cinco
+       sube: es lo que convierte una lluvia en una atmosfera. */
+    if (Math.random() < 0.2) this.baseVy *= -(0.25 + Math.random() * 0.5);
+    else if (Math.random() < 0.3) this.baseVy *= 0.25 + Math.random() * 0.4;
   }
   update(cx,cy,vx,vy,isIgnited,fc,cW,cH) {
-    this.vy=this.baseVy; let cvx=this.vx+Math.sin(fc*0.01+this.seed)*0.2;
+    const t = fc * 0.01;
+    /* Dos senos superpuestos de periodo distinto no vuelven a coincidir en
+       mucho tiempo, asi que el recorrido nunca se repite del todo: eso es lo
+       que el ojo lee como rizo. El vertical va desfasado del horizontal (uno
+       con seno y otro con coseno) para que el giro sea eliptico y no un
+       zigzag plano. */
+    let cvx = this.vx
+            + Math.sin(t * this.f1 + this.seed) * this.amp
+            + Math.sin(t * this.f2 + this.seed * 1.7) * this.amp * 0.6;
+    this.vy = this.baseVy + Math.cos(t * this.f2 + this.seed * 0.6) * this.ampY;
     const dx=this.x-cx,dy=this.y-cy,dist=Math.sqrt(dx*dx+dy*dy);
     if(dist<150&&!state.isAwakening&&state.activeScene<4){
       const pf=this.isMacro?2.0:0.2+this.z*0.8, force=((150-dist)/150)*pf;
@@ -162,8 +185,10 @@ export class VisualEngine {
        un lienzo a pantalla completa y se volvía a dormir. Un fotograma
        compositado entero por cada movimiento del cursor, para siempre, sin
        pintar nada visible. */
+    this._huboGesto = false;
     const wake = () => {
       if (state.activeScene >= 4) return;
+      this._huboGesto = true;
       this._lastInteraction = Date.now();
       this._resumeIfSuspended();
     };
@@ -377,7 +402,13 @@ export class VisualEngine {
     // because the canvas is doing meaningful work then.
     const idleMs = Date.now() - this._lastInteraction;
     const isActiveState = state.isPressed || state.isAwakening || state.isIgnited || state.isSwapping;
-    if (idleMs > 3000 && !isActiveState) {
+    /* La pausa por inactividad existe para que Lighthouse y compania puedan
+       medir: un bot nunca mueve el raton, asi que a los 3 s se calla todo.
+       Pero a una PERSONA le congelaba el polvo en el aire por quedarse
+       quieta mirando, que es justo lo que quieres que haga en la tumba.
+       Ahora basta un gesto —uno solo, en toda la visita— para que el polvo
+       no vuelva a detenerse. Los bots siguen teniendo su silencio. */
+    if (idleMs > 3000 && !isActiveState && !this._huboGesto) {
       this._suspended = true;
       return;
     }
