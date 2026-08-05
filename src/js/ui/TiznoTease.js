@@ -109,7 +109,25 @@ export class TiznoTease {
 
     // mensajes del marco: rueda (scroll), estado de la llamada y textos
     this._hablarBtn = document.getElementById('hablar-tizno-btn');
-    this._hablarBtn?.addEventListener('click', () => this._enviar({ tipo: 'hablar' }));
+    /* EL MICRÓFONO SE PIDE AQUÍ, NO ALLÍ. iOS solo concede micrófono a la
+       página que ha recibido el toque, y el dedo toca ESTA barra, no el marco
+       de Tizno. El permiso se hereda entre marcos; la «autorización de
+       usuario» no — de ahí el InvalidStateError que veíamos en el iPhone.
+       Así que lo abrimos en la página, con el sello recién puesto, y se lo
+       entregamos ya abierto. Al ser del mismo origen se pasa el objeto tal
+       cual, sin serializar nada. Si algo falla no se aborta: el marco lo
+       intentará por su cuenta y dirá lo que pase. */
+    this._hablarBtn?.addEventListener('click', async () => {
+      if (!this._llamando) {
+        try {
+          const micro = await navigator.mediaDevices.getUserMedia({ audio: true });
+          const w = this._frame?.contentWindow;
+          if (w && w.__tiznoConStream) w.__tiznoConStream(micro);
+          else micro.getTracks().forEach(t => t.stop());
+        } catch (_) { /* el marco lo intentará y avisará por el susurro */ }
+      }
+      this._enviar({ tipo: 'hablar' });
+    });
     window.addEventListener('message', (ev) => {
       if (ev.origin !== location.origin || !ev.data) return;
       const m = ev.data;

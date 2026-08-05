@@ -2513,6 +2513,17 @@
         window.__tiznoVerDossier = async () => dossierToText(await buildDossier());
 
         let despertando = false;   // pestillo: entre el clic y la sesión viva pasan segundos
+        /* ── EL MICRÓFONO PRESTADO ────────────────────────────────────────
+           iOS solo concede micrófono a la página que ha recibido el toque, y
+           el dedo de Ruben toca la barra —que es la página madre—, no este
+           marco. El permiso se hereda; la «autorización de usuario» no cruza
+           la frontera, y por eso aquí salía InvalidStateError.
+           La madre lo pide donde sí tiene el sello y nos entrega el micro ya
+           abierto. Al ser del mismo origen no hay que serializar nada: es el
+           mismo objeto pasado de mano en mano. */
+        let microPrestado = null;
+        window.__tiznoConStream = (s) => { microPrestado = s; };
+
         async function wake() {
             /* DOS TIZNO A LA VEZ (Ruben, 4-ago): un segundo clic mientras la
                sesión aún se establecía (SDK + permiso de micro + WebSocket)
@@ -2527,8 +2538,10 @@
             }
             btn.disabled = true;
             setStatus('pidiendo micrófono…');
+            const prestadoVivo = microPrestado && microPrestado.getAudioTracks().some(t => t.readyState === 'live');
             try {
-                await navigator.mediaDevices.getUserMedia({ audio: true });
+                // si la madre ya nos abrió el micro, no se vuelve a pedir
+                if (!prestadoVivo) await navigator.mediaDevices.getUserMedia({ audio: true });
             } catch (err) {
                 btn.disabled = false;
                 if (err.name === 'NotAllowedError') {
