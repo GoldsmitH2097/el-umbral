@@ -258,3 +258,71 @@ function initCountdown(el) {
   update();
   _mobileCountdownTimers.set(el, setInterval(update, 1000));
 }
+
+// ── MENÚ DE MÓVIL ───────────────────────────────────────────────────────────
+/**
+ * La barra de abajo tenía que sostener en un teléfono lo mismo que en un
+ * monitor: volver al umbral, cuatro enlaces legales y Tizno. No cabía, y se
+ * desparramaba en tres líneas encima del contenido.
+ *
+ * Aquí la cabecera se queda con una hamburguesa que abre el MISMO panel de
+ * enlaces que en escritorio va en línea; dentro se recolocan, MOVIENDO los
+ * nodos (no copiándolos), el «volver al umbral» y los legales. Al mover en
+ * vez de duplicar, sus escuchadores, sus ids y sus traducciones siguen
+ * siendo los mismos: no hay dos verdades que mantener sincronizadas.
+ *
+ * Y la barra inferior queda con un único propósito: Tizno.
+ */
+export function initMenuMovil() {
+  const burger = document.getElementById('nav-burger');
+  const panel  = document.getElementById('nav-panel');
+  if (!burger || !panel) return;
+
+  const legales = document.querySelector('.footer-legal');
+  const volver  = document.getElementById('replay-intro-btn');
+  const cunaLegales = legales?.parentElement;   // de dónde salieron, para devolverlos
+  const cunaVolver  = volver?.parentElement;
+  const estrecho = window.matchMedia('(max-width: 768px)');
+
+  const cerrar = () => {
+    panel.classList.remove('abierto');
+    burger.classList.remove('abierto');
+    burger.setAttribute('aria-expanded', 'false');
+  };
+
+  /* Los nodos viven en la cabecera o en el pie según el ancho. Se sincroniza
+     en los dos sentidos para que girar el teléfono no deje el menú a medias. */
+  const recolocar = () => {
+    if (estrecho.matches) {
+      if (volver && volver.parentElement !== panel) panel.appendChild(volver);
+      if (legales && legales.parentElement !== panel) panel.appendChild(legales);
+    } else {
+      cerrar();
+      if (volver && cunaVolver && volver.parentElement !== cunaVolver) cunaVolver.prepend(volver);
+      if (legales && cunaLegales && legales.parentElement !== cunaLegales) cunaLegales.appendChild(legales);
+    }
+  };
+
+  burger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const abierto = panel.classList.toggle('abierto');
+    burger.classList.toggle('abierto', abierto);
+    burger.setAttribute('aria-expanded', abierto ? 'true' : 'false');
+  });
+
+  // un toque fuera, la tecla de escape o elegir algo: se cierra
+  document.addEventListener('click', (e) => {
+    if (!panel.classList.contains('abierto')) return;
+    if (e.target.closest('#nav-panel, #nav-burger')) return;
+    cerrar();
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cerrar(); });
+  panel.addEventListener('click', (e) => {
+    // el desplegable de contacto vive dentro del panel: no cierra el menú
+    if (e.target.closest('#contact-popover, #nav-contacto, #lang-selector')) return;
+    if (e.target.closest('a, [role="button"], button')) cerrar();
+  });
+
+  estrecho.addEventListener('change', recolocar);
+  recolocar();
+}

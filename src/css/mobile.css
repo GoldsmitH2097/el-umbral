@@ -185,3 +185,88 @@
   #main-site { padding-bottom: max(20px, env(safe-area-inset-bottom, 20px)); }
   .site-footer { padding-bottom: max(24px, env(safe-area-inset-bottom, 24px)); }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   MENÚ DE MÓVIL Y BARRA DE UN SOLO PROPÓSITO (Ruben, 5-ago-2026)
+   
+   El footer no tenía NI UNA regla de móvil: la barra se diseñó como una fila
+   de escritorio —volver al umbral, cuatro legales centrados en absoluto y
+   Tizno— y en un teléfono se desparramaba en tres líneas encima del
+   contenido. Aquí la cabecera se queda con una hamburguesa que abre el mismo
+   panel de enlaces de escritorio, dentro del cual mobile.js recoloca también
+   los legales y el volver al umbral. Abajo queda solo Tizno, que es lo que
+   hace la barra entendible: un único propósito.
+   ═════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+
+  /* ── La hamburguesa ─────────────────────────────────────────────────── */
+  #nav-burger {
+    display: flex; flex-direction: column; justify-content: center; gap: 4px;
+    width: 40px; height: 34px; padding: 0 8px; flex: none;
+    background: transparent; border: none; cursor: pointer;
+  }
+  #nav-burger span {
+    display: block; height: 1px; width: 100%;
+    background: rgba(200,146,42,0.75);
+    transition: transform 0.28s ease, opacity 0.2s ease;
+  }
+  /* abierta: las dos exteriores se cruzan y la del medio se va */
+  #nav-burger.abierto span:nth-child(1) { transform: translateY(5px) rotate(45deg); }
+  #nav-burger.abierto span:nth-child(2) { opacity: 0; }
+  #nav-burger.abierto span:nth-child(3) { transform: translateY(-5px) rotate(-45deg); }
+  #nav-burger:focus-visible { outline: 1px solid rgba(200,146,42,0.6); outline-offset: 2px; }
+
+  .site-nav { padding: 12px 5vw; }
+
+  /* ── El panel: el mismo .links, desplegado bajo la cabecera ─────────── */
+  .site-nav .links {
+    position: absolute; top: 100%; left: 0; right: 0;
+    flex-direction: column; align-items: stretch; gap: 0;
+    background: rgba(6,5,4,0.985);
+    border-bottom: 1px solid rgba(200,146,42,0.45);
+    padding: 0 6vw;
+    max-height: 0; overflow: hidden; opacity: 0;
+    transition: max-height 0.35s ease, opacity 0.25s ease, padding 0.35s ease;
+    z-index: 40;
+  }
+  .site-nav .links.abierto {
+    max-height: 78vh; overflow-y: auto; opacity: 1; padding: 10px 6vw 22px;
+  }
+  /* cada entrada, una línea con su separador */
+  .site-nav .links span[role="button"] {
+    margin-left: 0; padding: 15px 0; font-size: 13px; letter-spacing: 4px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  /* el volver al umbral, recolocado aquí por mobile.js, se lee como uno más */
+  .site-nav .links #replay-intro-btn {
+    text-align: left; padding: 15px 0; font-size: 13px; letter-spacing: 4px;
+    border-bottom: 1px solid rgba(255,255,255,0.05); width: 100%;
+  }
+  /* los legales, en fila al pie del panel */
+  .site-nav .links .footer-legal {
+    position: static; transform: none;
+    justify-content: flex-start; gap: 18px; flex-wrap: wrap;
+    padding: 18px 0 4px; margin: 0;
+  }
+  .site-nav .links .footer-legal a { font-size: 10px; letter-spacing: 2px; }
+  /* el idioma cierra el panel, alineado a la izquierda como el resto */
+  .site-nav .links .lang-toggle { align-self: flex-start; margin: 16px 0 0; }
+  /* el desplegable de contacto, dentro del panel, sin flotar */
+  .site-nav .links #contact-popover {
+    position: static; transform: none; opacity: 1; visibility: visible;
+    border: none; background: transparent; padding: 4px 0 12px;
+    box-shadow: none; min-width: 0;
+  }
+
+  /* ── La barra de abajo: solo Tizno ──────────────────────────────────── */
+  .site-footer .footer-bar { justify-content: center; padding: 9px 5vw; }
+  /* fb-left se queda vacío al mudarse sus dos inquilinos al panel */
+  .site-footer .fb-left { display: none; }
+  .site-footer .fb-right { gap: 10px; }
+}
+
+/* Pantallas muy estrechas: la etiqueta del intro no cabía entera y quedaba
+   pegada a la barra de estado. Se acorta el espaciado y se baja del borde. */
+@media (max-width: 420px) {
+  #skip-btn { top: max(14px, env(safe-area-inset-top, 14px)); font-size: 11px; letter-spacing: 2px; padding: 7px 11px; }
+}

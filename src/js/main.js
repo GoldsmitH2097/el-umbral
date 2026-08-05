@@ -33,7 +33,7 @@ import { VisualEngine } from './engine/VisualEngine.js';
 import { ArchiveDOM } from './ui/ArchiveDOM.js';
 import { ArchiveFireflies } from './ui/ArchiveFireflies.js';
 import { TiznoTease } from './ui/TiznoTease.js';
-import { initMobileScene2, initMobileArchive } from './mobile.js';
+import { initMobileScene2, initMobileArchive, initMenuMovil } from './mobile.js';
 
 const isMobile = () => window.innerWidth <= 768;
 
@@ -335,7 +335,8 @@ function skipIntroAndEnterArchive() {
   audio.setFireVolume(0, false); // silence intro sounds on skip
   audio.setWindVolume(0.008, 0.5); // fast settle to archive ambient
   audio.startArchiveAmbient();
-  initMobileArchive(); // was missing — mobile pillar taps never wired for returning visitors
+  initMobileArchive();
+  initMenuMovil(); // was missing — mobile pillar taps never wired for returning visitors
   fireflies.init();
   tizno.init();
   setTimeout(() => document.dispatchEvent(new Event('archiveReady')), 400);
@@ -415,6 +416,7 @@ function enterMainSite() {
   transitionTo(4);
   desmontarIntro();
   initMobileArchive();
+  initMenuMovil();
   fireflies.init();
   tizno.init();
   // Wire carousel scroll impulse after archive grid is built

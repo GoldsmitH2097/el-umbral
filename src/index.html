@@ -271,7 +271,7 @@
   <div id="grid-view">
     <nav class="site-nav">
       <div class="logo"><img src="/assets/soulware-logo.webp" alt="Soulware" class="site-logo" width="120" height="120" /></div>
-      <div class="links">
+      <div class="links" id="nav-panel">
         <span role="button" tabindex="0" data-action="scroll-obras" data-i18n="nav.las-obras">LAS OBRAS</span>
         <span role="button" tabindex="0" id="nav-contacto" aria-expanded="false" aria-controls="contact-popover" data-action="scroll-contact" data-i18n="nav.contacto">CONTACTO</span>
         <!-- PANELITO DE CONTACTO (Ruben, 4-ago): tres enlaces y nada más.
@@ -295,6 +295,14 @@
           <button type="button" data-set-lang="en" data-i18n="lang.en">EN</button>
         </nav>
       </div>
+      <!-- HAMBURGUESA (Ruben, 5-ago): solo en movil. No duplica nada —
+           abre el MISMO #nav-panel que en escritorio va en linea, y ahi
+           dentro se recolocan tambien los legales y el volver al umbral,
+           para que la barra de abajo quede solo para Tizno. -->
+      <button id="nav-burger" type="button" aria-expanded="false" aria-controls="nav-panel"
+              data-i18n-attr-aria-label="nav.menu-aria" aria-label="Abrir menú">
+        <span></span><span></span><span></span>
+      </button>
     </nav>
     <header class="site-hero">
       <h2 tabindex="-1" data-i18n="site-hero.title">Las Crónicas</h2>
