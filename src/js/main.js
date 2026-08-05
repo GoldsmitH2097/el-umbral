@@ -305,13 +305,7 @@ function skipIntroAndEnterArchive() {
   // 2. Hide gallery video + Scene 2/3 overlays so the archive isn't drawn
   //    underneath them. Without this, #gallery-container keeps painting at
   //    z-index 0 and #char-video keeps decoding frames.
-  const gallery = document.getElementById('gallery-container');
-  /* opacity:0 esconde pero NO descompone: la galería seguía siendo una capa
-     de pantalla completa en la GPU durante toda la visita al archivo. Se
-     apaga tras el fundido para no cortarlo a quien rompe el trance. */
-  if (gallery) { gallery.style.opacity = '0'; setTimeout(() => { gallery.style.display = 'none'; }, 800); }
-  const charVideo = document.getElementById('char-video');
-  if (charVideo) { try { charVideo.pause(); } catch(_) {} }
+  desmontarIntro();   // vídeos sueltos, galería apagada, sin animaciones residuales
   const s2 = document.getElementById('scene-2');
   if (s2) s2.style.display = 'none';
   const s3 = document.getElementById('scene-3');
@@ -419,11 +413,30 @@ function enterMainSite() {
   audio.setWindVolume(0.008, 2); // settle at archive ambient
   audio.startArchiveAmbient();
   transitionTo(4);
+  desmontarIntro();
   initMobileArchive();
   fireflies.init();
   tizno.init();
   // Wire carousel scroll impulse after archive grid is built
   setTimeout(() => document.dispatchEvent(new Event('archiveReady')), 400);
+}
+
+/* DESMONTAJE DEL INTRO — uno solo para las dos puertas de entrada al archivo.
+   El atajo lo hacía a medias y el recorrido normal no lo hacía en absoluto:
+   quien veía el intro entero se llevaba al archivo los DOS vídeos del intro
+   con su descodificador retenido, la galería compositándose invisible y una
+   animación infinita del título girando bajo la alfombra. */
+function desmontarIntro() {
+  ['char-video', 'char-video-preload'].forEach(id => {
+    const v = document.getElementById(id);
+    if (!v) return;
+    try { v.pause(); } catch (_) {}
+    if (v.getAttribute('src')) { v.removeAttribute('src'); try { v.load(); } catch (_) {} }
+    v.style.willChange = 'auto';
+  });
+  const gallery = document.getElementById('gallery-container');
+  if (gallery) { gallery.style.opacity = '0'; setTimeout(() => { gallery.style.display = 'none'; }, 800); }
+  document.getElementById('char-title')?.classList.remove('loading-state');
 }
 
 function handleDown(e) {

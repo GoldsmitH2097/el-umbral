@@ -445,7 +445,11 @@
 <!-- iOS mute-switch bypass: playing a real <audio> element forces Safari to treat
      Web Audio as media playback (not ambient), bypassing the hardware ringer switch.
      The src is a minimal silent WAV (44 bytes). Must exist in DOM before first gesture. -->
-<audio id="ios-audio-unlock" src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=" preload="auto" aria-hidden="true" style="display:none"></audio>
+<!-- Apaño del interruptor de silencio de iOS. NACE SIN FUENTE: llevaba un WAV
+     cuyo chunk data declaraba 0 bytes y se reproducia en bucle, y Chrome se pasaba
+     la vida reiniciando un medio de duracion cero (~150% de CPU). AudioEngine le
+     genera un WAV mudo de duracion real, y solo en iOS. -->
+<audio id="ios-audio-unlock" preload="none" aria-hidden="true" style="display:none"></audio>
 <script type="module" src="/js/main.js"></script>
 </body>
 </html>
