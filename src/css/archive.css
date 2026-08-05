@@ -30,14 +30,22 @@
 .site-footer::before {
   content: ''; position: absolute; inset: 0;
   z-index: 0; pointer-events: none;
+  /* EL NUDO CAE EN EL CRUCE, y eso obliga a construirlo todo desde UNA
+     baldosa. Antes las diagonales eran gradientes calculados sobre la barra
+     entera —su fase dependía del alto del elemento— y los puntos iban en su
+     propia rejilla de 10 px, que nunca puede coincidir: la distancia entre
+     cruces de dos diagonales separadas 10 px es 10·√2, irracional respecto
+     a 10. Por eso el nudo caía donde caía.
+     Ahora una baldosa de 14 px lleva su propia X dibujada, así que al
+     repetirla los cruces quedan exactamente en dos sitios: las esquinas de
+     la baldosa y su centro. Los puntos son dos capas, una en cada uno. */
   background-image:
     radial-gradient(rgba(200,146,42,0.24) 0.7px, transparent 0.8px),
-    repeating-linear-gradient(45deg,
-      rgba(200,146,42,0.072) 0 1px, transparent 1px 10px),
-    repeating-linear-gradient(-45deg,
-      rgba(200,146,42,0.072) 0 1px, transparent 1px 10px);
-  background-size: 10px 10px, auto, auto;
-  background-position: 5px 5px, 0 0, 0 0;
+    radial-gradient(rgba(200,146,42,0.24) 0.7px, transparent 0.8px),
+    linear-gradient(45deg,  transparent 47%, rgba(200,146,42,0.072) 47% 53%, transparent 53%),
+    linear-gradient(-45deg, transparent 47%, rgba(200,146,42,0.072) 47% 53%, transparent 53%);
+  background-size: 14px 14px;
+  background-position: 0 0, 7px 7px, 0 0, 0 0;
 }
 /* La versión con prefijo NO es decorativa: hoy mismo descubrimos que
    Firefox ignoraba una máscara declarada solo con -webkit-. Las dos, y en
