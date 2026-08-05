@@ -298,17 +298,32 @@ export class ArchiveFireflies {
           }
           tx = this._vagarX; ty = this._vagarY; att = 0.0009;
         }
-      } else if (idle > INACTIVITY_TIZNO && this._tizno && i === 0 && !this._tizno.estaLibre?.()) {
-        /* Solo la COMPAÑERA (la primera) ronda el candado de Tizno como
-           invitación a pulsarlo. Seis luciérnagas acosando un botón sería
-           ruido; una que insiste es una señal (Ruben, 4-ago). */
+      } else if (this._tizno && !this._tizno.estaLibre?.() && idle > INACTIVITY_TIZNO + i * 900) {
+        /* EL ENJAMBRE LLAMA AL CANDADO. Antes rondaba solo la primera, por no
+           tapar el botón con un puñado de puntos (Ruben, 4-ago); pero una sola
+           luz no se lee como intención, se lee como que algo falla (Ruben,
+           6-ago). Van todas — y la diferencia entre invitación y acoso está en
+           cómo llegan, no en cuántas son:
+
+             · ENTRAN DE UNA EN UNA. El sumando i*900 al umbral de inactividad
+               hace que se sumen cada nueve décimas. Aparece una, insiste, se
+               le une otra... Es un presagio que crece, no un enjambre que
+               salta de golpe.
+             · CADA UNA EN SU ÓRBITA. Radios de 24 a 130 y fases repartidas
+               por la circunferencia: nadie se solapa y el botón nunca queda
+               cubierto.
+             · LAS DE FUERA GIRAN MÁS DESPACIO y tiran más flojo, así que la
+               formación se retuerce en espiral en vez de girar como un plato.
+               Eso es lo que hace que parezca que algo las succiona hacia el
+               candado, que es justo lo que queremos que el visitante sienta. */
         this._orbitAngle += 0.008;
         const tPos = this._tizno.getPosition();
         if (tPos) {
-          const radius = 26;
-          tx = tPos.x + Math.cos(this._orbitAngle) * radius;
-          ty = tPos.y + Math.sin(this._orbitAngle) * radius * 0.5;
-          att = 0.003;
+          const radio = 24 + i * 21;
+          const fase = this._orbitAngle * (1 - i * 0.09) + i * 1.05;
+          tx = tPos.x + Math.cos(fase) * radio;
+          ty = tPos.y + Math.sin(fase) * radio * 0.5;
+          att = 0.003 / (1 + i * 0.45);
         }
       } else if (idle > INACTIVITY_CONTACT) {
         tx = W2 + (i % 2 === 0 ? -60 : 60);
