@@ -201,6 +201,16 @@ export class TiznoTease {
     this._libre = false;
     this._sincronizarMarco();
     this._pintarCandado();
+    /* Y EL MARCO SE APAGA DETRÁS DE ÉL. El iframe lleva su propia luz de
+       ambiente horneada (un óvalo cálido sobre el negro), así que al hundirse
+       Tizno quedaba flotando su halo: una mancha rectangular tenue donde
+       antes estaba. Se espera a que termine de hundirse y entonces se
+       desvanece el marco entero. El testigo evita que, si le liberan durante
+       esa espera, el apagado le caiga encima. */
+    const testigo = this._ocultarToken = (this._ocultarToken || 0) + 1;
+    setTimeout(() => {
+      if (this._ocultarToken === testigo && !this._libre) this._frame?.classList.remove('visible');
+    }, 1200);
   }
 
   /* EL PESTILLO CONTRA EL DESFASE: crear el iframe tarda, y cualquier
@@ -214,6 +224,7 @@ export class TiznoTease {
   _sincronizarMarco() {
     if (!this._frame || !this._frameListo) return;
     if (!this._libre) { this._enviar({ tipo: 'encerrar' }); return; }
+    this._ocultarToken = (this._ocultarToken || 0) + 1;   // anula un apagado pendiente
     this._enviar({ tipo: 'liberar' });
     if (this._frame.classList.contains('visible')) return;
     // el marco nace invisible: sin esto, el primer pintado del iframe
