@@ -429,9 +429,28 @@
   box-shadow: 0 0 6px 2px rgba(200,146,42,0.7), 0 0 14px 4px rgba(200,146,42,0.3);
   opacity: 0; will-change: transform, opacity;
 }
-.archive-particles {
-  position: absolute; top: 0; left: 0; pointer-events: none; opacity: 0.5;
+/* Motas ambientales: quince puntitos dorados que suben despacio y parpadean.
+   Antes eran un lienzo a pantalla completa borrado y redibujado 30 veces por
+   segundo desde JavaScript; ahora son animaciones de transform y opacidad,
+   que el navegador lleva en el hilo del compositor sin tocar el principal
+   (y pausa solo al ocultar la pestaña). Los rangos los fija el JS por mota. */
+.archive-particles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.archive-particles i {
+  position: absolute; top: 105%; display: block; border-radius: 50%;
+  background: #c8922a; opacity: 0;
+  animation-name: motaSube, motaBrilla;
+  animation-timing-function: linear, ease-in-out;
+  animation-iteration-count: infinite, infinite;
 }
+@keyframes motaSube {
+  from { transform: translate(0, 0); }
+  to   { transform: translate(var(--mota-dx, 0px), -115vh); }
+}
+@keyframes motaBrilla {
+  0%, 100% { opacity: var(--mota-min, 0.02); }
+  50%      { opacity: var(--mota-max, 0.06); }
+}
+@media (prefers-reduced-motion: reduce) { .archive-particles { display: none; } }
 
 /* ── Scroll-reveal (A) ────────────────────────────────────────────────────── */
 .obra-book {
