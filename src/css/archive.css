@@ -824,18 +824,29 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
    frase cae en el vacío. Mientras suena su voz, el candado respira y tirita:
    no es decoración, es el mismo personaje señalando dónde hay que tocar. */
 .footer-puerta--candado.suplicando {
-  animation: candadoSuplica 1.15s ease-in-out infinite;
+  animation: candadoTiritona 0.09s steps(2, end) infinite,
+             candadoBrillo 1.1s ease-in-out infinite;
   border-color: rgba(200,146,42,0.85);
   color: #e8c07a;
 }
-@keyframes candadoSuplica {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(200,146,42,0);    transform: translateX(0); }
-  20%      { box-shadow: 0 0 16px 2px rgba(200,146,42,0.34); transform: translateX(-1px); }
-  45%      { transform: translateX(1px); }
-  70%      { box-shadow: 0 0 10px 1px rgba(200,146,42,0.2);  transform: translateX(-0.5px); }
+/* VIBRACIÓN, NO VAIVÉN (Ruben). El recorrido era largo y lento, así que
+   leía como un balanceo. Un temblor real es lo contrario: recorrido
+   mínimo y frecuencia alta. Se separan las dos cosas —el tiritón corre a
+   0,09 s y el resplandor a su propio ritmo, más lento— porque mezclarlas
+   en una sola animación obliga al brillo a ir tan rápido como el temblor. */
+@keyframes candadoTiritona {
+  0%, 100% { transform: translate(0, 0); }
+  20%  { transform: translate(-0.7px, 0.4px); }
+  40%  { transform: translate(0.7px, -0.3px); }
+  60%  { transform: translate(-0.5px, -0.5px); }
+  80%  { transform: translate(0.6px, 0.3px); }
+}
+@keyframes candadoBrillo {
+  0%, 100% { box-shadow: 0 0 6px 0 rgba(200,146,42,0.12); }
+  50%      { box-shadow: 0 0 18px 2px rgba(200,146,42,0.4); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .footer-puerta--candado.suplicando { animation: none; box-shadow: 0 0 14px 1px rgba(200,146,42,0.3); }
+  .footer-puerta--candado.suplicando { animation: none !important; box-shadow: 0 0 14px 1px rgba(200,146,42,0.3); }
 }
 
 /* ── LA INVITACIÓN A ENCENDER LA LLAMA ───────────────────────────────────
