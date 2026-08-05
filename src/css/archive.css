@@ -700,9 +700,11 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
   animation: puertaBarrido 6s ease-in-out infinite;
 }
 @keyframes puertaBarrido {
-  0%   { transform: translateX(-160%); }
-  22%  { transform: translateX(340%); }
-  100% { transform: translateX(340%); }   /* el resto del ciclo, quieto y fuera */
+  /* el mismo reflejo que los cofres: la inclinación adelanta o retrasa el
+     barrido, así el botón y el cofre parecen hechos del mismo metal */
+  0%   { transform: translateX(calc(-160% + var(--inclina-x, 0) * 40%)); }
+  22%  { transform: translateX(calc(340% + var(--inclina-x, 0) * 40%)); }
+  100% { transform: translateX(calc(340% + var(--inclina-x, 0) * 40%)); }
 }
 .footer-puerta:hover::before { border-color: rgba(200,146,42,0.4); }
 @media (prefers-reduced-motion: reduce) { .footer-puerta::after { animation: none; opacity: 0; } }

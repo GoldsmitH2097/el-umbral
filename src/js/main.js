@@ -35,6 +35,7 @@ import { ArchiveFireflies } from './ui/ArchiveFireflies.js';
 import { TiznoTease } from './ui/TiznoTease.js';
 import { initMobileScene2, initMobileArchive, initMenuMovil } from './mobile.js';
 import { initDiagnostico } from './ui/Diagnostico.js';
+import { pedirInclinacion } from './ui/Inclinacion.js';
 
 const isMobile = () => window.innerWidth <= 768;
 
@@ -346,6 +347,12 @@ function skipIntroAndEnterArchive() {
   if (_s3IdleInterval) { clearInterval(_s3IdleInterval); _s3IdleInterval = null; }
   if (_s2HintInterval) { clearInterval(_s2HintInterval); _s2HintInterval = null; }
 
+  /* EL UMBRAL PIDE EL PERMISO. Aquí es donde el mundo empieza a responder a
+     cómo sostienes el teléfono, así que el cartel de Apple cae en el único
+     punto de la web donde forma parte de la historia en vez de romperla.
+     Tiene que salir del gesto que te trajo hasta aquí: por eso se pide en la
+     transición, no más tarde. */
+  pedirInclinacion();
   transitionTo(4);
   /* Aquí NO se enciende el motor del intro. Entrar por un enlace directo o
      romper el trance lleva a la escena 4, donde el bucle se suspende solo —
@@ -442,6 +449,12 @@ function enterMainSite() {
   audio.setFireVolume(0, false);
   audio.setWindVolume(0.008, 2); // settle at archive ambient
   audio.startArchiveAmbient();
+  /* EL UMBRAL PIDE EL PERMISO. Aquí es donde el mundo empieza a responder a
+     cómo sostienes el teléfono, así que el cartel de Apple cae en el único
+     punto de la web donde forma parte de la historia en vez de romperla.
+     Tiene que salir del gesto que te trajo hasta aquí: por eso se pide en la
+     transición, no más tarde. */
+  pedirInclinacion();
   transitionTo(4);
   desmontarIntro();
   initMobileArchive();

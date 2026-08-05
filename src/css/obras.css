@@ -723,7 +723,16 @@
   transform: translate(-50%, -50%) rotate(0deg);
   animation: lootGlint 7s linear infinite;
 }
-@keyframes lootGlint { to { transform: translate(-50%, -50%) rotate(360deg); } }
+/* EL ORO REFLEJA SEGÚN CÓMO LO SOSTIENES (Ruben). La inclinación se suma
+   DENTRO de los fotogramas clave: si se pusiera en el elemento, la animación
+   sobrescribiría el transform entero y se perdería. Así el cono sigue
+   girando solo y además se adelanta o retrasa con el aparato — que es lo que
+   hace una superficie metálica bajo una luz fija en la habitación.
+   Sigue siendo transform puro: compositor, cero repintado. */
+@keyframes lootGlint {
+  from { transform: translate(-50%, -50%) rotate(calc(0deg   + var(--inclina-x, 0) * 34deg)); }
+  to   { transform: translate(-50%, -50%) rotate(calc(360deg + var(--inclina-x, 0) * 34deg)); }
+}
 /* art-deco corners: stepped double-L + twinkling diamond tip */
 .loot-corner { position: absolute; width: 24px; height: 24px; pointer-events: none; transition: filter 0.5s ease; z-index: 6; will-change: transform; }
 .loot-corner--tl { top: -8px; left: -8px; }
