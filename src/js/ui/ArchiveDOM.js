@@ -468,18 +468,30 @@ export class ArchiveDOM {
     try { v.load(); } catch (_) {}   // devuelve descodificador y textura
   }
 
-  /** Monta este pilar y suelta los demás. */
+  /** Monta este pilar, prepara al vecino y suelta el resto. */
   _activarPilar(v, reproducir = true) {
     if (!v) return;
     this._pilarActivo = v;
     this._montarPilar(v);
     if (reproducir) v.play().catch(() => {});
-    /* Los otros se sueltan con un respiro: barrer el ratón por las cuatro
-       columnas no debe montar y desmontar cuatro veces a toda prisa. */
+
+    /* EL VECINO, LISTO PERO CALLADO (Ruben). Con un solo descodificador, al
+       deslizar te encontrabas la columna siguiente en su póster mientras el
+       vídeo cargaba. Se monta también el de al lado —sin reproducirlo— para
+       que el deslizamiento lo encuentre hecho. Son dos descodificadores en
+       vez de uno: el doble de lo mínimo, pero la mitad de lo que había, y a
+       cambio el gesto principal del móvil deja de tener costura. */
+    const todos = [...document.querySelectorAll('.archive-pillar video')];
+    const i = todos.indexOf(v);
+    const vecino = todos[i + 1] || todos[i - 1] || null;
+    if (vecino) this._montarPilar(vecino);
+
+    /* Los demás se sueltan con un respiro: barrer el ratón por las cuatro
+       columnas no debe montar y desmontar a toda prisa. */
     clearTimeout(this._limpiezaPilares);
     this._limpiezaPilares = setTimeout(() => {
-      document.querySelectorAll('.archive-pillar video').forEach(o => {
-        if (o !== this._pilarActivo) this._soltarPilar(o);
+      todos.forEach(o => {
+        if (o !== this._pilarActivo && o !== vecino) this._soltarPilar(o);
       });
     }, 600);
   }

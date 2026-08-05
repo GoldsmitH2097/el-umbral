@@ -171,6 +171,16 @@ export class ArchiveFireflies {
     mainSite.addEventListener('mouseleave', () => { this._cursorActive = false; }, { passive: true });
     mainSite.addEventListener('touchstart',reset, { passive: true });
     mainSite.addEventListener('click',     reset, { passive: true });
+    /* EL MENÚ DESPLAZA AIRE. Al desplegarse empuja hacia abajo; al plegarse
+       succiona hacia arriba. No hay bucle nuevo ni estado nuevo: se reutiliza
+       el mismo impulso que ya usa el scroll, con su propio rozamiento, así
+       que cuesta literalmente una asignación y se apaga solo. */
+    document.addEventListener('menuSopla', (e) => {
+      this._lastActivity = Date.now();
+      this._scrollDY = (e.detail?.abierto ? 26 : -18) + (Math.random() - 0.5) * 8;
+      this._scrollDecay = 0.93;   // algo más largo que el del scroll: es una bocanada
+    });
+
     mainSite.addEventListener('scroll', () => {
       this._lastActivity = Date.now();
       this._objetivosSucios = true;   // el scroll es lo único que mueve los destinos

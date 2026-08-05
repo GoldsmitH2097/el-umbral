@@ -318,6 +318,8 @@ export function initMenuMovil() {
     const abierto = panel.classList.toggle('abierto');
     burger.classList.toggle('abierto', abierto);
     nav.classList.toggle('menu-abierto', abierto);
+    // el panel desplaza aire: las luciérnagas lo notan (ver ArchiveFireflies)
+    document.dispatchEvent(new CustomEvent('menuSopla', { detail: { abierto } }));
     burger.setAttribute('aria-expanded', abierto ? 'true' : 'false');
   });
 

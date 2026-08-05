@@ -183,7 +183,11 @@
 /* ── iOS safe area — ensure footer is reachable past home indicator ──────── */
 @media (max-width: 768px) {
   #main-site { padding-bottom: max(20px, env(safe-area-inset-bottom, 20px)); }
-  .site-footer { padding-bottom: max(24px, env(safe-area-inset-bottom, 24px)); }
+  /* El max(24px, …) forzaba 24 px por debajo aunque el teléfono no los
+     necesitara, así que el botón quedaba alto dentro de su propia barra. Se
+     respeta el área segura real —donde vive el indicador de inicio y no se
+     puede tocar nada— pero sin inventar hueco donde no hace falta. */
+  .site-footer { padding-bottom: max(6px, env(safe-area-inset-bottom, 6px)); }
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -259,7 +263,7 @@
   }
 
   /* ── La barra de abajo: solo Tizno ──────────────────────────────────── */
-  .site-footer .footer-bar { justify-content: center; padding: 9px 5vw; }
+  .site-footer .footer-bar { justify-content: center; padding: 7px 5vw; }
   /* fb-left se queda vacío al mudarse sus dos inquilinos al panel */
   .site-footer .fb-left { display: none; }
   .site-footer .fb-right { gap: 10px; }
