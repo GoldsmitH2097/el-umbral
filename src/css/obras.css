@@ -703,7 +703,12 @@
 .loot-glint {
   position: absolute; inset: -2px; padding: 2px; pointer-events: none; z-index: 5;
   overflow: hidden;
+  /* La máscara recorta el destello para que sea SOLO el marco. Iba solo con
+     prefijo, y Firefox la ignora por completo (devuelve maskImage:none): se
+     salvaba de milagro porque el degradado cónico es transparente casi
+     entero. Con la estándar al lado, el recorte existe en los tres motores. */
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor; mask-composite: exclude;
 }
 /* El cono vive en un hijo GRANDE que gira por transform (compositor, sin
