@@ -9,7 +9,6 @@ const INACTIVITY_OBRAS   = 18000;  // 18s → drift toward obras
 const INACTIVITY_CONTACT = 36000;  // 36s → drift toward contact
 const INACTIVITY_TIZNO   = 55000;  // 55s → orbit Tizno tease
 const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const CAPABLE = navigator.hardwareConcurrency >= 4 && !REDUCED_MOTION;
 // Throttle to ~30fps — halves CPU vs 60fps. Fireflies move slowly; you won't notice.
 const FRAME_MS = 33;
 
@@ -104,70 +103,6 @@ class Firefly {
   destroy() { this.el.remove(); }
 }
 
-// ── Ambient particles (C) — only on capable hardware ─────────────────────────
-class AmbientParticles {
-  constructor(container) {
-    this.canvas = document.createElement('canvas');
-    this.canvas.className = 'archive-particles';
-    this.canvas.setAttribute('aria-hidden', 'true');
-    container.appendChild(this.canvas);
-    this.ctx = this.canvas.getContext('2d');
-    this.particles = [];
-    this._resize();
-    this._spawn();
-    window.addEventListener('resize', () => this._resize(), { passive: true });
-  }
-
-  /* Lienzo a MEDIA resolución interna, estirado por CSS al tamaño completo.
-     Son motas doradas difuminadas de 0,4-1,2 px de radio: nadie distingue la
-     diferencia, pero el trabajo de rasterizado cae a la cuarta parte (y con
-     él la textura que sube a la GPU). El contexto se escala, así que todo el
-     código de dibujo sigue pensando en píxeles CSS. */
-  _resize() {
-    const ESC = 0.5;
-    this.W = window.innerWidth;
-    this.H = window.innerHeight;   // alto fijo del viewport (el contenedor es position:fixed)
-    this.canvas.width  = Math.max(1, Math.round(this.W * ESC));
-    this.canvas.height = Math.max(1, Math.round(this.H * ESC));
-    this.canvas.style.width  = this.W + 'px';
-    this.canvas.style.height = this.H + 'px';
-    // cambiar width/height resetea el contexto: la escala se reaplica aquí
-    this.ctx.setTransform(ESC, 0, 0, ESC, 0, 0);
-  }
-
-  _spawn() {
-    const count = Math.floor(this.W / 80); // ~12-18 particles
-    for (let i = 0; i < count; i++) {
-      this.particles.push({
-        x:  Math.random() * this.W,
-        y:  Math.random() * this.H,
-        vy: 0.12 + Math.random() * 0.18,   // drift upward
-        vx: (Math.random() - 0.5) * 0.08,
-        r:  0.4 + Math.random() * 0.8,
-        a:  Math.random() * 0.12 + 0.04,   // max opacity
-        phase: Math.random() * Math.PI * 2,
-      });
-    }
-  }
-
-  draw() {
-    this.ctx.clearRect(0, 0, this.W, this.H);
-    for (const p of this.particles) {
-      p.phase += 0.015;
-      p.y  -= p.vy;
-      p.x  += p.vx;
-      if (p.y < -10) { p.y = this.H + 10; p.x = Math.random() * this.W; }
-
-      const alpha = p.a * (0.4 + 0.6 * Math.abs(Math.sin(p.phase)));
-      this.ctx.beginPath();
-      this.ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      this.ctx.fillStyle = `rgba(200,146,42,${alpha.toFixed(3)})`;
-      this.ctx.fill();
-    }
-  }
-
-  destroy() { this.canvas.remove(); }
-}
 
 // ── Main export ───────────────────────────────────────────────────────────────
 export class ArchiveFireflies {
@@ -175,7 +110,6 @@ export class ArchiveFireflies {
     this._tizno     = tiznoTease;
     this._container = null;
     this._fireflies = [];
-    this._particles = null;
     this._raf       = null;
     this._lastActivity = Date.now();
     this._running   = false;
@@ -209,9 +143,16 @@ export class ArchiveFireflies {
     }
 
     // Ambient particles — capable hardware only (also adds to detached container)
-    if (CAPABLE) {
-      this._particles = new AmbientParticles(this._container);
-    }
+    /* MOTAS AMBIENTALES RETIRADAS (Ruben, 5-ago-2026). Eran ~15 puntos de
+       1-2 px a una opacidad efectiva del 0,8-8% sobre fondo casi negro:
+       invisibles en la practica —ni el en su pantalla ni yo en las capturas
+       las distinguiamos— y aun asi obligaban a borrar y repintar un lienzo
+       entero 30 veces por segundo. Medido en su Task Manager: unos 9-10
+       puntos de CPU, cerca de una cuarta parte de la pestana, por algo que
+       nadie ve. Las luciernagas (doradas, con halo, y una hace de companera
+       de Tizno) NO se tocan: esas si se ven y son personaje.
+       Si algun dia se quiere polvo ambiental aqui, se hace con opacidad
+       visible y entonces pagara lo que cuesta. */
 
     // Single attach — flushes layout exactly once for the whole subtree
     document.body.appendChild(this._container);
@@ -379,14 +320,12 @@ export class ArchiveFireflies {
       if (c) this._tizno.enviarLuciernaga?.(c.x, c.y);
     }
 
-    if (this._particles) this._particles.draw();
   }
 
   destroy() {
     this._running = false;
     if (this._raf) cancelAnimationFrame(this._raf);
     this._fireflies.forEach(ff => ff.destroy());
-    this._particles?.destroy();
     this._container?.remove();
   }
 }
