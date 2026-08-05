@@ -921,3 +921,15 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
   border: 1px solid rgba(200,146,42,0.35); color: #a8917a;
   font-family: inherit; font-size: 10px; padding: 4px;
 }
+
+/* EL RECUADRO AZUL DE «LAS CRÓNICAS». El h2 lleva tabindex="-1" y recibe el
+   foco por programa al entrar en el archivo — es el patrón correcto de
+   accesibilidad: llevar el foco al encabezado de la vista nueva para que un
+   lector de pantalla anuncie dónde estás. Pero como nadie ha llegado ahí con
+   el teclado, el anillo del navegador es ruido. Se quita solo en este caso,
+   igual que ya se hacía en el título de la vista de lectura. No se pierde
+   nada: a un elemento con tabindex -1 no se puede tabular. */
+.site-hero h2:focus { outline: none; }
+/* Y de paso, fuera el destello gris que iOS pinta sobre lo que tocas: en una
+   web que vive de la penumbra, un flash de sistema rompe el hechizo. */
+html { -webkit-tap-highlight-color: transparent; }
