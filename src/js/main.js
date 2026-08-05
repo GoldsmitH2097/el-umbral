@@ -201,12 +201,38 @@ function _autoAdvanceNext() {
   }, 900); // ignition build-up
 }
 
-// Start after 5s if no interaction
-_autoTimer = setTimeout(() => {
-  if(state.activeScene === 1 && !state.hasFinishedGallery && !state.isPressed) {
-    _autoAdvanceNext();
-  }
-}, 5000);
+/* ── CUÁNDO ARRANCA EL AUTOPLAY (Ruben, 6-ago) ─────────────────────────────
+   Antes medía TIEMPO DESDE QUE CARGA LA PÁGINA, no inactividad: daba igual
+   que estuvieras jugando con el polvo, a los cinco segundos se desvelaba la
+   reina igual. Ahora vigila dos silencios, y hacen falta LOS DOS:
+
+   · 5 s sin mover nada — si estás paseando el cursor por el polvo, es tuyo.
+   · 10 s sin pulsar — quien acaba de encender una llama tiene margen para
+     mirarla aunque se quede quieto.
+
+   El toque y el arrastre cuentan como movimiento: en un teléfono no existe
+   el ratón, así que un umbral solo de mousemove se cumpliría siempre y el
+   móvil se quedaría sin la protección.
+
+   Y sigue siendo lo único que enseña los cuatro arquetipos a quien no toca
+   nada, así que los silencios son generosos pero no eternos. */
+let _ultimoMovim = Date.now();
+let _ultimoClic  = Date.now();
+const _marcarMovim = () => { _ultimoMovim = Date.now(); };
+const _marcarClic  = () => { _ultimoClic = Date.now(); _ultimoMovim = Date.now(); };
+['mousemove','touchmove','wheel','scroll'].forEach(ev =>
+  document.addEventListener(ev, _marcarMovim, { passive: true }));
+['mousedown','touchstart','keydown'].forEach(ev =>
+  document.addEventListener(ev, _marcarClic, { passive: true }));
+
+const _vigilarAutoplay = setInterval(() => {
+  if (state.activeScene !== 1 || state.hasFinishedGallery) { clearInterval(_vigilarAutoplay); return; }
+  if (state.isPressed || state.isSwapping || _isAutoAdvancing) return;
+  const ahora = Date.now();
+  if (ahora - _ultimoMovim < 5000)  return;
+  if (ahora - _ultimoClic  < 10000) return;
+  _autoAdvanceNext();
+}, 600);
 
 // ── Mobile tap-to-reveal (Scene 1) ─────────────────────────────────────────
 // Replaces press-and-hold on touch devices. One tap = instant reveal for 3s,
@@ -367,7 +393,7 @@ function enterScene2() {
       if(state.activeScene===2 && state.whispersFound===0) {
         document.getElementById('scene-2-hint')?.classList.add('visible');
       }
-    }, 7000);   // Ruben: la reina salia demasiado pronto
+    }, 5000);
     // Hide hint once first whisper found
     const hideHint = () => document.getElementById('scene-2-hint')?.classList.remove('visible');
     document.addEventListener('whisperFound', hideHint, { once: true });

@@ -333,6 +333,11 @@
           </nav>
         </div>
         <div class="fb-right">
+          <!-- EL SUSURRO DE ESTADO. Tenía estilos desde hace días pero NADIE
+               lo había creado: por eso «invocando…», «micrófono bloqueado» y
+               los avisos de error se escribían en el vacío y Tizno parecía
+               mudo cuando fallaba. -->
+          <p id="liberar-susurro" aria-live="polite"></p>
           <button id="hablar-tizno-btn" class="footer-puerta" hidden>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
             <span data-i18n="footer.hablar">Hablarle</span>

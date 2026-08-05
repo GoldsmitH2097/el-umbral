@@ -393,3 +393,15 @@
   }
   .site-nav .links > * { position: relative; z-index: 1; }
 }
+
+/* El susurro de estado, legible en un teléfono: sobre la barra, centrado y
+   con suelo propio, porque ahí detrás puede estar pasando cualquier cosa. */
+@media (max-width: 768px) {
+  #liberar-susurro {
+    right: auto; left: 50%; transform: translateX(-50%);
+    bottom: calc(100% + 12px); font-size: 11px; letter-spacing: 1px;
+    color: #a08a6a; background: rgba(6,5,4,0.92);
+    padding: 7px 14px; border: 1px solid rgba(200,146,42,0.25);
+    max-width: 84vw; white-space: normal; text-align: center;
+  }
+}
