@@ -39,13 +39,16 @@
      Ahora una baldosa de 14 px lleva su propia X dibujada, así que al
      repetirla los cruces quedan exactamente en dos sitios: las esquinas de
      la baldosa y su centro. Los puntos son dos capas, una en cada uno. */
+  /* UN NUDO DE CADA DOS, y más callado. Con un punto en TODOS los cruces la
+     trama se volvía una rejilla de cuentas: demasiado regular, más mecánica
+     que tejida. Dejando solo los cruces del centro de la baldosa, los nudos
+     quedan en una malla del doble de ancha y el ojo los lee como un remate
+     del tejido, no como una cuadrícula de puntos. */
   background-image:
-    radial-gradient(rgba(200,146,42,0.24) 0.7px, transparent 0.8px),
-    radial-gradient(rgba(200,146,42,0.24) 0.7px, transparent 0.8px),
-    linear-gradient(45deg,  transparent 47%, rgba(200,146,42,0.072) 47% 53%, transparent 53%),
-    linear-gradient(-45deg, transparent 47%, rgba(200,146,42,0.072) 47% 53%, transparent 53%);
-  background-size: 14px 14px;
-  background-position: 0 0, 7px 7px, 0 0, 0 0;
+    radial-gradient(rgba(200,146,42,0.17) 0.55px, transparent 0.65px),
+    linear-gradient(45deg,  transparent 47.6%, rgba(200,146,42,0.06) 47.6% 52.4%, transparent 52.4%),
+    linear-gradient(-45deg, transparent 47.6%, rgba(200,146,42,0.06) 47.6% 52.4%, transparent 52.4%);
+  background-size: 16px 16px;
 }
 /* La versión con prefijo NO es decorativa: hoy mismo descubrimos que
    Firefox ignoraba una máscara declarada solo con -webkit-. Las dos, y en
