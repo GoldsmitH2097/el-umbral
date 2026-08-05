@@ -177,6 +177,7 @@ export class VisualEngine {
   _encender() {
     if (this._encendido) return;
     this._encendido = true;
+    this._canvas.style.display = 'block';   // nace oculto (global.css): sin esto no hay capa
     this._resizeCanvas();
     for(let i=0;i<100;i++) this._dustParticles.push(new DustParticle(this._canvas.width,this._canvas.height));
     this._loadCharacterVideo(0);

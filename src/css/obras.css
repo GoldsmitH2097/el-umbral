@@ -882,7 +882,14 @@
 .obra-editions--shop:not(.cofre-a-la-vista),
 .obra-editions--shop:not(.cofre-a-la-vista) *,
 .obra-editions--shop:not(.cofre-a-la-vista) *::before,
-.obra-editions--shop:not(.cofre-a-la-vista) *::after { animation-play-state: paused !important; }
+.obra-editions--shop:not(.cofre-a-la-vista) *::after {
+  animation-play-state: paused !important;
+  /* Y ADEMÁS SE DESPROMUEVEN. Congelar la animación no devuelve la textura:
+     `will-change: transform` mantiene viva la capa aunque nada se mueva, y
+     el destello del cofre mide 340% en cuadrado — a DPR 2 son ~19 MB por
+     cofre, ~38 MB entre los dos, permanentes y fuera de la pantalla. */
+  will-change: auto !important;
+}
 
 /* ── Reduced motion: the legendary box falls still but keeps its gold ────── */
 @media (prefers-reduced-motion: reduce) {

@@ -53,6 +53,17 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
 .site-nav .links span { font-size: 12px; letter-spacing: 4px; margin-left: 40px; color: #888; transition: color 0.3s; cursor: pointer !important; outline: none; }
 .site-nav .links span:hover { color: #fff; }
 .site-nav .links span:focus-visible { color: #fff; }
+/* Pantallas muy estrechas (iPhone SE y compañía): a 320 px el menú medía
+   343 px de contenido y quedaba recortado dentro de #main-site — el logo,
+   dos enlaces con 4 px de espaciado entre letras y la píldora de idioma no
+   caben. Se aprieta el espaciado en vez de esconder nada. */
+@media (max-width: 360px) {
+  .site-nav { padding: 12px 3vw; }
+  .site-nav .links span { font-size: 11px; letter-spacing: 2px; margin-left: 16px; }
+  .lang-toggle { gap: 6px; }
+  .lang-toggle button { padding: 3px 6px; letter-spacing: 1px; }
+  .site-logo { height: 30px; width: 30px; }
+}
 .site-hero { padding: 6.5vh 5vw 5vh; text-align: center; }
 /* Start invisible — animations trigger via .archive-visible class added by ArchiveDOM.showArchive() */
 .site-hero h2 { font-size: 4vw; font-weight: normal; letter-spacing: 15px; margin: 0 0 20px 0; text-transform: uppercase; opacity: 0; }

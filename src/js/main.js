@@ -306,7 +306,10 @@ function skipIntroAndEnterArchive() {
   //    underneath them. Without this, #gallery-container keeps painting at
   //    z-index 0 and #char-video keeps decoding frames.
   const gallery = document.getElementById('gallery-container');
-  if (gallery) gallery.style.opacity = '0';
+  /* opacity:0 esconde pero NO descompone: la galería seguía siendo una capa
+     de pantalla completa en la GPU durante toda la visita al archivo. Se
+     apaga tras el fundido para no cortarlo a quien rompe el trance. */
+  if (gallery) { gallery.style.opacity = '0'; setTimeout(() => { gallery.style.display = 'none'; }, 800); }
   const charVideo = document.getElementById('char-video');
   if (charVideo) { try { charVideo.pause(); } catch(_) {} }
   const s2 = document.getElementById('scene-2');

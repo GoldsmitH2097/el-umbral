@@ -118,9 +118,21 @@ class AmbientParticles {
     window.addEventListener('resize', () => this._resize(), { passive: true });
   }
 
+  /* Lienzo a MEDIA resolución interna, estirado por CSS al tamaño completo.
+     Son motas doradas difuminadas de 0,4-1,2 px de radio: nadie distingue la
+     diferencia, pero el trabajo de rasterizado cae a la cuarta parte (y con
+     él la textura que sube a la GPU). El contexto se escala, así que todo el
+     código de dibujo sigue pensando en píxeles CSS. */
   _resize() {
-    this.W = this.canvas.width  = window.innerWidth;
-    this.H = this.canvas.height = window.innerHeight; // fixed viewport height (container is position:fixed)
+    const ESC = 0.5;
+    this.W = window.innerWidth;
+    this.H = window.innerHeight;   // alto fijo del viewport (el contenedor es position:fixed)
+    this.canvas.width  = Math.max(1, Math.round(this.W * ESC));
+    this.canvas.height = Math.max(1, Math.round(this.H * ESC));
+    this.canvas.style.width  = this.W + 'px';
+    this.canvas.style.height = this.H + 'px';
+    // cambiar width/height resetea el contexto: la escala se reaplica aquí
+    this.ctx.setTransform(ESC, 0, 0, ESC, 0, 0);
   }
 
   _spawn() {

@@ -249,7 +249,13 @@ export class ArchiveDOM {
       // (caught in May-21 Chrome trace: arlequin requested 3× over 38 s).
       // Stash the canonical char.src on dataset for any future re-pick path.
       video.dataset.charSrc = char.src;
-      video.src = pickPillarSrc(char.src);
+      /* SIN src AL NACER. Asignarlo aquí condenaba a los cuatro pilares a
+         llegar a readyState 4 (cuatro descodificadores y sus texturas vivos
+         a la vez, aunque estuvieran pausados). Ahora la fuente espera en el
+         dataset y solo se monta la columna que alguien mira: ver
+         _activarPilar. Hasta entonces se ve el póster, que es el retrato
+         congelado del personaje. */
+      video.dataset.pillarSrc = pickPillarSrc(char.src);
 
       // Social links only in reading/detail view — NOT on the grid pillar
       const content = document.createElement('div');
@@ -259,9 +265,9 @@ export class ArchiveDOM {
       pillar.appendChild(video);
       pillar.appendChild(content);
 
-      pillar.addEventListener('mouseenter', () => video.play().catch(() => {}));
-      pillar.addEventListener('mouseleave', () => video.pause());
-      pillar.addEventListener('touchstart', () => video.play().catch(() => {}), { passive: true });
+      pillar.addEventListener('mouseenter', () => this._activarPilar(video));
+      pillar.addEventListener('mouseleave', () => { try { video.pause(); } catch (_) {} });
+      pillar.addEventListener('touchstart', () => this._activarPilar(video), { passive: true });
 
       if (char.status !== 'missing') {
         pillar.addEventListener('click', () => { if (window.innerWidth > 768) this.openReading(i); });
@@ -405,12 +411,11 @@ export class ArchiveDOM {
         const quieto = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         document.querySelectorAll('.archive-col').forEach((col, i) => {
           col.classList.toggle('archive-col--active', i === idx);
-          /* UN decodificador, no cuatro: en el carrusel horizontal solo se ve
-             una columna, así que solo esa corre. Los otros tres seguían
-             decodiendo fuera de pantalla. */
+          /* UN descodificador, no cuatro: en el carrusel horizontal solo se ve
+             una columna. _activarPilar monta esa y suelta las otras tres. */
           const v = col.querySelector('.archive-pillar video');
           if (!v) return;
-          if (i === idx && !quieto) v.play().catch(() => {});
+          if (i === idx) this._activarPilar(v, !quieto);
           else if (!v.paused) { try { v.pause(); } catch (_) {} }
         });
       }
@@ -436,18 +441,47 @@ export class ArchiveDOM {
   // start downloading pillar videos *during the intro*, on top of the gallery
   // video. (Caught by Uptrends, May 14: 1080p Emperatriz + 720p Emperatriz both
   // fetching in the same waterfall.)
-  _initPillarPreloadOnScroll() {
-    if (typeof IntersectionObserver === 'undefined') return;
-    const io = new IntersectionObserver(entries => {
-      if (state.activeScene < 4) return;
-      entries.forEach(entry => {
-        if (!entry.isIntersecting) return;
-        const v = entry.target.querySelector('video');
-        if (v && v.preload !== 'auto') v.preload = 'auto';
-        io.unobserve(entry.target);
+  /* OBSOLETO desde la política de un solo descodificador: los pilares nacen
+     sin `src`, así que subir su `preload` no precargaba nada. Quien decide
+     qué vídeo existe es _activarPilar (hover, columna activa o entrada a la
+     escena 4). Se deja el método vacío para no tocar sus llamadores. */
+  _initPillarPreloadOnScroll() {}
+
+  /* ─── UN SOLO DESCODIFICADOR ────────────────────────────────────────────
+     Cuatro vídeos preparados a la vez no solo ocupan memoria: al pulsar un
+     enlace de tienda había que destruir cuatro tuberías de vídeo en el mismo
+     instante en que el navegador levanta el proceso de la tienda, y esa
+     ráfaga simultánea es la mejor explicación del bloqueo de todo Chrome.
+     Con uno residente, el mismo gesto cuesta una destrucción, no cuatro. */
+  _montarPilar(v) {
+    if (!v || v.getAttribute('src')) return;
+    const fuente = v.dataset.pillarSrc || pickPillarSrc(v.dataset.charSrc || '');
+    if (!fuente) return;
+    v.src = fuente;
+    v.preload = 'auto';
+  }
+
+  _soltarPilar(v) {
+    if (!v || !v.getAttribute('src')) return;
+    try { v.pause(); } catch (_) {}
+    v.removeAttribute('src');
+    try { v.load(); } catch (_) {}   // devuelve descodificador y textura
+  }
+
+  /** Monta este pilar y suelta los demás. */
+  _activarPilar(v, reproducir = true) {
+    if (!v) return;
+    this._pilarActivo = v;
+    this._montarPilar(v);
+    if (reproducir) v.play().catch(() => {});
+    /* Los otros se sueltan con un respiro: barrer el ratón por las cuatro
+       columnas no debe montar y desmontar cuatro veces a toda prisa. */
+    clearTimeout(this._limpiezaPilares);
+    this._limpiezaPilares = setTimeout(() => {
+      document.querySelectorAll('.archive-pillar video').forEach(o => {
+        if (o !== this._pilarActivo) this._soltarPilar(o);
       });
-    }, { rootMargin: '200px 0px' });
-    document.querySelectorAll('.archive-pillar').forEach(p => io.observe(p));
+    }, 600);
   }
 
   /** El cofre solo respira cuando está a la vista (ver obras.css). */
@@ -965,16 +999,14 @@ export class ArchiveDOM {
     // background buffer is ~1.6 MB — comfortable even on weak connections.
     Events.on('sceneChange', ({ to }) => {
       if (to !== 4) return;
-      const pillars = document.querySelectorAll('.archive-pillar video');
-      pillars.forEach((v, i) => {
-        setTimeout(() => {
-          // Ensure 720p src (idempotent — pickPillarSrc was already set at
-          // build time, but a stale dataset / external reset would re-correct).
-          const want = pickPillarSrc(v.dataset.charSrc || v.src);
-          if (!v.src.endsWith(want)) v.src = want;
-          if (v.preload !== 'auto') v.preload = 'auto';
-        }, i * 250); // 0, 250, 500, 750 ms — first pillar starts immediately
-      });
+      /* Se monta UN pilar, el primero: en escritorio deja el primer hover
+         instantáneo, y en móvil es justo la columna que se está viendo. Los
+         otros tres se quedan en su póster hasta que alguien los pida. */
+      const primero = document.querySelector('.archive-pillar video');
+      if (!primero) return;
+      const movil = window.innerWidth <= 768;
+      const quieto = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      setTimeout(() => this._activarPilar(primero, movil && !quieto), 250);
     });
 
     // Adentrarse — stylized 1.4s transition (CSS choreography), THEN actually enter the Archive
