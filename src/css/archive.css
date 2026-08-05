@@ -848,17 +848,31 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
   font-family: 'Times New Roman', Times, serif;
   font-size: clamp(19px, 2.1vw, 27px); letter-spacing: 5px;
   text-transform: none; font-style: italic;
-  color: rgba(236,226,206,0.55); text-shadow: 0 0 22px rgba(200,146,42,0.16);
-  line-height: 1.6; text-align: center;
+  color: rgba(236,226,206,0.6); text-shadow: 0 0 22px rgba(200,146,42,0.16);
+  line-height: 1.75; text-align: center; text-wrap: balance;
 }
+/* EL SALTO DE MAQUETACIÓN TENÍA CULPABLE: la respiración movía el espaciado
+   entre letras, y eso cambia el ANCHO del texto, así que la línea se
+   recomponía a cada latido. Ahora late en opacidad y en resplandor —dos
+   cosas que no ocupan sitio— y el desplazamiento va por transform, que
+   tampoco toca la maquetación. */
 #instruccion.visible, #instruccion-mobile.visible,
 #instruccion[style*="opacity: 0.6"] {
-  animation: llamaAliento 4.6s ease-in-out infinite;
+  animation: humoEntra 2.6s cubic-bezier(0.16, 0.7, 0.2, 1) forwards,
+             llamaAliento 5.2s ease-in-out 2.2s infinite;
+}
+/* Entra como humo: nace desenfocada, ancha y hundida, y se condensa
+   subiendo — no aparece, se FORMA. */
+@keyframes humoEntra {
+  0%   { opacity: 0; filter: blur(13px); transform: translateY(16px) scale(1.06); }
+  55%  { opacity: 0.5; filter: blur(4px); }
+  100% { opacity: 0.6; filter: blur(0);  transform: translateY(0) scale(1); }
 }
 @keyframes llamaAliento {
-  0%, 100% { opacity: 0.34; letter-spacing: 5px;   text-shadow: 0 0 18px rgba(200,146,42,0.10); }
-  50%      { opacity: 0.78; letter-spacing: 5.6px; text-shadow: 0 0 30px rgba(200,146,42,0.28); }
+  0%, 100% { opacity: 0.34; text-shadow: 0 0 18px rgba(200,146,42,0.09); filter: blur(0.35px); }
+  50%      { opacity: 0.82; text-shadow: 0 0 34px rgba(200,146,42,0.30); filter: blur(0); }
 }
 @media (prefers-reduced-motion: reduce) {
-  #instruccion.visible, #instruccion-mobile.visible { animation: none; opacity: 0.6; }
+  #instruccion.visible, #instruccion-mobile.visible { animation: none; opacity: 0.6; filter: none; }
+}
 }

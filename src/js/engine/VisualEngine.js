@@ -359,7 +359,15 @@ export class VisualEngine {
     if (this._whisperPos) this._cacheWhisperPositions();
   }
   start() { this._encender(); this._lastFrameTime = 0; this._tick(0); }
-  setAutoAdvanceMode(v) { this._autoAdvanceMode = v; }
+  /* EL AUTOPLAY TIENE QUE DESPERTARLO. El motor se duerme a los 3 s sin
+     gestos y el autoplay arranca a los 5: cuando le tocaba encender la
+     llama, el bucle llevaba dos segundos dormido, la ignicion no llegaba a
+     completarse y la cadena se cortaba en el primer personaje. De ahi que
+     «la reina sale y luego no pasa nada mas» — y que a veces no saliera. */
+  setAutoAdvanceMode(v) {
+    this._autoAdvanceMode = v;
+    if (v) { this._lastInteraction = Date.now(); this._resumeIfSuspended(); }
+  }
 
   /** Re-start the RAF loop if it was suspended by the idle-pause or scene>=4 check. */
   _resumeIfSuspended() {
@@ -401,7 +409,7 @@ export class VisualEngine {
     // measure TBT properly. The active states (ignition, awakening) block this
     // because the canvas is doing meaningful work then.
     const idleMs = Date.now() - this._lastInteraction;
-    const isActiveState = state.isPressed || state.isAwakening || state.isIgnited || state.isSwapping;
+    const isActiveState = state.isPressed || state.isAwakening || state.isIgnited || state.isSwapping || this._autoAdvanceMode;
     /* La pausa por inactividad existe para que Lighthouse y compania puedan
        medir: un bot nunca mueve el raton, asi que a los 3 s se calla todo.
        Pero a una PERSONA le congelaba el polvo en el aire por quedarse

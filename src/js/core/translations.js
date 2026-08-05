@@ -19,8 +19,8 @@ export const STRINGS = {
     'publisher-name':         'Soulware Editorial',
 
     // ── Scene 1 (Tomb) ──────────────────────────────────────────────────────
-    'scene1.instruction':     'Haz clic y mantén pulsado para encender la llama',
-    'scene1.instruction.mobile': 'Toca y mantén',
+    'scene1.instruction':     'Haz clic y mantén pulsado<br>para encender la llama',
+    'scene1.instruction.mobile': 'Toca y mantén pulsado<br>para encender la llama',
     'scene1.umbral-button':   'EL UMBRAL',
     'scene1.umbral-aria':     'Adentrarse en El Umbral',
     'scene1.loading':         'Despertando',
@@ -144,8 +144,8 @@ export const STRINGS = {
     'publisher-name':         'Soulware Publishing',
 
     // ── Scene 1 (Tomb) ──────────────────────────────────────────────────────
-    'scene1.instruction':     'Click and hold to ignite the flame',
-    'scene1.instruction.mobile': 'Tap and hold',
+    'scene1.instruction':     'Click and hold<br>to ignite the flame',
+    'scene1.instruction.mobile': 'Tap and hold<br>to ignite the flame',
     'scene1.umbral-button':   'THE HOLLOW',
     'scene1.umbral-aria':     'Enter the Hollow',
     'scene1.loading':         'Awakening',

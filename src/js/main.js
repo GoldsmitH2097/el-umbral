@@ -197,7 +197,7 @@ function _autoAdvanceNext() {
           _autoTimer = setTimeout(_autoAdvanceNext, 1200); // was 500 — breathe between chars
         }
       }, 800);
-    }, 5500); // was 3500
+    }, 6800); // Ruben: mas lento, que de tiempo a mirar a cada uno
   }, 900); // ignition build-up
 }
 
@@ -367,7 +367,7 @@ function enterScene2() {
       if(state.activeScene===2 && state.whispersFound===0) {
         document.getElementById('scene-2-hint')?.classList.add('visible');
       }
-    }, 5000);
+    }, 7000);   // Ruben: la reina salia demasiado pronto
     // Hide hint once first whisper found
     const hideHint = () => document.getElementById('scene-2-hint')?.classList.remove('visible');
     document.addEventListener('whisperFound', hideHint, { once: true });
