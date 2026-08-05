@@ -893,7 +893,14 @@
         let popAterrizo = false;                       // ya llegó arriba
         let earFlop = 0, earFlopVel = 0, popPrevVel = 0, popOjosListos = false;
         let popCerrandoOjos = false;
-        function popIn()  { popCerrandoOjos = false; popTarget = 1; popAterrizo = false; }
+        /* EL CANDADO MANDA SOBRE TODO. Mientras esté preso, NADA puede
+           sacarlo: ni un regreso pendiente de un berrinche, ni una orden
+           tardía de la madre, ni un camino futuro que alguien añada sin
+           acordarse de este. Perseguir a los que llaman a popIn uno por uno
+           era jugar al topo; la única defensa que no se escapa es que el
+           estado tenga la última palabra en la propia puerta. */
+        let preso = EMBED;   // en el embed nace encerrado, esperando al candado
+        function popIn()  { if (preso) return; popCerrandoOjos = false; popTarget = 1; popAterrizo = false; }
         /* Primero aprieta los ojos, y 200 ms DESPUÉS se hunde. Ese respiro
            entre las dos cosas es lo que convierte el gesto en teatro. */
         function popOut() {
@@ -2128,6 +2135,7 @@
                     const p = aLocal(m.x, m.y);
                     ffX = p.x; ffY = p.y;
                 } else if (m.tipo === 'liberar') {
+                    preso = false;
                     popIn();
                 } else if (m.tipo === 'suplica-encierro') {
                     if (popPos > 0.8 && popTarget === 1 && sfxPlay('noEncierres')) {
@@ -2136,6 +2144,7 @@
                 } else if (m.tipo === 'encerrar' || m.tipo === 'ocultar') {
                     /* 'ocultar' = backstage (vista de lectura): mismo hundimiento,
                        sin drama. La súplica vive SOLO en el hover del candado. */
+                    preso = true;                                       // nada podra sacarlo
                     cancelarEscondite();                                // sin regresos pendientes
                     if (window.__tiznoColgar) window.__tiznoColgar();   // preso = mudo
                     popCerrandoOjos = true;

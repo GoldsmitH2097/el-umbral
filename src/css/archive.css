@@ -133,9 +133,11 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
    apagado. El vaivén anterior era infinito y por eso nunca dio la cara; una
    animación de un solo disparo se muere sin que nadie la vea. */
 .archive-visible .cronicas-letter {
-  animation: cronicasRescoldo 1.5s ease-out both;
-  /* entra pisando los talones al título, antes que las frases de abajo */
-  animation-delay: calc(0.55s + var(--i) * 0.085s);
+  animation: cronicasRescoldo 1.3s ease-out both;
+  /* entra pisando los talones al título, antes que las frases de abajo.
+     0,11 s por letra: lo bastante lento para que se lea como un barrido y
+     no como un parpadeo de todo el título a la vez. */
+  animation-delay: calc(0.55s + var(--i) * 0.11s);
 }
 /* The space between LAS and CRÓNICAS — give it real width to read as a gap */
 .cronicas-letter--space {
@@ -143,10 +145,16 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
   width: 0.45em;
 }
 
-/* Solo luz: sin mover nada, así no hay capa que promover ni layout que rehacer */
+/* Solo luz: sin mover nada, así no hay capa que promover ni layout que rehacer.
+   El #e8ecef de los extremos es el color heredado del archivo (#main-site): si
+   algún día cambia el color del título, hay que cambiarlo aquí también. */
 @keyframes cronicasRescoldo {
-  0%, 100% { text-shadow: none; }
-  40%      { text-shadow: 0 0 12px rgba(200,146,42,0.5), 0 0 26px rgba(200,146,42,0.22); }
+  0%   { color: #e8ecef; text-shadow: none; }
+  30%  { color: #ffdca2;
+         text-shadow: 0 0 10px rgba(255,206,122,0.95),
+                      0 0 28px rgba(200,146,42,0.6),
+                      0 0 60px rgba(200,146,42,0.3); }
+  100% { color: #e8ecef; text-shadow: none; }
 }
 
 /* Disable per-letter drift on lower-end hardware to save CPU.
