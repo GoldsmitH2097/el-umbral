@@ -402,8 +402,16 @@ export class ArchiveDOM {
       });
       // Mobile: active column = full-color video
       if (window.innerWidth <= 768) {
+        const quieto = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         document.querySelectorAll('.archive-col').forEach((col, i) => {
           col.classList.toggle('archive-col--active', i === idx);
+          /* UN decodificador, no cuatro: en el carrusel horizontal solo se ve
+             una columna, así que solo esa corre. Los otros tres seguían
+             decodiendo fuera de pantalla. */
+          const v = col.querySelector('.archive-pillar video');
+          if (!v) return;
+          if (i === idx && !quieto) v.play().catch(() => {});
+          else if (!v.paused) { try { v.pause(); } catch (_) {} }
         });
       }
     }, { passive: true });
@@ -413,6 +421,7 @@ export class ArchiveDOM {
       this._initCoverTilt();
     }
     this._initScrollReveal();
+    this._initCofresPerezosos();
     this._initPillarPreloadOnScroll();
   }
 
@@ -439,6 +448,19 @@ export class ArchiveDOM {
       });
     }, { rootMargin: '200px 0px' });
     document.querySelectorAll('.archive-pillar').forEach(p => io.observe(p));
+  }
+
+  /** El cofre solo respira cuando está a la vista (ver obras.css). */
+  _initCofresPerezosos() {
+    const cofres = document.querySelectorAll('.obra-editions--shop');
+    if (!cofres.length || !('IntersectionObserver' in window)) {
+      cofres.forEach(c => c.classList.add('cofre-a-la-vista'));
+      return;
+    }
+    const io = new IntersectionObserver((entradas) => {
+      entradas.forEach(e => e.target.classList.toggle('cofre-a-la-vista', e.isIntersecting));
+    }, { rootMargin: '300px 0px' });
+    cofres.forEach(c => io.observe(c));
   }
 
   _initScrollReveal() {

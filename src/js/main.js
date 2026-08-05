@@ -600,13 +600,39 @@ _umbralBtn.addEventListener('touchend', function(e) {
       }
     });
   };
+  /* PAUSAR NO ES SOLTAR. Un vídeo pausado conserva su descodificador y su
+     textura en la GPU; con cinco elementos de vídeo la factura sigue entera
+     justo cuando el navegador levanta el proceso de la tienda. Al salir hacia
+     una tienda sí nos vamos del todo: quitamos el src y llamamos a load(),
+     que libera descodificador y textura. Al volver se devuelve el src (el
+     MP4 está en caché de disco: es descodificar, no descargar) y mientras
+     tanto se ve el póster, que es el fotograma 0 — nadie nota el relevo. */
+  const dormidos = new Set();
+  const soltarPilares = () => {
+    document.querySelectorAll('.archive-pillar video[src]').forEach(v => {
+      v.dataset.srcDormido = v.src;
+      v.removeAttribute('src');
+      try { v.load(); } catch (_) {}
+      dormidos.add(v);
+    });
+  };
+  const despertarPilares = () => {
+    dormidos.forEach(v => {
+      if (document.contains(v) && v.dataset.srcDormido) {
+        v.src = v.dataset.srcDormido;
+        delete v.dataset.srcDormido;
+      }
+    });
+    dormidos.clear();
+  };
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { pausarTodos(); return; }
+    despertarPilares();
     pausados.forEach(v => { if (document.contains(v)) v.play().catch(() => {}); });
     pausados.clear();
   });
   // captura: se ejecuta antes de que el navegador abra la pestaña nueva
   document.addEventListener('click', (e) => {
-    if (e.target.closest && e.target.closest('a[target="_blank"]')) pausarTodos();
+    if (e.target.closest && e.target.closest('a[target="_blank"]')) { pausarTodos(); soltarPilares(); }
   }, { capture: true, passive: true });
 })();

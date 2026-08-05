@@ -872,6 +872,18 @@
 .obra-editions--shop .retailer-strip { border-bottom: none; padding-bottom: 0; }
 .obra-editions--shop .obra-edition-head { margin-top: 2px; }
 
+/* ── Fuera de vista, el cofre duerme ─────────────────────────────────────────
+   Cada cofre lleva ~31 animaciones infinitas (aura, brillo, esquinas, lecho,
+   fundido, burbujas, meniscos) y vive muy por debajo del pliegue. Corriendo
+   siempre obligan al compositor a repintar sin descanso algo que nadie está
+   mirando — con dos cofres son ~62 animaciones perpetuas invisibles. La clase
+   la pone un IntersectionObserver (ArchiveDOM) con 300 px de margen, así el
+   cofre ya está vivo antes de asomar: nadie ve el arranque. */
+.obra-editions--shop:not(.cofre-a-la-vista),
+.obra-editions--shop:not(.cofre-a-la-vista) *,
+.obra-editions--shop:not(.cofre-a-la-vista) *::before,
+.obra-editions--shop:not(.cofre-a-la-vista) *::after { animation-play-state: paused !important; }
+
 /* ── Reduced motion: the legendary box falls still but keeps its gold ────── */
 @media (prefers-reduced-motion: reduce) {
   .loot-glint, .loot-aura, .loot-bed, .loot-melt,

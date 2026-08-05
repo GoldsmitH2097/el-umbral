@@ -107,12 +107,17 @@ export function initMobileScene2(onAllFound) {
 export function initMobileArchive() {
   if (!isMobile()) return;
 
-  // Autoplay archive-pillar videos on mobile
-  setTimeout(() => {
-    document.querySelectorAll('.archive-pillar video').forEach(v => {
-      v.play().catch(() => {});
-    });
-  }, 600);
+  /* SOLO LA COLUMNA VISIBLE: esto arrancaba los CUATRO vídeos a la vez —
+     cuatro decodificadores simultáneos en un teléfono, tres de ellos fuera
+     de pantalla en el carrusel horizontal, todos con filtros de gris y
+     contraste encima. Ahora solo suena el primero; al deslizar, ArchiveDOM
+     pasa el testigo a la columna que se está mirando y pausa las demás. Y si
+     el sistema pide menos movimiento, ninguno se mueve. */
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    setTimeout(() => {
+      document.querySelector('.archive-pillar video')?.play().catch(() => {});
+    }, 600);
+  }
 
   const detail = document.getElementById('mobile-char-detail');
   const detailTitle = document.getElementById('mobile-detail-title');

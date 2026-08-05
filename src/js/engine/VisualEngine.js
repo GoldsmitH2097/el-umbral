@@ -161,7 +161,23 @@ export class VisualEngine {
     ['mousemove','mousedown','touchstart','touchmove','keydown','scroll'].forEach(ev => {
       document.addEventListener(ev, wake, { passive: true });
     });
-    this._resizeCanvas(); window.addEventListener('resize',()=>{this._resizeCanvas(); wake();});
+    this._encendido = false;
+    window.addEventListener('resize',()=>{ if(this._encendido) this._resizeCanvas(); wake();});
+  }
+
+  /**
+   * Enciende la maquinaria pesada del intro. Vivía suelta en el constructor,
+   * que corre SIEMPRE — también cuando alguien entra directo a /obras/, donde
+   * el intro no se ve jamás. Esa página pagaba un lienzo a pantalla completa,
+   * 100 motas de polvo y, lo caro de verdad, el MP4 de 1080p del primer
+   * personaje cargado hasta readyState 4: un decodificador y su textura en la
+   * GPU para un vídeo que nadie iba a ver. Ahora solo se enciende cuando el
+   * intro va a verse (start()), y es idempotente para el 'repetir intro'.
+   */
+  _encender() {
+    if (this._encendido) return;
+    this._encendido = true;
+    this._resizeCanvas();
     for(let i=0;i<100;i++) this._dustParticles.push(new DustParticle(this._canvas.width,this._canvas.height));
     this._loadCharacterVideo(0);
   }
@@ -307,7 +323,7 @@ export class VisualEngine {
     // Re-cache whisper positions — they shift on resize
     if (this._whisperPos) this._cacheWhisperPositions();
   }
-  start() { this._lastFrameTime = 0; this._tick(0); }
+  start() { this._encender(); this._lastFrameTime = 0; this._tick(0); }
   setAutoAdvanceMode(v) { this._autoAdvanceMode = v; }
 
   /** Re-start the RAF loop if it was suspended by the idle-pause or scene>=4 check. */
