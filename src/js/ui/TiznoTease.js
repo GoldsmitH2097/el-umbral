@@ -36,7 +36,17 @@ export class TiznoTease {
       if (this._open && !e.target.closest('#contact-popover, #nav-contacto')) this.close();
     });
 
-    this._candado?.addEventListener('click', () => this._libre ? this._encerrar() : this._liberar());
+    /* UN GESTO, UNA ORDEN. Es un interruptor, así que un doble clic lo
+       ejecutaba dos veces: encerrar y volver a liberar. La gente hace doble
+       clic en los botones sin querer, y el resultado era que Tizno reaparecía
+       justo cuando pretendías guardarlo. Medio segundo de sordera basta:
+       nadie quiere de verdad encerrarlo y soltarlo en ese margen. */
+    this._candado?.addEventListener('click', () => {
+      const ahora = Date.now();
+      if (ahora - (this._ultimoCandadoT || 0) < 500) return;
+      this._ultimoCandadoT = ahora;
+      this._libre ? this._encerrar() : this._liberar();
+    });
 
     /* LAS SÚPLICAS DEL CANDADO (Ruben): la del preso ("dale al candado")
        ya NO vive en el hover — rozar el candado es el preludio del clic,

@@ -190,22 +190,22 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
     transparent 0%, rgba(200,146,42,0.35) 20%,
     rgba(200,146,42,0.35) 80%, transparent 100%
   );
-  animation: pillarDividerPulse 7s ease-in-out infinite;
+  /* SIN LATIDO PERPETUO. Estas tres líneas respiraban en opacidad para
+     siempre, y parecían gratis: un píxel de ancho. No lo eran. La opacidad
+     se anima sobre un ::after que el navegador no promueve a su propia capa,
+     así que cada fotograma repintaba la COLUMNA ENTERA —vídeo, portadas y
+     cofre incluidos—. Medido por la auditoría en Firefox: pausar solo estas
+     tres bajó el proceso de GPU del 51% al 19%. La línea se queda fija en el
+     punto medio de lo que era su respiración, y sigue encendiéndose al pasar
+     el ratón, que es donde el gesto significa algo. */
+  opacity: 0.22;
+  transition: opacity 0.5s ease;
   pointer-events: none; z-index: 3;
 }
 .archive-col:last-child::after { display: none; }
-/* Staggered phase so columns breathe independently */
-.archive-col:nth-child(1)::after { animation-delay: 0s; }
-.archive-col:nth-child(2)::after { animation-delay: 2.3s; }
-.archive-col:nth-child(3)::after { animation-delay: 4.6s; }
-@keyframes pillarDividerPulse {
-  0%   { opacity: 0.04; }
-  50%  { opacity: 0.35; }
-  100% { opacity: 0.04; }
-}
 /* Hover: both adjacent lines light up together, gently */
 .archive-col:hover::after {
-  opacity: 0.5 !important; animation-play-state: paused;
+  opacity: 0.5 !important;   /* ya no hay animación que pausar: la línea es fija */
 }
 .archive-col:hover + .archive-col::after {
   opacity: 0.5 !important; animation-play-state: paused;
