@@ -354,7 +354,12 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
        procesar el gesto— que lo vertical no es suyo: pasa directo a la
        página, sin el titubeo de decidirlo a mitad del arrastre. */
     overflow-y: hidden;
-    touch-action: pan-x;
+    /* pan-x A SECAS ERA PEOR EL REMEDIO: no delega el gesto vertical, lo
+       PROHIBE — arrastrar arriba o abajo sobre un arquetipo no hacia nada y
+       la web parecia rota. Permitiendo los dos ejes, el horizontal se lo
+       queda el carrusel y el vertical, al no tener aqui nada que desplazar
+       (overflow-y:hidden), sube a la pagina, que es lo que queriamos. */
+    touch-action: pan-x pan-y;
   }
   .archive-grid::-webkit-scrollbar { display: none; }
   .archive-col {
