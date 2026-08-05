@@ -272,7 +272,17 @@ export class TiznoTease {
       this._suplicaToma = this._suplicaToma === 1 ? 2 : 1;
       a.volume = 0.8;
       this._suplicaAudio = a;
-      const pr = a.play(); if (pr) pr.catch(() => {});
+      /* Y EL CANDADO LE CONTESTA. Si él pide que le suelten y el botón que lo
+         suelta no se inmuta, la frase cae en el vacío: nadie relaciona la voz
+         con el sitio donde hay que tocar. Mientras dura su súplica, el
+         candado respira y tirita. */
+      const boton = this._candado;
+      boton?.classList.add('suplicando');
+      const calmar = () => boton?.classList.remove('suplicando');
+      a.addEventListener('ended', calmar, { once: true });
+      a.addEventListener('pause', calmar, { once: true });
+      setTimeout(calmar, 9000);   // por si el audio nunca avisa
+      const pr = a.play(); if (pr) pr.catch(calmar);
     } catch (_) {}
   }
 

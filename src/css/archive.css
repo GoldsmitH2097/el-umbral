@@ -818,3 +818,47 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
    query de móvil, así que aquí salía con el aspecto por defecto del
    navegador: una barrita blanca en la esquina. */
 #nav-burger { display: none; }
+
+/* ── EL CANDADO CUANDO ÉL SUPLICA ────────────────────────────────────────
+   Si Tizno pide que le suelten y el botón que lo suelta no se inmuta, la
+   frase cae en el vacío. Mientras suena su voz, el candado respira y tirita:
+   no es decoración, es el mismo personaje señalando dónde hay que tocar. */
+.footer-puerta--candado.suplicando {
+  animation: candadoSuplica 1.15s ease-in-out infinite;
+  border-color: rgba(200,146,42,0.85);
+  color: #e8c07a;
+}
+@keyframes candadoSuplica {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(200,146,42,0);    transform: translateX(0); }
+  20%      { box-shadow: 0 0 16px 2px rgba(200,146,42,0.34); transform: translateX(-1px); }
+  45%      { transform: translateX(1px); }
+  70%      { box-shadow: 0 0 10px 1px rgba(200,146,42,0.2);  transform: translateX(-0.5px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .footer-puerta--candado.suplicando { animation: none; box-shadow: 0 0 14px 1px rgba(200,146,42,0.3); }
+}
+
+/* ── LA INVITACIÓN A ENCENDER LA LLAMA ───────────────────────────────────
+   Ruben: nada de invitación de boda. Fuera la cursiva inglesa; la serif del
+   sitio, grande y translúcida, y sobre todo QUE NO PARE: respira. Una frase
+   que late en mitad de la oscuridad es una criatura; una frase quieta es un
+   cartel. Se aplica igual en escritorio y en móvil — cada uno con su texto,
+   los dos con el mismo aliento. */
+#instruccion, #instruccion-mobile {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: clamp(19px, 2.1vw, 27px); letter-spacing: 5px;
+  text-transform: none; font-style: italic;
+  color: rgba(236,226,206,0.55); text-shadow: 0 0 22px rgba(200,146,42,0.16);
+  line-height: 1.6; text-align: center;
+}
+#instruccion.visible, #instruccion-mobile.visible,
+#instruccion[style*="opacity: 0.6"] {
+  animation: llamaAliento 4.6s ease-in-out infinite;
+}
+@keyframes llamaAliento {
+  0%, 100% { opacity: 0.34; letter-spacing: 5px;   text-shadow: 0 0 18px rgba(200,146,42,0.10); }
+  50%      { opacity: 0.78; letter-spacing: 5.6px; text-shadow: 0 0 30px rgba(200,146,42,0.28); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #instruccion.visible, #instruccion-mobile.visible { animation: none; opacity: 0.6; }
+}

@@ -349,38 +349,15 @@
    tapar la tumba. Entra con un aliento y, pasado el primer segundo, la
    recorre un destello: el mismo gesto de la llama que está pidiendo. */
 @media (max-width: 768px) {
+  /* Solo la COLOCACIÓN es cosa del móvil: centrada en la tumba. El aspecto y
+     el aliento viven en archive.css, compartidos con escritorio. */
   #instruccion-mobile {
     display: block; position: fixed; left: 50%; top: 46%;
-    transform: translate(-50%, -50%); width: max-content; max-width: 86vw;
-    /* cursiva del sistema: en iOS existe Snell Roundhand, que es preciosa */
-    font-family: 'Snell Roundhand', 'Apple Chancery', 'Segoe Script', cursive;
-    font-size: clamp(30px, 8.5vw, 46px); line-height: 1.35;
-    letter-spacing: 0; text-transform: none; text-align: center;
-    color: transparent;
-    background-image: linear-gradient(100deg,
-      rgba(255,255,255,0.17) 0 42%,
-      rgba(255,238,205,0.78) 50%,
-      rgba(255,255,255,0.17) 58% 100%);
-    background-size: 280% 100%; background-position: 100% 0;
-    -webkit-background-clip: text; background-clip: text;
+    transform: translate(-50%, -50%); width: max-content; max-width: 88vw;
+    font-size: clamp(17px, 5vw, 24px); letter-spacing: 4px;
     opacity: 0; pointer-events: none; z-index: 6; transition: none;
   }
-  #instruccion-mobile.visible {
-    animation: instrAliento 1.3s cubic-bezier(0.2,0.9,0.25,1) forwards,
-               instrDestello 5s ease-in-out 1s infinite;
-  }
-  @keyframes instrAliento {
-    from { opacity: 0; transform: translate(-50%, -50%) scale(0.94); filter: blur(4px); }
-    to   { opacity: 1; transform: translate(-50%, -50%) scale(1);    filter: blur(0); }
-  }
-  /* el destello cruza en el primer 30 % del ciclo y luego espera fuera */
-  @keyframes instrDestello {
-    0%   { background-position: 100% 0; }
-    30%  { background-position: -80% 0; }
-    100% { background-position: -80% 0; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    #instruccion-mobile.visible { animation: none; opacity: 1; }
+
   }
 
   /* ── El velo, más suave, y el texto con su propio suelo ────────────────

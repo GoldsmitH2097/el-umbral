@@ -2107,7 +2107,12 @@
                     const p = aLocal(m.x, m.y);
                     toqueEn(p.x, p.y);
                 } else if (m.tipo === 'hablar') {
+                    /* NUNCA FALLAR EN SILENCIO. __tiznoLlamar lo define el
+                       modulo del SDK; si ese modulo no llego a ejecutarse, el
+                       boton no hacia nada y tampoco decia nada — que es
+                       exactamente lo que Ruben veia en el iPhone. */
                     if (window.__tiznoLlamar) window.__tiznoLlamar();
+                    else if (window.__tiznoSetStatus) window.__tiznoSetStatus('su voz no ha despertado…');
                 } else if (m.tipo === 'raton') {
                     const p = aLocal(m.x, m.y);
                     /* ARCO MÁXIMO (Ruben): más allá de una elipse alrededor de
