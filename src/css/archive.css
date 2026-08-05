@@ -345,6 +345,16 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
     overflow-x: scroll; scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    /* SOLO PANEA EN HORIZONTAL. Declarar overflow-x:scroll obliga al eje
+       vertical a valer `auto` aunque nadie lo pidiera, así que el carrusel se
+       convertía en un segundo scroller: al arrastrar hacia abajo sobre un
+       arquetipo, el gesto se lo quedaba él y aparecía el rebote de iOS en vez
+       de moverse la página. Con overflow-y:hidden deja de tener nada que
+       desplazar, y touch-action:pan-x le dice al navegador —antes incluso de
+       procesar el gesto— que lo vertical no es suyo: pasa directo a la
+       página, sin el titubeo de decidirlo a mitad del arrastre. */
+    overflow-y: hidden;
+    touch-action: pan-x;
   }
   .archive-grid::-webkit-scrollbar { display: none; }
   .archive-col {
