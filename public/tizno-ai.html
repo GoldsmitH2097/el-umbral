@@ -1507,7 +1507,27 @@
                 c_EyeR += (1.4 - c_EyeR) * 0.5;
             }
 
-            const ease = 0.12;
+            /* ── EL SUAVIZADO, CORREGIDO POR TIEMPO ──────────────────────
+               Ruben lo diagnosticó desde el iPhone: «no va lento, va a
+               camara lenta». Y tenia razon, y la diferencia importa.
+
+               Este lerp avanzaba UNA FRACCION POR FOTOGRAMA. A 60 fps la
+               cabeza llegaba a su destino en medio segundo; a 20 fps en el
+               movil tardaba el TRIPLE. No se perdian fotogramas: se estiraba
+               el tiempo. Por eso no se percibia como tirones sino como
+               camara lenta, y por eso el rig parecia otro personaje.
+
+               La correccion es la formula estandar: elevar (1 - ease) al
+               numero de fotogramas de 60 Hz que han cabido en este intervalo
+               real. Con eso, 0,12 significa lo mismo a 20, a 30 o a 120 fps
+               — el movimiento dura lo mismo en segundos, y lo unico que
+               cambia con el rendimiento es cuantos pasos intermedios se ven.
+               El intervalo se acota a 100 ms para que volver de una pestana
+               dormida no dispare al personaje de golpe. */
+            const dtRig = Math.min((time - (window.__rigT || time)) / 1000, 0.1);
+            window.__rigT = time;
+            const easeBase = 0.12;
+            const ease = dtRig > 0 ? 1 - Math.pow(1 - easeBase, dtRig * 60) : easeBase;
             /* CINTURÓN: ninguna combinación de canales (ratón+gusto+candado+
                rebotes) puede dislocarle la cabeza — límites duros de salida. */
             t_HeadX = Math.max(-95, Math.min(95, t_HeadX));
