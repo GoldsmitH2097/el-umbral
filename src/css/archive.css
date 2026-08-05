@@ -126,8 +126,16 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
      que no se ve es lo peor de los dos mundos: se paga y no se recibe.
      Ahora un rescoldo dorado recorre el título letra a letra cuando aparece,
      como si prendiera, y se apaga del todo. Termina y no vuelve. */
-  animation: cronicasRescoldo 1.6s ease-out both;
-  animation-delay: calc(2.6s + var(--i) * 0.09s);
+}
+/* CONDICIONADO A .archive-visible, como el resto de la coreografía. Sin esto
+   el retardo contaba desde que carga la página: el rescoldo se disparaba y se
+   consumía DURANTE EL INTRO, con el archivo aún oculto, y al llegar ya estaba
+   apagado. El vaivén anterior era infinito y por eso nunca dio la cara; una
+   animación de un solo disparo se muere sin que nadie la vea. */
+.archive-visible .cronicas-letter {
+  animation: cronicasRescoldo 1.5s ease-out both;
+  /* entra pisando los talones al título, antes que las frases de abajo */
+  animation-delay: calc(0.55s + var(--i) * 0.085s);
 }
 /* The space between LAS and CRÓNICAS — give it real width to read as a gap */
 .cronicas-letter--space {
