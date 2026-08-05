@@ -52,7 +52,12 @@ class DustParticle {
       this.size=Math.random()*10+5; this.baseVy=0.2+Math.random()*0.3;
       this.opacity=Math.random()*0.05+0.02; this.blur=Math.random()*15+10;
     } else {
-      this.size=Math.random()*1.5+0.5+this.z*1.0; this.baseVy=0.03+this.z*0.2;
+      /* MÁS FINAS. El tamaño salía de un azar plano, así que casi ninguna
+         era diminuta de verdad. Elevarlo a una potencia empuja el reparto
+         hacia lo pequeño: muchísimas motas de menos de un píxel, unas
+         cuantas medianas y solo alguna gorda. Es el reparto que tiene el
+         polvo real en un haz. */
+      this.size=0.26+Math.pow(Math.random(),2.3)*1.7+this.z*0.7; this.baseVy=0.03+this.z*0.2;
       this.opacity=Math.random()*0.2+0.05; if(this.z>0.8) this.opacity*=0.2;
       this.blur=this.z>0.8?this.size*1.5:0;
     }
@@ -84,9 +89,35 @@ class DustParticle {
             + Math.sin(t * this.f2 + this.seed * 1.7) * this.amp * 0.6;
     this.vy = this.baseVy + Math.cos(t * this.f2 + this.seed * 0.6) * this.ampY;
     const dx=this.x-cx,dy=this.y-cy,dist=Math.sqrt(dx*dx+dy*dy);
-    if(dist<150&&!state.isAwakening&&state.activeScene<4){
-      const pf=this.isMacro?2.0:0.2+this.z*0.8, force=((150-dist)/150)*pf;
-      cvx+=vx*force*0.04; this.vy+=vy*force*0.04;
+    /* VIENTO Y REMOLINO. Antes el cursor solo daba un empujón en línea recta
+       dentro de 150 px y el efecto moría en el mismo fotograma. Ahora son
+       tres cosas:
+       · un radio mucho mayor, para que el aire se note antes de llegar;
+       · una componente TANGENCIAL —perpendicular al radio— que es lo que
+         convierte un empujón en un remolino: las motas no huyen del cursor,
+         giran a su alrededor;
+       · e inercia: el impulso se guarda y se apaga en ~20 fotogramas, así
+         que la estela sigue viva después de pasar. Sin esto es una fuerza;
+         con esto es aire. */
+    const R = 280;
+    if(dist<R&&!state.isAwakening&&state.activeScene<4){
+      const caida=(R-dist)/R, veloc=Math.hypot(vx,vy);
+      const pf=this.isMacro?2.0:0.25+this.z*0.9, fuerza=caida*pf;
+      this.empX=(this.empX||0)+vx*fuerza*0.05;
+      this.empY=(this.empY||0)+vy*fuerza*0.05;
+      if(dist>1){
+        // giro: el vector perpendicular al radio, más apretado cerca del cursor
+        const giro=veloc*caida*caida*0.11*(this.isMacro?0.45:1);
+        this.empX+=(-dy/dist)*giro;
+        this.empY+=( dx/dist)*giro;
+      }
+    }
+    // la estela se apaga sola, no de golpe
+    if(this.empX||this.empY){
+      cvx+=this.empX; this.vy+=this.empY;
+      this.empX*=0.945; this.empY*=0.945;
+      if(Math.abs(this.empX)<0.002) this.empX=0;
+      if(Math.abs(this.empY)<0.002) this.empY=0;
     }
     this.isLit=false;
     if(state.activeScene===1&&isIgnited&&dist<180){
@@ -213,7 +244,7 @@ export class VisualEngine {
     this._encendido = true;
     this._canvas.style.display = 'block';   // nace oculto (global.css): sin esto no hay capa
     this._resizeCanvas();
-    for(let i=0;i<100;i++) this._dustParticles.push(new DustParticle(this._canvas.width,this._canvas.height));
+    for(let i=0;i<145;i++) this._dustParticles.push(new DustParticle(this._canvas.width,this._canvas.height));
     this._loadCharacterVideo(0);
   }
 
