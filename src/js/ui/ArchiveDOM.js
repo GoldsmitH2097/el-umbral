@@ -647,6 +647,7 @@ export class ArchiveDOM {
       }
     }
 
+    this._gridTransformToken = (this._gridTransformToken || 0) + 1;
     this._gridView.style.transform='scale(0.95)'; this._gridView.style.opacity='0';
     setTimeout(()=>{
       this._readingView.style.display='block';
@@ -696,6 +697,19 @@ export class ArchiveDOM {
       this._readingView.setAttribute('inert', '');
       this._readingView.setAttribute('aria-hidden', 'true');
       this._gridView.style.transform='scale(1)'; this._gridView.style.opacity='1';
+      /* scale(1) NO es inocuo: CUALQUIER transform, aunque sea la
+         identidad, convierte a #grid-view en el bloque contenedor de sus
+         descendientes position:fixed — y la barra del footer vive dentro.
+         Al volver de un libro el footer dejaba de estar anclado a la
+         ventana y se hundía al final del scroll, mientras Tizno (que
+         cuelga de #main-site, fuera del grid) seguía flotando solo. En
+         cuanto acaba la transición borramos el transform del todo; el
+         testigo evita que un libro abierto mientras tanto se coma su
+         propio zoom. */
+      const testigo = this._gridTransformToken = (this._gridTransformToken || 0) + 1;
+      setTimeout(() => {
+        if (this._gridTransformToken === testigo) this._gridView.style.transform = '';
+      }, 900);
       this._readingBgVideo.pause(); this._readingBgVideo.src=''; this._onSceneChange(4);
       // Return focus to the pillar that triggered reading view
       setTimeout(()=>{ this._lastReadingFocus?.focus(); this._lastReadingFocus = null; }, 50);

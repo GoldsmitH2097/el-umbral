@@ -127,6 +127,9 @@ export class TiznoTease {
     // el miedo al candado se arma cuando el cursor SALE del botón: si no,
     // aparecía ya enfadado (el ratón está sobre el botón al liberarlo)
     this._candadoArmado = false;
+    // el estado se fija ANTES de pedir el marco: si el iframe tarda, la
+    // orden que llegue al final será la del estado real (ver _sincronizar)
+    this._libre = true;
     if (!this._frame) {
       this._frame = document.createElement('iframe');
       this._frame.id = 'tizno-frame';
@@ -141,10 +144,8 @@ export class TiznoTease {
          sigue siendo fiel al viewport (main-site no tiene transform). */
       (document.getElementById('main-site') || document.body).appendChild(this._frame);
       this._frame.addEventListener('load', () => {
-        this._enviar({ tipo: 'liberar' });
-        // el marco nace invisible: sin esto, el primer pintado del iframe
-        // metía un destello de ventana en blanco durante unos ms
-        setTimeout(() => this._frame.classList.add('visible'), 150);
+        this._frameListo = true;
+        this._sincronizarMarco();
       }, { once: true });
 
       // reenvío de ratón a ~30 fps + lo que teme (candado) y lo que ama
@@ -191,16 +192,33 @@ export class TiznoTease {
         }
       }, { passive: true });
     } else {
-      this._enviar({ tipo: 'liberar' });
+      this._sincronizarMarco();
     }
-    this._libre = true;
     this._pintarCandado();
   }
 
   _encerrar() {
-    this._enviar({ tipo: 'encerrar' });
     this._libre = false;
+    this._sincronizarMarco();
     this._pintarCandado();
+  }
+
+  /* EL PESTILLO CONTRA EL DESFASE: crear el iframe tarda, y cualquier
+     orden enviada mientras carga se pierde en el vacío (el contentWindow
+     aún es about:blank). Antes mandábamos "lo que se acaba de pulsar", así
+     que quien liberaba y encerraba deprisa perdía el 'encerrar' y el marco,
+     al terminar de cargar, ejecutaba un 'liberar' rancio: Tizno se quedaba
+     fuera mientras el botón seguía diciendo LIBERAR A TIZNO. Ahora nunca
+     mandamos un gesto: mandamos el ESTADO real, y solo cuando hay marco
+     vivo que lo pueda oír. */
+  _sincronizarMarco() {
+    if (!this._frame || !this._frameListo) return;
+    if (!this._libre) { this._enviar({ tipo: 'encerrar' }); return; }
+    this._enviar({ tipo: 'liberar' });
+    if (this._frame.classList.contains('visible')) return;
+    // el marco nace invisible: sin esto, el primer pintado del iframe
+    // metía un destello de ventana en blanco durante unos ms
+    setTimeout(() => { if (this._libre) this._frame.classList.add('visible'); }, 150);
   }
 
   /* ¿Toca el susurro del preso? Solo si: preso y jamás liberado en esta
