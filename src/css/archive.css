@@ -9,7 +9,50 @@
 #main-site::-webkit-scrollbar-thumb { background: #222; }
 #main-site::-webkit-scrollbar-thumb:hover { background: #555; }
 #grid-view { transition: opacity 0.8s ease, transform 0.8s ease; display: flex; flex-direction: column; min-height: 100vh; }
-.site-nav { display: flex; justify-content: space-between; align-items: center; padding: 14px 5vw; border-bottom: 1px solid rgba(200,146,42,0.45); }
+.site-nav { display: flex; justify-content: space-between; align-items: center; padding: 14px 5vw; border-bottom: 1px solid rgba(200,146,42,0.45); position: relative; }
+
+/* ── LA TRAMA DE LAS BARRAS (Ruben, ronda 3) ──────────────────────────────
+   Rombos con nudo: una malla de diagonales cruzadas con un punto posado en
+   cada cruce —el argyle escocés, que existe porque el ojo pide un ancla en
+   cada intersección— y encima una máscara que la apaga según se aleja del
+   borde dorado. La trama no rellena la barra: EMANA de la línea, como si su
+   luz manchara el fondo. Por eso cada barra se degrada hacia su propia
+   línea: la cabecera la tiene abajo y se apaga hacia arriba; la barra
+   inferior la tiene arriba y se apaga hacia abajo.
+
+   Valores elegidos en el muestrario: intensidad 80 %, alcance 90 %, sin
+   suelo (muere del todo). Todo son gradientes: ni una imagen, ni un SVG.
+   No anima nada — es un fondo estático que se pinta una vez.
+
+   Va en un ::before porque la máscara, aplicada al elemento, se llevaría
+   por delante también su color de fondo y su borde. */
+.site-nav::before,
+.site-footer::before {
+  content: ''; position: absolute; inset: 0;
+  z-index: 0; pointer-events: none;
+  background-image:
+    radial-gradient(rgba(200,146,42,0.24) 0.7px, transparent 0.8px),
+    repeating-linear-gradient(45deg,
+      rgba(200,146,42,0.072) 0 1px, transparent 1px 10px),
+    repeating-linear-gradient(-45deg,
+      rgba(200,146,42,0.072) 0 1px, transparent 1px 10px);
+  background-size: 10px 10px, auto, auto;
+  background-position: 5px 5px, 0 0, 0 0;
+}
+/* La versión con prefijo NO es decorativa: hoy mismo descubrimos que
+   Firefox ignoraba una máscara declarada solo con -webkit-. Las dos, y en
+   este orden, para que los tres motores recorten igual. */
+.site-nav::before {
+  -webkit-mask-image: linear-gradient(to top, #000 0%, rgba(0,0,0,0) 90%);
+          mask-image: linear-gradient(to top, #000 0%, rgba(0,0,0,0) 90%);
+}
+.site-footer::before {
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, rgba(0,0,0,0) 90%);
+          mask-image: linear-gradient(to bottom, #000 0%, rgba(0,0,0,0) 90%);
+}
+/* El contenido, por encima de la trama: un ::before posicionado se pinta
+   sobre los hijos que no lo están. */
+.site-nav > *, .footer-bar { position: relative; z-index: 1; }
 .site-nav .links { display: flex; align-items: center; position: relative; }
 /* Interruptor de idioma: píldora con dos mitades; la activa se enciende.
    El lado activo lo dicta el lang del documento (es ↔ en redirigen entre
