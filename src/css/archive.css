@@ -375,7 +375,13 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
 }
 .archive-pillar .pillar-content p {
   font-size: 13px; color: #aaa; line-height: 1.7; margin: 0 auto; max-width: 290px;
-  opacity: 0.75; transition: opacity 0.4s ease;
+  /* SIEMPRE SÓLIDO (Ruben, 6-ago — tercera piel del mismo fantasma). El reposo
+     a 0.75 era lo que quedaba: la bienvenida --highlighted subía el texto a 1
+     durante cuatro segundos y al retirarse lo devolvía a 0.75 — solo en la
+     columna que traías de la intro (casi siempre la Emperatriz), así que se
+     leía como «su texto se vuelve transparente». El revelado por hover queda
+     en el color del título y el vídeo; la legibilidad no se negocia. */
+  opacity: 1; transition: opacity 0.4s ease;
   /* Reserve space for tallest description (3 lines) so all character titles
      above align at the same vertical position regardless of blurb length. */
   min-height: 5.1em;
@@ -385,8 +391,6 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
      onto the preceding line where possible. */
   text-wrap: pretty;
 }
-.archive-col:hover .archive-pillar .pillar-content p,
-.archive-col--highlighted .archive-pillar .pillar-content p { opacity: 1; }
 .archive-pillar .pillar-social {
   display: flex; gap: 12px; justify-content: center; margin-top: 14px;
   opacity: 0.6; transition: opacity 0.5s ease;
