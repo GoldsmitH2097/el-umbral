@@ -119,12 +119,27 @@ export class TiznoTease {
        intentará por su cuenta y dirá lo que pase. */
     this._hablarBtn?.addEventListener('click', async () => {
       if (!this._llamando) {
+        /* POR QUÉ ESTO SE CUENTA EN VOZ ALTA. Este try/catch callaba, y
+           mientras callase el iPhone solo sabía decir «InvalidStateError»,
+           que es el síntoma del marco y no la causa. Hay tres maneras de que
+           el préstamo no llegue —que la madre no consiga el micro, que el
+           marco aún no tenga el buzón puesto, o que la pista llegue muerta— y
+           las tres acaban en el mismo mensaje, que es justo lo que impide
+           arreglarlo. Ahora cada una dice su nombre. */
         try {
           const micro = await navigator.mediaDevices.getUserMedia({ audio: true });
           const w = this._frame?.contentWindow;
-          if (w && w.__tiznoConStream) w.__tiznoConStream(micro);
-          else micro.getTracks().forEach(t => t.stop());
-        } catch (_) { /* el marco lo intentará y avisará por el susurro */ }
+          const vivo = micro.getAudioTracks().some((t) => t.readyState === 'live');
+          if (w && w.__tiznoConStream) {
+            w.__tiznoConStream(micro);
+            if (!vivo) this._diagMicro('la madre abrió el micro pero la pista nace muerta');
+          } else {
+            micro.getTracks().forEach((t) => t.stop());
+            this._diagMicro('el marco aún no tiene buzón para el micro');
+          }
+        } catch (err) {
+          this._diagMicro('la madre tampoco puede: ' + (err?.name || 'error'));
+        }
       }
       this._enviar({ tipo: 'hablar' });
     });
@@ -311,6 +326,18 @@ export class TiznoTease {
   }
 
   _susurroEl() { return document.getElementById('liberar-susurro'); }
+
+  /* El susurro es lo único que se lee en un móvil sin consola conectada, así
+     que también sirve de parte médico cuando el micrófono falla. Se queda un
+     rato largo: hay que poder leerlo, fotografiarlo y mandarlo. */
+  _diagMicro(texto) {
+    const el = this._susurroEl();
+    if (!el) return;
+    el.textContent = texto;
+    el.classList.add('visible');
+    clearTimeout(this._diagMicroT);
+    this._diagMicroT = setTimeout(() => el.classList.remove('visible'), 9000);
+  }
 
   _pintarCandado() {
     const span = this._candado?.querySelector('span');
