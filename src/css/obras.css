@@ -674,6 +674,11 @@
    visten entera. Las esquinas talladas murieron aquí (Ruben: «too much»). */
 .obra-book--available {
   position: relative;
+  /* Contenedor de consulta para el tamaño de los iconos de tienda. Va AQUÍ y
+     no en .obra-editions: la contención de layout convierte al elemento en
+     ancla de los absolutos, y las capas del cofre deben seguir ancladas a la
+     tarjeta (el mis-anclaje de la v1). La tarjeta ya era el ancla — inocuo. */
+  container-type: inline-size;
   display: grid;
   grid-template-columns: minmax(110px, 2fr) 3fr;
   grid-template-areas: 'cover meta' 'tiendas tiendas';
@@ -696,7 +701,9 @@
   transition: border-color 0.6s ease;
 }
 .obra-book--available .obra-cover { grid-area: cover; max-width: none; min-width: 0; width: 100%; margin: 0; }
-.obra-book--available .obra-meta  { grid-area: meta; text-align: left; align-items: flex-start; }
+/* align-self: center — el bloque DISPONIBLE+título cuelga a la altura media
+   del libro, no pegado al techo de la tarjeta (Ruben, 6-ago). */
+.obra-book--available .obra-meta  { grid-area: meta; text-align: left; align-items: flex-start; align-self: center; }
 .obra-book--available .obra-editions { grid-area: tiendas; }
 .obra-editions--shop { position: static; padding: 0; margin: 0; }
 .loot-corner { display: none; }
@@ -704,11 +711,24 @@
    vertical con su nota minúscula debajo — separación y etiqueta, no epígrafe. */
 .cofre-strip {
   display: flex; flex-wrap: wrap; align-items: center;
-  justify-content: space-between; gap: 10px 4px;
+  /* space-evenly a ancho completo: el aire entre puertas crece con la tarjeta,
+     y cuando solo hay una tienda (Filamentos) queda centrada sola. El gap es
+     únicamente el mínimo de seguridad contra el salto de línea. */
+  justify-content: space-evenly; gap: 12px 4px; width: 100%;
   position: relative; z-index: 3;
-  /* 40px por marca: cinco puertas (4 tiendas + filete + ebook) caben en una
-     sola fila tanto en la columna de escritorio (~370px) como en un 375. */
+  /* El ancho de tarjeta va de ~280px (portátil 1280, rejilla de 4 columnas) a
+     ~350px (pantallas anchas) — un slot fijo o parte la fila o queda enano.
+     MEDIDO: cada ancla ocupa slot+4px. Suelo 40px ⇒ fila mínima 5×44+1+5×4
+     = 241px, que cabe en los 247px del portátil de 1280. La container query
+     de abajo sube a 46px donde las cinco puertas caben holgadas. */
   --slot: 40px;
+}
+/* OJO: la container query mide el CONTENT-BOX de la tarjeta (sin padding ni
+   borde), que es exactamente el ancho de la fila. 295px ⇒ caben los 46px con
+   aire: 5×50+1+5×8 = 291px. El 375 móvil (~303px) y las pantallas anchas
+   (~311px) entran; el portátil de 1280 (~247px) se queda en el suelo. */
+@container (min-width: 295px) {
+  .cofre-strip { --slot: 46px; gap: 12px 8px; }
 }
 .cofre-sep {
   width: 1px; align-self: stretch; min-height: 34px;
@@ -718,6 +738,9 @@
 .cofre-ebook i {
   font-style: normal; font-size: 8px; letter-spacing: 2.5px;
   text-transform: uppercase; color: #8a7458; margin-top: -2px;
+  /* El letter-spacing deja su hueco tras la K y descentra la palabra respecto
+     al icono; la sangría lo compensa y el centro óptico vuelve a coincidir. */
+  padding-left: 2.5px;
 }
 /* faint aura drifting inside — the box is alive */
 .loot-aura {
