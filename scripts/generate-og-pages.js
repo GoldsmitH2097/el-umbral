@@ -82,7 +82,7 @@ const ROUTES = [
           desc:  'Humo, alteración, luz temblorosa. Filamentos de Oscuridad — primera novela de Irina M. Ya disponible. Soulware Editorial.' },
     en: { title: 'The Shadowless Sibyl — Soulware Publishing',
           desc:  'Smoke, distortion, trembling light. Filamentos de Oscuridad — the first novel by Irina M. Now available. Soulware Publishing.' },
-    image: `${BASE}/assets/filamentos-de-oscuridad.webp`,
+    image: `${BASE}/assets/filamentos-de-oscuridad-v2.webp`,
   },
   {
     path: 'arlequin', enSlug: 'harlequin',
@@ -90,7 +90,7 @@ const ROUTES = [
           desc:  'Una risa seca en una cámara vacía. Anatomía del Vacío — experiencia web inmersiva de terror psicológico. Por Germán Ferri. Soulware Editorial.' },
     en: { title: 'The Flowerless Harlequin — Soulware Publishing',
           desc:  'A dry laugh in an empty chamber. Anatomía del Vacío — an immersive web experience in psychological horror. By Germán Ferri. Soulware Publishing.' },
-    image: `${BASE}/assets/anatomia-del-vacio.webp`,
+    image: `${BASE}/assets/anatomia-del-vacio-v2.webp`,
   },
 
   // Book detail routes — slug stays Spanish in BOTH languages (published titles)
@@ -118,7 +118,7 @@ const ROUTES = [
           desc:  'Primera de dos novelas de terror psicológico. Por Irina M. Disponible ahora en Amazon España. Editorial Soulware.' },
     en: { title: 'Filamentos de Oscuridad — Irina M. · Soulware',
           desc:  'First of two novels in psychological horror. By Irina M. Now available on Amazon Spain. Soulware Publishing.' },
-    image: `${BASE}/assets/filamentos-de-oscuridad.webp`,
+    image: `${BASE}/assets/filamentos-de-oscuridad-v2.webp`,
     bookSchema: { name: 'Filamentos de Oscuridad', author: 'Irina M.',
                   buyUrl: 'https://www.amazon.es/dp/8409861771',
                   path: 'obras/filamentos-de-oscuridad' },
@@ -129,7 +129,7 @@ const ROUTES = [
           desc:  'No entras a leer un relato. Entras para ser diseccionado por él. Experiencia web interactiva de terror psicológico. Por Germán Ferri. Editorial Soulware.' },
     en: { title: 'Anatomía del Vacío · Soulware',
           desc:  'You do not enter to read a story. You enter to be dissected by it. An interactive web experience in psychological horror. By Germán Ferri. Soulware Publishing.' },
-    image: `${BASE}/assets/anatomia-del-vacio.webp`,
+    image: `${BASE}/assets/anatomia-del-vacio-v2.webp`,
   },
   {
     path: 'obras/totalis-libertas', enSlug: 'obras/totalis-libertas',
@@ -166,7 +166,10 @@ function patch(html, urlPath, { title, desc, image, bookSchema, langCode, altPat
     .replace(/(<meta property="og:locale" content=")[^"]*(")/,                 `$1${langCode === 'en' ? 'en_US' : 'es_ES'}$2`)
     .replace(/(<meta name="twitter:title" content=")[^"]*(")/,                 `$1${esc(title)}$2`)
     .replace(/(<meta name="twitter:description" content=")[^"]*(")/,           `$1${esc(desc)}$2`)
-    .replace(/(<meta name="twitter:url" content=")[^"]*(")/,                   `$1${canonical}$2`);
+    .replace(/(<meta name="twitter:url" content=")[^"]*(")/,                   `$1${canonical}$2`)
+    // Espejo de og:image: sin esto, X/Twitter enseñaba la imagen editorial
+    // genérica en fichas cuyo Open Graph ya llevaba la portada (audit 6-ago).
+    .replace(/(<meta name="twitter:image" content=")[^"]*(")/,                 `$1${image}$2`);
 
   // Rewrite hreflang alternates to point at THIS page's languages
   out = out

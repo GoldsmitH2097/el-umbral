@@ -294,9 +294,27 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
   transform: scale(1); pointer-events: none; z-index: 0;
 }
 .archive-col:hover .archive-pillar video,
-.archive-col--active .archive-pillar video,
 .archive-col--highlighted .archive-pillar video {
   opacity: 0.68; filter: grayscale(0%) brightness(0.85) contrast(1.1);
+}
+/* --ACTIVE ES UN ESTADO DEL CARRUSEL MÓVIL Y SOLO EXISTE AHÍ. Estuvo en los
+   grupos globales de arriba y Ruben llegaba al archivo con la Emperatriz ya
+   encendida en su Mac: una página construida en una pestaña de FONDO mide
+   innerWidth 0, el candado «<= 768» del sembrado pasa, y la clase quedaba
+   pegada a la primera columna en escritorio, donde ningún código la retira.
+   Encerrada aquí, la clase es inerte fuera del móvil: en escritorio manda el
+   hover, como debe. (Cazado midiendo el DOM: viewport 0x0 y la clase puesta.) */
+@media (max-width: 768px) {
+  .archive-col--active .archive-pillar .pillar-content h3 {
+    color: #e8c87a; text-shadow: 0 0 20px rgba(200,146,42,0.4);
+  }
+  .archive-col--active .archive-pillar .pillar-content p { opacity: 1; }
+  .archive-col--active .archive-pillar video {
+    opacity: 0.68; filter: grayscale(0%) brightness(0.85) contrast(1.1);
+  }
+  .archive-col--active[data-archetype="emperatriz"] .archive-pillar video {
+    opacity: 0.62; filter: grayscale(0%) brightness(0.76) contrast(1.12);
+  }
 }
 /* LAS CUATRO NO SON LA MISMA GRABACIÓN. El salto de revelado —del 22% en gris
    al 68% en color— se calibró una vez y se aplicó a los cuatro por igual, pero
@@ -308,8 +326,7 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
    ser el más fuerte de los cuatro. Si algún día se recambia el vídeo, este es
    el único número que hay que volver a mirar. */
 .archive-col[data-archetype="emperatriz"]:hover .archive-pillar video,
-.archive-col[data-archetype="emperatriz"].archive-col--highlighted .archive-pillar video,
-.archive-col[data-archetype="emperatriz"].archive-col--active .archive-pillar video {
+.archive-col[data-archetype="emperatriz"].archive-col--highlighted .archive-pillar video {
   opacity: 0.62; filter: grayscale(0%) brightness(0.76) contrast(1.12);
 }
 /* LAS CUATRO ENCENDIDAS DONDE NO EXISTE EL RATÓN (Ruben, 6-ago). En pantalla
@@ -345,7 +362,6 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
    caducaba era el estado. --active no caduca: es la columna que estás
    mirando. */
 .archive-col:hover .archive-pillar .pillar-content h3,
-.archive-col--active .archive-pillar .pillar-content h3,
 .archive-col--highlighted .archive-pillar .pillar-content h3 {
   color: #e8c87a;
   text-shadow: 0 0 20px rgba(200,146,42,0.4);
@@ -363,7 +379,6 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
   text-wrap: pretty;
 }
 .archive-col:hover .archive-pillar .pillar-content p,
-.archive-col--active .archive-pillar .pillar-content p,
 .archive-col--highlighted .archive-pillar .pillar-content p { opacity: 1; }
 .archive-pillar .pillar-social {
   display: flex; gap: 12px; justify-content: center; margin-top: 14px;

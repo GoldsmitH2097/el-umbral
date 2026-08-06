@@ -232,23 +232,30 @@ export function initMobileArchive() {
   // Single event delegation on the grid — reliable, no duplicates
   const grid = document.querySelector('.archive-grid');
   if (grid) {
-    /* UN ARRASTRE NO ES UN TOQUE. En el audit de Chrome (emulación iPhone),
-       deslizar el carrusel sobre un pilar disparaba el click al soltar y
-       abría la ficha en vez de avanzar de columna. Los navegadores suelen
-       suprimir ese click tras un scroll, pero «suelen» no es una garantía —
-       aquí se mide el dedo de verdad: si entre que baja y sube se ha movido
-       más de 12 px, eso fue un arrastre y el click que lo siga se ignora. */
+    /* UN ARRASTRE NO ES UN TOQUE. Deslizar el carrusel sobre una tarjeta
+       disparaba el click al soltar y abría la ficha en vez de avanzar de
+       columna. La primera versión de esta guarda escuchaba touchstart y
+       touchmove — y el segundo audit la esquivó por DOS costuras: un
+       arrastre DE RATÓN en viewport móvil no emite eventos táctiles, y en
+       iOS el sistema puede cortar el gesto con touchcancel (el carrusel se
+       queda el dedo, un diálogo del sistema aparece…) antes de que llegue
+       ningún touchmove. Los POINTER EVENTS son la secuencia única que cubre
+       dedo y ratón a la vez: pointerdown ancla, pointermove mide, y da igual
+       quién termine el gesto — si hubo más de 12 px de recorrido, el click
+       sintético que lo siga se ignora. pointercancel no resetea a propósito:
+       la bandera solo se limpia al empezar un gesto nuevo o al consumirse. */
     let _toqueX = 0, _toqueY = 0, _fueArrastre = false;
-    grid.addEventListener('touchstart', (e) => {
-      const t0 = e.touches[0];
-      if (!t0) return;
-      _toqueX = t0.clientX; _toqueY = t0.clientY; _fueArrastre = false;
+    grid.addEventListener('pointerdown', (e) => {
+      _toqueX = e.clientX; _toqueY = e.clientY; _fueArrastre = false;
     }, { passive: true });
-    grid.addEventListener('touchmove', (e) => {
-      const t0 = e.touches[0];
-      if (!t0 || _fueArrastre) return;
-      if (Math.hypot(t0.clientX - _toqueX, t0.clientY - _toqueY) > 12) _fueArrastre = true;
+    grid.addEventListener('pointermove', (e) => {
+      if (_fueArrastre) return;
+      if (Math.hypot(e.clientX - _toqueX, e.clientY - _toqueY) > 12) _fueArrastre = true;
     }, { passive: true });
+    /* Un gesto CANCELADO (el navegador se queda el scroll, un diálogo del
+       sistema interrumpe) nunca es un toque limpio: se marca como arrastre
+       aunque no diera tiempo a medir los 12 px. */
+    grid.addEventListener('pointercancel', () => { _fueArrastre = true; }, { passive: true });
     grid.addEventListener('click', (e) => {
       if (!isMobile()) return;
       if (_fueArrastre) { _fueArrastre = false; return; }

@@ -139,6 +139,11 @@ export class ArchiveFireflies {
        los 7→60 fps. TiznoTease lleva este mismo pestillo por esta misma
        razón. */
     if (this._container) return;
+    /* Quien ha pedido menos movimiento no recibe un enjambre: sin esto, las
+       seis luciérnagas seguían latiendo a 30 fps para un visitante que
+       activó prefers-reduced-motion (regresión de accesibilidad, audit
+       6-ago). Ni elementos, ni listeners, ni bucle: el archivo queda quieto. */
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     // Attach to body (not #main-site) so position:fixed works correctly on scroll.
     // Build the entire subtree DETACHED first, then attach once — appending each
     // firefly to an already-attached container caused per-firefly forced reflows
