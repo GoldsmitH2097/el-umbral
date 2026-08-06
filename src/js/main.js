@@ -66,7 +66,10 @@ const archive = new ArchiveDOM({
 
 const router = new Router({
   enterArchive: ({skipIntro=false}={}) => { if(skipIntro) skipIntroAndEnterArchive(); },
-  openReading: (index) => archive.openReading(index),
+  // El segundo argumento es la pestaña: los enlaces profundos de OBRA abren
+  // la vista de lectura de su arquetipo directamente en «Libros», que es
+  // donde vive la ficha con el cofre de compra.
+  openReading: (index, tab) => archive.openReading(index, tab || 'autor'),
 });
 archive._router = router;
 

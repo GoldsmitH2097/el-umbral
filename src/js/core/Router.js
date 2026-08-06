@@ -22,7 +22,14 @@ CHARACTERS.forEach((c, i) => {
 // renderizada contradecía el HTML servido. Si tocas un título o una
 // descripción, tócalo en LOS DOS ficheros o el bug renace.
 const OBRA_META = {
+  /* `archetype`: a qué personaje pertenece la obra. Un enlace profundo de
+     obra no puede quedarse en el catálogo (la auditoría del 6-ago lo cazó:
+     /obras/pulso-del-nucleo/ aterrizaba en «Las Crónicas» y el visitante de
+     un anuncio nunca veía el libro): abre la vista de lectura de su
+     arquetipo en la pestaña Libros, que es donde vive la ficha completa con
+     el cofre de compra. */
   'pulso-del-nucleo': {
+    archetype: 'caballero',
     es: {
       title: 'Pulso del Núcleo — Núcleo Eterno · Soulware',
       desc:  'Primera de tres novelas de la trilogía Pulso del Núcleo. Por WW. & Eidon. Ya en Casa del Libro, El Corte Inglés, Fnac y Amazon. Editorial Soulware.',
@@ -33,6 +40,7 @@ const OBRA_META = {
     },
   },
   'filamentos-de-oscuridad': {
+    archetype: 'sortilega',
     es: {
       title: 'Filamentos de Oscuridad — Irina M. · Soulware',
       desc:  'Primera de dos novelas de terror psicológico. Por Irina M. Disponible ahora en Amazon España. Editorial Soulware.',
@@ -43,6 +51,7 @@ const OBRA_META = {
     },
   },
   'anatomia-del-vacio': {
+    archetype: 'arlequin',
     es: {
       title: 'Anatomía del Vacío · Soulware',
       desc:  'No entras a leer un relato. Entras para ser diseccionado por él. Experiencia web interactiva de terror psicológico. Por Germán Ferri. Editorial Soulware.',
@@ -53,6 +62,7 @@ const OBRA_META = {
     },
   },
   'totalis-libertas': {
+    archetype: 'emperatriz',
     es: {
       title: 'Totalis Libertas — Antología · Soulware',
       desc:  'Antología de relatos breves e intensos sobre la Historia de España. Varios autores. En preparación. Editorial Soulware.',
@@ -174,14 +184,20 @@ export class Router {
 
     // /[en/]obras/:slug — individual book deep link (book slugs stay Spanish)
     if (segments[0] === 'obras' && segments[1] && OBRA_META[segments[1]]) {
+      const obra = OBRA_META[segments[1]];
       if (escribirMeta) {
-        const m = OBRA_META[segments[1]][urlLang] || OBRA_META[segments[1]].es;
+        const m = obra[urlLang] || obra.es;
         const url = urlLang === 'en'
           ? `https://soulware.live/en/obras/${segments[1]}/`
           : `https://soulware.live/obras/${segments[1]}/`;
         _applyMeta(m.title, m.desc, url, urlLang);
       }
       this._enterArchive({ skipIntro: true });
+      /* La ficha del libro ES la vista de lectura de su arquetipo en la
+         pestaña Libros — el mismo camino que ya recorren los enlaces
+         profundos de personaje, con la pestaña cambiada. */
+      const idx = CHARACTERS.findIndex((c) => c.slug === obra.archetype);
+      if (idx >= 0) this._openReading(idx, 'libros');
       return true;
     }
 
