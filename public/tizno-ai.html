@@ -2238,7 +2238,8 @@
                        boton no hacia nada y tampoco decia nada — que es
                        exactamente lo que Ruben veia en el iPhone. */
                     if (window.__tiznoLlamar) window.__tiznoLlamar();
-                    else if (window.__tiznoSetStatus) window.__tiznoSetStatus('su voz no ha despertado…');
+                    else if (window.__tiznoSetStatus) window.__tiznoSetStatus(
+                        window.__traducirEstado ? window.__traducirEstado('su voz no ha despertado…') : 'su voz no ha despertado…');
                 } else if (m.tipo === 'raton') {
                     const p = aLocal(m.x, m.y);
                     /* ARCO MÁXIMO (Ruben): más allá de una elipse alrededor de
@@ -2427,6 +2428,13 @@
             'invocando a Tizno…': 'summoning Tizno…',
             'el vacío no responde (sin conexión) — reintenta': 'the void does not answer (no connection) — try again',
             'Tizno te escucha… habla': 'Tizno is listening… speak',
+            /* Los dos estados de turno de onModeChange — los que más se ven
+               durante una llamada. La auditoría del 6-ago los cazó fuera del
+               mapa: literal desincronizado = traducción muda, exactamente la
+               clase de fallo que este mapa arriesga. Si añades un setStatus
+               nuevo, añade aquí su entrada EN en el mismo commit. */
+            'Tizno habla…': 'Tizno is speaking…',
+            'Tizno te escucha…': 'Tizno is listening…',
             'Tizno se ha despistado… háblale otra vez': 'Tizno got distracted… speak to him again',
             'oigo ruido continuo — pausa vídeos o música o Tizno no podrá responder': 'I hear constant noise — pause any video or music or Tizno won’t be able to answer',
             'Tizno se ha cansado de hablar… déjale descansar': 'Tizno is tired of talking… let him rest',
@@ -2453,6 +2461,10 @@
             statusEl.textContent = traducido;
             if (window.__tiznoSetStatus) window.__tiznoSetStatus(traducido);   // relé embed
         };
+        /* Expuesto para el script del rig, que vive en otro ámbito y en un
+           caso de error llama al relé directamente sin pasar por setStatus:
+           sin esto, su literal se saltaba la traducción (auditoría 6-ago). */
+        window.__traducirEstado = traducirEstado;
         let lastState = 'idle', lastStateAt = Date.now();
         const setState = (s) => { lastState = s; lastStateAt = Date.now(); window.__setTiznoAI(s); };
         let lastVad = 0;          // último vadScore recibido (push del SDK, no pull)
