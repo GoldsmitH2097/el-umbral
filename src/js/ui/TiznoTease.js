@@ -119,6 +119,7 @@ export class TiznoTease {
        intentará por su cuenta y dirá lo que pase. */
     this._hablarBtn?.addEventListener('click', async () => {
       if (!this._llamando) {
+        this._causaMicro = null;   // cada intento se diagnostica de cero
         /* POR QUÉ ESTO SE CUENTA EN VOZ ALTA. Este try/catch callaba, y
            mientras callase el iPhone solo sabía decir «InvalidStateError»,
            que es el síntoma del marco y no la causa. Hay tres maneras de que
@@ -153,10 +154,17 @@ export class TiznoTease {
         if (span) span.textContent = t(this._llamando ? 'footer.colgar' : 'footer.hablar');
       } else if (m.tipo === 'estado' && this._susurroEl()) {
         const el = this._susurroEl();
-        el.textContent = m.texto;
+        /* LA CAUSA MANDA SOBRE EL SÍNTOMA. El marco anuncia su fracaso medio
+           segundo después de que la madre anuncie el suyo, y al escribir en el
+           mismo susurro lo tapaba: en el iPhone solo se leía
+           «InvalidStateError», que es lo que le pasa al marco, nunca por qué.
+           Cuando el marco se queja del micrófono y la madre sabe la razón,
+           gana la razón. */
+        const esFalloMicro = /micrófono|InvalidStateError/i.test(m.texto || '');
+        el.textContent = (esFalloMicro && this._causaMicro) ? this._causaMicro : m.texto;
         el.classList.add('visible');
         clearTimeout(this._susurroT);
-        this._susurroT = setTimeout(() => el.classList.remove('visible'), 4000);
+        this._susurroT = setTimeout(() => el.classList.remove('visible'), esFalloMicro ? 9000 : 4000);
       }
     });
   }
@@ -331,6 +339,10 @@ export class TiznoTease {
      que también sirve de parte médico cuando el micrófono falla. Se queda un
      rato largo: hay que poder leerlo, fotografiarlo y mandarlo. */
   _diagMicro(texto) {
+    /* Se guarda además de mostrarse: el marco escribirá encima enseguida, y
+       ahí es donde esta frase tiene que volver a salir (ver el manejador de
+       'estado'). */
+    this._causaMicro = texto;
     const el = this._susurroEl();
     if (!el) return;
     el.textContent = texto;

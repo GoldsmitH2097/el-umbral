@@ -894,6 +894,7 @@
            Una SACUDIDA le pega un susto. iOS pide permiso: se solicita al
            pulsar el botón de despertarle, que ya es un gesto del usuario. */
         let tocando = false, tiltX = 0, tiltY = 0, tiltActivo = false;
+        let tiltVX = 0, tiltVY = 0;   // velocidad del muelle: de aquí sale el sobrepaso
 
         /* ══════ POP: entra y sale de la línea del suelo como un teleñeco ══════
            Muelle con rebote: sale pasado de vuelta, se pasa de largo y se asienta.
@@ -959,9 +960,21 @@
             // gamma: izquierda/derecha (-90..90) · beta: adelante/atrás
             const _pt = Math.max(1, Math.min(4, Math.round(Math.min((Date.now() - (window.__tiltT || Date.now())) / 1000, 0.1) * 60)));
             window.__tiltT = Date.now();
+            /* COMPENSA TARDE Y DE MÁS. Persiguiendo la postura con una
+               interpolación simple, Tizno llegaba exactamente donde tocaba y
+               se paraba en seco: eso es un giroscopio, no un ser vivo. Lo que
+               hace un cuerpo con oído interno es corregir con retraso, pasarse
+               un poco y volver — por eso un muelle poco amortiguado (empuje
+               0.055, rozamiento 0.87) se lee como alguien que se está
+               equilibrando y no como una pieza mecánica. El sobrepaso ronda el
+               15%: se nota que hay alguien ahí, sin llegar a marearte. */
+            const objX = Math.max(-45, Math.min(45, e.gamma)) / 45;
+            const objY = Math.max(-45, Math.min(45, (e.beta || 0) - 45)) / 45;
             for (let _p = 0; _p < _pt; _p++) {
-              tiltX += (Math.max(-45, Math.min(45, e.gamma)) / 45 - tiltX) * 0.12;
-              tiltY += (Math.max(-45, Math.min(45, (e.beta || 0) - 45)) / 45 - tiltY) * 0.12;
+              tiltVX = (tiltVX + (objX - tiltX) * 0.055) * 0.87;
+              tiltVY = (tiltVY + (objY - tiltY) * 0.055) * 0.87;
+              tiltX += tiltVX;
+              tiltY += tiltVY;
             }
         });
 
