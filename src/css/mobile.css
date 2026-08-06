@@ -164,6 +164,12 @@
      ahora GLOBAL — vive en obras.css, unificado escritorio + móvil. Aquí
      solo quedan los ajustes de medida del teléfono. */
   .obra-book--available { gap: 10px 14px; }
+  /* El cofre entero en un vistazo (Ruben, 6-ago): la portada a todo el ancho
+     medía ~467px de alto y echaba la fila de tiendas fuera de pantalla.
+     Capada a 250px (~375 de alto) el cofre completo —marco, portada, RECLAMAR
+     y las cinco puertas— cabe en un 812. El marco y la fila siguen de lado a
+     lado; solo la portada se centra. */
+  .obra-book--available .obra-cover { max-width: 250px; margin: 0 auto; }
   .obra-title { font-size: 13px; letter-spacing: 2px; color: #ddd; }
   .obra-desc { opacity: 1 !important; max-height: none !important; font-size: 12px; color: #777; line-height: 1.7; }
   .obra-btn { margin-top: 8px; padding: 8px 16px; font-size: 9px; align-self: flex-start; }
