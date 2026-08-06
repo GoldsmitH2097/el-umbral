@@ -128,7 +128,9 @@
     text-shadow: 0 0 20px rgba(200,146,42,0.4) !important;
   }
   .archive-col--active .archive-pillar .pillar-content p { opacity: 1 !important; }
-  .archive-pillar .pillar-content { text-align: left !important; }
+  /* Centrado, no bandera (Ruben, 6-ago): título del arquetipo y descripción
+     comparten eje con el retrato. */
+  .archive-pillar .pillar-content { text-align: center !important; }
   .archive-pillar .pillar-content h3 { margin: 0 0 10px !important; font-size: 14px; letter-spacing: 4px; color: rgba(255,255,255,0.85) !important; }
   /* CADA FRASE CAÍA DONDE LE PARECÍA. El párrafo heredaba del escritorio un
      `display:flex` con `align-items:flex-start` y un `min-height` de 5.1em
@@ -158,47 +160,10 @@
   .obra-cover { max-width: 80px; min-width: 80px; }
   .obra-cover img { filter: brightness(1) !important; }
 
-  /* ── EL LIBRO DENTRO DEL COFRE (Ruben) ──────────────────────────────────
-     En móvil la portada quedaba fuera de la caja dorada, flotando al lado
-     del cofre de compra. El truco: TODAS las capas del cofre (esquinas,
-     lecho, aura, destello) son position:absolute ancladas a su contenedor.
-     Si el cofre cede su position y la TARJETA entera pasa a ser el ancla,
-     las mismas capas re-enmarcan tarjeta completa — portada incluida — sin
-     tocar una línea de markup. El marco dorado doble (borde degradado +
-     filete interior) se traslada de elemento con sus valores exactos.
-     Solo los libros COMPRABLES llevan cofre; los «próximamente» siguen
-     desnudos, que el oro se gana estando a la venta. */
-  .obra-book--available {
-    position: relative;
-    border: 2px solid transparent;
-    padding: 16px 14px 20px;
-    background:
-      linear-gradient(#050403, #050403) padding-box,
-      linear-gradient(160deg, #6d4a12, #c8922a 30%, #3c2a08 55%, #c8922a 80%, #6d4a12) border-box;
-    box-shadow:
-      0 0 26px rgba(200,146,42,0.11),
-      inset 0 0 44px rgba(200,146,42,0.045),
-      inset 0 0 8px rgba(0,0,0,0.9);
-  }
-  .obra-book--available::before {
-    content: ''; position: absolute; inset: 6px; pointer-events: none; z-index: 4;
-    border: 1px solid rgba(200,146,42,0.26);
-  }
-  /* El cofre cede el ancla y su propio marco: ya lo lleva la tarjeta. */
-  .obra-book--available .obra-editions--shop {
-    position: static; border: none; background: none; box-shadow: none;
-    padding: 0; margin-top: 10px;
-  }
-  .obra-book--available .obra-editions--shop::before { content: none; }
-  /* SIN posicionar la portada ni el texto: la primera versión les puso
-     position:relative y eso los convertía en el ancla de las capas absolutas
-     del cofre — los ornamentos enmarcaban el bloque de texto en vez de la
-     tarjeta (se veía en el iPhone de Ruben). Estáticos, el ancla es la
-     tarjeta y el decorado pinta encima del contenido, igual que siempre
-     hizo dentro del cofre original. */
-  /* Las esquinas talladas, fuera en el móvil (Ruben: «too much») — el marco
-     doble ya dice cofre; en 375 px las esquinas eran ruido sobre el sello. */
-  .obra-book--available .loot-corner { display: none; }
+  /* El cofre-tarjeta (marco, rejilla portada|título, fila de tiendas) es
+     ahora GLOBAL — vive en obras.css, unificado escritorio + móvil. Aquí
+     solo quedan los ajustes de medida del teléfono. */
+  .obra-book--available { gap: 10px 14px; }
   .obra-title { font-size: 13px; letter-spacing: 2px; color: #ddd; }
   .obra-desc { opacity: 1 !important; max-height: none !important; font-size: 12px; color: #777; line-height: 1.7; }
   .obra-btn { margin-top: 8px; padding: 8px 16px; font-size: 9px; align-self: flex-start; }

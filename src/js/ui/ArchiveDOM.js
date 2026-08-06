@@ -133,17 +133,24 @@ export function renderCta(item, { detail = false } = {}) {
           <i style="--x:87%;--d:2.1s;--h:-34px;--w:4px;--t:3.2s"></i>
         </span>
         <span class="loot-sheen" aria-hidden="true"><i></i><b></b></span>`;
+      /* UNA SOLA FILA DE TIENDAS (rediseño Ruben, 6-ago). Los rótulos
+         «Edición Física» / «Edición Digital» y sus bloques apilados eran
+         ruido: las tiendas se explican solas. Ahora todos los logos van en
+         una fila de lado a lado; el ebook cierra la fila tras un filete
+         vertical y con su propia nota minúscula debajo — separación y
+         etiqueta, no otro epígrafe. */
+      const impresas = [], digitales = [];
+      linkable.forEach(ed => {
+        const esDigital = /ebook|digital|kindle/i.test(`${ed.label || ''} ${ed.id || ''}`);
+        (ed.retailers || []).filter(r => r.url).forEach(r => (esDigital ? digitales : impresas).push(r));
+      });
       return `<div class="obra-editions ${detail ? 'obra-editions--detail' : 'obra-editions--shop'}">
         ${lootDecor}
         <p class="obra-edition-invite">${t('cta.buy')}</p>
-        ${linkable.map(ed => {
-          const meta = getField(ed, 'meta');
-          return `<div class="obra-edition-block">
-            <p class="obra-edition-head">${getField(ed, 'label')}</p>
-            ${detail || !meta ? '' : `<p class="obra-edition-meta">${meta}</p>`}
-            <div class="retailer-strip">${(ed.retailers || []).filter(r => r.url).map(retailerLink).join('')}</div>
-          </div>`;
-        }).join('')}
+        <div class="cofre-strip">
+          ${impresas.map(retailerLink).join('')}
+          ${digitales.length ? `<span class="cofre-sep" aria-hidden="true"></span><span class="cofre-ebook">${digitales.map(retailerLink).join('')}<i aria-hidden="true">ebook</i></span>` : ''}
+        </div>
       </div>`;
     }
     // Nothing linkable yet — fall back to the per-edition coming-soon rows.
@@ -328,6 +335,10 @@ export class ArchiveDOM {
           const statusLabels = { 'available': t('pill.available'), 'coming-soon': t('pill.coming-soon'), 'countdown': t('pill.countdown') };
           const formatLabels = { 'Novela': t('format.book'), 'Novela — Edición de coleccionista': t('format.book'), 'Experiencia web interactiva': t('format.experience'), 'Antología': t('format.anthology') };
 
+          /* El cofre (renderCta) va FUERA de .obra-meta: en el rediseño la
+             tarjeta es una rejilla —portada | título arriba, tiendas de lado
+             a lado abajo— y la fila de tiendas necesita cruzar las dos
+             columnas. Dentro de meta quedaría presa de la columna derecha. */
           card.innerHTML = `
             ${coverHtml}
             <div class="obra-meta">
@@ -337,8 +348,9 @@ export class ArchiveDOM {
               </div>
               <h3 class="obra-title">${itemTitle}</h3>
               ${itemSubtitle ? `<p class="obra-subtitle">${itemSubtitle}</p>` : ''}
-              ${ctaHtml}
-            </div>`;
+              ${item.status === 'available' ? '' : ctaHtml}
+            </div>
+            ${item.status === 'available' ? ctaHtml : ''}`;
           books.appendChild(card);
 
           const charIdx = CHARACTERS.findIndex(c => c.slug === item.archetype);

@@ -665,12 +665,21 @@
    ALL animation is transform/opacity/filter on tiny elements — compositor
    work only, nothing that repaints layout (the blur(20px) lesson stands).
    Everything is gated behind prefers-reduced-motion at the end of this file. */
-.obra-editions--shop {
+/* ── EL COFRE ES LA TARJETA ENTERA (rediseño Ruben, 6-ago) ────────────────
+   Unificado escritorio + móvil: el marco dorado doble envuelve la tarjeta
+   completa del libro comprable — portada grande a la izquierda, título a la
+   derecha, y una sola fila de tiendas cruzando de lado a lado por abajo.
+   Las capas decorativas del cofre (aura, lecho, destello) son absolutas: al
+   dejar .obra-editions--shop en static, su ancla pasa a ser la tarjeta y la
+   visten entera. Las esquinas talladas murieron aquí (Ruben: «too much»). */
+.obra-book--available {
   position: relative;
+  display: grid;
+  grid-template-columns: minmax(110px, 2fr) 3fr;
+  grid-template-areas: 'cover meta' 'tiendas tiendas';
+  gap: 12px 16px; align-items: start;
   border: 2px solid transparent;
-  padding: 20px 14px 22px;
-  margin-top: 12px;
-  gap: 8px;
+  padding: 16px 14px 20px;
   background:
     linear-gradient(#050403, #050403) padding-box,
     linear-gradient(160deg, #6d4a12, #c8922a 30%, #3c2a08 55%, #c8922a 80%, #6d4a12) border-box;
@@ -681,10 +690,34 @@
   transition: box-shadow 0.6s ease;
 }
 /* inner hairline — the double frame */
-.obra-editions--shop::before {
+.obra-book--available::before {
   content: ''; position: absolute; inset: 6px; pointer-events: none; z-index: 4;
   border: 1px solid rgba(200,146,42,0.26);
   transition: border-color 0.6s ease;
+}
+.obra-book--available .obra-cover { grid-area: cover; max-width: none; min-width: 0; width: 100%; margin: 0; }
+.obra-book--available .obra-meta  { grid-area: meta; text-align: left; align-items: flex-start; }
+.obra-book--available .obra-editions { grid-area: tiendas; }
+.obra-editions--shop { position: static; padding: 0; margin: 0; }
+.loot-corner { display: none; }
+/* La fila única de tiendas: de lado a lado; el ebook cierra tras un filete
+   vertical con su nota minúscula debajo — separación y etiqueta, no epígrafe. */
+.cofre-strip {
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: 10px 4px;
+  position: relative; z-index: 3;
+  /* 40px por marca: cinco puertas (4 tiendas + filete + ebook) caben en una
+     sola fila tanto en la columna de escritorio (~370px) como en un 375. */
+  --slot: 40px;
+}
+.cofre-sep {
+  width: 1px; align-self: stretch; min-height: 34px;
+  background: linear-gradient(to bottom, transparent, rgba(200,146,42,0.4), transparent);
+}
+.cofre-ebook { display: flex; flex-direction: column; align-items: center; }
+.cofre-ebook i {
+  font-style: normal; font-size: 8px; letter-spacing: 2.5px;
+  text-transform: uppercase; color: #8a7458; margin-top: -2px;
 }
 /* faint aura drifting inside — the box is alive */
 .loot-aura {
@@ -847,20 +880,20 @@
   background: linear-gradient(90deg, transparent, rgba(200,146,42,0.05) 35%, rgba(232,200,122,0.09) 50%, rgba(200,146,42,0.05) 65%, transparent); }
 .loot-sheen b { width: 18%;
   background: linear-gradient(90deg, transparent, rgba(255,241,205,0.10) 35%, rgba(255,246,220,0.22) 50%, rgba(255,241,205,0.10) 65%, transparent); }
-.obra-editions--shop:hover .loot-sheen i { animation: lootSweep 1.35s cubic-bezier(0.33,0,0.15,1) forwards; }
-.obra-editions--shop:hover .loot-sheen b { animation: lootSweep 1.35s cubic-bezier(0.33,0,0.15,1) 0.12s forwards; }
+.obra-book--available:hover .loot-sheen i { animation: lootSweep 1.35s cubic-bezier(0.33,0,0.15,1) forwards; }
+.obra-book--available:hover .loot-sheen b { animation: lootSweep 1.35s cubic-bezier(0.33,0,0.15,1) 0.12s forwards; }
 @keyframes lootSweep {
   0% { left: -90%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; }
   100% { left: 170%; opacity: 0; }
 }
-.obra-editions--shop:hover {
+.obra-book--available:hover {
   box-shadow:
     0 0 44px rgba(200,146,42,0.26),
     0 0 90px rgba(200,146,42,0.09),
     inset 0 0 54px rgba(200,146,42,0.08),
     inset 0 0 8px rgba(0,0,0,0.9);
 }
-.obra-editions--shop:hover::before {
+.obra-book--available:hover::before {
   border-color: rgba(232,200,122,0.55);
   animation: lootFrameFlash 1.35s ease forwards;
 }
@@ -869,9 +902,9 @@
   45%  { box-shadow: inset 0 0 20px rgba(232,200,122,0.18); }
   100% { box-shadow: inset 0 0 8px rgba(232,200,122,0.07); }
 }
-.obra-editions--shop:hover .obra-edition-invite { color: #e8c87a; text-shadow: 0 0 14px rgba(232,200,122,0.45); }
-.obra-editions--shop:hover .loot-corner { filter: drop-shadow(0 0 6px rgba(232,200,122,0.8)); }
-.obra-editions--shop:hover .loot-bed { animation-duration: 2.2s; }
+.obra-book--available:hover .obra-edition-invite { color: #e8c87a; text-shadow: 0 0 14px rgba(232,200,122,0.45); }
+.obra-book--available:hover .loot-corner { filter: drop-shadow(0 0 6px rgba(232,200,122,0.8)); }
+.obra-book--available:hover .loot-bed { animation-duration: 2.2s; }
 /* content sits above the decor layers */
 .obra-editions--shop .obra-edition-invite,
 .obra-editions--shop .obra-edition-block,
