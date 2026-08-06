@@ -367,8 +367,6 @@
     opacity: 0; pointer-events: none; z-index: 6; transition: none;
   }
 
-  }
-
   /* ── El velo, más suave, y el texto con su propio suelo ────────────────
      Ruben: en los otros arquetipos el negro tapaba demasiado. Bajo el velo
      general y, en su lugar, doy a la franja del texto un suelo propio y

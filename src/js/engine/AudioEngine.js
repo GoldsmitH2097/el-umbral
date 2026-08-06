@@ -64,6 +64,9 @@ export class AudioEngine {
       if ('audioSession' in navigator) {
         navigator.audioSession.type = 'playback';
       }
+      /* Ver sesionDeAudio() al final del fichero: este 'playback' es lo que
+         hace que suene con el interruptor de silencio puesto, y también lo que
+         impedía grabar. Hay que devolverlo aquí después de cada llamada. */
 
       this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -391,4 +394,31 @@ export class AudioEngine {
   }
 
   get isReady() { return this.initialized; }
+}
+
+/**
+ * LA SESIÓN DE AUDIO DE iOS: por qué el micrófono nunca llegó a preguntar.
+ *
+ * iOS 17+ deja declarar para qué usa el audio una página. Nosotros pedimos
+ * 'playback' para que la cueva suene aunque el visitante lleve el interruptor
+ * de silencio puesto — sin eso, la mitad de la gente entraría en El Umbral
+ * sin banda sonora y sin saber por qué.
+ *
+ * El precio no estaba escrito en ninguna parte: una sesión declarada como
+ * SOLO REPRODUCIR no puede capturar. iOS no niega el permiso —ni siquiera
+ * llega a preguntarlo— y rechaza getUserMedia con InvalidStateError. Ese es
+ * el error que llevábamos días persiguiendo dentro del iframe, y por eso
+ * ninguna de las dos mudanzas que planteamos lo habría arreglado: el muro no
+ * estaba en la frontera entre marcos, estaba en la propia sesión de audio.
+ *
+ * 'play-and-record' es la única modalidad que permite las dos cosas a la vez.
+ * Se pone justo antes de pedir el micro y se devuelve a 'playback' al colgar,
+ * porque grabando iOS baja el volumen de salida y cambia el enrutado: dejarlo
+ * puesto para siempre le quitaría cuerpo a la cueva el resto de la visita.
+ */
+export function sesionDeAudio(modo) {
+  if (!('audioSession' in navigator)) return;
+  try {
+    navigator.audioSession.type = modo === 'grabar' ? 'play-and-record' : 'playback';
+  } catch (_) { /* navegador que lo expone pero no acepta el valor */ }
 }

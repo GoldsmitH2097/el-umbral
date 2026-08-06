@@ -92,7 +92,7 @@ function fichaBlock(item) {
 // were repeating "tapa blanda" back at the reader) and use ONE heading —
 // "Reclamar mi Ejemplar", which already means "buy" — over both routes:
 // the ebook link, then the shops that carry the print edition.
-function renderCta(item, { detail = false } = {}) {
+export function renderCta(item, { detail = false } = {}) {
   if (item.editions) {
     const linkable = item.editions.filter(
       ed => ed.status === 'available' && (ed.retailers || []).some(r => r.url));

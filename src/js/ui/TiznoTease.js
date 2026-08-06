@@ -15,6 +15,7 @@
  */
 
 import { t } from '../core/i18n.js';
+import { sesionDeAudio } from '../engine/AudioEngine.js';
 
 export class TiznoTease {
   constructor() {
@@ -120,6 +121,10 @@ export class TiznoTease {
     this._hablarBtn?.addEventListener('click', async () => {
       if (!this._llamando) {
         this._causaMicro = null;   // cada intento se diagnostica de cero
+        /* Sin esto, iOS rechaza el micrófono sin preguntar: la sesión está
+           declarada como 'playback' para sonar con el silenciador puesto, y
+           una sesión de solo reproducir no captura. Ver sesionDeAudio(). */
+        sesionDeAudio('grabar');
         /* POR QUÉ ESTO SE CUENTA EN VOZ ALTA. Este try/catch callaba, y
            mientras callase el iPhone solo sabía decir «InvalidStateError»,
            que es el síntoma del marco y no la causa. Hay tres maneras de que
@@ -139,7 +144,18 @@ export class TiznoTease {
             this._diagMicro('el marco aún no tiene buzón para el micro');
           }
         } catch (err) {
-          this._diagMicro('la madre tampoco puede: ' + (err?.name || 'error'));
+          /* Si falla AQUÍ, en la página que ha recibido el toque, no es cosa
+             del marco ni de la arquitectura: es el permiso del navegador. iOS
+             recuerda la negativa POR DOMINIO y no vuelve a preguntar nunca
+             más, así que el visitante se queda sin cartel y sin pista. Por eso
+             el mensaje deja de nombrar el error y pasa a decir qué hay que
+             tocar — un nombre de excepción no ha arreglado nunca nada. */
+          const nombre = err?.name || 'error';
+          this._diagMicro(nombre === 'NotAllowedError' || nombre === 'SecurityError'
+            ? 'el navegador tiene el micrófono vetado en esta web — «aA» en la barra de direcciones → Ajustes del sitio web → Micrófono → Permitir, y recarga'
+            : nombre === 'NotFoundError'
+            ? 'este aparato no tiene micrófono que prestar'
+            : 'la madre tampoco puede: ' + nombre);
         }
       }
       this._enviar({ tipo: 'hablar' });
@@ -150,6 +166,11 @@ export class TiznoTease {
       if (m.tipo === 'ai') {
         // la etiqueta del botón sigue el estado real de la llamada
         this._llamando = m.estado !== 'idle';
+        /* Al colgar, la cueva recupera su sesión de reproducción pura: en
+           'play-and-record' iOS baja el volumen de salida y cambia el
+           enrutado, y dejarlo puesto le quitaría cuerpo al resto de la
+           visita. */
+        if (!this._llamando) sesionDeAudio('reproducir');
         const span = this._hablarBtn?.querySelector('span');
         if (span) span.textContent = t(this._llamando ? 'footer.colgar' : 'footer.hablar');
       } else if (m.tipo === 'estado' && this._susurroEl()) {

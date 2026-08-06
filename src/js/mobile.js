@@ -1,5 +1,6 @@
 import { CHARACTERS, CATALOGUE, state } from './core/StateManager.js';
 import { t, getField } from './core/i18n.js';
+import { renderCta } from './ui/ArchiveDOM.js';
 
 const isMobile = () => window.innerWidth <= 768;
 
@@ -144,12 +145,16 @@ export function initMobileArchive() {
           const itemTitle = getField(item, 'title');
           const itemSubtitle = getField(item, 'subtitle');
           const itemVision = getField(item, 'vision') || getField(item, 'desc');
-          const itemBuyLabel = getField(item, 'buyLabel');
-          let cta = item.status === 'available' && item.buyUrl
-            ? `<a href="${item.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy">${itemBuyLabel}</a>`
-            : item.status === 'countdown'
-            ? `<div class="obra-countdown"><div class="countdown-timer" data-release="${item.releaseDate}"></div><span class="obra-btn obra-btn--locked">${itemBuyLabel}</span></div>`
-            : `<span class="obra-btn obra-btn--soon">${t('cta.coming-soon')}</span>`;
+          /* LA MISMA FUNCIÓN QUE EL ESCRITORIO, NO UNA COPIA PARECIDA.
+             Aquí vivía una versión simplificada que solo entendía la forma
+             antigua del catálogo (`status` + `buyUrl` planos). Cuando Pulso
+             pasó a tener `editions[]` con sus `retailers[]`, esta copia dejó
+             de reconocerlo como disponible y lo enseñaba como PRÓXIMAMENTE:
+             en el móvil desaparecía el botón de comprar de los dos únicos
+             libros a la venta, justo en el sitio donde más gente entra.
+             Dos funciones que tienen que decir lo mismo acaban divergiendo
+             siempre; la única defensa es que haya una. */
+          const cta = renderCta(item, { detail: true });
           const coverHtml = item.img ? `<img src="${item.img}" alt="${itemTitle}" class="mobile-book-cover" />` : '';
           return `<div class="mobile-detail-book">
             ${coverHtml}
