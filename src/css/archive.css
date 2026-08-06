@@ -148,9 +148,16 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
   width: min(90vw, 500px);
 }
 
+/* LA CONDENSACIÓN VA EN TRANSFORM, NO EN LETTER-SPACING. Animar el espaciado
+   cambia el ANCHO del texto: en un móvil «LAS CRÓNICAS» nacía partido en dos
+   líneas y colapsaba a una a mitad de entrada (Ruben lo vio saltar). scaleX
+   da el mismo gesto de condensarse, pero es compositor puro: la caja del
+   título no cambia de tamaño ni un frame y el layout queda clavado. Es el
+   mismo pecado que la respiración de la instrucción del intro — tercera vez
+   que esta clase de fallo nos visita: si animas texto, que sea transform. */
 @keyframes heroTitleReveal {
-  from { opacity: 0; transform: translateY(16px); letter-spacing: 22px; }
-  to   { opacity: 1; transform: translateY(0);   letter-spacing: 15px; }
+  from { opacity: 0; transform: translateY(16px) scaleX(1.12); }
+  to   { opacity: 1; transform: translateY(0) scaleX(1); }
 }
 @keyframes heroSubReveal {
   from { opacity: 0; transform: translateY(10px); }
