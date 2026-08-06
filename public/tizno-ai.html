@@ -441,10 +441,12 @@
            su única fuente de verdad para hablar al visitante en su lengua. */
         const IDIOMA = /[?&]lang=en/.test(location.search) ? 'en' : 'es';
         /* Interruptor de la VOZ en inglés (los textos ya van por IDIOMA).
-           false hasta que el agente de ElevenLabs tenga English como idioma
-           adicional y el override de language permitido — ver el comentario
-           largo en startSession. Encenderlo antes rompería la llamada. */
-        const TIZNO_EN_LISTO = false;
+           ENCENDIDO el 6-ago-2026: English añadido como idioma adicional del
+           agente y override de language permitido en Security — los dos
+           requisitos verificados y publicados en el panel de ElevenLabs. Si
+           la llamada en /en/ fallara al arrancar, apagar esto la devuelve al
+           castellano sin tocar nada más. */
+        const TIZNO_EN_LISTO = true;
         window.__ESC = 1;   // escala real del marco (el puente embed la actualiza)
 
         /* Valores ajustables en vivo desde el panel (?tune=1). */
@@ -2562,6 +2564,27 @@
             '[Curious] Otra vez. [Sighs] Siempre volvéis, y siempre creéis que es la primera vez.',
             '[Chuckles] Ah. Eres tú. [Whispers] No te voy a preguntar dónde has estado. Mentirías.',
         ];
+        /* Los saludos ingleses: el {{saludo}} se inyecta TAL CUAL como primer
+           mensaje, así que en una sesión en inglés un banco castellano haría
+           que Tizno saludara en español y conversara en inglés — arranque
+           esquizofrénico. Mismo carácter, mismas acotaciones de intérprete. */
+        const SALUDOS_GENERAL_EN = [
+            '[Sonido de respiración entrecortada] Who goes there?... Have you come to read, traveler, or to be dissected? Step into the light; the shadows bore me.',
+            '[scared] Ah! No, no, no! Where did YOU come from? [Whispers] Keep your voice down... there are things here that have been asleep a very long time.',
+            '[Whispers] Shhh. Still. Don\'t move yet. [scared] Are you alone? Tell me you came alone.',
+            '[Curious] Well. Another one. You always end up finding this place. And what exactly have you lost?',
+            '[scared] Y-y-you! You can SEE me? [Chuckles] Nobody ever sees me. Nobody... What do you want? Say it quickly!',
+            '[Sighs] Another visitor. Come in, come in. But touch nothing. The last thing they touched hasn\'t come back yet.',
+            '[Whispers] Did you hear that?... No, of course you didn\'t. [scared] Only I hear it. Always only me.',
+            '[Curious] You smell of outside. Of light. [scared] Disgusting! I mean... welcome. Welcome, yes.',
+            '[scared] Watch where you step! I come apart if I\'m stepped on. Do you know what it costs to put yourself back together? [Whispers] I do.',
+            '[Chuckles] Look, look who dared to come down. Do you know what\'s down here? [scared] Neither do I, entirely.',
+        ];
+        const SALUDOS_VUELVE_EN = [
+            '[Whispers] You... you have been here before. [scared] Haven\'t you? I recognize the way you breathe.',
+            '[Curious] Again. [Sighs] You always come back, and you always believe it\'s the first time.',
+            '[Chuckles] Ah. It\'s you. [Whispers] I won\'t ask where you\'ve been. You\'d lie.',
+        ];
         const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
         async function buildDossier() {
@@ -2742,7 +2765,8 @@
                         nombre_usuario: dossier.nombre || 'desconocido',
                         idioma: IDIOMA,
                         saludo: dossier.visitas > 1 && Math.random() < 0.6
-                                ? pick(SALUDOS_VUELVE) : pick(SALUDOS_GENERAL),
+                                ? pick(IDIOMA === 'en' ? SALUDOS_VUELVE_EN : SALUDOS_VUELVE)
+                                : pick(IDIOMA === 'en' ? SALUDOS_GENERAL_EN : SALUDOS_GENERAL),
                     },
                     onConnect: () => {
                         btn.textContent = 'Dejarle en paz';
