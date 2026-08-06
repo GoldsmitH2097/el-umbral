@@ -202,8 +202,15 @@ export class AudioEngine {
     return buf;
   }
 
+  /* !document.hidden EN LOS DOS PROGRAMADORES: al ocultar la pestaña el
+     contexto se suspende y su reloj se CONGELA — pero estas cadenas de
+     setTimeout seguían creando osciladores y búferes (el del susurro, ~384 KB
+     cada 7-19 s) conectados a un grafo parado, cuyos stop()/onended viven en
+     ese reloj congelado y por tanto no liberan nada. Una pestaña abandonada
+     en la tumba unas horas acumulaba cientos de megas que solo se soltaban al
+     volver. Con la guarda no se fabrica nada que no vaya a sonar. */
   _scheduleDroplet() {
-    if (this.audioCtx && !this._awakeningActive) {
+    if (this.audioCtx && !this._awakeningActive && !document.hidden) {
       try {
         const osc = this.audioCtx.createOscillator(), g = this.audioCtx.createGain(), now = this.audioCtx.currentTime;
         osc.type = 'sine'; osc.frequency.setValueAtTime(400+Math.random()*200, now); osc.frequency.exponentialRampToValueAtTime(100, now+0.08);
@@ -228,7 +235,7 @@ export class AudioEngine {
   }
 
   _scheduleWhisperBreath() {
-    if (this.audioCtx && !this._awakeningActive && state.activeScene < 4) {
+    if (this.audioCtx && !this._awakeningActive && state.activeScene < 4 && !document.hidden) {
       try {
         const ctx = this.audioCtx, size = ctx.sampleRate*2, buf = ctx.createBuffer(1, size, ctx.sampleRate);
         const d = buf.getChannelData(0); for (let i=0;i<size;i++) d[i]=Math.random()*2-1;

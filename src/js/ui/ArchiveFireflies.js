@@ -129,6 +129,16 @@ export class ArchiveFireflies {
   }
 
   init() {
+    /* PESTILLO DE RE-ENTRADA. main.js llama a init() desde las dos puertas
+       del archivo, y la puerta del skip se re-ejecuta ENTERA en cada popstate
+       que resuelve una ruta profunda (llegar por /caballero compartido,
+       cerrar la lectura, pulsar Atrás). Sin esto, cada pasada creaba otro
+       contenedor con seis luciérnagas más, duplicaba los listeners de
+       ratón/scroll/visibilidad y arrancaba un segundo bucle rAF concurrente
+       — trabajo por fotograma multiplicado justo después de la batalla de
+       los 7→60 fps. TiznoTease lleva este mismo pestillo por esta misma
+       razón. */
+    if (this._container) return;
     // Attach to body (not #main-site) so position:fixed works correctly on scroll.
     // Build the entire subtree DETACHED first, then attach once — appending each
     // firefly to an already-attached container caused per-firefly forced reflows

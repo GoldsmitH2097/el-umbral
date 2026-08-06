@@ -190,6 +190,10 @@ function _autoAdvanceNext() {
 
     // Hold character visible for 5.5s (was 3.5s — too fast to see them all)
     setTimeout(() => {
+      /* Si el visitante rompió el trance durante la exhibición, este timeout
+         dispara con el archivo ya montado: isSwapping=true quedaba puesto
+         para siempre y el vídeo del intro revivía bajo el archivo. */
+      if (state.activeScene !== 1) { visual.setAutoAdvanceMode(false); _isAutoAdvancing = false; return; }
       state.isIgnited = false;
       state.isSwapping = true;
       visual.primeNextVideo();
@@ -249,6 +253,9 @@ let _mobileHoldTimer = null; // 300ms timer: if still holding, enable fire
 
 function _endMobileHold() {
   if (!_mobileHolding) return;
+  // Mismo caso que el timeout de exhibición de escritorio: si el trance se
+  // rompió a mitad del hold, no hay nada que soltar ni que preparar.
+  if (state.activeScene !== 1) { _mobileHolding = false; _mobileTapLock = false; return; }
   // Minimum 3s display: character stays visible long enough to be seen.
   // A quick tap+release would otherwise dismiss in ~50ms.
   const elapsed = Date.now() - _mobileTapStartTime;
@@ -404,9 +411,12 @@ function enterScene2() {
         document.getElementById('scene-2-hint')?.classList.add('visible');
       }
     }, 5000);
-    // Hide hint once first whisper found
+    // Hide hint once first whisper found. En móvil el hallazgo viaja en OTRO
+    // evento ('mobileWhisperFound', mobile.js): sin escucharlo, la pista se
+    // encendía a los 5 s y se quedaba encendida durante TODA la caza.
     const hideHint = () => document.getElementById('scene-2-hint')?.classList.remove('visible');
     document.addEventListener('whisperFound', hideHint, { once: true });
+    document.addEventListener('mobileWhisperFound', hideHint, { once: true });
   },2000);
 }
 
@@ -481,6 +491,15 @@ function desmontarIntro() {
   const gallery = document.getElementById('gallery-container');
   if (gallery) { gallery.style.opacity = '0'; setTimeout(() => { gallery.style.display = 'none'; }, 800); }
   document.getElementById('char-title')?.classList.remove('loading-state');
+  /* LOS MANDOS DEL INTRO SALEN DEL ORDEN DE TABULACIÓN. Ocultos por opacidad
+     o tapados por el archivo, «Romper el trance», «EL UMBRAL» y «ADENTRARSE»
+     seguían recibiendo foco: un usuario de teclado atravesaba botones
+     invisibles de una escena que ya no existe (auditoría GPT, 6-ago). inert
+     los saca del tab-order y del árbol de accesibilidad de un golpe. */
+  ['skip-btn', 'umbral-btn', 'final-btn', 'scene-2', 'scene-3'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.inert = true;
+  });
 }
 
 function handleDown(e) {
@@ -558,7 +577,13 @@ document.getElementById('main-site')?.addEventListener('scroll', e => {
 }, { passive: true });
 // Wire after archive builds (carousel exists at that point)
 document.addEventListener('archiveReady', () => {
-  document.getElementById('obras-section')?.addEventListener('scroll', e => {
+  const sec = document.getElementById('obras-section');
+  // archiveReady suena en cada entrada al archivo: la marca en el nodo evita
+  // apilar un listener de scroll por pasada, y sobrevive a un rebuild porque
+  // un nodo nuevo nace sin ella.
+  if (!sec || sec.dataset.impulsoLigado) return;
+  sec.dataset.impulsoLigado = '1';
+  sec.addEventListener('scroll', e => {
     const dx = e.target.scrollLeft - _lastScrollLeft;
     _lastScrollLeft = e.target.scrollLeft;
     if (Math.abs(dx) > 0.5) visual.addScrollImpulse(dx * 0.4, 0);

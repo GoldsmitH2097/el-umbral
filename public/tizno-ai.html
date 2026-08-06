@@ -1027,6 +1027,28 @@
             window.__rigT = time;
             const pasos = Math.max(1, Math.min(4, Math.round(dtRig * 60)));
 
+            /* SUEÑO PROFUNDO, PERO EN LA PUERTA DE ENTRADA. La puerta que ya
+               existía vivía en la fase de dibujo, y para entonces este bucle
+               ya había pagado lo más caro del fotograma: el
+               getBoundingClientRect del pendiente — una lectura de layout
+               FORZADA, 60 veces por segundo, con Tizno hundido y el marco a
+               opacity 0 (que no estrangula el rAF como haría display:none).
+               Un iframe invisible recalculando estilos toda la visita, justo
+               después de la batalla de los 7→60 fps. Aquí se corta antes de
+               tocar nada; la luciérnaga sigue viva (dos escrituras cada
+               31 ms) porque fuera del embed es visible con Tizno escondido.
+               Despierta solo: popIn() mueve el objetivo y la condición cae. */
+            if (popTarget === 0 && popPos < 0.02
+                && !POOL_P.length && !POOL_C.length && !POOL_S.length) {
+                if (time - ultimoDibujo >= 31) {
+                    ultimoDibujo = time;
+                    fireflyEl.style.transform = `translate(${ffX}px, ${ffY}px)`;
+                    fireflyEl.style.opacity = (0.55 + Math.sin(time * 0.006) * 0.35).toFixed(2);
+                }
+                requestAnimationFrame(updateRig);
+                return;
+            }
+
             // ── física del pendiente (péndulo con pivote acelerado) ──
             {
                 const a = earringAnchorEl.getBoundingClientRect();
@@ -2609,8 +2631,12 @@
             setStatus('pidiendo micrófono…');
             const prestadoVivo = microPrestado && microPrestado.getAudioTracks().some(t => t.readyState === 'live');
             try {
-                // si la madre ya nos abrió el micro, no se vuelve a pedir
-                if (!prestadoVivo) await navigator.mediaDevices.getUserMedia({ audio: true });
+                /* Si la madre ya nos abrió el micro, no se vuelve a pedir.
+                   Y si lo pedimos nosotros, SE GUARDA: antes este stream se
+                   descartaba sin asignar y nadie podía apagarlo jamás — cada
+                   llamada acumulaba una pista de captura viva más. Guardado
+                   en microPrestado, sleep() lo apaga como al de la madre. */
+                if (!prestadoVivo) microPrestado = await navigator.mediaDevices.getUserMedia({ audio: true });
             } catch (err) {
                 btn.disabled = false;
                 if (err.name === 'NotAllowedError') {
@@ -2794,6 +2820,21 @@
                El servidor corta la huérfana por su cuenta al poco. */
             const c = conversation;
             conversation = null;
+            /* EL MICRÓFONO SE APAGA AL COLGAR, PASE LO QUE PASE. Un
+               MediaStreamTrack vivo no muere por recolección de basura: sin
+               este stop(), la captura seguía activa y el punto rojo del
+               navegador quedaba encendido el resto de la visita — el
+               visitante colgó, encerró a Tizno, y su micrófono seguía
+               abierto. La madre presta un stream nuevo en cada llamada, así
+               que apagar este no rompe la siguiente. */
+            if (microPrestado) {
+                try { microPrestado.getTracks().forEach((t) => t.stop()); } catch (_) {}
+                microPrestado = null;
+            }
+            /* Y el vigilante muere aquí, no solo en onDisconnect: si la
+               desconexión falla sin red, el intervalo quedaba latiendo para
+               siempre reescribiendo el susurro de la barra cada segundo. */
+            if (watchdog) { clearInterval(watchdog); watchdog = null; }
             if (c) { try { await c.endSession(); } catch (_) {} }
         }
 

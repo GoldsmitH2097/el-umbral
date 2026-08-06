@@ -334,6 +334,12 @@ export class VisualEngine {
    * _swapToNextCharacter() transfers it to the visible element once screen is dark.
    */
   primeNextVideo() {
+    /* Los temporizadores del autoplay sobreviven al «Romper el trance»: si
+       este disparo llega con el visitante ya en el archivo, ponerle src y
+       play() al vídeo oculto del intro deja un MP4 descodificando en bucle,
+       invisible, bajo el archivo el resto de la visita — justo el
+       descodificador que desmontarIntro() acababa de liberar. */
+    if (state.activeScene >= 4) return;
     const nextIndex = state.currentCharIndex + 1;
     if (nextIndex >= CHARACTERS.length) return;
     // Load into whichever element is currently hidden — keep the live element untouched.
@@ -598,7 +604,12 @@ export class VisualEngine {
 
       // Mobile: whisper detection is handled exclusively by tap handlers in mobile.js.
       // Skip proximity detection here to avoid the firefly triggering whispers on its own.
-      if (window.innerWidth >= 768) {
+      // > 768, no >=: todo el proyecto define móvil como <= 768 (mobile.js,
+      // main.js, mobile.css max-width:768). Con >= aquí, a exactamente 768 px
+      // —un iPad clásico en vertical— corrían LOS DOS sistemas de susurros a
+      // la vez sobre el mismo contador compartido: hallazgos duplicados y dos
+      // rutas compitiendo por avanzar a la escena 3.
+      if (window.innerWidth > 768) {
       // Use hint target position if active (autonomous sweep) — falls back to cursor
       const hintActive = this._hintTarget && Date.now() < this._hintTarget.until;
       const lightX = hintActive ? this._hintTarget.x : this._currentX;

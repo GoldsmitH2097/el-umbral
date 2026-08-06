@@ -196,7 +196,7 @@ export const STRINGS = {
     'tizno.identity-sub':     'Made of soot and ink.',
     'tizno.identity-soon':    'Coming soon',
     'tizno.pacto-label':      'New releases, short tales and previews before anyone else.',
-    'tizno.consent-html':     'I agree to receive communications from Soulware. <a href="/privacidad.html" target="_blank" rel="noopener">Privacy</a>.',
+    'tizno.consent-html':     'I agree to receive communications from Soulware. <a href="/privacidad-en.html" target="_blank" rel="noopener">Privacy</a>.',
     'tizno.honeypot-aria':    'Do not fill — bot honeypot',
     'nav.las-obras':          'THE WORKS',
     'nav.contacto':           'CONTACT',

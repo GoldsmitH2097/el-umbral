@@ -838,7 +838,10 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
 /* Selector inline in the replay row — drop the standalone-row top margin */
 .footer-replay-row .lang-selector { margin-top: 0; }
 .footer-legal { display: flex; gap: 30px; justify-content: center; flex-wrap: wrap; margin-top: 0; }
-.footer-legal a, .footer-legal a:visited { color: #555; text-decoration: none; font-size: 11px; letter-spacing: 3px; transition: color 0.3s; font-family: 'Times New Roman', serif; }
+/* #7d7d7d, no #555: sobre negro, #555 da un contraste de 2,8:1 y WCAG AA pide
+   4,5:1 para texto de este tamaño. #7d7d7d da ~4,9:1 y sigue siendo el
+   registro apagado del pie — legal visible, no legal protagonista. */
+.footer-legal a, .footer-legal a:visited { color: #7d7d7d; text-decoration: none; font-size: 11px; letter-spacing: 3px; transition: color 0.3s; font-family: 'Times New Roman', serif; }
 .footer-legal a:hover { color: #aaa; }
 
 /* Suppress focus ring on programmatically focused heading */

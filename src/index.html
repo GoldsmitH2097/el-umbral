@@ -389,9 +389,12 @@
   <div class="mobile-detail-header">
     <video disablepictureinpicture id="mobile-char-video-bg" loop muted playsinline preload="none" aria-hidden="true"></video>
     <button id="mobile-char-close" data-i18n="mobile-detail.back">← Volver</button>
+    <!-- role=tab + aria-selected como en el tablist de escritorio: en móvil
+         este panel es la ÚNICA vía al contenido del personaje, y un tablist
+         sin tabs es un mueble vacío para un lector de pantalla. -->
     <nav class="reading-tabs reading-tabs--mobile" role="tablist">
-      <button class="reading-tab reading-tab--active" data-tab="autor" data-i18n="nav.author">Autor</button>
-      <button class="reading-tab" data-tab="libros" data-i18n="nav.books">Libros</button>
+      <button class="reading-tab reading-tab--active" role="tab" aria-selected="true" data-tab="autor" data-i18n="nav.author">Autor</button>
+      <button class="reading-tab" role="tab" aria-selected="false" data-tab="libros" data-i18n="nav.books">Libros</button>
     </nav>
   </div>
   <!-- Scrollable content — below the header -->

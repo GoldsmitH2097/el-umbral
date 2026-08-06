@@ -3,10 +3,15 @@
   command = "npm run build"
   publish = "dist"
 
-[[redirects]]
-  from   = "/*"
-  to     = "/index.html"
-  status = 200
+# AQUÍ NO HAY CATCH-ALL, Y ES A PROPÓSITO. Vivió uno ("/*" -> /index.html 200)
+# desde el primer commit: el soft-200 que sirvió la home con canonical "/" para
+# CUALQUIER URL inexistente y llenó Google de duplicados fantasma imposibles de
+# validar (CLAUDE.md: "FIXED July 27, 2026 — do not regress"). El fix de julio
+# lo sustituyó en public/_redirects ("/*" -> /404.html 404) pero olvidó borrar
+# este bloque, que quedó muerto solo por precedencia (_redirects se procesa
+# antes que netlify.toml): si _redirects se vaciara o dejara de copiarse a
+# dist, el soft-200 renacía en silencio, sin error de build. Las redirecciones
+# viven ÚNICAMENTE en public/_redirects — no añadas reglas de redirect aquí.
 
 # Baseline security headers
 [[headers]]
