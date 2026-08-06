@@ -190,9 +190,15 @@
     padding: 0; margin-top: 10px;
   }
   .obra-book--available .obra-editions--shop::before { content: none; }
-  /* La portada y el texto, por encima del lecho y el aura re-anclados. */
-  .obra-book--available .obra-cover,
-  .obra-book--available .obra-meta { position: relative; z-index: 2; }
+  /* SIN posicionar la portada ni el texto: la primera versión les puso
+     position:relative y eso los convertía en el ancla de las capas absolutas
+     del cofre — los ornamentos enmarcaban el bloque de texto en vez de la
+     tarjeta (se veía en el iPhone de Ruben). Estáticos, el ancla es la
+     tarjeta y el decorado pinta encima del contenido, igual que siempre
+     hizo dentro del cofre original. */
+  /* Las esquinas talladas, fuera en el móvil (Ruben: «too much») — el marco
+     doble ya dice cofre; en 375 px las esquinas eran ruido sobre el sello. */
+  .obra-book--available .loot-corner { display: none; }
   .obra-title { font-size: 13px; letter-spacing: 2px; color: #ddd; }
   .obra-desc { opacity: 1 !important; max-height: none !important; font-size: 12px; color: #777; line-height: 1.7; }
   .obra-btn { margin-top: 8px; padding: 8px 16px; font-size: 9px; align-self: flex-start; }
