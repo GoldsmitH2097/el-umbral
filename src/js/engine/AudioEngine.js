@@ -35,6 +35,16 @@ export class AudioEngine {
 
   init() {
     if (this.initialized || this._initializing) return;
+    /* SIN ACTIVACIÓN REAL, NO SE CREA NADA. Los dos llamantes de init() viven
+       en gestos (mousedown/touchstart), así que para un visitante humano esta
+       guarda es invisible: hasBeenActive ya es true. A quien protege es del
+       gesto SINTÉTICO — las herramientas de auditoría disparan eventos que
+       Firefox no cuenta como activación, el contexto nacía bloqueado y la
+       consola se llenaba de «AudioContext was prevented from starting». El
+       gesto real que venga después inicializa con normalidad. Navegadores
+       sin userActivation (viejos) pasan de largo: mejor un aviso en consola
+       que una web muda. */
+    if (navigator.userActivation && !navigator.userActivation.hasBeenActive) return;
     this._initializing = true;
     try {
       // iOS mute-switch bypass — play the hidden <audio> element on first gesture.

@@ -14,7 +14,7 @@
  * luciérnaga-compañera.
  */
 
-import { t } from '../core/i18n.js';
+import { t, lang } from '../core/i18n.js';
 import { sesionDeAudio } from '../engine/AudioEngine.js';
 
 export class TiznoTease {
@@ -138,10 +138,10 @@ export class TiznoTease {
           const vivo = micro.getAudioTracks().some((t) => t.readyState === 'live');
           if (w && w.__tiznoConStream) {
             w.__tiznoConStream(micro);
-            if (!vivo) this._diagMicro('la madre abrió el micro pero la pista nace muerta');
+            if (!vivo) this._diagMicro(t('tizno.micro-muerta'));
           } else {
-            micro.getTracks().forEach((t) => t.stop());
-            this._diagMicro('el marco aún no tiene buzón para el micro');
+            micro.getTracks().forEach((tr) => tr.stop());
+            this._diagMicro(t('tizno.micro-buzon'));
           }
         } catch (err) {
           /* Si falla AQUÍ, en la página que ha recibido el toque, no es cosa
@@ -149,13 +149,15 @@ export class TiznoTease {
              recuerda la negativa POR DOMINIO y no vuelve a preguntar nunca
              más, así que el visitante se queda sin cartel y sin pista. Por eso
              el mensaje deja de nombrar el error y pasa a decir qué hay que
-             tocar — un nombre de excepción no ha arreglado nunca nada. */
+             tocar — un nombre de excepción no ha arreglado nunca nada.
+             Vía t(): la instrucción de remedio era lo único del footer que un
+             visitante de /en/ recibía en castellano (auditoría, 6-ago). */
           const nombre = err?.name || 'error';
           this._diagMicro(nombre === 'NotAllowedError' || nombre === 'SecurityError'
-            ? 'el navegador tiene el micrófono vetado en esta web — «aA» en la barra de direcciones → Ajustes del sitio web → Micrófono → Permitir, y recarga'
+            ? t('tizno.micro-vetado')
             : nombre === 'NotFoundError'
-            ? 'este aparato no tiene micrófono que prestar'
-            : 'la madre tampoco puede: ' + nombre);
+            ? t('tizno.micro-ausente')
+            : t('tizno.micro-fallo') + nombre);
         }
       }
       this._enviar({ tipo: 'hablar' });
@@ -206,7 +208,11 @@ export class TiznoTease {
     if (!this._frame) {
       this._frame = document.createElement('iframe');
       this._frame.id = 'tizno-frame';
-      this._frame.src = '/tizno-ai.html?embed=1';
+      /* El idioma viaja en la URL del marco: el embed no comparte el módulo
+         i18n de la página, así que este parámetro es su única forma de saber
+         en qué lengua hablarle al visitante (estados del susurro hoy; la
+         sesión de voz de ElevenLabs cuando se encienda TIZNO_EN_LISTO). */
+      this._frame.src = '/tizno-ai.html?embed=1&lang=' + (lang === 'en' ? 'en' : 'es');
       this._frame.title = 'Tizno';
       this._frame.setAttribute('allow', 'microphone');   // fase 3: la voz
       this._frame.setAttribute('allowtransparency', 'true');

@@ -312,6 +312,19 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
 .archive-col[data-archetype="emperatriz"].archive-col--active .archive-pillar video {
   opacity: 0.62; filter: grayscale(0%) brightness(0.76) contrast(1.12);
 }
+/* LAS CUATRO ENCENDIDAS DONDE NO EXISTE EL RATÓN (Ruben, 6-ago). En pantalla
+   grande el revelado cuelga de :hover; en una tableta —layout de escritorio,
+   cero hover— nada podía encenderse jamás: cuatro segundos de bienvenida y
+   oscuridad permanente. El bug de la Emperatriz con otra ropa. Un apagado que
+   espera un ratón no tiene sentido donde no hay ratón: aquí nacen reveladas
+   las cuatro, con la calibración de la Emperatriz incluida (su retrato es el
+   más luminoso y a igual opacidad pesa el doble). */
+@media (hover: none) and (min-width: 769px) {
+  .archive-pillar .pillar-content h3 { color: #e8c87a; text-shadow: 0 0 20px rgba(200,146,42,0.4); }
+  .archive-pillar .pillar-content p { opacity: 1; }
+  .archive-pillar video { opacity: 0.68; filter: grayscale(0%) brightness(0.85) contrast(1.1); }
+  .archive-col[data-archetype="emperatriz"] .archive-pillar video { opacity: 0.62; filter: grayscale(0%) brightness(0.76) contrast(1.12); }
+}
 .archive-pillar .pillar-content {
   position: relative; z-index: 2; text-align: center; padding-bottom: 8px;
 }
@@ -697,9 +710,12 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
 .fb-right { display: flex; align-items: center; gap: 12px; position: relative; }
 .footer-puerta[hidden] { display: none; }   /* el display de la clase vencía al atributo hidden */
 .footer-puerta {
-  background: transparent; border: 1px solid rgba(200,146,42,0.28);
+  /* #b98d3f / borde 0.45: con #8a6b30 al 0.28 el botón desaparecía en cuanto
+     había luz ambiente sobre la pantalla (Ruben lo tocaba a ciegas en el
+     iPhone). Es el único CTA de la barra: apagado sí, invisible no. */
+  background: transparent; border: 1px solid rgba(200,146,42,0.45);
   border-radius: 3px; padding: 7px 14px; cursor: pointer;
-  color: #8a6b30; font-size: 9px; letter-spacing: 2.5px; text-transform: uppercase;
+  color: #b98d3f; font-size: 9px; letter-spacing: 2.5px; text-transform: uppercase;
   font-family: inherit; display: inline-flex; align-items: center; gap: 8px;
   transition: color 0.3s, border-color 0.3s, box-shadow 0.4s;
   white-space: nowrap;
@@ -717,7 +733,7 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
 /* segundo hilo por dentro: el marco doble de los cofres */
 .footer-puerta::before {
   content: ''; position: absolute; inset: 3px;
-  border: 1px solid rgba(200,146,42,0.22);
+  border: 1px solid rgba(200,146,42,0.3);
   pointer-events: none;
 }
 /* el destello que lo recorre */

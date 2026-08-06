@@ -436,6 +436,15 @@
         /* ¿Vivimos dentro de la web madre? */
         const EMBED = /[?&]embed=1/.test(location.search);
         if (EMBED) document.documentElement.classList.add('embed');
+        /* El idioma llega en la URL (la madre lo pone al crear el marco): el
+           embed no comparte el módulo i18n de la página, y este parámetro es
+           su única fuente de verdad para hablar al visitante en su lengua. */
+        const IDIOMA = /[?&]lang=en/.test(location.search) ? 'en' : 'es';
+        /* Interruptor de la VOZ en inglés (los textos ya van por IDIOMA).
+           false hasta que el agente de ElevenLabs tenga English como idioma
+           adicional y el override de language permitido — ver el comentario
+           largo en startSession. Encenderlo antes rompería la llamada. */
+        const TIZNO_EN_LISTO = false;
         window.__ESC = 1;   // escala real del marco (el puente embed la actualiza)
 
         /* Valores ajustables en vivo desde el panel (?tune=1). */
@@ -2400,9 +2409,47 @@
         const statusEl = document.getElementById('tizno-status');
         let conversation = null;
 
+        /* ── LOS ESTADOS, EN LA LENGUA DEL VISITANTE ─────────────────────
+           Los literales de setStatus siguen en castellano en cada llamada —
+           tocar dieciocho sitios en un fichero que se minifica es pedir un
+           accidente — y la traducción vive AQUÍ, en la única puerta por la
+           que todos pasan. El mapa va de literal exacto a inglés; los tres
+           mensajes que llevan cola dinámica (nombre de error) se resuelven
+           por prefijo. Un estado sin entrada sale en castellano: mejor
+           castellano que silencio. */
+        const ESTADOS_EN = {
+            'Tizno ya ha hablado mucho hoy… vuelve mañana': 'Tizno has talked enough for today… come back tomorrow',
+            'pidiendo micrófono…': 'asking for the microphone…',
+            'micrófono bloqueado — pulsa el candado de la barra de direcciones → Micrófono → Permitir, y recarga': 'microphone blocked — tap the padlock in the address bar → Microphone → Allow, then reload',
+            'no encuentro ningún micrófono en este dispositivo': 'I can’t find a microphone on this device',
+            'invocando a Tizno…': 'summoning Tizno…',
+            'el vacío no responde (sin conexión) — reintenta': 'the void does not answer (no connection) — try again',
+            'Tizno te escucha… habla': 'Tizno is listening… speak',
+            'Tizno se ha despistado… háblale otra vez': 'Tizno got distracted… speak to him again',
+            'oigo ruido continuo — pausa vídeos o música o Tizno no podrá responder': 'I hear constant noise — pause any video or music or Tizno won’t be able to answer',
+            'Tizno se ha cansado de hablar… déjale descansar': 'Tizno is tired of talking… let him rest',
+            'a Tizno se le cierran los ojos…': 'Tizno’s eyes are closing…',
+            'se ha evaporado': 'he has vanished',
+            'Tizno rumia…': 'Tizno is mulling it over…',
+            'su voz no ha despertado…': 'his voice has not awakened…',
+        };
+        const PREFIJOS_EN = [
+            ['sin micrófono no hay conversación (', 'no microphone, no conversation ('],
+            ['algo se rompió en el vacío: ', 'something broke in the void: '],
+            ['no se pudo invocar: ', 'the summoning failed: '],
+        ];
+        const traducirEstado = (txt) => {
+            if (IDIOMA !== 'en' || !txt) return txt;
+            if (ESTADOS_EN[txt]) return ESTADOS_EN[txt];
+            for (const [es, en] of PREFIJOS_EN) {
+                if (txt.startsWith(es)) return en + txt.slice(es.length);
+            }
+            return txt;
+        };
         const setStatus = (t) => {
-            statusEl.textContent = t;
-            if (window.__tiznoSetStatus) window.__tiznoSetStatus(t);   // relé embed
+            const traducido = traducirEstado(t);
+            statusEl.textContent = traducido;
+            if (window.__tiznoSetStatus) window.__tiznoSetStatus(traducido);   // relé embed
         };
         let lastState = 'idle', lastStateAt = Date.now();
         const setState = (s) => { lastState = s; lastStateAt = Date.now(); window.__setTiznoAI(s); };
@@ -2669,6 +2716,23 @@
                 conversation = await Conversation.startSession({
                     agentId: AGENT_ID,
                     connectionType: 'websocket',
+                    /* ── TIZNO BILINGÜE, LISTO PERO APAGADO ──────────────────
+                       Todo el cableado del inglés está puesto: el idioma llega
+                       de la madre por la URL, viaja como variable al prompt, y
+                       el override de abajo le pediría a ElevenLabs la sesión
+                       en inglés con LA MISMA voz (los modelos multilingües
+                       hablan ambos idiomas con la voz clonada de Ruben).
+                       Está tras un interruptor porque el override FALLA si el
+                       agente no lo permite aún. Para encenderlo, en el panel
+                       de ElevenLabs del agente: (1) Agent → añadir English
+                       como idioma adicional; (2) Security → Enable overrides →
+                       language. Hecho eso, TIZNO_EN_LISTO = true y ya.
+                       Las tomas pregrabadas (ouch, gruñido, súplica) seguirán
+                       en castellano hasta que Ruben grabe las inglesas: una
+                       criatura española que reacciona en su lengua es
+                       carácter, no defecto. */
+                    ...(IDIOMA === 'en' && TIZNO_EN_LISTO
+                        ? { overrides: { agent: { language: 'en' } } } : {}),
                     // Variables por si el prompt del agente las usa ({{hora}}…).
                     dynamicVariables: {
                         hora: dossier.hora, franja: dossier.franja, dia: dossier.dia,
@@ -2676,6 +2740,7 @@
                         dispositivo: dossier.movil ? 'móvil' : 'ordenador',
                         bateria: dossier.bateria ? String(dossier.bateria.pct) : 'desconocida',
                         nombre_usuario: dossier.nombre || 'desconocido',
+                        idioma: IDIOMA,
                         saludo: dossier.visitas > 1 && Math.random() < 0.6
                                 ? pick(SALUDOS_VUELVE) : pick(SALUDOS_GENERAL),
                     },

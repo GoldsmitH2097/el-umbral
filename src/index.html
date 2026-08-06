@@ -244,8 +244,13 @@
 <div id="ambient-light" aria-hidden="true"></div>
 <div id="ui">
   <div id="instruccion" data-i18n-html="scene1.instruction">Haz clic y mantén pulsado<br>para encender la llama</div>
-  <div id="instruccion-mobile" data-i18n-html="scene1.instruction.mobile">Toca y mantén pulsado<br>para encender la llama</div>
 </div>
+<!-- FUERA DE #ui A PROPÓSITO. #ui lleva transform para centrarse, y CUALQUIER
+     transform convierte al elemento en el bloque contenedor de sus
+     descendientes position:fixed — el mismo bug que nos despegó el footer. La
+     instrucción móvil es fixed a pantalla completa: dentro de #ui, su
+     inset:0 medía la cajita de #ui y el texto quedaba descentrado. -->
+<div id="instruccion-mobile" data-i18n-html="scene1.instruction.mobile">Toca y mantén pulsado<br>para encender la llama</div>
 <div id="editorial-watermark" data-i18n-html="editorial.watermark-html">Editorial independiente española<br>de ficción oscura y universos de autor</div>
 <button id="umbral-btn" data-i18n="scene1.umbral-button" data-i18n-attr-aria-label="scene1.umbral-aria" aria-label="Adentrarse en El Umbral">EL UMBRAL</button>
 
