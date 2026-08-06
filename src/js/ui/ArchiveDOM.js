@@ -332,25 +332,28 @@ export class ArchiveDOM {
 
           const ctaHtml = renderCta(item);
 
-          const statusLabels = { 'available': t('pill.available'), 'coming-soon': t('pill.coming-soon'), 'countdown': t('pill.countdown') };
           const formatLabels = { 'Novela': t('format.book'), 'Novela — Edición de coleccionista': t('format.book'), 'Experiencia web interactiva': t('format.experience'), 'Antología': t('format.anthology') };
 
-          /* El cofre (renderCta) va FUERA de .obra-meta: en el rediseño la
-             tarjeta es una rejilla —portada | título arriba, tiendas de lado
-             a lado abajo— y la fila de tiendas necesita cruzar las dos
-             columnas. Dentro de meta quedaría presa de la columna derecha. */
-          card.innerHTML = `
+          /* El cofre comprable es galería, no ficha (Ruben, 6-ago): la portada
+             ya lleva título y subtítulo tipografiados, y el marco dorado con
+             la fila de tiendas ya dice «disponible» — repetirlos era ruido.
+             El h3 queda .sr-only: lectores de pantalla y buscadores siguen
+             oyendo el nombre del libro aunque la vista sea solo portada. */
+          card.innerHTML = item.status === 'available'
+            ? `
+            ${coverHtml}
+            <h3 class="sr-only">${itemTitle}${itemSubtitle ? ` — ${itemSubtitle}` : ''}</h3>
+            ${ctaHtml}`
+            : `
             ${coverHtml}
             <div class="obra-meta">
               <div class="obra-badges">
-                ${item.status === 'available' ? `<span class="obra-status-pill obra-status-pill--${item.status}">${statusLabels[item.status]}</span>` : ''}
-                ${item.status !== 'available' && item.format ? `<span class="obra-format-badge">${formatLabels[item.format] || item.format}</span>` : ''}
+                ${item.format ? `<span class="obra-format-badge">${formatLabels[item.format] || item.format}</span>` : ''}
               </div>
               <h3 class="obra-title">${itemTitle}</h3>
               ${itemSubtitle ? `<p class="obra-subtitle">${itemSubtitle}</p>` : ''}
-              ${item.status === 'available' ? '' : ctaHtml}
-            </div>
-            ${item.status === 'available' ? ctaHtml : ''}`;
+              ${ctaHtml}
+            </div>`;
           books.appendChild(card);
 
           const charIdx = CHARACTERS.findIndex(c => c.slug === item.archetype);

@@ -666,9 +666,11 @@
    work only, nothing that repaints layout (the blur(20px) lesson stands).
    Everything is gated behind prefers-reduced-motion at the end of this file. */
 /* ── EL COFRE ES LA TARJETA ENTERA (rediseño Ruben, 6-ago) ────────────────
-   Unificado escritorio + móvil: el marco dorado doble envuelve la tarjeta
-   completa del libro comprable — portada grande a la izquierda, título a la
-   derecha, y una sola fila de tiendas cruzando de lado a lado por abajo.
+   Unificado escritorio + móvil, versión galería (2ª iteración, mismo día):
+   la portada habla sola — título, subtítulo y DISPONIBLE murieron de la
+   tarjeta porque la portada ya los lleva tipografiados y el marco dorado con
+   tiendas ya dice «comprable». Portada a todo el ancho, fila de tiendas de
+   lado a lado debajo. El h3 sigue en el DOM como .sr-only (ArchiveDOM).
    Las capas decorativas del cofre (aura, lecho, destello) son absolutas: al
    dejar .obra-editions--shop en static, su ancla pasa a ser la tarjeta y la
    visten entera. Las esquinas talladas murieron aquí (Ruben: «too much»). */
@@ -680,9 +682,9 @@
      tarjeta (el mis-anclaje de la v1). La tarjeta ya era el ancla — inocuo. */
   container-type: inline-size;
   display: grid;
-  grid-template-columns: minmax(110px, 2fr) 3fr;
-  grid-template-areas: 'cover meta' 'tiendas tiendas';
-  gap: 12px 16px; align-items: start;
+  grid-template-columns: 1fr;
+  grid-template-areas: 'cover' 'tiendas';
+  gap: 14px; align-items: start;
   border: 2px solid transparent;
   padding: 16px 14px 20px;
   background:
@@ -701,9 +703,6 @@
   transition: border-color 0.6s ease;
 }
 .obra-book--available .obra-cover { grid-area: cover; max-width: none; min-width: 0; width: 100%; margin: 0; }
-/* align-self: center — el bloque DISPONIBLE+título cuelga a la altura media
-   del libro, no pegado al techo de la tarjeta (Ruben, 6-ago). */
-.obra-book--available .obra-meta  { grid-area: meta; text-align: left; align-items: flex-start; align-self: center; }
 .obra-book--available .obra-editions { grid-area: tiendas; }
 .obra-editions--shop { position: static; padding: 0; margin: 0; }
 .loot-corner { display: none; }
@@ -716,6 +715,10 @@
      únicamente el mínimo de seguridad contra el salto de línea. */
   justify-content: space-evenly; gap: 12px 4px; width: 100%;
   position: relative; z-index: 3;
+  /* La nota EBOOK hace la fila de Pulso ~12px más alta que la de Filamentos
+     (solo Amazon). Reservarlo siempre iguala la altura de los dos cofres —
+     la simetría que pidió Ruben con la versión galería. */
+  min-height: calc(var(--slot) + 12px);
   /* El ancho de tarjeta va de ~280px (portátil 1280, rejilla de 4 columnas) a
      ~350px (pantallas anchas) — un slot fijo o parte la fila o queda enano.
      MEDIDO: cada ancla ocupa slot+4px. Suelo 40px ⇒ fila mínima 5×44+1+5×4
