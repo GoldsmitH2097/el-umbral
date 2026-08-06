@@ -380,9 +380,23 @@
      tenía suelo y el nombre del arquetipo no. Se ve clarísimo en la
      Emperatriz, cuyo retrato es el más luminoso. Ahora la placa cubre el
      bloque entero y solo se afila en el borde superior, para no cortar. */
+  /* LA PLACA MORÍA JUSTO DONDE ESTÁ EL TÍTULO, Y ESE ERA TODO EL MISTERIO.
+     Llevábamos días tratando esto como un problema de opacidad del texto y
+     poniéndole `opacity: 1 !important` al h3 y al p, una y otra vez, sin que
+     cambiara nada. No podía cambiar: el texto siempre estuvo opaco. Lo que
+     fallaba era el suelo oscuro que lo separa del vídeo — este degradado
+     llegaba a 0.5 al 88% y a transparente al 100%, y el h3 vive exactamente
+     en ese borde de arriba. Sobre los otros tres retratos daba igual porque
+     son oscuros; sobre la Emperatriz, que es el más luminoso de los cuatro,
+     su cara se encendía al arrancar el vídeo y se comía las letras. De ahí
+     que Ruben lo describiera como «sale bien al principio y hace un fade
+     out»: no se desvanecía el texto, se encendía el fondo — el póster inmóvil
+     es oscuro y el primer fotograma en movimiento ya no.
+     Ahora el suelo se mantiene alto por todo el bloque y solo se afila en el
+     último 8%, que es aire por encima del título y no el título. */
   .archive-pillar .pillar-content {
     background: linear-gradient(to top,
-      rgba(2,2,2,0.86) 0%, rgba(2,2,2,0.78) 55%, rgba(2,2,2,0.5) 88%, rgba(2,2,2,0) 100%);
+      rgba(2,2,2,0.9) 0%, rgba(2,2,2,0.88) 62%, rgba(2,2,2,0.82) 92%, rgba(2,2,2,0) 100%);
     padding: 16px 16px 10px; margin: 0 -16px -8px;
   }
   /* Y el texto, legible en las cuatro columnas pase lo que pase detrás. */
@@ -410,11 +424,28 @@
 /* El susurro de estado, legible en un teléfono: sobre la barra, centrado y
    con suelo propio, porque ahí detrás puede estar pasando cualquier cosa. */
 @media (max-width: 768px) {
+  /* ── EL SUSURRO, SIN CAJA ──────────────────────────────────────────────
+     Era un cartel con fondo y borde flotando sobre Tizno, y un cartel pide
+     que lo leas. Lo que dice —«Tizno te escucha», «Tizno habla»— no es un
+     aviso: es el pulso de la llamada, algo que se mira de reojo. Así que
+     pierde la caja y se pega al botón, que es lo que está describiendo.
+
+     Se queda JUSTO ENCIMA de la barra y no dentro de ella por una razón de
+     sitio, no de gusto: en un móvil el botón ya ocupa casi todo el ancho, y
+     meterle texto al lado obligaría a estrujarlo. Alineado a la derecha cae
+     sobre el botón mismo, que a efectos de lectura es estar a su lado. */
   #liberar-susurro {
-    right: auto; left: 50%; transform: translateX(-50%);
-    bottom: calc(100% + 12px); font-size: 11px; letter-spacing: 1px;
-    color: #a08a6a; background: rgba(6,5,4,0.92);
-    padding: 7px 14px; border: 1px solid rgba(200,146,42,0.25);
-    max-width: 84vw; white-space: normal; text-align: center;
+    right: 0; left: auto; transform: none;
+    bottom: calc(100% + 7px);
+    font-size: 10px; letter-spacing: 1.5px;
+    color: #8a7458; background: none; border: 0; padding: 0;
+    max-width: 78vw; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; text-align: right;
+  }
+  /* Los mensajes de error sí son avisos y sí hay que leerlos enteros: solo
+     ellos recuperan varias líneas. La clase la pone el propio diagnóstico. */
+  #liberar-susurro.aviso {
+    white-space: normal; text-align: right; font-size: 11px;
+    line-height: 1.5; max-width: 72vw;
   }
 }

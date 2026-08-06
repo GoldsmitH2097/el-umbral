@@ -184,6 +184,7 @@ export class TiznoTease {
         const esFalloMicro = /micrófono|InvalidStateError/i.test(m.texto || '');
         el.textContent = (esFalloMicro && this._causaMicro) ? this._causaMicro : m.texto;
         el.classList.add('visible');
+        el.classList.toggle('aviso', esFalloMicro);
         clearTimeout(this._susurroT);
         this._susurroT = setTimeout(() => el.classList.remove('visible'), esFalloMicro ? 9000 : 4000);
       }
@@ -367,7 +368,10 @@ export class TiznoTease {
     const el = this._susurroEl();
     if (!el) return;
     el.textContent = texto;
-    el.classList.add('visible');
+    /* 'aviso' distingue lo que hay que leer entero (un fallo, con su remedio)
+       de lo que solo se mira de reojo («Tizno te escucha»): solo lo primero
+       recupera varias líneas en el móvil. */
+    el.classList.add('visible', 'aviso');
     clearTimeout(this._diagMicroT);
     this._diagMicroT = setTimeout(() => el.classList.remove('visible'), 9000);
   }
