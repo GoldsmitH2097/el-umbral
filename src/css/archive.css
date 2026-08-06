@@ -294,6 +294,7 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
   transform: scale(1); pointer-events: none; z-index: 0;
 }
 .archive-col:hover .archive-pillar video,
+.archive-col--active .archive-pillar video,
 .archive-col--highlighted .archive-pillar video {
   opacity: 0.68; filter: grayscale(0%) brightness(0.85) contrast(1.1);
 }
@@ -309,7 +310,7 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
 .archive-col[data-archetype="emperatriz"]:hover .archive-pillar video,
 .archive-col[data-archetype="emperatriz"].archive-col--highlighted .archive-pillar video,
 .archive-col[data-archetype="emperatriz"].archive-col--active .archive-pillar video {
-  opacity: 0.56; filter: grayscale(0%) brightness(0.66) contrast(1.12);
+  opacity: 0.62; filter: grayscale(0%) brightness(0.76) contrast(1.12);
 }
 .archive-pillar .pillar-content {
   position: relative; z-index: 2; text-align: center; padding-bottom: 8px;
@@ -319,7 +320,19 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
   text-transform: uppercase; line-height: 1.5;
   transition: color 0.5s ease, text-shadow 0.5s ease;
 }
+/* LA COLUMNA ACTIVA SE MUESTRA REVELADA, Y ESTE ERA EL BUG DE LA EMPERATRIZ.
+   El oro del título y la opacidad plena colgaban de :hover y de --highlighted,
+   y --highlighted se retira sola a los cuatro segundos (ver ArchiveDOM). En
+   escritorio no se nota: tienes el ratón encima sosteniéndolo. En un móvil no
+   hay hover, así que pasados esos cuatro segundos el texto se apagaba y no
+   volvía jamás — y le tocaba siempre a la primera columna, la Emperatriz,
+   porque es la única que llevas rato mirando antes de deslizar. De ahí que
+   pareciera «sale bien al principio y hace un fade out», y de ahí que no lo
+   arreglara ningún opacity sobre el texto: el texto estaba bien, lo que
+   caducaba era el estado. --active no caduca: es la columna que estás
+   mirando. */
 .archive-col:hover .archive-pillar .pillar-content h3,
+.archive-col--active .archive-pillar .pillar-content h3,
 .archive-col--highlighted .archive-pillar .pillar-content h3 {
   color: #e8c87a;
   text-shadow: 0 0 20px rgba(200,146,42,0.4);
@@ -337,6 +350,7 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
   text-wrap: pretty;
 }
 .archive-col:hover .archive-pillar .pillar-content p,
+.archive-col--active .archive-pillar .pillar-content p,
 .archive-col--highlighted .archive-pillar .pillar-content p { opacity: 1; }
 .archive-pillar .pillar-social {
   display: flex; gap: 12px; justify-content: center; margin-top: 14px;

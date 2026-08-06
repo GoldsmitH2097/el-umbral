@@ -130,7 +130,22 @@
   .archive-col--active .archive-pillar .pillar-content p { opacity: 1 !important; }
   .archive-pillar .pillar-content { text-align: left !important; }
   .archive-pillar .pillar-content h3 { margin: 0 0 10px !important; font-size: 14px; letter-spacing: 4px; color: rgba(255,255,255,0.85) !important; }
-  .archive-pillar .pillar-content p { opacity: 1 !important; font-size: 12px; margin: 0; max-width: none; line-height: 1.7; }
+  /* CADA FRASE CAÍA DONDE LE PARECÍA. El párrafo heredaba del escritorio un
+     `display:flex` con `align-items:flex-start` y un `min-height` de 5.1em
+     —una reserva pensada para que los cuatro títulos se alineasen estando en
+     columna, uno al lado del otro—, pero en el móvil se ven de uno en uno y
+     esa reserva ya no alinea nada: solo deja un hueco distinto bajo cada
+     nombre según la frase sea de una línea o de tres. Y el flex, además,
+     desarmaba el centrado del texto en las que ocupaban varias líneas: la
+     Sortílega salía en bandera a la izquierda y las demás centradas.
+     Aquí vuelve a ser un párrafo normal, centrado y sin reserva: las cuatro
+     se comportan igual. El ancho en `ch` corta por número de caracteres, así
+     que las líneas quedan parecidas de largo vengan de la frase que vengan. */
+  .archive-pillar .pillar-content p {
+    opacity: 1 !important; font-size: 12px; line-height: 1.7;
+    display: block; min-height: 0;
+    margin: 0 auto; max-width: 34ch; text-align: center;
+  }
 
   .archive-books { border-top: 1px solid rgba(255,255,255,0.04); }
   .obra-book { flex-direction: row; align-items: flex-start; gap: 18px; }
