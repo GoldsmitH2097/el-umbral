@@ -396,7 +396,7 @@
      último 8%, que es aire por encima del título y no el título. */
   .archive-pillar .pillar-content {
     background: linear-gradient(to top,
-      rgba(2,2,2,0.9) 0%, rgba(2,2,2,0.88) 62%, rgba(2,2,2,0.82) 92%, rgba(2,2,2,0) 100%);
+      rgba(2,2,2,0.86) 0%, rgba(2,2,2,0.8) 62%, rgba(2,2,2,0.64) 92%, rgba(2,2,2,0) 100%);
     padding: 16px 16px 10px; margin: 0 -16px -8px;
   }
   /* Y el texto, legible en las cuatro columnas pase lo que pase detrás. */

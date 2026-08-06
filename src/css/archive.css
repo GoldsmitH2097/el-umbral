@@ -297,6 +297,20 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
 .archive-col--highlighted .archive-pillar video {
   opacity: 0.68; filter: grayscale(0%) brightness(0.85) contrast(1.1);
 }
+/* LAS CUATRO NO SON LA MISMA GRABACIÓN. El salto de revelado —del 22% en gris
+   al 68% en color— se calibró una vez y se aplicó a los cuatro por igual, pero
+   el retrato de la Emperatriz está rodado mucho más luminoso que los otros
+   tres: el mismo 68% en ella pesa casi el doble, y su cara acababa comiéndose
+   el texto de encima. Antes lo tapábamos engordando la placa negra del título,
+   que es apagar una luz poniéndole una manta. Se baja aquí, en el origen, para
+   que las cuatro columnas caigan al mismo peso: el efecto es el mismo, deja de
+   ser el más fuerte de los cuatro. Si algún día se recambia el vídeo, este es
+   el único número que hay que volver a mirar. */
+.archive-col[data-archetype="emperatriz"]:hover .archive-pillar video,
+.archive-col[data-archetype="emperatriz"].archive-col--highlighted .archive-pillar video,
+.archive-col[data-archetype="emperatriz"].archive-col--active .archive-pillar video {
+  opacity: 0.56; filter: grayscale(0%) brightness(0.66) contrast(1.12);
+}
 .archive-pillar .pillar-content {
   position: relative; z-index: 2; text-align: center; padding-bottom: 8px;
 }
