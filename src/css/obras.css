@@ -733,6 +733,20 @@
 @container (min-width: 295px) {
   .cofre-strip { --slot: 46px; gap: 12px 8px; }
 }
+/* Viewports 900–1220 (columnas de 4 muy estrechas, p. ej. iPad apaisado a
+   1024): ni el suelo de 40px cabe en una fila — space-evenly la parte en un
+   3+2 que se ve deliberado. Reservamos DOS filas en ambos cofres para que
+   Pulso (3+2) y Filamentos (amazon solo, centrado en vertical) sigan siendo
+   gemelos de altura. */
+@container (max-width: 240px) {
+  .cofre-strip { min-height: calc(var(--slot) * 2 + 26px); align-content: center; }
+}
+/* Tablet vertical (569–768: layout móvil en pantalla ancha): el cofre a todo
+   el ancho era un descampado — portada náufraga y tiendas a kilómetros. La
+   tarjeta se acota y centra; el marco conserva proporción de cofre. */
+@media (min-width: 569px) and (max-width: 768px) {
+  .obra-book--available { max-width: 460px; margin-left: auto; margin-right: auto; }
+}
 .cofre-sep {
   width: 1px; align-self: stretch; min-height: 34px;
   background: linear-gradient(to bottom, transparent, rgba(200,146,42,0.4), transparent);

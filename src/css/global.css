@@ -34,7 +34,8 @@ input[type="text"]:not([readonly]), input[type="email"], textarea { cursor: text
 .read-body p, .mobile-detail-lore p, .site-hero-sub,
 .reading-obra-vision, .reading-obra-subtitle, .obra-subtitle,
 .tizno-pacto-label, #editorial-watermark, .site-hero-editorial,
-.archive-pillar .pillar-content p { text-wrap: pretty; }
+.archive-pillar .pillar-content p,
+#aviso-modal p, #legal-modal-body p { text-wrap: pretty; }
 
 body, html {
   margin: 0; padding: 0; background-color: #020202; height: 100vh; overflow: hidden;
