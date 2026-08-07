@@ -53,10 +53,16 @@
    arms itself with the list.
 2. ✅ DONE Aug 7 — `microphone=(self)` deployed to **main** (commit cab3158, inert until
    Tizno merges: nothing in production requests the mic yet).
-3. Pacto form manual E2E on the preview (Ruben/Javier — 2 min). Clarity note (Ruben
-   asked): this is NOT the CONTACTO dropdown (that's just links, by design) — it's the
-   email capture inside Tizno's panel (the PRÓXIMAMENTE / locked CTAs open it). Submit
-   an email on the preview, then check Netlify dashboard → Forms (Javier's account).
+3. ~~Pacto form manual E2E~~ **VOID — Ruben caught this (Aug 7): the pact form no
+   longer exists.** Verified in code: the only trace is the hidden Netlify
+   registration stub (`form name="el-pacto"`, index.html:361) that keeps the mailbox
+   alive — NOTHING submits to it anymore. The old Tizno panel with the email field
+   died when Tizno became the voice agent; the PRÓXIMAMENTE / locked CTAs still open
+   Tizno's panel, but there is no email capture inside. CLAUDE.md's "only form =
+   Tizno's pact" is stale. → PRODUCT DECISION for Ruben/Javier: (a) revive a small
+   email field in Tizno's panel for release notifications, (b) have Tizno capture
+   emails conversationally (needs a tool + storage), or (c) drop the idea and delete
+   the stub + fix CLAUDE.md. Until decided, there is nothing to E2E-test.
 4. Ruben tests Tizno EN voice on `/en/` preview (allowlist reverted, preview connects —
    re-verified Aug 7).
 5. Post-launch backlog: CSP report-only · Firefox idle-GPU trim · SEO content pass on
