@@ -1,5 +1,51 @@
 # HANDOVER.md — El Umbral / Soulware
-*Last updated: July 5, 2026 — Session 12 (Anatomía del Vacío Phase 0: full manuscript scored)*
+*Last updated: August 6, 2026 — Session 13 (cofre galería + Tizno EN + audits; PR #63 listo para enseñar a Javier)*
+
+---
+
+## What was completed — Session 13 (August 6, 2026)
+
+**All on branch `feat/umbral-footer` (PR #63, deploy-preview-63). NOT merged — Ruben approved the chest design ("amazing, i think we got it"); next step is showing Javier, then the merge conversation. PR #62 (Tizno) also NO MERGEAR.**
+
+- **Cofre "versión galería" (final)**: the buyable card is cover-only — no DISPONIBLE
+  pill, no repeated title/subtitle (the cover art carries them; the h3 stays as
+  `.sr-only` for SEO/a11y). Full-width cover + one shop row spread edge-to-edge
+  (space-evenly), ebook last behind a vertical filete with its EBOOK note
+  (letter-spacing optically compensated). Icon size is fluid via **container query on
+  the card** — floor 40px on ~280px cards (1280 laptops), 46px where they fit; NOTE:
+  container queries measure the **content-box**. Both chests identical height (strip
+  `min-height` reserves the EBOOK-note space). Mobile: cover capped at 250px and
+  centered so the whole 513px chest fits one viewport; frame + strip stay edge-to-edge.
+- **La Emperatriz "transparent text" — third skin of the same ghost, finally dead**:
+  the 4s welcome `--highlighted` expired and dropped the pillar description back to
+  opacity 0.75, only on the column you arrive with (nearly always hers). Rest state is
+  now opacity 1; hover keeps the gold title + video reveal. (Commit de19a3a.)
+- **Mobile pillars**: archetype title + description centered; "LAS CRÓNICAS" reveal no
+  longer reflows (scaleX instead of animating letter-spacing).
+- **New covers installed** (renamed, never overwritten — cache doctrine):
+  `filamentos-de-oscuridad-v2.webp`, `anatomia-del-vacio-v2.webp` + `/mobile/` 280w
+  variants; og-pages references updated. Astra cover still pending delivery.
+- **Tizno English live end-to-end**: ElevenLabs agent has English published + language
+  override; `tizno-ai.html` reads `?lang=`, EN status map incl. turn states
+  (`window.__traducirEstado`), EN greeting pools; TiznoTease passes the lang.
+  Knowledge base: Javier's 5 docs uploaded as separate text docs, RAG multilingual
+  embeddings. **Bilingual glossary COMPLETED Aug 7** (Tierra Médula terms verified
+  against the official EN manuscript of Pulse of the Core) — committed as
+  `GLOSARIO.md` (plain-text dump of Ruben's docx). ⏳ NEXT SESSION: upload it as a
+  text doc to Tizno's ElevenLabs KB (Create Text dialog, same flow as the other 6).
+- **Audits closed**: Claude verification 8/8 after the i18n fix; GPT's "Chrome doesn't
+  sleep" P0 refuted with Ruben's real Task Manager (47.9% visible → 0.4% hidden).
+  Earlier in the session: mobile canvas 7→60fps (half-resolution buffer), iOS mic fixed
+  (audioSession 'play-and-record'), 8 leaks sealed, a11y batch, obra deep links restore
+  the ficha (ES + EN).
+
+**Pre-merge / pre-launch checklist (the Javier conversation):**
+1. ElevenLabs agent **domain allowlist → soulware.live** (currently open — launch blocker).
+2. `microphone=(self)` must land in **main's** netlify.toml when merging (branch has it).
+3. Pacto form manual E2E on the preview (Ruben/Javier — 2 min).
+4. Ruben tests Tizno EN voice on `/en/` preview.
+5. Post-launch backlog: CSP report-only · Firefox idle-GPU trim · SEO content pass on
+   obra pages · CLS Pulso mobile + render-blocking CSS.
 
 ---
 
