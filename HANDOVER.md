@@ -40,10 +40,25 @@
   the ficha (ES + EN).
 
 **Pre-merge / pre-launch checklist (the Javier conversation):**
-1. ElevenLabs agent **domain allowlist → soulware.live** (currently open — launch blocker).
-2. `microphone=(self)` must land in **main's** netlify.toml when merging (branch has it).
-3. Pacto form manual E2E on the preview (Ruben/Javier — 2 min).
-4. Ruben tests Tizno EN voice on `/en/` preview.
+1. ElevenLabs agent **domain allowlist → soulware.live** — REHEARSED Aug 7, then reverted.
+   Findings (verified live with a raw WS-handshake probe, `scratchpad/ws-origin-probe.mjs`
+   pattern): enforcement WORKS — rejected origins get an in-band close ("Host X is not
+   allowed"), accepted ones get conversation metadata; the HTTP 101 handshake succeeds
+   either way, so a probe must read the FIRST FRAME, not the status code. Matching is
+   EXACT hostname: no wildcards (`*` rejected by the form validator) and the validator
+   also rejects Netlify's `--` deploy-preview hosts, so the preview can never be
+   allowlisted → the list stays open while preview testing is ongoing. AT LAUNCH: add
+   `soulware.live` (+ optionally `el-umbral.netlify.app`, both validated) in Settings →
+   Security → Allowlist and Publish — 3 clicks; "Fail when Origin header is missing"
+   arms itself with the list.
+2. ✅ DONE Aug 7 — `microphone=(self)` deployed to **main** (commit cab3158, inert until
+   Tizno merges: nothing in production requests the mic yet).
+3. Pacto form manual E2E on the preview (Ruben/Javier — 2 min). Clarity note (Ruben
+   asked): this is NOT the CONTACTO dropdown (that's just links, by design) — it's the
+   email capture inside Tizno's panel (the PRÓXIMAMENTE / locked CTAs open it). Submit
+   an email on the preview, then check Netlify dashboard → Forms (Javier's account).
+4. Ruben tests Tizno EN voice on `/en/` preview (allowlist reverted, preview connects —
+   re-verified Aug 7).
 5. Post-launch backlog: CSP report-only · Firefox idle-GPU trim · SEO content pass on
    obra pages · CLS Pulso mobile + render-blocking CSS.
 
