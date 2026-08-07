@@ -139,7 +139,9 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
 @keyframes heroFrase {
   to { opacity: 1; transform: translateY(0); filter: blur(0); }
 }
-.site-hero-editorial { font-size: 10.5px; color: #5d5d5d; letter-spacing: 3.5px; text-transform: uppercase; margin: 14px auto 0; max-width: 640px; font-style: normal; }
+/* Una sola voz con el subtítulo (Ruben, 7-ago): cursiva serif como las frases
+   de arriba, sin versalitas — jerarquía por tamaño y tono, no por disfraz. */
+.site-hero-editorial { font-size: 13px; color: #6f6f6f; letter-spacing: 1px; font-style: italic; margin: 14px auto 0; max-width: 640px; }
 #editorial-watermark {
   position: fixed; bottom: max(16px, env(safe-area-inset-bottom, 16px)); left: 50%; transform: translateX(-50%);
   font-size: 9px; letter-spacing: 4px; text-transform: uppercase;
