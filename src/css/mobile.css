@@ -164,10 +164,11 @@
      ahora GLOBAL — vive en obras.css, unificado escritorio + móvil. Aquí
      solo quedan los ajustes de medida del teléfono. */
   .obra-book--available { gap: 10px 14px; }
-  /* El Aviso en un 375: título contenido y campo cómodo bajo el pulgar. */
-  #aviso-modal h2 { font-size: 15px; letter-spacing: 4px; }
+  /* El Aviso en un 375: caja ceñida, título contenido, campo a ancho de caja. */
+  #aviso-modal-inner { padding: 28px 20px 24px; }
+  #aviso-modal h2 { font-size: 12px; letter-spacing: 4px; }
   #aviso-form { flex-direction: column; align-items: center; }
-  #aviso-email { min-width: 0; width: min(320px, 80vw); }
+  #aviso-email { min-width: 0; width: 100%; }
   /* El cofre entero en un vistazo (Ruben, 6-ago): la portada a todo el ancho
      medía ~467px de alto y echaba la fila de tiendas fuera de pantalla.
      Capada a 250px (~375 de alto) el cofre completo —marco, portada, RECLAMAR

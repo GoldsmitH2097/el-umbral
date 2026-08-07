@@ -894,10 +894,10 @@ export class ArchiveDOM {
     modal.style.display = '';
     /* Reflow forzado en vez de rAF: los rAF no corren en pestañas de fondo y
        el modal se quedaría armado pero invisible. El reflow es síncrono y la
-       transición de opacidad anima igual. */
+       transición de opacidad anima igual. La clase .open (patrón del modal
+       legal) enciende opacidad Y el backdrop-blur, que solo se paga abierto. */
     void modal.offsetHeight;
-    modal.style.opacity = '1';
-    modal.style.pointerEvents = 'auto';
+    modal.classList.add('open');
     modal.removeAttribute('inert');
     modal.removeAttribute('aria-hidden');
     setTimeout(() => mail.focus(), 120);
@@ -906,11 +906,10 @@ export class ArchiveDOM {
   _cerrarAviso() {
     const modal = document.getElementById('aviso-modal');
     if (!modal) return;
-    modal.style.opacity = '0';
-    modal.style.pointerEvents = 'none';
+    modal.classList.remove('open');
     modal.setAttribute('inert', '');
     modal.setAttribute('aria-hidden', 'true');
-    this._avisoOcultar = setTimeout(() => { modal.style.display = 'none'; }, 550);
+    this._avisoOcultar = setTimeout(() => { modal.style.display = 'none'; }, 450);
     try { this._avisoFocoPrevio?.focus(); } catch (_) {}
   }
 

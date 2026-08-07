@@ -457,13 +457,15 @@
      popup sobrio, sin Tizno). Envía por fetch al buzón Netlify 'el-pacto', que
      lleva meses registrado esperando exactamente esto. -->
 <div id="aviso-modal" role="dialog" aria-modal="true" aria-labelledby="aviso-modal-title" inert aria-hidden="true" style="display:none">
-  <button id="aviso-close" aria-label="Cerrar">&times;</button>
-  <h2 id="aviso-modal-title"></h2>
-  <p id="aviso-body" data-i18n="aviso.body">¿Quieres que te avisemos cuando esté disponible? Déjanos tu email.</p>
-  <form id="aviso-form" novalidate>
-    <input type="email" id="aviso-email" name="email" required autocomplete="email" placeholder="tu@email.com" />
-    <button type="submit" class="obra-btn" id="aviso-submit" data-i18n="aviso.cta">Avisadme</button>
-  </form>
+  <div id="aviso-modal-inner">
+    <button id="aviso-close" aria-label="Cerrar">&times;</button>
+    <h2 id="aviso-modal-title"></h2>
+    <p id="aviso-body" data-i18n="aviso.body">¿Quieres que te avisemos cuando esté disponible? Déjanos tu email.</p>
+    <form id="aviso-form" novalidate>
+      <input type="email" id="aviso-email" name="email" required autocomplete="email" placeholder="tu@email.com" />
+      <button type="submit" id="aviso-submit" data-i18n="aviso.cta">Avisadme</button>
+    </form>
+  </div>
 </div>
 
 <!-- LEGAL MODAL — content fetched on demand, never navigate away -->
