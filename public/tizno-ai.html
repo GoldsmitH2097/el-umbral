@@ -2697,6 +2697,28 @@
         let microPrestado = null;
         window.__tiznoConStream = (s) => { microPrestado = s; };
 
+        /* ── EL CARTEL DEL MICRO SALE UNA VEZ, Y SOLO UNA (Ruben, 7-ago) ────
+           Nosotros pedimos el micro una vez (la madre, con el toque), pero el
+           SDK de ElevenLabs llama a getUserMedia POR SU CUENTA al arrancar la
+           sesión — y en iOS una petición desde el marco puede sacar el cartel
+           del sistema OTRA VEZ aunque la madre ya tenga permiso: ese era el
+           «pregunta dos veces» del iPhone. Interceptamos el getUserMedia del
+           marco: si el préstamo vive, el SDK recibe un CLON del stream y
+           Safari ni se entera. Los clones se apuntan y sleep() los apaga —
+           una pista clonada sobrevive al apagado de su original. */
+        const clonesPrestados = [];
+        const gumOriginal = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+        navigator.mediaDevices.getUserMedia = async (c) => {
+            const soloAudio = c && c.audio && !c.video;
+            const vivo = microPrestado && microPrestado.getAudioTracks().some(t => t.readyState === 'live');
+            if (soloAudio && vivo) {
+                const clon = microPrestado.clone();
+                clonesPrestados.push(clon);
+                return clon;
+            }
+            return gumOriginal(c);
+        };
+
         async function wake() {
             /* DOS TIZNO A LA VEZ (Ruben, 4-ago): un segundo clic mientras la
                sesión aún se establecía (SDK + permiso de micro + WebSocket)
@@ -2931,6 +2953,11 @@
             if (microPrestado) {
                 try { microPrestado.getTracks().forEach((t) => t.stop()); } catch (_) {}
                 microPrestado = null;
+            }
+            /* Los clones entregados al SDK no mueren con su original. */
+            while (clonesPrestados.length) {
+                const clon = clonesPrestados.pop();
+                try { clon.getTracks().forEach((t) => t.stop()); } catch (_) {}
             }
             /* Y el vigilante muere aquí, no solo en onDisconnect: si la
                desconexión falla sin red, el intervalo quedaba latiendo para
