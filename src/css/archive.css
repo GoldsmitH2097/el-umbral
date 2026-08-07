@@ -560,6 +560,21 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
 #btn-cerrar-pacto:hover { border-color: #fff; color: #fff; }
 #btn-cerrar-pacto:focus-visible { border-color: rgba(200,146,42,0.5); }
 
+/* ── El Aviso — popup de captura de email para los PRÓXIMAMENTE ──────────── */
+#aviso-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.96); z-index: 55; opacity: 0; pointer-events: none; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.5s ease; text-align: center; padding: 0 6vw; }
+#aviso-modal h2 { font-size: 20px; letter-spacing: 8px; text-transform: uppercase; margin-bottom: 16px; color: #e8c87a; }
+#aviso-modal h2:empty { display: none; }
+#aviso-modal p { max-width: 460px; line-height: 1.9; color: #999; font-size: 15px; margin-bottom: 28px; }
+#aviso-form { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+#aviso-email { background: #0a0906; border: 1px solid rgba(200,146,42,0.35); color: #ddd; padding: 12px 16px; font-size: 14px; letter-spacing: 1px; min-width: 250px; font-family: 'Times New Roman', serif; }
+#aviso-email:focus { outline: none; border-color: rgba(200,146,42,0.7); }
+/* .obra-btn no viste fuera de las tarjetas (hereda negro de UA) — traje propio. */
+#aviso-submit { background: transparent; border: 1px solid rgba(200,146,42,0.45); color: #e8c87a; padding: 12px 26px; font-size: 12px; letter-spacing: 4px; text-transform: uppercase; cursor: pointer; transition: color 0.3s, border-color 0.3s; font-family: 'Times New Roman', serif; outline: none; align-self: center; /* pisa el align-self: flex-start que mobile.css da a .obra-btn en las tarjetas */ }
+#aviso-submit:hover, #aviso-submit:focus-visible { border-color: #e8c87a; color: #fff; }
+#aviso-submit:disabled { opacity: 0.4; cursor: wait; }
+#aviso-close { position: absolute; top: 22px; right: 28px; background: transparent; border: none; color: #666; font-size: 30px; line-height: 1; cursor: pointer; transition: color 0.3s; }
+#aviso-close:hover, #aviso-close:focus-visible { color: #e8c87a; outline: none; }
+
 /* ── Reading view — title full-width, obras left, author right ───────────── */
 .reading-panel { display: block !important; }
 .reading-content {

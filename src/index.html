@@ -363,6 +363,7 @@
         <input type="text" name="bot-field2" />
         <input type="email" name="email" />
         <input type="checkbox" name="consent" />
+        <input type="hidden" name="obra" />
       </form>
     </footer>
   </div>
@@ -450,6 +451,19 @@
   <h2 id="pacto-modal-title" data-i18n="pacto.title">El Pacto</h2>
   <p data-i18n="pacto.body">Al cruzar este umbral, aceptas que las historias aquí contenidas no fueron hechas para consolarte. Eres un testigo en la oscuridad. No hay vuelta atrás. Ni garantías. Y la verdad es una carga que llevarás a solas.</p>
   <button id="btn-cerrar-pacto" data-i18n="pacto.accept">Acepto</button>
+</div>
+
+<!-- AVISO MODAL — captura de email para los PRÓXIMAMENTE (decisión Ruben, 7-ago:
+     popup sobrio, sin Tizno). Envía por fetch al buzón Netlify 'el-pacto', que
+     lleva meses registrado esperando exactamente esto. -->
+<div id="aviso-modal" role="dialog" aria-modal="true" aria-labelledby="aviso-modal-title" inert aria-hidden="true" style="display:none">
+  <button id="aviso-close" aria-label="Cerrar">&times;</button>
+  <h2 id="aviso-modal-title"></h2>
+  <p id="aviso-body" data-i18n="aviso.body">¿Quieres que te avisemos cuando esté disponible? Déjanos tu email.</p>
+  <form id="aviso-form" novalidate>
+    <input type="email" id="aviso-email" name="email" required autocomplete="email" placeholder="tu@email.com" />
+    <button type="submit" class="obra-btn" id="aviso-submit" data-i18n="aviso.cta">Avisadme</button>
+  </form>
 </div>
 
 <!-- LEGAL MODAL — content fetched on demand, never navigate away -->

@@ -365,7 +365,9 @@ export class ArchiveDOM {
           const openLibros = () => { if (window.innerWidth > 768) this.openReading(charIdx, 'libros'); };
           if (coverEl) {
             card.addEventListener('click', (e) => {
-              if (e.target.closest('a, button')) return;
+              /* .obra-btn incluido: PRÓXIMAMENTE es un <span> con papel de botón
+                 — sin esto, el mismo clic abría el aviso Y la ficha debajo. */
+              if (e.target.closest('a, button, .obra-btn')) return;
               openLibros();
             });
             coverEl.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openLibros(); });
@@ -405,10 +407,10 @@ export class ArchiveDOM {
       firstCol?.classList.add('archive-col--active');
     }
 
-    // Coming-soon / locked CTAs → open Tizno panel for email capture
+    // Coming-soon / locked CTAs → modal del Aviso (email), sin Tizno (Ruben, 7-ago)
     grid.addEventListener('click', e => {
       const btn = e.target.closest('.obra-btn--soon, .obra-btn--notify, .obra-btn--locked');
-      if (btn) { e.preventDefault(); this._tizno?.open(); }
+      if (btn) { e.preventDefault(); this._abrirAviso(btn); }
     });
 
     grid.addEventListener('scroll', () => {
@@ -847,6 +849,71 @@ export class ArchiveDOM {
     }
   }
 
+  /* ── El Aviso: captura de email para los PRÓXIMAMENTE (Ruben, 7-ago) ─────
+     Popup sobrio y sin Tizno. Envía por fetch al buzón Netlify 'el-pacto'
+     (registrado por el stub oculto del footer — si el stub muere, esto
+     enviaría al vacío). El campo `obra` dice qué libro despertó el interés. */
+  _abrirAviso(btn) {
+    const modal = document.getElementById('aviso-modal');
+    if (!modal) return;
+    this._avisoObra = btn.closest('.obra-book')?.querySelector('.obra-title')?.textContent?.trim() || '';
+    modal.querySelector('#aviso-modal-title').textContent = this._avisoObra;
+    const body = modal.querySelector('#aviso-body');
+    body.textContent = t('aviso.body');
+    const form = modal.querySelector('#aviso-form');
+    form.style.display = '';
+    const mail = modal.querySelector('#aviso-email');
+    mail.value = '';
+    mail.setAttribute('aria-label', t('aviso.email-aria'));
+    modal.querySelector('#aviso-close').setAttribute('aria-label', t('aviso.close-aria'));
+
+    if (!modal.dataset.avisoLigado) {
+      modal.dataset.avisoLigado = '1';
+      modal.querySelector('#aviso-close').addEventListener('click', () => this._cerrarAviso());
+      modal.addEventListener('click', e => { if (e.target === modal) this._cerrarAviso(); });
+      modal.addEventListener('keydown', e => { if (e.key === 'Escape') this._cerrarAviso(); });
+      form.addEventListener('submit', e => {
+        e.preventDefault();
+        const email = mail.value.trim();
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { mail.focus(); return; }
+        const submitBtn = form.querySelector('#aviso-submit');
+        submitBtn.disabled = true;
+        fetch('/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({ 'form-name': 'el-pacto', email, obra: this._avisoObra, 'bot-field2': '' }).toString(),
+        })
+          .then(r => { if (!r.ok) throw new Error(r.status); form.style.display = 'none'; body.textContent = t('aviso.success'); })
+          .catch(() => { body.textContent = t('aviso.error'); })
+          .finally(() => { submitBtn.disabled = false; });
+      });
+    }
+
+    this._avisoFocoPrevio = document.activeElement;
+    clearTimeout(this._avisoOcultar); // reabrir dentro de la ventana de cierre no debe ocultarlo
+    modal.style.display = '';
+    /* Reflow forzado en vez de rAF: los rAF no corren en pestañas de fondo y
+       el modal se quedaría armado pero invisible. El reflow es síncrono y la
+       transición de opacidad anima igual. */
+    void modal.offsetHeight;
+    modal.style.opacity = '1';
+    modal.style.pointerEvents = 'auto';
+    modal.removeAttribute('inert');
+    modal.removeAttribute('aria-hidden');
+    setTimeout(() => mail.focus(), 120);
+  }
+
+  _cerrarAviso() {
+    const modal = document.getElementById('aviso-modal');
+    if (!modal) return;
+    modal.style.opacity = '0';
+    modal.style.pointerEvents = 'none';
+    modal.setAttribute('inert', '');
+    modal.setAttribute('aria-hidden', 'true');
+    this._avisoOcultar = setTimeout(() => { modal.style.display = 'none'; }, 550);
+    try { this._avisoFocoPrevio?.focus(); } catch (_) {}
+  }
+
   _bindObraModal() {
     const modal = document.getElementById('obra-modal');
     const closeBtn = document.getElementById('obra-modal-close');
@@ -858,10 +925,10 @@ export class ArchiveDOM {
     document.querySelectorAll('.obra-tab').forEach(btn => {
       btn.addEventListener('click', () => this._switchModalTab(btn.dataset.tab));
     });
-    // Reading-view obras list — delegated once. Coming-soon CTAs open the Tizno panel.
+    // Reading-view obras list — delegated once. Coming-soon CTAs → modal del Aviso.
     document.getElementById('reading-obras-list')?.addEventListener('click', e => {
       const btn = e.target.closest('.obra-btn--soon, .obra-btn--notify, .obra-btn--locked');
-      if (btn) { e.preventDefault(); this._tizno?.open(); }
+      if (btn) { e.preventDefault(); this._abrirAviso(btn); }
     });
 
     // Hover sounds — character-tuned chime on book covers, soft metallic

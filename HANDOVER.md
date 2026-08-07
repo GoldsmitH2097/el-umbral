@@ -53,16 +53,19 @@
    arms itself with the list.
 2. ✅ DONE Aug 7 — `microphone=(self)` deployed to **main** (commit cab3158, inert until
    Tizno merges: nothing in production requests the mic yet).
-3. ~~Pacto form manual E2E~~ **VOID — Ruben caught this (Aug 7): the pact form no
-   longer exists.** Verified in code: the only trace is the hidden Netlify
-   registration stub (`form name="el-pacto"`, index.html:361) that keeps the mailbox
-   alive — NOTHING submits to it anymore. The old Tizno panel with the email field
-   died when Tizno became the voice agent; the PRÓXIMAMENTE / locked CTAs still open
-   Tizno's panel, but there is no email capture inside. CLAUDE.md's "only form =
-   Tizno's pact" is stale. → PRODUCT DECISION for Ruben/Javier: (a) revive a small
-   email field in Tizno's panel for release notifications, (b) have Tizno capture
-   emails conversationally (needs a tool + storage), or (c) drop the idea and delete
-   the stub + fix CLAUDE.md. Until decided, there is nothing to E2E-test.
+3. Email capture for PRÓXIMAMENTE — **REBUILT Aug 7 as "El Aviso"** (Ruben caught
+   that the old pact form no longer existed, then chose a plain popup, explicitly
+   NOT tied to Tizno). Implemented: `#aviso-modal` (index.html, next to the pacto
+   consent modal) — obra title in gold, "¿Quieres que te avisemos cuando esté
+   disponible? Déjanos tu email.", email field + AVISADME; all PRÓXIMAMENTE /
+   notify / locked CTAs (grid AND reading view) open it; submits by fetch to the
+   long-registered Netlify mailbox `el-pacto` with an `obra` field saying which
+   book. Bilingual (aviso.* keys). Gotchas encoded in comments: card click-guard
+   now ignores `.obra-btn` (the soon CTA is a span — same click used to open the
+   ficha underneath), reopen-race timer cleared, reflow instead of rAF (background
+   tabs never run rAF). → REMAINING E2E (2 min, needs Javier's Netlify panel):
+   click a PRÓXIMAMENTE on the deploy preview, submit a real email, confirm it
+   lands in Netlify → Forms → el-pacto (preview submissions are collected too).
 4. Ruben tests Tizno EN voice on `/en/` preview (allowlist reverted, preview connects —
    re-verified Aug 7).
 5. Post-launch backlog: CSP report-only · Firefox idle-GPU trim · SEO content pass on
