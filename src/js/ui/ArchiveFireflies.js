@@ -9,7 +9,6 @@ const INACTIVITY_OBRAS   = 18000;  // 18s → drift toward obras
 const INACTIVITY_CONTACT = 36000;  // 36s → drift toward contact
 const INACTIVITY_TIZNO   = 55000;  // 55s → orbit Tizno tease
 const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const CAPABLE = navigator.hardwareConcurrency >= 4 && !REDUCED_MOTION;
 // Throttle to ~30fps — halves CPU vs 60fps. Fireflies move slowly; you won't notice.
 const FRAME_MS = 33;
 
@@ -104,58 +103,6 @@ class Firefly {
   destroy() { this.el.remove(); }
 }
 
-// ── Ambient particles (C) — only on capable hardware ─────────────────────────
-class AmbientParticles {
-  constructor(container) {
-    this.canvas = document.createElement('canvas');
-    this.canvas.className = 'archive-particles';
-    this.canvas.setAttribute('aria-hidden', 'true');
-    container.appendChild(this.canvas);
-    this.ctx = this.canvas.getContext('2d');
-    this.particles = [];
-    this._resize();
-    this._spawn();
-    window.addEventListener('resize', () => this._resize(), { passive: true });
-  }
-
-  _resize() {
-    this.W = this.canvas.width  = window.innerWidth;
-    this.H = this.canvas.height = window.innerHeight; // fixed viewport height (container is position:fixed)
-  }
-
-  _spawn() {
-    const count = Math.floor(this.W / 80); // ~12-18 particles
-    for (let i = 0; i < count; i++) {
-      this.particles.push({
-        x:  Math.random() * this.W,
-        y:  Math.random() * this.H,
-        vy: 0.12 + Math.random() * 0.18,   // drift upward
-        vx: (Math.random() - 0.5) * 0.08,
-        r:  0.4 + Math.random() * 0.8,
-        a:  Math.random() * 0.12 + 0.04,   // max opacity
-        phase: Math.random() * Math.PI * 2,
-      });
-    }
-  }
-
-  draw() {
-    this.ctx.clearRect(0, 0, this.W, this.H);
-    for (const p of this.particles) {
-      p.phase += 0.015;
-      p.y  -= p.vy;
-      p.x  += p.vx;
-      if (p.y < -10) { p.y = this.H + 10; p.x = Math.random() * this.W; }
-
-      const alpha = p.a * (0.4 + 0.6 * Math.abs(Math.sin(p.phase)));
-      this.ctx.beginPath();
-      this.ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      this.ctx.fillStyle = `rgba(200,146,42,${alpha.toFixed(3)})`;
-      this.ctx.fill();
-    }
-  }
-
-  destroy() { this.canvas.remove(); }
-}
 
 // ── Main export ───────────────────────────────────────────────────────────────
 export class ArchiveFireflies {
@@ -163,12 +110,13 @@ export class ArchiveFireflies {
     this._tizno     = tiznoTease;
     this._container = null;
     this._fireflies = [];
-    this._particles = null;
     this._raf       = null;
     this._lastActivity = Date.now();
     this._running   = false;
     this._obrasY    = 0;
     this._contactY  = 0;
+    this._objetivosSucios = true;   // primera vuelta: hay que leerlos una vez
+    window.addEventListener('resize', () => { this._objetivosSucios = true; }, { passive: true });
     this._orbitAngle = 0;
     this._lastFrame = 0;
     this._lastScrollY = 0;
@@ -181,6 +129,21 @@ export class ArchiveFireflies {
   }
 
   init() {
+    /* PESTILLO DE RE-ENTRADA. main.js llama a init() desde las dos puertas
+       del archivo, y la puerta del skip se re-ejecuta ENTERA en cada popstate
+       que resuelve una ruta profunda (llegar por /caballero compartido,
+       cerrar la lectura, pulsar Atrás). Sin esto, cada pasada creaba otro
+       contenedor con seis luciérnagas más, duplicaba los listeners de
+       ratón/scroll/visibilidad y arrancaba un segundo bucle rAF concurrente
+       — trabajo por fotograma multiplicado justo después de la batalla de
+       los 7→60 fps. TiznoTease lleva este mismo pestillo por esta misma
+       razón. */
+    if (this._container) return;
+    /* Quien ha pedido menos movimiento no recibe un enjambre: sin esto, las
+       seis luciérnagas seguían latiendo a 30 fps para un visitante que
+       activó prefers-reduced-motion (regresión de accesibilidad, audit
+       6-ago). Ni elementos, ni listeners, ni bucle: el archivo queda quieto. */
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     // Attach to body (not #main-site) so position:fixed works correctly on scroll.
     // Build the entire subtree DETACHED first, then attach once — appending each
     // firefly to an already-attached container caused per-firefly forced reflows
@@ -195,9 +158,16 @@ export class ArchiveFireflies {
     }
 
     // Ambient particles — capable hardware only (also adds to detached container)
-    if (CAPABLE) {
-      this._particles = new AmbientParticles(this._container);
-    }
+    /* MOTAS AMBIENTALES RETIRADAS (Ruben, 5-ago-2026). Eran ~15 puntos de
+       1-2 px a una opacidad efectiva del 0,8-8% sobre fondo casi negro:
+       invisibles en la practica —ni el en su pantalla ni yo en las capturas
+       las distinguiamos— y aun asi obligaban a borrar y repintar un lienzo
+       entero 30 veces por segundo. Medido en su Task Manager: unos 9-10
+       puntos de CPU, cerca de una cuarta parte de la pestana, por algo que
+       nadie ve. Las luciernagas (doradas, con halo, y una hace de companera
+       de Tizno) NO se tocan: esas si se ven y son personaje.
+       Si algun dia se quiere polvo ambiental aqui, se hace con opacidad
+       visible y entonces pagara lo que cuesta. */
 
     // Single attach — flushes layout exactly once for the whole subtree
     document.body.appendChild(this._container);
@@ -216,8 +186,19 @@ export class ArchiveFireflies {
     mainSite.addEventListener('mouseleave', () => { this._cursorActive = false; }, { passive: true });
     mainSite.addEventListener('touchstart',reset, { passive: true });
     mainSite.addEventListener('click',     reset, { passive: true });
+    /* EL MENÚ DESPLAZA AIRE. Al desplegarse empuja hacia abajo; al plegarse
+       succiona hacia arriba. No hay bucle nuevo ni estado nuevo: se reutiliza
+       el mismo impulso que ya usa el scroll, con su propio rozamiento, así
+       que cuesta literalmente una asignación y se apaga solo. */
+    document.addEventListener('menuSopla', (e) => {
+      this._lastActivity = Date.now();
+      this._scrollDY = (e.detail?.abierto ? 26 : -18) + (Math.random() - 0.5) * 8;
+      this._scrollDecay = 0.93;   // algo más largo que el del scroll: es una bocanada
+    });
+
     mainSite.addEventListener('scroll', () => {
       this._lastActivity = Date.now();
+      this._objetivosSucios = true;   // el scroll es lo único que mueve los destinos
       const y = mainSite.scrollTop;
       // Capture instantaneous delta — applied to fireflies as a "wake" force
       this._scrollDY = (y - this._lastScrollY) * 0.5;
@@ -255,10 +236,17 @@ export class ArchiveFireflies {
     if (obrasEl) {
       const r = obrasEl.getBoundingClientRect();
       this._obrasY = r.top + r.height * 0.4;
+    } else {
+      this._obrasY = window.innerHeight * 0.42;
     }
     if (contactEl) {
       const r = contactEl.getBoundingClientRect();
       this._contactY = r.top + 80;
+    } else {
+      /* #contact-section ya no existe (el contacto vive en la cabecera):
+         sin este respaldo la coordenada quedaba undefined, la luciérnaga
+         se evaporaba en NaN y le retransmitía NaN a Tizno — congelado. */
+      this._contactY = window.innerHeight * 0.62;
     }
   }
 
@@ -271,10 +259,16 @@ export class ArchiveFireflies {
     this._lastFrame = t;
 
     const idle = Date.now() - this._lastActivity;
-    // Only refresh layout-reading targets when we're about to need them (idle approaching).
-    // Calling getBoundingClientRect every frame forces synchronous layout — verified as
-    // the main UpdateLayoutTree contributor in the 2026-05-14 perf trace.
-    if (idle > INACTIVITY_OBRAS - 1500) this._getTargets();
+    /* LOS DESTINOS SE LEEN CUANDO CAMBIAN, NO CADA FOTOGRAMA.
+       El aviso de arriba era bueno —getBoundingClientRect fuerza un recálculo
+       de layout síncrono— pero la guarda hacía lo contrario de lo que quería:
+       mientras usabas la página no se llamaba nunca, y en cuanto te quedabas
+       quieto pasaba a llamarse en TODOS los fotogramas, para siempre. Treinta
+       recálculos de layout por segundo justo en el estado en el que una
+       pestaña se queda horas abierta. Los destinos son coordenadas relativas
+       al viewport de un contenedor fijo: solo se mueven al hacer scroll o
+       redimensionar, así que se recalculan ahí. */
+    if (this._objetivosSucios) { this._objetivosSucios = false; this._getTargets(); }
 
     const W2 = window.innerWidth / 2;
 
@@ -289,16 +283,62 @@ export class ArchiveFireflies {
     this._fireflies.forEach((ff, i) => {
       let tx = W2, ty = this._obrasY, att = 0;
 
-      if (idle > INACTIVITY_TIZNO && this._tizno) {
-        // Orbit Tizno tease — circular motion around its position
+      if (this._tizno?.estaLibre?.() && i === 0) {
+        /* LA POLILLA (Ruben): vaga libre por TODA la página, y cada cierto
+           tiempo hace una visita — se lanza hacia Tizno un par de segundos
+           (él se encoge al verla cerca) y vuelve a su vagabundeo (él la
+           sigue con la mirada si el ratón calla). */
+        const ahora = Date.now();
+        if (!this._proximaVisita) {
+          this._proximaVisita = ahora + 6000 + Math.random() * 8000;
+          this._vagarX = Math.random() * window.innerWidth;
+          this._vagarY = Math.random() * window.innerHeight * 0.8;
+          this._vagarHasta = 0;
+        }
+        if (ahora < this._visitaHasta) {
+          const tp = this._tizno.posicionDeTizno?.();
+          if (tp) { tx = tp.x + (Math.random() - 0.5) * 50; ty = tp.y + (Math.random() - 0.5) * 30; att = 0.004; }
+        } else if (ahora > this._proximaVisita) {
+          this._visitaHasta = ahora + 2200 + Math.random() * 1300;
+          this._proximaVisita = ahora + 9000 + Math.random() * 9000;
+        } else {
+          if (ahora > this._vagarHasta) {
+            this._vagarHasta = ahora + 4000 + Math.random() * 3500;
+            /* Territorio de Tizno (Ruben): vaga alrededor DE ÉL (±350 px),
+               no por toda la página — viviendo lejos, él quedaba con
+               tortícolis eterna mirando arriba-izquierda. */
+            const tp = this._tizno.posicionDeTizno?.() || { x: window.innerWidth * 0.75, y: window.innerHeight * 0.6 };
+            this._vagarX = Math.max(40, Math.min(window.innerWidth - 40, tp.x + (Math.random() - 0.5) * 700));
+            this._vagarY = Math.max(60, Math.min(window.innerHeight - 80, tp.y + (Math.random() - 0.72) * 520));
+          }
+          tx = this._vagarX; ty = this._vagarY; att = 0.0009;
+        }
+      } else if (this._tizno && !this._tizno.estaLibre?.() && idle > INACTIVITY_TIZNO + i * 900) {
+        /* EL ENJAMBRE LLAMA AL CANDADO. Antes rondaba solo la primera, por no
+           tapar el botón con un puñado de puntos (Ruben, 4-ago); pero una sola
+           luz no se lee como intención, se lee como que algo falla (Ruben,
+           6-ago). Van todas — y la diferencia entre invitación y acoso está en
+           cómo llegan, no en cuántas son:
+
+             · ENTRAN DE UNA EN UNA. El sumando i*900 al umbral de inactividad
+               hace que se sumen cada nueve décimas. Aparece una, insiste, se
+               le une otra... Es un presagio que crece, no un enjambre que
+               salta de golpe.
+             · CADA UNA EN SU ÓRBITA. Radios de 24 a 130 y fases repartidas
+               por la circunferencia: nadie se solapa y el botón nunca queda
+               cubierto.
+             · LAS DE FUERA GIRAN MÁS DESPACIO y tiran más flojo, así que la
+               formación se retuerce en espiral en vez de girar como un plato.
+               Eso es lo que hace que parezca que algo las succiona hacia el
+               candado, que es justo lo que queremos que el visitante sienta. */
         this._orbitAngle += 0.008;
         const tPos = this._tizno.getPosition();
         if (tPos) {
-          const radius = 40 + i * 18;
-          const angle  = this._orbitAngle + (i * Math.PI / 2);
-          tx = tPos.x + Math.cos(angle) * radius;
-          ty = tPos.y + Math.sin(angle) * radius * 0.5;
-          att = 0.003;
+          const radio = 24 + i * 21;
+          const fase = this._orbitAngle * (1 - i * 0.09) + i * 1.05;
+          tx = tPos.x + Math.cos(fase) * radio;
+          ty = tPos.y + Math.sin(fase) * radio * 0.5;
+          att = 0.003 / (1 + i * 0.45);
         }
       } else if (idle > INACTIVITY_CONTACT) {
         tx = W2 + (i % 2 === 0 ? -60 : 60);
@@ -313,14 +353,19 @@ export class ArchiveFireflies {
       ff.update(tx, ty, att, scrollDY, cursor);
     });
 
-    if (this._particles) this._particles.draw();
+    // Tizno libre: la compañera le retransmite su posición — él la mira
+    // cuando el ratón calla (y ella deja de rondar el candado).
+    if (this._tizno?.estaLibre?.()) {
+      const c = this._fireflies[0];
+      if (c) this._tizno.enviarLuciernaga?.(c.x, c.y);
+    }
+
   }
 
   destroy() {
     this._running = false;
     if (this._raf) cancelAnimationFrame(this._raf);
     this._fireflies.forEach(ff => ff.destroy());
-    this._particles?.destroy();
     this._container?.remove();
   }
 }

@@ -33,9 +33,13 @@ import { VisualEngine } from './engine/VisualEngine.js';
 import { ArchiveDOM } from './ui/ArchiveDOM.js';
 import { ArchiveFireflies } from './ui/ArchiveFireflies.js';
 import { TiznoTease } from './ui/TiznoTease.js';
-import { initMobileScene2, initMobileArchive } from './mobile.js';
+import { initMobileScene2, initMobileArchive, initMenuMovil } from './mobile.js';
+import { initDiagnostico } from './ui/Diagnostico.js';
+import { pedirInclinacion } from './ui/Inclinacion.js';
 
 const isMobile = () => window.innerWidth <= 768;
+
+initDiagnostico();   // solo hace algo con ?diag=1 en la URL
 
 const audio    = new AudioEngine();
 const tizno    = new TiznoTease();
@@ -62,7 +66,10 @@ const archive = new ArchiveDOM({
 
 const router = new Router({
   enterArchive: ({skipIntro=false}={}) => { if(skipIntro) skipIntroAndEnterArchive(); },
-  openReading: (index) => archive.openReading(index),
+  // El segundo argumento es la pestaña: los enlaces profundos de OBRA abren
+  // la vista de lectura de su arquetipo directamente en «Libros», que es
+  // donde vive la ficha con el cofre de compra.
+  openReading: (index, tab) => archive.openReading(index, tab || 'autor'),
 });
 archive._router = router;
 
@@ -186,6 +193,10 @@ function _autoAdvanceNext() {
 
     // Hold character visible for 5.5s (was 3.5s — too fast to see them all)
     setTimeout(() => {
+      /* Si el visitante rompió el trance durante la exhibición, este timeout
+         dispara con el archivo ya montado: isSwapping=true quedaba puesto
+         para siempre y el vídeo del intro revivía bajo el archivo. */
+      if (state.activeScene !== 1) { visual.setAutoAdvanceMode(false); _isAutoAdvancing = false; return; }
       state.isIgnited = false;
       state.isSwapping = true;
       visual.primeNextVideo();
@@ -197,16 +208,42 @@ function _autoAdvanceNext() {
           _autoTimer = setTimeout(_autoAdvanceNext, 1200); // was 500 — breathe between chars
         }
       }, 800);
-    }, 5500); // was 3500
+    }, 6800); // Ruben: mas lento, que de tiempo a mirar a cada uno
   }, 900); // ignition build-up
 }
 
-// Start after 5s if no interaction
-_autoTimer = setTimeout(() => {
-  if(state.activeScene === 1 && !state.hasFinishedGallery && !state.isPressed) {
-    _autoAdvanceNext();
-  }
-}, 5000);
+/* ── CUÁNDO ARRANCA EL AUTOPLAY (Ruben, 6-ago) ─────────────────────────────
+   Antes medía TIEMPO DESDE QUE CARGA LA PÁGINA, no inactividad: daba igual
+   que estuvieras jugando con el polvo, a los cinco segundos se desvelaba la
+   reina igual. Ahora vigila dos silencios, y hacen falta LOS DOS:
+
+   · 5 s sin mover nada — si estás paseando el cursor por el polvo, es tuyo.
+   · 10 s sin pulsar — quien acaba de encender una llama tiene margen para
+     mirarla aunque se quede quieto.
+
+   El toque y el arrastre cuentan como movimiento: en un teléfono no existe
+   el ratón, así que un umbral solo de mousemove se cumpliría siempre y el
+   móvil se quedaría sin la protección.
+
+   Y sigue siendo lo único que enseña los cuatro arquetipos a quien no toca
+   nada, así que los silencios son generosos pero no eternos. */
+let _ultimoMovim = Date.now();
+let _ultimoClic  = Date.now();
+const _marcarMovim = () => { _ultimoMovim = Date.now(); };
+const _marcarClic  = () => { _ultimoClic = Date.now(); _ultimoMovim = Date.now(); };
+['mousemove','touchmove','wheel','scroll'].forEach(ev =>
+  document.addEventListener(ev, _marcarMovim, { passive: true }));
+['mousedown','touchstart','keydown'].forEach(ev =>
+  document.addEventListener(ev, _marcarClic, { passive: true }));
+
+const _vigilarAutoplay = setInterval(() => {
+  if (state.activeScene !== 1 || state.hasFinishedGallery) { clearInterval(_vigilarAutoplay); return; }
+  if (state.isPressed || state.isSwapping || _isAutoAdvancing) return;
+  const ahora = Date.now();
+  if (ahora - _ultimoMovim < 5000)  return;
+  if (ahora - _ultimoClic  < 10000) return;
+  _autoAdvanceNext();
+}, 600);
 
 // ── Mobile tap-to-reveal (Scene 1) ─────────────────────────────────────────
 // Replaces press-and-hold on touch devices. One tap = instant reveal for 3s,
@@ -219,6 +256,9 @@ let _mobileHoldTimer = null; // 300ms timer: if still holding, enable fire
 
 function _endMobileHold() {
   if (!_mobileHolding) return;
+  // Mismo caso que el timeout de exhibición de escritorio: si el trance se
+  // rompió a mitad del hold, no hay nada que soltar ni que preparar.
+  if (state.activeScene !== 1) { _mobileHolding = false; _mobileTapLock = false; return; }
   // Minimum 3s display: character stays visible long enough to be seen.
   // A quick tap+release would otherwise dismiss in ~50ms.
   const elapsed = Date.now() - _mobileTapStartTime;
@@ -281,7 +321,10 @@ window._onIgnitionComplete = () => {
 };
 
 const isDeepLink = router.init();
-if (!isDeepLink) {
+// Único sitio donde se enciende el intro: solo si de verdad se va a ver.
+// Quien pide menos movimiento salta directo al archivo (arriba), así que
+// tampoco debe pagar el lienzo ni el vídeo del primer personaje.
+if (!isDeepLink && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
   // Always show the cinematic intro on every visit.
   // Returning visitors can press 'Romper el trance' to skip.
   visual.start();
@@ -302,10 +345,7 @@ function skipIntroAndEnterArchive() {
   // 2. Hide gallery video + Scene 2/3 overlays so the archive isn't drawn
   //    underneath them. Without this, #gallery-container keeps painting at
   //    z-index 0 and #char-video keeps decoding frames.
-  const gallery = document.getElementById('gallery-container');
-  if (gallery) gallery.style.opacity = '0';
-  const charVideo = document.getElementById('char-video');
-  if (charVideo) { try { charVideo.pause(); } catch(_) {} }
+  desmontarIntro();   // vídeos sueltos, galería apagada, sin animaciones residuales
   const s2 = document.getElementById('scene-2');
   if (s2) s2.style.display = 'none';
   const s3 = document.getElementById('scene-3');
@@ -317,8 +357,18 @@ function skipIntroAndEnterArchive() {
   if (_s3IdleInterval) { clearInterval(_s3IdleInterval); _s3IdleInterval = null; }
   if (_s2HintInterval) { clearInterval(_s2HintInterval); _s2HintInterval = null; }
 
+  /* EL UMBRAL PIDE EL PERMISO. Aquí es donde el mundo empieza a responder a
+     cómo sostienes el teléfono, así que el cartel de Apple cae en el único
+     punto de la web donde forma parte de la historia en vez de romperla.
+     Tiene que salir del gesto que te trajo hasta aquí: por eso se pide en la
+     transición, no más tarde. */
+  pedirInclinacion();
   transitionTo(4);
-  visual.start();
+  /* Aquí NO se enciende el motor del intro. Entrar por un enlace directo o
+     romper el trance lleva a la escena 4, donde el bucle se suspende solo —
+     así que este start() no dibujaba nada, pero sí cargaba el MP4 de 1080p
+     del primer personaje y su lienzo a pantalla completa. Si veníamos del
+     intro, el bucle ya estaba en marcha desde el arranque. */
   try { localStorage.setItem('sw_seen', '1'); } catch (_) {}
   archive.showArchive({skipIntro:true});
   document.body.style.cursor='auto';
@@ -331,7 +381,8 @@ function skipIntroAndEnterArchive() {
   audio.setFireVolume(0, false); // silence intro sounds on skip
   audio.setWindVolume(0.008, 0.5); // fast settle to archive ambient
   audio.startArchiveAmbient();
-  initMobileArchive(); // was missing — mobile pillar taps never wired for returning visitors
+  initMobileArchive();
+  initMenuMovil(); // was missing — mobile pillar taps never wired for returning visitors
   fireflies.init();
   tizno.init();
   setTimeout(() => document.dispatchEvent(new Event('archiveReady')), 400);
@@ -363,9 +414,12 @@ function enterScene2() {
         document.getElementById('scene-2-hint')?.classList.add('visible');
       }
     }, 5000);
-    // Hide hint once first whisper found
+    // Hide hint once first whisper found. En móvil el hallazgo viaja en OTRO
+    // evento ('mobileWhisperFound', mobile.js): sin escucharlo, la pista se
+    // encendía a los 5 s y se quedaba encendida durante TODA la caza.
     const hideHint = () => document.getElementById('scene-2-hint')?.classList.remove('visible');
     document.addEventListener('whisperFound', hideHint, { once: true });
+    document.addEventListener('mobileWhisperFound', hideHint, { once: true });
   },2000);
 }
 
@@ -408,12 +462,47 @@ function enterMainSite() {
   audio.setFireVolume(0, false);
   audio.setWindVolume(0.008, 2); // settle at archive ambient
   audio.startArchiveAmbient();
+  /* EL UMBRAL PIDE EL PERMISO. Aquí es donde el mundo empieza a responder a
+     cómo sostienes el teléfono, así que el cartel de Apple cae en el único
+     punto de la web donde forma parte de la historia en vez de romperla.
+     Tiene que salir del gesto que te trajo hasta aquí: por eso se pide en la
+     transición, no más tarde. */
+  pedirInclinacion();
   transitionTo(4);
+  desmontarIntro();
   initMobileArchive();
+  initMenuMovil();
   fireflies.init();
   tizno.init();
   // Wire carousel scroll impulse after archive grid is built
   setTimeout(() => document.dispatchEvent(new Event('archiveReady')), 400);
+}
+
+/* DESMONTAJE DEL INTRO — uno solo para las dos puertas de entrada al archivo.
+   El atajo lo hacía a medias y el recorrido normal no lo hacía en absoluto:
+   quien veía el intro entero se llevaba al archivo los DOS vídeos del intro
+   con su descodificador retenido, la galería compositándose invisible y una
+   animación infinita del título girando bajo la alfombra. */
+function desmontarIntro() {
+  ['char-video', 'char-video-preload'].forEach(id => {
+    const v = document.getElementById(id);
+    if (!v) return;
+    try { v.pause(); } catch (_) {}
+    if (v.getAttribute('src')) { v.removeAttribute('src'); try { v.load(); } catch (_) {} }
+    v.style.willChange = 'auto';
+  });
+  const gallery = document.getElementById('gallery-container');
+  if (gallery) { gallery.style.opacity = '0'; setTimeout(() => { gallery.style.display = 'none'; }, 800); }
+  document.getElementById('char-title')?.classList.remove('loading-state');
+  /* LOS MANDOS DEL INTRO SALEN DEL ORDEN DE TABULACIÓN. Ocultos por opacidad
+     o tapados por el archivo, «Romper el trance», «EL UMBRAL» y «ADENTRARSE»
+     seguían recibiendo foco: un usuario de teclado atravesaba botones
+     invisibles de una escena que ya no existe (auditoría GPT, 6-ago). inert
+     los saca del tab-order y del árbol de accesibilidad de un golpe. */
+  ['skip-btn', 'umbral-btn', 'final-btn', 'scene-2', 'scene-3'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.inert = true;
+  });
 }
 
 function handleDown(e) {
@@ -491,7 +580,13 @@ document.getElementById('main-site')?.addEventListener('scroll', e => {
 }, { passive: true });
 // Wire after archive builds (carousel exists at that point)
 document.addEventListener('archiveReady', () => {
-  document.getElementById('obras-section')?.addEventListener('scroll', e => {
+  const sec = document.getElementById('obras-section');
+  // archiveReady suena en cada entrada al archivo: la marca en el nodo evita
+  // apilar un listener de scroll por pasada, y sobrevive a un rebuild porque
+  // un nodo nuevo nace sin ella.
+  if (!sec || sec.dataset.impulsoLigado) return;
+  sec.dataset.impulsoLigado = '1';
+  sec.addEventListener('scroll', e => {
     const dx = e.target.scrollLeft - _lastScrollLeft;
     _lastScrollLeft = e.target.scrollLeft;
     if (Math.abs(dx) > 0.5) visual.addScrollImpulse(dx * 0.4, 0);
@@ -600,13 +695,39 @@ _umbralBtn.addEventListener('touchend', function(e) {
       }
     });
   };
+  /* PAUSAR NO ES SOLTAR. Un vídeo pausado conserva su descodificador y su
+     textura en la GPU; con cinco elementos de vídeo la factura sigue entera
+     justo cuando el navegador levanta el proceso de la tienda. Al salir hacia
+     una tienda sí nos vamos del todo: quitamos el src y llamamos a load(),
+     que libera descodificador y textura. Al volver se devuelve el src (el
+     MP4 está en caché de disco: es descodificar, no descargar) y mientras
+     tanto se ve el póster, que es el fotograma 0 — nadie nota el relevo. */
+  const dormidos = new Set();
+  const soltarPilares = () => {
+    document.querySelectorAll('.archive-pillar video[src]').forEach(v => {
+      v.dataset.srcDormido = v.src;
+      v.removeAttribute('src');
+      try { v.load(); } catch (_) {}
+      dormidos.add(v);
+    });
+  };
+  const despertarPilares = () => {
+    dormidos.forEach(v => {
+      if (document.contains(v) && v.dataset.srcDormido) {
+        v.src = v.dataset.srcDormido;
+        delete v.dataset.srcDormido;
+      }
+    });
+    dormidos.clear();
+  };
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { pausarTodos(); return; }
+    despertarPilares();
     pausados.forEach(v => { if (document.contains(v)) v.play().catch(() => {}); });
     pausados.clear();
   });
   // captura: se ejecuta antes de que el navegador abra la pestaña nueva
   document.addEventListener('click', (e) => {
-    if (e.target.closest && e.target.closest('a[target="_blank"]')) pausarTodos();
+    if (e.target.closest && e.target.closest('a[target="_blank"]')) { pausarTodos(); soltarPilares(); }
   }, { capture: true, passive: true });
 })();

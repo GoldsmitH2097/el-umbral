@@ -52,18 +52,72 @@ class DustParticle {
       this.size=Math.random()*10+5; this.baseVy=0.2+Math.random()*0.3;
       this.opacity=Math.random()*0.05+0.02; this.blur=Math.random()*15+10;
     } else {
-      this.size=Math.random()*1.5+0.5+this.z*1.0; this.baseVy=0.03+this.z*0.2;
+      /* MÁS FINAS. El tamaño salía de un azar plano, así que casi ninguna
+         era diminuta de verdad. Elevarlo a una potencia empuja el reparto
+         hacia lo pequeño: muchísimas motas de menos de un píxel, unas
+         cuantas medianas y solo alguna gorda. Es el reparto que tiene el
+         polvo real en un haz. */
+      this.size=0.26+Math.pow(Math.random(),2.3)*1.7+this.z*0.7; this.baseVy=0.03+this.z*0.2;
       this.opacity=Math.random()*0.2+0.05; if(this.z>0.8) this.opacity*=0.2;
       this.blur=this.z>0.8?this.size*1.5:0;
     }
     this.vy=this.baseVy; this.vx=(Math.random()-0.5)*0.1;
+    /* CADA MOTA, SU PROPIO RITMO. Antes todas compartian una sola oscilacion
+       —mismo seno, misma frecuencia, solo cambiaba la fase—, y por eso el
+       conjunto leia como un campo de estrellas a la deriva en vez de polvo.
+       Dos frecuencias distintas por mota, una rapida y otra lenta, bastan
+       para que ninguna repita el camino de otra: de ahi salen los rizos. */
+    this.f1 = 0.55 + Math.random() * 1.15;      // el vaiven corto
+    this.f2 = 0.17 + Math.random() * 0.42;      // la deriva ancha
+    this.amp = 0.13 + Math.random() * 0.30;
+    this.ampY = 0.03 + Math.random() * 0.13;    // el polvo tambien sube y baja
+    /* Y NO TODAS CAEN. En un haz de luz real hay motas que se hunden, otras
+       que flotan casi quietas y unas pocas que ascienden. Una de cada cinco
+       sube: es lo que convierte una lluvia en una atmosfera. */
+    if (Math.random() < 0.2) this.baseVy *= -(0.25 + Math.random() * 0.5);
+    else if (Math.random() < 0.3) this.baseVy *= 0.25 + Math.random() * 0.4;
   }
   update(cx,cy,vx,vy,isIgnited,fc,cW,cH) {
-    this.vy=this.baseVy; let cvx=this.vx+Math.sin(fc*0.01+this.seed)*0.2;
+    const t = fc * 0.01;
+    /* Dos senos superpuestos de periodo distinto no vuelven a coincidir en
+       mucho tiempo, asi que el recorrido nunca se repite del todo: eso es lo
+       que el ojo lee como rizo. El vertical va desfasado del horizontal (uno
+       con seno y otro con coseno) para que el giro sea eliptico y no un
+       zigzag plano. */
+    let cvx = this.vx
+            + Math.sin(t * this.f1 + this.seed) * this.amp
+            + Math.sin(t * this.f2 + this.seed * 1.7) * this.amp * 0.6;
+    this.vy = this.baseVy + Math.cos(t * this.f2 + this.seed * 0.6) * this.ampY;
     const dx=this.x-cx,dy=this.y-cy,dist=Math.sqrt(dx*dx+dy*dy);
-    if(dist<150&&!state.isAwakening&&state.activeScene<4){
-      const pf=this.isMacro?2.0:0.2+this.z*0.8, force=((150-dist)/150)*pf;
-      cvx+=vx*force*0.04; this.vy+=vy*force*0.04;
+    /* VIENTO Y REMOLINO. Antes el cursor solo daba un empujón en línea recta
+       dentro de 150 px y el efecto moría en el mismo fotograma. Ahora son
+       tres cosas:
+       · un radio mucho mayor, para que el aire se note antes de llegar;
+       · una componente TANGENCIAL —perpendicular al radio— que es lo que
+         convierte un empujón en un remolino: las motas no huyen del cursor,
+         giran a su alrededor;
+       · e inercia: el impulso se guarda y se apaga en ~20 fotogramas, así
+         que la estela sigue viva después de pasar. Sin esto es una fuerza;
+         con esto es aire. */
+    const R = 280;
+    if(dist<R&&!state.isAwakening&&state.activeScene<4){
+      const caida=(R-dist)/R, veloc=Math.hypot(vx,vy);
+      const pf=this.isMacro?2.0:0.25+this.z*0.9, fuerza=caida*pf;
+      this.empX=(this.empX||0)+vx*fuerza*0.05;
+      this.empY=(this.empY||0)+vy*fuerza*0.05;
+      if(dist>1){
+        // giro: el vector perpendicular al radio, más apretado cerca del cursor
+        const giro=veloc*caida*caida*0.11*(this.isMacro?0.45:1);
+        this.empX+=(-dy/dist)*giro;
+        this.empY+=( dx/dist)*giro;
+      }
+    }
+    // la estela se apaga sola, no de golpe
+    if(this.empX||this.empY){
+      cvx+=this.empX; this.vy+=this.empY;
+      this.empX*=0.945; this.empY*=0.945;
+      if(Math.abs(this.empX)<0.002) this.empX=0;
+      if(Math.abs(this.empY)<0.002) this.empY=0;
     }
     this.isLit=false;
     if(state.activeScene===1&&isIgnited&&dist<180){
@@ -157,12 +211,40 @@ export class VisualEngine {
     // thread can go idle. Lighthouse-based tools (which never move the cursor)
     // can finish their measurement instead of seeing the RAF loop forever.
     this._lastInteraction = Date.now();
-    const wake = () => { this._lastInteraction = Date.now(); this._resumeIfSuspended(); };
+    /* EN EL ARCHIVO ESTE MOTOR ESTÁ MUERTO. Antes, cada movimiento del ratón
+       en la escena 4 lo despertaba: reanudaba el bucle, hacía un clearRect de
+       un lienzo a pantalla completa y se volvía a dormir. Un fotograma
+       compositado entero por cada movimiento del cursor, para siempre, sin
+       pintar nada visible. */
+    this._huboGesto = false;
+    const wake = () => {
+      if (state.activeScene >= 4) return;
+      this._huboGesto = true;
+      this._lastInteraction = Date.now();
+      this._resumeIfSuspended();
+    };
     ['mousemove','mousedown','touchstart','touchmove','keydown','scroll'].forEach(ev => {
       document.addEventListener(ev, wake, { passive: true });
     });
-    this._resizeCanvas(); window.addEventListener('resize',()=>{this._resizeCanvas(); wake();});
-    for(let i=0;i<100;i++) this._dustParticles.push(new DustParticle(this._canvas.width,this._canvas.height));
+    this._encendido = false;
+    window.addEventListener('resize',()=>{ if(this._encendido) this._resizeCanvas(); wake();});
+  }
+
+  /**
+   * Enciende la maquinaria pesada del intro. Vivía suelta en el constructor,
+   * que corre SIEMPRE — también cuando alguien entra directo a /obras/, donde
+   * el intro no se ve jamás. Esa página pagaba un lienzo a pantalla completa,
+   * 100 motas de polvo y, lo caro de verdad, el MP4 de 1080p del primer
+   * personaje cargado hasta readyState 4: un decodificador y su textura en la
+   * GPU para un vídeo que nadie iba a ver. Ahora solo se enciende cuando el
+   * intro va a verse (start()), y es idempotente para el 'repetir intro'.
+   */
+  _encender() {
+    if (this._encendido) return;
+    this._encendido = true;
+    this._canvas.style.display = 'block';   // nace oculto (global.css): sin esto no hay capa
+    this._resizeCanvas();
+    for(let i=0;i<145;i++) this._dustParticles.push(new DustParticle(this._canvas.width,this._canvas.height));
     this._loadCharacterVideo(0);
   }
 
@@ -252,6 +334,12 @@ export class VisualEngine {
    * _swapToNextCharacter() transfers it to the visible element once screen is dark.
    */
   primeNextVideo() {
+    /* Los temporizadores del autoplay sobreviven al «Romper el trance»: si
+       este disparo llega con el visitante ya en el archivo, ponerle src y
+       play() al vídeo oculto del intro deja un MP4 descodificando en bucle,
+       invisible, bajo el archivo el resto de la visita — justo el
+       descodificador que desmontarIntro() acababa de liberar. */
+    if (state.activeScene >= 4) return;
     const nextIndex = state.currentCharIndex + 1;
     if (nextIndex >= CHARACTERS.length) return;
     // Load into whichever element is currently hidden — keep the live element untouched.
@@ -307,13 +395,23 @@ export class VisualEngine {
     // Re-cache whisper positions — they shift on resize
     if (this._whisperPos) this._cacheWhisperPositions();
   }
-  start() { this._lastFrameTime = 0; this._tick(0); }
-  setAutoAdvanceMode(v) { this._autoAdvanceMode = v; }
+  start() { this._encender(); this._lastFrameTime = 0; this._tick(0); }
+  /* EL AUTOPLAY TIENE QUE DESPERTARLO. El motor se duerme a los 3 s sin
+     gestos y el autoplay arranca a los 5: cuando le tocaba encender la
+     llama, el bucle llevaba dos segundos dormido, la ignicion no llegaba a
+     completarse y la cadena se cortaba en el primer personaje. De ahi que
+     «la reina sale y luego no pasa nada mas» — y que a veces no saliera. */
+  setAutoAdvanceMode(v) {
+    this._autoAdvanceMode = v;
+    if (v) { this._lastInteraction = Date.now(); this._resumeIfSuspended(); }
+  }
 
   /** Re-start the RAF loop if it was suspended by the idle-pause or scene>=4 check. */
   _resumeIfSuspended() {
+    if (state.activeScene >= 4) return;   // en el archivo no se resucita
     if (this._suspended) {
       this._suspended = false;
+      this._canvas.style.display = 'block';   // volver de la escena 4 lo reenciende
       this._lastFrameTime = 0;
       requestAnimationFrame((ts) => this._tick(ts));
     }
@@ -334,6 +432,10 @@ export class VisualEngine {
       if (!this._suspended) {
         const ctx = this._ctx, W = this._canvas.width, H = this._canvas.height;
         ctx.clearRect(0, 0, W, H);
+        /* Y SE APAGA LA CAPA. Un enlace directo ya no lo crea, pero quien
+           llega por el intro se dejaba un lienzo de pantalla completa
+           compositándose para siempre encima del archivo, vacío. */
+        this._canvas.style.display = 'none';
         this._suspended = true;
       }
       return;
@@ -344,8 +446,14 @@ export class VisualEngine {
     // measure TBT properly. The active states (ignition, awakening) block this
     // because the canvas is doing meaningful work then.
     const idleMs = Date.now() - this._lastInteraction;
-    const isActiveState = state.isPressed || state.isAwakening || state.isIgnited || state.isSwapping;
-    if (idleMs > 3000 && !isActiveState) {
+    const isActiveState = state.isPressed || state.isAwakening || state.isIgnited || state.isSwapping || this._autoAdvanceMode;
+    /* La pausa por inactividad existe para que Lighthouse y compania puedan
+       medir: un bot nunca mueve el raton, asi que a los 3 s se calla todo.
+       Pero a una PERSONA le congelaba el polvo en el aire por quedarse
+       quieta mirando, que es justo lo que quieres que haga en la tumba.
+       Ahora basta un gesto —uno solo, en toda la visita— para que el polvo
+       no vuelva a detenerse. Los bots siguen teniendo su silencio. */
+    if (idleMs > 3000 && !isActiveState && !this._huboGesto) {
       this._suspended = true;
       return;
     }
@@ -496,7 +604,12 @@ export class VisualEngine {
 
       // Mobile: whisper detection is handled exclusively by tap handlers in mobile.js.
       // Skip proximity detection here to avoid the firefly triggering whispers on its own.
-      if (window.innerWidth >= 768) {
+      // > 768, no >=: todo el proyecto define móvil como <= 768 (mobile.js,
+      // main.js, mobile.css max-width:768). Con >= aquí, a exactamente 768 px
+      // —un iPad clásico en vertical— corrían LOS DOS sistemas de susurros a
+      // la vez sobre el mismo contador compartido: hallazgos duplicados y dos
+      // rutas compitiendo por avanzar a la escena 3.
+      if (window.innerWidth > 768) {
       // Use hint target position if active (autonomous sweep) — falls back to cursor
       const hintActive = this._hintTarget && Date.now() < this._hintTarget.until;
       const lightX = hintActive ? this._hintTarget.x : this._currentX;

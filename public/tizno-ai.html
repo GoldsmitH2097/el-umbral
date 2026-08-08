@@ -1,0 +1,2997 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link rel="preconnect" href="https://esm.sh" crossorigin>
+    <link rel="preconnect" href="https://api.elevenlabs.io">
+    <link rel="dns-prefetch" href="https://api.us.elevenlabs.io">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tizno: Elegant Dynamic Fog & Gooey Runes</title>
+    <style>
+        /* ══════ MODO EMBED (?embed=1) — Tizno como criatura de la web ══════
+           Fondo transparente, sin cajas ni UI de llamada ni luciérnaga propia:
+           la página madre pone el mundo; aquí solo vive él, al 62%. */
+        html.embed, html.embed body { background: transparent !important; }
+        /* SIN zoom interno: mezclaba px escalados con % del viewport y las
+           capas fijas (cuerpo vs ojos) se desalineaban según el ancho de la
+           ventana. La madre escala el iframe entero con transform. */
+        /* SIN MÁSCARAS (coste GPU continuo sobre capas animadas): el fundido
+           oval va horneado en el propio degradado — mismo charco, gratis. */
+        html.embed #luz-sala {
+            /* fundido del contraluz: la escritura por frames persigue el pop,
+               y esta transición la vuelve terciopelo al aparecer y al irse */
+            transition: opacity 1.1s ease;
+        }
+        html.embed #ambient-light {
+            /* +20% de halo y algo más alto: las letras que brotan de su
+               cabeza vuelven a leerse contra la luz */
+            background: radial-gradient(ellipse 53% 48% at 50% 58%, #2b2420 0%, transparent 72%) !important;
+        }
+        html.embed #candle-flicker {
+            background: radial-gradient(ellipse 48% 43% at 50% 56%, rgba(255,182,102,0.14) 0%, transparent 67%) !important;
+        }
+        html.embed #abyss-foreground {
+            background: radial-gradient(ellipse 46% 90% at 50% 100%, var(--bg-color) 32%, rgba(3,3,3,0.88) 55%, transparent 74%) !important;
+        }
+        html.embed #abyss-foreground-2 {
+            background: radial-gradient(ellipse 50% 80% at 50% 100%, rgba(3,3,3,0.8) 30%, transparent 70%) !important;
+        }
+        html.embed #box-a, html.embed #box-b, html.embed #tizno-call-ui,
+        html.embed #firefly, html.embed #earring { }
+        html.embed #box-a, html.embed #box-b { display: none !important; }
+        html.embed #tizno-call-ui { display: none !important; }
+        html.embed #firefly { display: none !important; }
+        :root {
+            --bg-color: #030303;
+            --ink: #050505; 
+            --eye-glow: #f39c12; 
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-color);
+            display: flex; justify-content: center; align-items: center;
+            height: 100vh; overflow: hidden; font-family: 'Georgia', serif;
+        }
+
+        /* --- LUZ AMBIENTE DINÁMICA --- */
+        #ambient-light {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: radial-gradient(circle at 50% 70%, #1f1a18 0%, transparent 60%);
+            z-index: 0;
+            animation: flicker-light 8s ease-in-out infinite alternate;
+        }
+
+        /* --- UI BOXES (A & B) --- */
+        .ui-box {
+            position: fixed; bottom: 45%; 
+            width: auto; min-width: 150px; padding: 0 20px; height: 60px;
+            display: flex; justify-content: center; align-items: center;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px; color: rgba(255,255,255,0.5);
+            font-size: 14px; font-weight: bold; letter-spacing: 2px;
+            transition: all 0.3s ease; cursor: pointer; z-index: 50;
+            background: rgba(0,0,0,0.5);
+        }
+
+        #box-a { left: 10%; border-color: rgba(46, 204, 113, 0.3); }
+        #box-a:hover { background: rgba(46, 204, 113, 0.1); color: #2ecc71; border-color: #2ecc71; box-shadow: 0 0 20px rgba(46, 204, 113, 0.2); }
+
+        #box-b { right: 10%; border-color: rgba(231, 76, 60, 0.3); }
+        #box-b:hover { background: rgba(231, 76, 60, 0.1); color: #e74c3c; border-color: #e74c3c; box-shadow: 0 0 20px rgba(231, 76, 60, 0.2); }
+
+        /* --- NIEBLA FRONTAL DINÁMICA (Respiración suave, sin blobs) --- */
+        #abyss-foreground {
+            position: fixed; bottom: 0; left: -10vw;
+            width: 120vw; height: 250px;
+            background: linear-gradient(to top, var(--bg-color) 10%, rgba(3,3,3,0.95) 40%, transparent 100%);
+            z-index: 20; pointer-events: none;
+            transform-origin: bottom center;
+            animation: breath-fog 8s ease-in-out infinite alternate;
+        }
+
+        /* --- FILTRO DE TINTA --- */
+        .goo-layer {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            filter: url('#ink-goo'); z-index: 2; 
+            display: flex; justify-content: center; align-items: flex-end;
+            pointer-events: none;
+        }
+
+        /* --- MASTER RIG --- */
+        .master-rig {
+            position: relative; width: 500px; height: 600px; 
+            display: flex; justify-content: center; align-items: flex-end;
+            bottom: 50px; transform-origin: bottom center;
+        }
+
+        /* --- CUERPO --- */
+        #body-tracking-container {
+            position: absolute; bottom: 0; width: 120px; height: 250px;
+            transform-origin: bottom center; z-index: 2;
+        }
+
+        #body-shape {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--ink); border-radius: 50% 50% 20% 20% / 80% 80% 20% 20%;
+            transform-origin: bottom center;
+        }
+
+        /* --- CABEZA MODULAR --- */
+        .head-tracker {
+            position: absolute; bottom: 180px; width: 400px; height: 250px; z-index: 3;
+        }
+
+        #head-breathing-layer {
+            width: 100%; height: 100%;
+            transform-origin: center bottom; position: relative;
+        }
+
+        #head-base {
+            position: absolute; top: 50px; left: 125px; width: 150px; height: 150px;
+            background: var(--ink); border-radius: 50%;
+        }
+
+        #neck-bridge {
+            position: absolute; top: 120px; left: 176px; width: 48px; height: 180px;
+            background: var(--ink); border-radius: 50%; z-index: -1;
+            transform-origin: top center;
+        }
+
+        .ear-shape { position: absolute; top: 64px; width: 168px; height: 108px; }
+        #ear-left-wrapper { left: 8px; transform-origin: 100% 50%; }
+        #ear-right-wrapper { right: 8px; transform-origin: 0% 50%; }
+        .ear-svg { width: 100%; height: 100%; fill: var(--ink); }
+
+        /* --- OJOS --- */
+        #eyes-layer-container {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 10; display: flex; justify-content: center; align-items: flex-end;
+            pointer-events: none; padding-bottom: 50px; 
+        }
+
+        #eyes-breathing-layer {
+            width: 100%; height: 100%;
+            transform-origin: center bottom; position: relative;
+        }
+
+        .eye-wrapper {
+            position: absolute; top: 110px; width: 40px; height: 40px;
+            filter: drop-shadow(0 0 10px var(--eye-glow)) drop-shadow(0 0 20px var(--eye-glow)) drop-shadow(0 0 40px var(--eye-glow));
+            --eye-x: 0px; --eye-y: 0px; --eye-sx: 1; --eye-sy: 1;
+            transform: translate(var(--eye-x), var(--eye-y)) scale(var(--eye-sx), var(--eye-sy));
+        }
+
+        #eye-left-wrapper { left: 140px; }
+        #eye-right-wrapper { right: 140px; }
+
+        .eye {
+            width: 100%; height: 100%; background: #fff; border-radius: 50%;
+            transition: clip-path 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+            clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%); 
+        }
+
+        .eye::after {
+            content: ''; position: absolute; top: 15%; left: 20%; width: 35%; height: 35%;
+            background: rgba(255, 255, 255, 0.95); border-radius: 50%;
+        }
+
+        /* Furia: cuña afilada, la ceja cae con fuerza hacia el centro. */
+        .eye.angry.left  { clip-path: polygon(0% 6%, 100% 56%, 100% 96%, 0% 82%); }
+        .eye.angry.right { clip-path: polygon(0% 56%, 100% 6%, 100% 82%, 0% 96%); }
+        /* Felicidad: dos arcos (^ ^) — ojos cerrados de gusto. */
+        /* El ojo es un círculo; para el arco hay que soltarlo del border-radius,
+           si no la circunferencia se come las puntas del arco. */
+        /* Base: aproximación en polígono del arco, que funciona en TODOS los
+           navegadores (Safari solo admite path() desde 15.4). Si el navegador
+           soporta curvas, se sustituye por el trazo real más abajo. */
+        .eye.happy {
+            border-radius: 0;
+            clip-path: polygon(2.5% 72.5%, 26% 41.5%, 50% 31%, 74% 41.5%, 97.5% 72.5%,
+                               74% 58.5%, 50% 54%, 26% 58.5%);
+        }
+        @supports (clip-path: path('M 0,0 L 1,1 Z')) {
+            .eye.happy { clip-path: path('M 1,29 Q 20,-4 39,29 Q 20,14 1,29 Z'); }
+        }
+        .eye.happy::after { opacity: 0; }   /* sin brillo: están cerrados de gusto */
+        .eye.sad.left { clip-path: polygon(0% 10%, 100% 40%, 100% 100%, 0% 100%); }
+        .eye.sad.right { clip-path: polygon(0% 40%, 100% 10%, 100% 100%, 0% 100%); }
+        .eye-wrapper.blinking { --eye-sy: 0.01 !important; }
+
+        /* --- EXPRESIONES MANGA ---
+           squint: rendija de sospecha, cuando le preguntan a ÉL.
+           wince: ojos apretados en chevron, cuando algo le hace daño (voz alta).
+           shock: ojo entero + brillo diminuto = pupila contraída de susto. */
+        .eye.squint.left  { clip-path: polygon(0% 44%, 100% 32%, 100% 64%, 0% 70%); }
+        .eye.squint.right { clip-path: polygon(0% 32%, 100% 44%, 100% 70%, 0% 64%); }
+        .eye.wince { clip-path: polygon(0% 62%, 50% 40%, 100% 62%, 100% 72%, 50% 54%, 0% 72%); }
+        .eye.shock::after { width: 16%; height: 16%; top: 20%; left: 24%; }
+
+        /* --- KEYFRAMES --- */
+        @keyframes breathe-body { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.03, 1.02); } }
+        @keyframes breathe-head { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(5px) rotate(-1deg); } }
+        
+        /* LUZ DE VELA: dos animaciones de periodos primos entre sí (7s y 2.3s)
+           que nunca vuelven a coincidir → el parpadeo no se repite nunca.
+           Coste cero: solo transform y opacity, compuesto en GPU. */
+        @keyframes flicker-light {
+            0%   { transform: scale(1)    translate(0, 0);      opacity: 0.72; }
+            25%  { transform: scale(1.06) translate(-0.8%, 1%); opacity: 0.93; }
+            50%  { transform: scale(0.97) translate(0.9%, -1%); opacity: 0.78; }
+            75%  { transform: scale(1.03) translate(-0.4%, 0.6%); opacity: 0.88; }
+            100% { transform: scale(1.01) translate(0.3%, 0.9%); opacity: 1; }
+        }
+        /* La segunda capa es el "temblor" corto de la llama. */
+        @keyframes candle-jitter {
+            0%   { opacity: 0.94; transform: scale(1); }
+            12%  { opacity: 1;    transform: scale(1.012); }
+            26%  { opacity: 0.88; transform: scale(0.994); }
+            41%  { opacity: 0.99; transform: scale(1.008); }
+            58%  { opacity: 0.85; transform: scale(0.99); }
+            73%  { opacity: 0.97; transform: scale(1.006); }
+            89%  { opacity: 0.91; transform: scale(0.997); }
+            100% { opacity: 0.96; transform: scale(1.002); }
+        }
+        #candle-flicker {
+            position: fixed; inset: 0; z-index: 1; pointer-events: none;
+            background: radial-gradient(circle at 50% 68%, rgba(255, 176, 92, 0.09) 0%, transparent 52%);
+            animation: candle-jitter 2.3s ease-in-out infinite alternate;
+        }
+
+        @keyframes breath-fog {
+            0% { transform: translateY(0) scaleY(1) rotate(0deg); opacity: 0.95; }
+            100% { transform: translateY(10px) scaleY(1.15) rotate(0.35deg); opacity: 1; }
+        }
+        /* Segunda lámina de niebla con OTRO periodo (13s frente a 8s) y giro
+           contrario. Al no coincidir nunca, el borde de las dos parece ondular
+           solo. Coste: una capa más compuesta en GPU, transform y opacity. */
+        @keyframes breath-fog-2 {
+            0%   { transform: translateY(14px) scaleY(1.1) rotate(-0.5deg); opacity: 0.5; }
+            50%  { transform: translateY(-6px) scaleY(0.94) rotate(0.28deg); opacity: 0.72; }
+            100% { transform: translateY(9px)  scaleY(1.18) rotate(-0.2deg); opacity: 0.55; }
+        }
+        #abyss-foreground-2 {
+            position: fixed; bottom: -30px; left: -12vw;
+            width: 124vw; height: 230px;
+            background: linear-gradient(to top, var(--bg-color) 18%, rgba(3,3,3,0.8) 52%, transparent 100%);
+            z-index: 21; pointer-events: none;
+            transform-origin: bottom center;
+            animation: breath-fog-2 13s ease-in-out infinite alternate;
+        }
+
+        /* --- PARTÍCULAS ---
+           Dibujadas en canvas desde el motor de tinta (ver script): los viejos
+           divs .ink-drop/.floating-letter/.micro-letter/.corona-* ya no existen. */
+        .particle-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; }
+
+        /* ═══ ELEVENLABS 1/4 — call UI ═══ */
+        #tizno-call-ui {
+            position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
+            z-index: 60; display: flex; flex-direction: column; align-items: center;
+            gap: 8px; font-family: 'Georgia', serif;
+        }
+        #tizno-call {
+            background: rgba(0,0,0,0.55); color: rgba(243, 156, 18, 0.9);
+            border: 1px solid rgba(243, 156, 18, 0.35); border-radius: 8px;
+            padding: 12px 22px; font-family: inherit; font-size: 14px;
+            letter-spacing: 3px; text-transform: uppercase; cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        #tizno-call:hover { border-color: rgba(243, 156, 18, 0.8); box-shadow: 0 0 20px rgba(243, 156, 18, 0.15); }
+        #tizno-call.live { color: #e74c3c; border-color: rgba(231, 76, 60, 0.6); }
+        #tizno-call:disabled { opacity: 0.4; cursor: wait; }
+        #tizno-status {
+            color: rgba(255,255,255,0.35); font-style: italic; font-size: 12px;
+            letter-spacing: 1px; text-align: center;
+        }
+        #tizno-aviso {
+            max-width: 640px; text-align: center; margin-top: 6px;
+            color: rgba(255,255,255,0.28); font-size: 11.5px; line-height: 1.65;
+        }
+        #tizno-aviso a {
+            color: rgba(243, 156, 18, 0.55); text-decoration: none;
+            border-bottom: 1px solid rgba(243, 156, 18, 0.25);
+        }
+        #tizno-aviso a:hover { color: rgba(243, 156, 18, 0.95); border-bottom-color: rgba(243, 156, 18, 0.6); }
+        #tizno-aviso.olvidado { color: rgba(243, 156, 18, 0.5); }
+
+        /* --- LUCIÉRNAGA --- */
+        #firefly {
+            position: fixed; top: 0; left: 0; width: 7px; height: 7px;
+            background: #fff8e0; border-radius: 50%; pointer-events: none; z-index: 25;
+            box-shadow: 0 0 8px 2px rgba(243, 196, 18, 0.8), 0 0 22px 8px rgba(243, 156, 18, 0.35);
+        }
+
+        /* --- EL PENDIENTE: aro de tinta con física de péndulo ---
+           Silueta negra pura: aparece en negativo contra el glow de los ojos.
+           Radios desiguales + skew en el transform = aro imperfecto, artesanal. */
+        #earring {
+            position: fixed; top: 0; left: 0; width: 17px; height: 19px;
+            border: 2.5px solid var(--ink);
+            border-radius: 48% 52% 46% 54% / 55% 50% 50% 45%;
+            transform-origin: 50% 0;   /* cuelga de su borde superior */
+            pointer-events: none; z-index: 9;
+        }
+    </style>
+</head>
+<body>
+
+    <svg style="display: none;">
+        <defs>
+            <filter id="ink-goo">
+                <!-- PRUEBA: desenfoque 8 (antes 10). Revertir = volver a 10. -->
+                <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+                <!-- El contraste de alfa decide el carácter: alto (22) da pegotes
+                     duros de goma; bajo (13) da vapor que se funde. Cuesta lo
+                     mismo, cambia todo. -->
+                <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 14 -5.6" result="ink-goo" />
+                <feBlend in="SourceGraphic" in2="ink-goo" result="merged" />
+                <!-- Ruido más ancho y grave (0.008/0.028): volutas grandes de humo
+                     en vez de pelusa fina. Y más desplazamiento: más líquido.
+                     Ninguno de los dos cambios cuesta un solo ciclo extra. -->
+                <feTurbulence type="fractalNoise" baseFrequency="0.008 0.028" numOctaves="2" seed="7" result="smoke" />
+                <feDisplacementMap in="merged" in2="smoke" scale="30" xChannelSelector="R" yChannelSelector="G" />
+            </filter>
+            <!-- Nivel MEDIO: solo fusión, sin turbulencia ni desplazamiento. -->
+            <filter id="ink-goo-lite">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="7" result="blur" />
+                <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -8" result="g" />
+                <feBlend in="SourceGraphic" in2="g" />
+            </filter>
+            <!-- Nivel BAJO. WebKit resuelve los filtros SVG por software, y el
+                 coste de un desenfoque gaussiano sube con el radio: a DPR 3 un
+                 stdDeviation de 7 son 21 píxeles reales de radio sobre cuatro
+                 millones de píxeles, cada fotograma. Bajarlo a 3 recorta el
+                 gasto a menos de la mitad, y el umbral de alfa se sube a la vez
+                 para que la tinta siga cerrando en formas sólidas en vez de
+                 quedarse en niebla: sigue siendo Tizno, no una mancha. -->
+            <filter id="ink-goo-movil">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
+                <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 26 -10" result="g" />
+                <feBlend in="SourceGraphic" in2="g" />
+            </filter>
+            <filter id="ink-goo-body">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+                <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7.5" result="ink-goo" />
+                <feBlend in="SourceGraphic" in2="ink-goo" result="merged" />
+                <!-- Mismo humo pero escala minima: la silueta respira, no se rompe. -->
+                <feTurbulence type="fractalNoise" baseFrequency="0.014 0.042" numOctaves="2" seed="7" result="smoke" />
+                <feDisplacementMap in="merged" in2="smoke" scale="9" xChannelSelector="R" yChannelSelector="G" />
+            </filter>
+        </defs>
+    </svg>
+
+    <!-- Fondo de luz -->
+    <!-- Envoltorio: las dos capas animan su propia opacidad por keyframes y una
+         animación CSS gana a cualquier estilo inline. Atenuando el PADRE, las dos
+         opacidades se multiplican y el fundido sí manda. -->
+    <div id="luz-sala" style="position:fixed;inset:0;z-index:0;pointer-events:none">
+        <div id="ambient-light"></div>
+        <div id="candle-flicker"></div>
+    </div>
+    
+    <!-- UI Elements -->
+    <div id="box-a" class="ui-box">COMPRAR PULSO DEL NÚCLEO</div>
+    <div id="box-b" class="ui-box">CERRAR DEMO DE TIZNO</div>
+
+    <!-- EL ABISMO FRONTAL (Niebla dinámica limpia) -->
+    <div id="abyss-foreground"></div>
+    <div id="abyss-foreground-2"></div>
+
+    <!-- Cuerpo: goo con despeine SUAVE en la silueta -->
+    <div class="goo-layer" style="filter: url('#ink-goo-body'); width: 660px; left: 50%; margin-left: -330px; height: 700px; top: auto; bottom: 0;">
+        <!-- La CORONA vive DENTRO de esta capa, así que su tinta pasa por el
+             mismo filtro que el cuerpo y se funde con él: el contorno superior
+             deja de ser una línea limpia y se convierte en mar de tinta. -->
+        <canvas id="corona" style="position:absolute;inset:0;pointer-events:none"></canvas>
+        <div class="master-rig">
+            <div id="body-tracking-container"><div id="body-shape"></div></div>
+            <div class="head-tracker">
+                <div id="head-breathing-layer">
+                    <div class="ear-shape" id="ear-left-wrapper"><svg viewBox="0 0 150 100" class="ear-svg"><path d="M 150 50 Q 70 20 0 40 Q 60 90 150 80 Z" /></svg></div>
+                    <div class="ear-shape" id="ear-right-wrapper"><svg viewBox="0 0 150 100" class="ear-svg"><path d="M 0 50 Q 80 20 150 40 Q 90 90 0 80 Z" /></svg><div id="earring-anchor" style="position: absolute; left: 83%; top: 57%; width: 2px; height: 2px;"></div></div>
+                    <div id="head-base"></div>
+                    <div id="neck-bridge"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Partículas y letras: goo con el despeine FUERTE original -->
+    <div class="goo-layer" id="goo-particles" style="width: 720px; left: 50%; margin-left: -360px;">
+        <canvas id="lienzo-particulas"></canvas>
+    </div>
+
+    <div id="eyes-layer-container">
+        <div class="master-rig">
+            <div class="head-tracker">
+                <div id="eyes-breathing-layer">
+                    <div class="eye-wrapper" id="eye-left-wrapper"><div class="eye left" id="eye-left"></div></div>
+                    <div class="eye-wrapper" id="eye-right-wrapper"><div class="eye right" id="eye-right"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Chispas Mágicas FUERA del Goo Filter -->
+    <canvas id="lienzo-chispas" style="position:fixed;left:50%;margin-left:-320px;bottom:140px;z-index:11;pointer-events:none"></canvas>
+
+    <div id="firefly"></div>
+    <div id="earring"></div>
+
+    <!-- ═══ ELEVENLABS 2/4 — call UI ═══ -->
+    <div id="tizno-call-ui">
+        <button id="tizno-call">Despertar a Tizno</button>
+        <div id="tizno-status">pulsa para hablar con él</div>
+        <p id="tizno-aviso">
+            En esta web no usamos cookies: no queremos entrometernos en tu vida ni sacar
+            de ti nada que se pueda vender. Tizno recuerda cosas sobre ti, pero las guarda
+            dentro de tu propio dispositivo — nosotros no nos quedamos con nada.
+            Si te quedas más tranquilo, puedes <a href="#" id="tizno-olvido">borrar lo que sabe de ti</a>.
+        </p>
+    </div>
+
+    <script>
+        /* ¿Vivimos dentro de la web madre? */
+        const EMBED = /[?&]embed=1/.test(location.search);
+        if (EMBED) document.documentElement.classList.add('embed');
+        /* El idioma llega en la URL (la madre lo pone al crear el marco): el
+           embed no comparte el módulo i18n de la página, y este parámetro es
+           su única fuente de verdad para hablar al visitante en su lengua. */
+        const IDIOMA = /[?&]lang=en/.test(location.search) ? 'en' : 'es';
+        /* Interruptor de la VOZ en inglés (los textos ya van por IDIOMA).
+           ENCENDIDO el 6-ago-2026: English añadido como idioma adicional del
+           agente y override de language permitido en Security — los dos
+           requisitos verificados y publicados en el panel de ElevenLabs. Si
+           la llamada en /en/ fallara al arrancar, apagar esto la devuelve al
+           castellano sin tocar nada más. */
+        const TIZNO_EN_LISTO = true;
+        window.__ESC = 1;   // escala real del marco (el puente embed la actualiza)
+
+        /* Valores ajustables en vivo desde el panel (?tune=1). */
+        const TUNE = {
+            microPorTick: 26,     // cuántas micro-letras por pulso (nivel alto)
+            microTamMin: 8,       // tamaño mínimo en px
+            microTamMax: 17,      // tamaño máximo en px
+            microAltura: 75,      // cuánto suben antes de evaporarse
+            microDuracion: 1650,  // vida en ms — suben despacio y se disuelven
+            microTope: 190,       // máximo de micro-letras vivas
+            microDispersion: 60,  // cuánto se abren en horizontal (menos = más humo)
+            focoSeguimiento: 0.22,// cuánto sigue el halo de fondo a Tizno (0 = fijo)
+            focoPereza: 0.025,    // más bajo = más perezoso, llega más tarde
+            coronaPorTick: 11,     // grumos de tinta en la coronilla por pulso
+            coronaTam: 25,        // tamaño de los grumos de la corona
+            coronaAlcance: 58,    // cuánto salen antes de disolverse
+            coronaVida: 2050,     // vida de la corona en ms
+            gooContraste: 14,     // alto = pegotes duros · bajo = vapor
+            gooDistorsion: 30,    // cuánto se retuerce el humo (líquido)
+            gotasPorTick: 9,      // gotas de tinta por pulso
+            desenfoque: 10,        // desenfoque del filtro de partículas
+            popRigidez: 0.0092,   // muelle del salto: más alto = más rápido
+            popAmortigua: 0.084,  // más bajo = más rebotes
+            orejaPliegue: 40,     // grados que se pliegan las orejas
+        };
+        window.TUNE = TUNE;   // también editable desde la consola
+        if (EMBED) {
+            /* El foco perezoso del demo seguía la cabeza al 22%; en la esquina
+               le sube al 50% (Ruben) — la mitad del viaje, nunca calcado.
+               (Y va AQUÍ, después de nacer TUNE: puesto antes, el const en zona
+               muerta temporal mataba el script entero en embed — Tizno tieso.) */
+            TUNE.focoSeguimiento = 0.5;
+        }
+
+        /* ══════ NIVEL DE DETALLE SEGÚN LA MÁQUINA ══════
+           Primero una estimación por hardware; luego se mide el FPS real durante
+           los primeros segundos y se baja de nivel si no da la talla.
+           alto  = todo (turbulencia, estallidos, partículas al máximo)
+           medio = filtro simple, menos partículas, sin letras en estallidos
+           bajo  = partículas sin filtro y al mínimo (móviles modestos) */
+        const esMovil = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+                        || (navigator.maxTouchPoints > 1 && innerWidth <= 900);
+        let NIVEL = 'alto';
+        {
+            const nucleos = navigator.hardwareConcurrency || 4;
+            const mem = navigator.deviceMemory || 4;
+            if (esMovil || nucleos <= 4 || mem <= 4) NIVEL = 'medio';
+            if (esMovil && (nucleos <= 4 || mem <= 3)) NIVEL = 'bajo';
+            // Accesibilidad: quien ha pedido menos animación no merece un
+            // caldero de partículas — y de paso es el ajuste más barato.
+            if (matchMedia('(prefers-reduced-motion: reduce)').matches) NIVEL = 'bajo';
+            /* Safari (incluido todo iOS, que va por debajo con WebKit) tira los
+               filtros SVG por CPU y se ahoga con feTurbulence. Nunca arranca en
+               alto: si su máquina da de sí, el vigilante no lo bajará más. */
+            const esSafari = /^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent);
+            if (esSafari && NIVEL === 'alto') NIVEL = 'medio';
+            /* Pantallas muy densas multiplican el área real del filtro por el
+               cuadrado del DPR: en un móvil 3x son 9 veces más píxeles. */
+            if ((window.devicePixelRatio || 1) >= 2.5 && esMovil) NIVEL = 'bajo';
+        }
+        const FACTOR = { alto: 1, medio: 0.55, bajo: 0.3 };
+        function aplicarNivel() {
+            const cap = document.getElementById('goo-particles');
+            if (!cap) return;
+            cap.style.filter = NIVEL === 'alto' ? "url('#ink-goo')"
+                             : NIVEL === 'medio' ? "url('#ink-goo-lite')" : 'none';
+            // En nivel BAJO el cuerpo también renuncia a la turbulencia: en un
+            // móvil modesto ese filtro es la mitad del gasto de toda la página.
+            const cuerpo = document.querySelectorAll('.goo-layer')[0];
+            if (cuerpo) cuerpo.style.filter = NIVEL === 'bajo' ? "url('#ink-goo-movil')" : "url('#ink-goo-body')";
+            // La segunda lámina de niebla es puro adorno: fuera en nivel bajo.
+            const niebla2 = document.getElementById('abyss-foreground-2');
+            if (niebla2) niebla2.style.display = NIVEL === 'bajo' ? 'none' : '';
+            document.documentElement.dataset.nivel = NIVEL;
+        }
+        function bajarNivel() {
+            if (NIVEL === 'alto') NIVEL = 'medio';
+            else if (NIVEL === 'medio') NIVEL = 'bajo';
+            else return false;
+            aplicarNivel();
+            return true;
+        }
+        /* VIGILANTE PERMANENTE DE FPS.
+           No basta con medir al arrancar: una máquina puede ir bien vacía y
+           ahogarse cuando se llena de partículas, o cuando el usuario abre otra
+           pestaña pesada. Esto vigila en ventanas de 2,5 s durante toda la vida
+           de la página y baja de nivel en cuanto ve que no llega. Solo baja,
+           nunca sube: subir y bajar en bucle se vería peor que ir en bajo. */
+        function medirFps() {
+            let n = 0, t0 = performance.now(), ventanas = 0;
+            let prev = t0, huecoMax = 0;
+            const tick = () => {
+                n++;
+                const ahora = performance.now();
+                huecoMax = Math.max(huecoMax, ahora - prev);
+                prev = ahora;
+                const dt = ahora - t0;
+                if (dt >= 2500) {
+                    const fps = n / (dt / 1000);
+                    document.documentElement.dataset.fps = Math.round(fps);
+                    /* Un hueco grande entre fotogramas no es lentitud: es el
+                       navegador estrangulando el rAF porque la pestaña estaba
+                       tapada u oculta. Juzgar esa ventana degradaría la calidad
+                       para siempre por culpa de un alt-tab. Se descarta. */
+                    const valida = !document.hidden && huecoMax < 400;
+                    if (valida) {
+                        // La 1ª ventana incluye el arranque: es más tolerante.
+                        const umbralBajo = ventanas === 0 ? 30 : 34;
+                        const umbralMedio = ventanas === 0 ? 46 : 50;
+                        if (fps < umbralBajo) { bajarNivel(); bajarNivel(); }
+                        else if (fps < umbralMedio) bajarNivel();
+                        ventanas++;
+                    }
+                    n = 0; t0 = performance.now(); prev = t0; huecoMax = 0;
+                }
+                requestAnimationFrame(tick);
+            };
+            requestAnimationFrame(tick);
+        }
+
+        const masterRigs = document.querySelectorAll('.master-rig');
+        const trackers = document.querySelectorAll('.head-tracker');
+        const bodyTracker = document.getElementById('body-tracking-container');
+        const earLeft = document.getElementById('ear-left-wrapper');
+        const earRight = document.getElementById('ear-right-wrapper');
+        const headBase = document.getElementById('head-base');
+        const neckBridge = document.getElementById('neck-bridge');
+        const eyeLeftWrapper = document.getElementById('eye-left-wrapper');
+        const eyeRightWrapper = document.getElementById('eye-right-wrapper');
+        const eyeLeft = document.getElementById('eye-left');
+        const eyeRight = document.getElementById('eye-right');
+
+        const boxA = document.getElementById('box-a');
+        const boxB = document.getElementById('box-b');
+
+        let c_HeadX = 0, c_HeadY = 0, c_HeadRot = 0;
+        let c_BodyScaleX = 1, c_BodyScaleY = 1, c_BodyY = 0;
+        let c_NeckScaleX = 1, c_NeckScaleY = 1;
+        let c_EarL = 0, c_EarR = 0;
+        let c_RigRot = 0;
+        let c_EyeL = 1, c_EyeR = 1;
+
+        let mouseDistance = 1000, mouseNormX = 0, mouseNormY = 0;
+        let distA = 1000, distB = 1000;
+        let boxANormX = 0, boxANormY = 0;
+        let boxBNormX = 0, boxBNormY = 0;
+
+        /* ═══ ELEVENLABS 3/4 — AI state + signal bridge ═══
+           El módulo del SDK (al final del archivo) escribe aquí a través de
+           window.__setTiznoAI / window.__tiznoSignals. El rig solo LEE. */
+        let aiState = 'idle';            // idle | listening | thinking | speaking
+        let aiVolume = 0;                // energía base de la voz (envolvente lenta)
+        let aiVolFast = 0;               // envolvente rápida: sigue las sílabas
+
+        /* ── MESA DE MEZCLAS ── cuánto pesa cada fuente sobre la postura.
+           Sube o baja estos cuatro faders a gusto:                       */
+        const W_RATON_HABLANDO = 0.95; // seguimiento del cursor mientras habla (0-1)
+        const W_VOZ_CUERPO     = 1.0;  // su voz empujando cuerpo y cuello
+        const W_TELENECO       = 1.6;  // cabeceo muppet por sílaba (1 = moderado)
+        const W_VOZ_USUARIO    = 1.0;  // tu voz empujándole mientras escucha
+        const W_RATON_ESCUCHANDO = 1.0;  // seguimiento del cursor mientras te escucha
+        let sBass = 0, sMid = 0, sTreble = 0, sInVol = 0, sVad = 0;
+        let prevTreble = 0, ticDirL = 1, ticDirR = -0.5;
+        let c_LetY = 0, c_LetScale = 1;  // cadencia de la capa de letras
+        // (la cadencia de letras ahora se aplica al dibujar en el lienzo)
+        window.__setTiznoAI = (s) => { aiState = s; };
+        /* Matiz emocional mientras habla, derivado del TEXTO de su respuesta
+           (las acotaciones que el propio agente escribe: [Tiembla], [Gruñe]…).
+           El módulo SDK lo detecta y lo fija aquí con caducidad. */
+        let aiMood = null, aiMoodUntil = 0;
+        let shockUntil = 0;   // pupila contraída tras un sobresalto
+
+        /* ══════ EL CHISTE DEL BOTÓN DE CERRAR ══════
+           "Cerrar demo" no cierra nada. Nunca. Los dos primeros clics no pasa
+           absolutamente nada — ese silencio es la mitad del chiste. Del tercero
+           en adelante Tizno se va descojonando, y cuanto más insistes, peor. */
+        let clicsCerrar = 0, risa = 0, risaHasta = 0;
+        document.getElementById('box-b').addEventListener('click', () => {
+            clicsCerrar++;
+            if (clicsCerrar < 3) return;                 // silencio absoluto al principio
+            // Carcajada CORTA: menos de un segundo y se apaga sola. Insistir no
+            // alarga la risa, la repite — que tiene más gracia que una risa larga.
+            risa = Math.min(1, risa + (clicsCerrar === 3 ? 0.5 : 0.35));
+            risaHasta = Date.now() + 620 + risa * 260;
+            sfxPlay('risa');
+            if (clicsCerrar >= 5) burstInk(0.7 + risa * 0.5, true);
+        });
+        let sustosSeguidos = 0, ultimoSustoT = 0;   // 3 sustos rápidos y se esconde
+        /* REARME DEL SUSTO: un susto solo cuenta como nuevo si antes se alejó de
+           verdad. Sin esto, el cursor rondando el borde de los 200 px disparaba
+           el chillido cada segundo y medio: un pulso constante que no
+           correspondía a ninguna reacción. Todo sonido debe tener su gesto. */
+        let sustoArmado = true;
+
+        /* ── LE ESTÁN ACARICIANDO ──
+           Roce lento y continuo sobre su cuerpo o su cabeza => se derrite.
+           Rápido no vale (eso le asusta); quieto tampoco (eso no es una caricia). */
+        let petLevel = 0;                 // 0..1, cuánto mimo lleva acumulado
+        let petRects = null;              // cacheadas en spawnParticles: sin coste extra
+        let lastPetX = 0, lastPetY = 0, petPurring = false;
+        window.addEventListener('mousemove', (e) => {
+            const dx = e.clientX - lastPetX, dy = e.clientY - lastPetY;
+            /* En embed los px internos son mayores que los físicos (escala
+               0.55): sin corregir, una caricia normal parecía un manotazo y
+               el umbral de mimos casi no se alcanzaba. */
+            const v = Math.hypot(dx, dy) * (window.__ESC || 1);
+            lastPetX = e.clientX; lastPetY = e.clientY;
+            if (!petRects) return;
+            const dentro = (r, mx, my) => e.clientX > r.left - mx && e.clientX < r.right + mx
+                                       && e.clientY > r.top - my && e.clientY < r.bottom + my;
+            /* Márgenes en px FÍSICOS: al 55% de escala, 55 px internos eran solo
+               30 reales — la zona de mimos quedaba un 45% más pequeña que en el
+               demo y la mano se salía sin saberlo. */
+            const me = 1 / (window.__ESC || 1);
+            const encima = dentro(petRects.head, 55 * me, 45 * me) || dentro(petRects.body, 45 * me, 20 * me);
+            // Sube MUY despacio: primero se asusta, y solo cede si insistes con
+            // suavidad unos segundos. Alejar la mano lo tira abajo enseguida.
+            /* Gana rápido (0.02): ~1.5 s de caricia hasta ojos felices — a
+               0.013 la gente abandonaba antes de ver nada. */
+            if (encima && v > 1.2 && v < 30) petLevel = Math.min(1, petLevel + 0.02);
+            else if (!encima) petLevel = Math.max(0, petLevel - 0.05);
+        });
+        let prevMoodHablando = null;   // flanco para el estallido de rabia
+        let inBoxB = false, prevBoxB = false;   // flanco de entrada a la caja prohibida
+        let enfadoDentro = false, ultimoEnfadoT = 0, enfadoDesde = 0;   // gruñido: entrada profunda + permanencia + enfriamiento
+        window.__setTiznoMood = (m, holdMs) => { aiMood = m; aiMoodUntil = Date.now() + (holdMs || 8000); };
+        /* Línea de tiempo emocional: el módulo instala window.__tiznoTimeline
+           ({segs, totalChars, cps}) por cada parlamento; el rig avanza un reloj
+           de habla (solo cuando suena audio) y busca el tramo actual. */
+        let wasSpeaking = false, speakMs = 0;
+        window.__tiznoSignals = null;    // el módulo instala () => paleta de señales
+
+        /* Luciérnaga: vaga por la página. Si el ratón lleva >3 s quieto, roba la
+           atención de Tizno; a veces se lanza hacia él y lo asusta (misma física
+           que el cursor, pero aleatoria). */
+        let ffX = Math.random() * window.innerWidth;
+        let ffY = Math.random() * window.innerHeight * 0.5;
+        let ffVX = 0, ffVY = 0, ffTX = ffX, ffTY = ffY, ffTimer = 0;
+        let lastMouseMove = Date.now();
+        window.addEventListener('mousemove', () => { lastMouseMove = Date.now(); });
+        const fireflyEl = document.getElementById('firefly');
+
+        /* Optimización GPU: la física corre a 60 fps pero los estilos del cuerpo
+           se escriben a 30 (el ojo no lo nota; los filtros SVG repintan la mitad).
+           La respiración vive aquí — como animación CSS mantenía los filtros
+           calientes a 60 fps incluso con Tizno completamente quieto. */
+        let ultimoDibujo = 0;   // puerta de 30 fps por tiempo real (los 120 Hz no la doblan)
+        const bodyShapeEl = document.getElementById('body-shape');
+        const headBreathEl = document.getElementById('head-breathing-layer');
+        const eyesBreathEl = document.getElementById('eyes-breathing-layer');
+        const goolayers = document.querySelectorAll('.goo-layer');
+        const luzSala = document.getElementById('luz-sala');
+        let focoX = 0, focoY = 0;   // el halo de fondo va detrás de él, con pereza
+
+        /* El pendiente: péndulo amortiguado colgado de la oreja. El navegador
+           nos da la posición real del ancla (con todas las transformaciones
+           encadenadas) vía getBoundingClientRect; su aceleración entra como
+           fuerza en la ecuación del péndulo. En reposo, la gravedad lo centra. */
+        const earringEl = document.getElementById('earring');
+        const earringAnchorEl = document.getElementById('earring-anchor');
+        let erTheta = 0, erOmega = 0;
+        let erPX = 0, erPY = 0, erVX = 0, erVY = 0, erInit = false, erLastT = 0;
+
+        /* ── SFX: gemido de susto ──
+           Un solo efecto, muy sutil: cuando Tizno se hace bola. Sintetizado
+           (sin assets): oscilador descendente + soplo de ruido grave, ~300 ms.
+           El contexto solo puede arrancar con un gesto real del usuario. */
+        let sfxCtx = null, lastScareSfx = 0, inFear = false, prevFear = false;
+        const sfxEnable = () => {
+            try {
+                if (!sfxCtx) sfxCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (sfxCtx.state === 'suspended') sfxCtx.resume();
+            } catch (_) {}
+        };
+        window.addEventListener('pointerdown', sfxEnable);
+        window.addEventListener('keydown', sfxEnable);
+
+        /* ══════ BANCO DE SONIDOS ══════
+           Deja los mp3 en /tizno-sfx/ con estos nombres y suenan solos.
+           Si un archivo no existe, simplemente no suena: nada se rompe.
+           Puedes ir añadiéndolos de uno en uno. */
+        const SFX_BASE = 'tizno-sfx/';
+        /* Cada reacción tiene un POOL de tomas (grabadas por Ruben con la voz
+           de Tizno, 2026-08-04) y suena una al azar, nunca la misma dos veces
+           seguidas: la repetición exacta es lo que delata a una máquina.
+           El ronroneo es bucle: una única toma estable, con empalme fundido. */
+        const SFX = {
+            susto:    { archivos: ['susto-1.mp3'], vol: 0.55 },
+            ronroneo: { archivos: ['ronroneo.mp3'], vol: 0.45, bucle: true },
+            pop:      { archivos: ['pop-1.mp3', 'pop-2.mp3', 'pop-3.mp3', 'pop-4.mp3', 'pop-5.mp3', 'pop-6.mp3'], vol: 0.5 },
+            enfado:   { archivos: ['enfado-1.mp3', 'enfado-2.mp3', 'enfado-3.mp3', 'enfado-4.mp3'], vol: 0.5 },
+            quejido:  { archivos: ['quejido-1.mp3', 'quejido-2.mp3'], vol: 0.5 },
+            risa:     { archivos: ['risa-1.mp3', 'risa-2.mp3'], vol: 0.55 },
+            sinMicro: { archivos: ['frase-sin-micro-1.mp3', 'frase-sin-micro-2.mp3'], vol: 0.85 },
+            toque:    { archivos: ['toque-1.mp3', 'toque-2.mp3', 'toque-5.mp3'], vol: 0.6 },   // 3 y 4 al banquillo: largas para un piquito
+            noEncierres: { archivos: ['no-encierres-1.mp3', 'no-encierres-2.mp3', 'no-encierres-3.mp3', 'no-encierres-4.mp3', 'no-encierres-5.mp3'], vol: 0.8 },
+        };
+        const sfxCache = {};
+        function sfxObtener(nombre) {
+            const def = SFX[nombre];
+            if (!def) return null;
+            const vivos = def.archivos.filter(f => !def[f + '_roto']);
+            if (!vivos.length) return null;
+            // al azar, evitando repetir la última toma si hay más de una
+            let f = vivos[Math.floor(Math.random() * vivos.length)];
+            if (vivos.length > 1 && f === def._ultima) {
+                f = vivos[(vivos.indexOf(f) + 1) % vivos.length];
+            }
+            def._ultima = f;
+            if (!sfxCache[f]) {
+                const a = new Audio(SFX_BASE + f);
+                a.preload = 'auto';
+                if (def.bucle) a.loop = true;
+                a.addEventListener('error', () => { def[f + '_roto'] = true; }, { once: true });
+                sfxCache[f] = a;
+            }
+            sfxCache[f].volume = def.vol;
+            return sfxCache[f];
+        }
+        /* DISCIPLINA DE VOZ (Ruben, 4-ago): «demasiados sonidos solapados».
+           Tres reglas:
+           1. UNA reacción a la vez — si aún resuena una toma, la nueva no entra.
+           2. risa / quejido / frase-sin-micro tienen prioridad: cortan la cola
+              de lo que suene (son el remate de su gesto, no pueden perderse).
+           3. Durante la conversación manda la voz EN VIVO de ElevenLabs: las
+              tomas enlatadas se callan todas (salvo la frase sin micro, que
+              por definición solo existe fuera de la llamada). */
+        /* v2 (Ruben: «se montan las frases»): el tope de 2,6 s se quedó corto
+           con las súplicas de 7 s y por esa grieta entraba el gruñido a mitad
+           de frase. Ahora se le pregunta al PROPIO Audio si sigue sonando —
+           mientras suene, nada normal entra — y las prioritarias cortan a las
+           normales pero NUNCA se pisan entre sí. */
+        let sfxSonandoHasta = 0, sfxActual = null, sfxActualPrioritario = false;
+        function sfxPlay(nombre) {
+            const def = SFX[nombre];
+            if (!def) return false;
+            const ahora = Date.now();
+            if (typeof aiState !== 'undefined' && aiState !== 'idle' && nombre !== 'sinMicro') return false;
+            const prioridad = nombre === 'risa' || nombre === 'quejido' || nombre === 'sinMicro' || nombre === 'pop' || nombre === 'noEncierres';
+            const sonando = sfxActual && !sfxActual.paused && !sfxActual.ended;
+            if (!prioridad && (sonando || ahora < sfxSonandoHasta)) return false;
+            if (prioridad && sonando && sfxActualPrioritario) return false;   // no se pisan entre sí
+            const a = sfxObtener(nombre);
+            if (!a) return false;
+            try {
+                if (prioridad && sonando && sfxActual !== a) {
+                    try { sfxActual.pause(); } catch (_) {}
+                }
+                a.currentTime = 0;
+                const pr = a.play(); if (pr) pr.catch(() => {});
+                if (!def.bucle) {
+                    sfxSonandoHasta = ahora + 1600;   // red de seguridad pre-metadatos
+                    sfxActual = a;
+                    sfxActualPrioritario = prioridad;
+                }
+                return true;
+            } catch (_) { return false; }
+        }
+        function sfxLoopOn(nombre, vol) {
+            const a = sfxObtener(nombre);
+            if (!a) return false;
+            try { if (vol != null) a.volume = Math.max(0, Math.min(1, vol)); if (a.paused) { const pr = a.play(); if (pr) pr.catch(() => {}); } return true; }
+            catch (_) { return false; }
+        }
+        function sfxLoopOff(nombre) {
+            // el bucle solo tiene una toma: apaga su Audio si existe
+            (SFX[nombre]?.archivos || []).forEach(f => { const a = sfxCache[f]; if (a) { try { a.pause(); } catch (_) {} } });
+        }
+
+        /* RONRONEO — se enciende al acariciarle y se apaga solo.
+           Tono muy grave + LFO rápido sobre el volumen = ronroneo felino. */
+        let purrOsc = null, purrLfo = null, purrGain = null, purrLfoGain = null, purrFilt = null;
+        const PURR_SINTETICO = false;   // apagado: sonaba inquietante. Se usa mp3.
+        function purrStart() {
+            if (!PURR_SINTETICO) { sfxLoopOn('ronroneo', 0.25); return; }
+            if (!sfxCtx || sfxCtx.state !== 'running' || purrOsc) return;
+            try {
+                const t = sfxCtx.currentTime;
+                purrOsc = sfxCtx.createOscillator(); purrOsc.type = 'sawtooth';
+                purrOsc.frequency.value = 42;
+                purrFilt = sfxCtx.createBiquadFilter(); purrFilt.type = 'lowpass';
+                purrFilt.frequency.value = 260; purrFilt.Q.value = 4;
+                purrGain = sfxCtx.createGain(); purrGain.gain.value = 0.0001;
+                purrLfo = sfxCtx.createOscillator(); purrLfo.type = 'sine';
+                purrLfo.frequency.value = 24;                 // ritmo del ronroneo
+                purrLfoGain = sfxCtx.createGain(); purrLfoGain.gain.value = 0.5;
+                purrLfo.connect(purrLfoGain); purrLfoGain.connect(purrGain.gain);
+                purrOsc.connect(purrFilt).connect(purrGain).connect(sfxCtx.destination);
+                purrOsc.start(t); purrLfo.start(t);
+            } catch (_) {}
+        }
+        function purrLevel(v) {   // v 0..1 — el ronroneo sube con el mimo
+            if (!PURR_SINTETICO) { sfxLoopOn('ronroneo', 0.12 + v * 0.5); return; }
+            if (!purrGain) return;
+            try { purrGain.gain.value = 0.001 + v * 0.055; } catch (_) {}
+        }
+        function purrStop() {
+            if (!PURR_SINTETICO) { sfxLoopOff('ronroneo'); return; }
+            if (!purrOsc) return;
+            try {
+                const t = sfxCtx.currentTime;
+                const o = purrOsc, l = purrLfo, g = purrGain, lg = purrLfoGain, f = purrFilt;
+                g.gain.cancelScheduledValues(t);
+                g.gain.setValueAtTime(Math.max(g.gain.value, 0.0001), t);
+                g.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
+                o.stop(t + 0.4); l.stop(t + 0.4);
+                o.onended = () => { try { o.disconnect(); l.disconnect(); lg.disconnect(); f.disconnect(); g.disconnect(); } catch (_) {} };
+            } catch (_) {}
+            purrOsc = purrLfo = purrGain = purrLfoGain = purrFilt = null;
+        }
+
+        function scareSfx() {
+            /* Solo el mp3 (susto.mp3). El chillido sintético de respaldo se
+               eliminó: sonaba a "gulp" y se disparaba también con los sustos
+               de la luciérnaga — un sonido periódico sin gesto del usuario,
+               justo lo que la doctrina prohíbe. */
+            sfxPlay('susto');
+        }
+
+        /* Paleta de señales — TODO 0..1, seguro llamar cada frame.
+           outVol voz de Tizno · inVol micrófono del usuario · bass ~23-200 Hz ·
+           mid ~200-1000 Hz · treble ~1-3 kHz · vad prob. de que el usuario hable. */
+        function tiznoSignals() {
+            if (typeof window.__tiznoSignals === 'function') {
+                try { const s = window.__tiznoSignals(); if (s) return s; } catch (_) {}
+            }
+            return { outVol: 0, inVol: 0, bass: 0, mid: 0, treble: 0, vad: 0 };
+        }
+
+        window.addEventListener('mousemove', (e) => {
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+            
+            mouseDistance = Math.hypot(e.clientX - centerX, e.clientY - centerY);
+            mouseNormX = (e.clientX - centerX) / centerX; 
+            mouseNormY = (e.clientY - centerY) / centerY;
+
+            const rectA = boxA.getBoundingClientRect();
+            const centerAX = rectA.left + rectA.width / 2;
+            const centerAY = rectA.top + rectA.height / 2;
+            distA = Math.hypot(e.clientX - centerAX, e.clientY - centerAY);
+            boxANormX = (centerAX - centerX) / centerX;
+            boxANormY = (centerAY - centerY) / centerY;
+
+            const rectB = boxB.getBoundingClientRect();
+            const centerBX = rectB.left + rectB.width / 2;
+            const centerBY = rectB.top + rectB.height / 2;
+            distB = Math.hypot(e.clientX - centerBX, e.clientY - centerBY);
+            boxBNormX = (centerBX - centerX) / centerX;
+            boxBNormY = (centerBY - centerY) / centerY;
+        });
+
+        /* ══════ MÓVIL: dedo, inclinación y sacudida ══════
+           El dedo hace de cursor (arrastrar sobre él = acariciarle).
+           Sin dedo, la INCLINACIÓN del teléfono mueve su mirada.
+           Una SACUDIDA le pega un susto. iOS pide permiso: se solicita al
+           pulsar el botón de despertarle, que ya es un gesto del usuario. */
+        let tocando = false, tiltX = 0, tiltY = 0, tiltActivo = false;
+        let tiltVX = 0, tiltVY = 0;   // velocidad del muelle: de aquí sale el sobrepaso
+
+        /* ══════ POP: entra y sale de la línea del suelo como un teleñeco ══════
+           Muelle con rebote: sale pasado de vuelta, se pasa de largo y se asienta.
+           Los ojos van cerrados durante el viaje y se abren después, con su propio
+           rebotito. Al asomar, salpica tinta y letras. */
+        const POP_HONDO = 640;        // cuánto se hunde bajo la niebla
+        let popPos = 0, popVel = 0, popTarget = 0;   // 0 = escondido · 1 = fuera
+        let popSalpicado = false, popOjosAbiertos = 0;
+        let popAterrizo = false;                       // ya llegó arriba
+        let earFlop = 0, earFlopVel = 0, popPrevVel = 0, popOjosListos = false;
+        let popCerrandoOjos = false;
+        /* EL CANDADO MANDA SOBRE TODO. Mientras esté preso, NADA puede
+           sacarlo: ni un regreso pendiente de un berrinche, ni una orden
+           tardía de la madre, ni un camino futuro que alguien añada sin
+           acordarse de este. Perseguir a los que llaman a popIn uno por uno
+           era jugar al topo; la única defensa que no se escapa es que el
+           estado tenga la última palabra en la propia puerta. */
+        let preso = EMBED;   // en el embed nace encerrado, esperando al candado
+        function popIn()  { if (preso) return; popCerrandoOjos = false; popTarget = 1; popAterrizo = false; }
+        /* Primero aprieta los ojos, y 200 ms DESPUÉS se hunde. Ese respiro
+           entre las dos cosas es lo que convierte el gesto en teatro. */
+        function popOut() {
+            popCerrandoOjos = true;
+            /* OJO: aquí NO se rearma la salpicadura. Rearmarla al salir hacía
+               que se disparase otra vez EN LA HUIDA (posición aún >0.86 y
+               objetivo aún 1 durante los 200 ms del cierre de ojos): pop y
+               tinta al irse, y silencio al volver. Ahora se rearma sola
+               cuando de verdad está hundido (posición < 0.5, bajo la niebla). */
+            setTimeout(() => { popTarget = 0; }, 200);
+        }
+        /* Se esconde y vuelve a asomar: el gesto de "me largo… bueno, vale". */
+        let escondiendose = false, esconditeT = null;
+        function popEscondite(msFuera) {
+            if (escondiendose) return;
+            escondiendose = true;
+            popOut();
+            esconditeT = setTimeout(() => { popIn(); escondiendose = false; esconditeT = null; }, msFuera);
+        }
+        /* El candado manda sobre el berrinche: si le encierran mientras está
+           escondido, hay que ANULAR el regreso pendiente. Si no, se hundía y
+           reaparecía solo unos segundos después, con la web creyéndolo preso. */
+        function cancelarEscondite() {
+            if (!esconditeT) return;
+            clearTimeout(esconditeT); esconditeT = null; escondiendose = false;
+        }
+        window.__tiznoEscondite = popEscondite;
+        window.__tiznoPop = (fuera) => (fuera === false ? popOut() : popIn());
+
+        const comoRaton = (x, y) => window.dispatchEvent(new MouseEvent('mousemove', { clientX: x, clientY: y }));
+
+        window.addEventListener('touchstart', (e) => {
+            tocando = true;
+            const t = e.touches[0]; if (t) comoRaton(t.clientX, t.clientY);
+        }, { passive: true });
+        window.addEventListener('touchmove', (e) => {
+            const t = e.touches[0]; if (t) comoRaton(t.clientX, t.clientY);
+        }, { passive: true });
+        window.addEventListener('touchend', () => { tocando = false; }, { passive: true });
+
+        window.addEventListener('deviceorientation', (e) => {
+            if (e.gamma == null) return;
+            tiltActivo = true;
+            // gamma: izquierda/derecha (-90..90) · beta: adelante/atrás
+            const _pt = Math.max(1, Math.min(4, Math.round(Math.min((Date.now() - (window.__tiltT || Date.now())) / 1000, 0.1) * 60)));
+            window.__tiltT = Date.now();
+            /* COMPENSA TARDE Y DE MÁS. Persiguiendo la postura con una
+               interpolación simple, Tizno llegaba exactamente donde tocaba y
+               se paraba en seco: eso es un giroscopio, no un ser vivo. Lo que
+               hace un cuerpo con oído interno es corregir con retraso, pasarse
+               un poco y volver — por eso un muelle poco amortiguado (empuje
+               0.055, rozamiento 0.87) se lee como alguien que se está
+               equilibrando y no como una pieza mecánica. El sobrepaso ronda el
+               15%: se nota que hay alguien ahí, sin llegar a marearte. */
+            const objX = Math.max(-45, Math.min(45, e.gamma)) / 45;
+            const objY = Math.max(-45, Math.min(45, (e.beta || 0) - 45)) / 45;
+            for (let _p = 0; _p < _pt; _p++) {
+              tiltVX = (tiltVX + (objX - tiltX) * 0.055) * 0.87;
+              tiltVY = (tiltVY + (objY - tiltY) * 0.055) * 0.87;
+              tiltX += tiltVX;
+              tiltY += tiltVY;
+            }
+        });
+
+        let ultimaSacudida = 0;
+        window.addEventListener('devicemotion', (e) => {
+            const a = e.accelerationIncludingGravity; if (!a) return;
+            const fuerza = Math.hypot(a.x || 0, a.y || 0, a.z || 0);
+            const ahora = Date.now();
+            if (fuerza > 26 && ahora - ultimaSacudida > 1200) {
+                ultimaSacudida = ahora;
+                shockUntil = ahora + 500;
+                burstInk(1.2);
+                scareSfx();
+                petLevel = 0;              // el susto rompe cualquier mimo
+            }
+        });
+
+        // iOS exige pedir permiso desde un gesto: lo hacemos al primer toque.
+        function pedirSensores() {
+            try {
+                if (typeof DeviceOrientationEvent !== 'undefined' &&
+                    typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    DeviceOrientationEvent.requestPermission().catch(() => {});
+                }
+                if (typeof DeviceMotionEvent !== 'undefined' &&
+                    typeof DeviceMotionEvent.requestPermission === 'function') {
+                    DeviceMotionEvent.requestPermission().catch(() => {});
+                }
+            } catch (_) {}
+        }
+        window.addEventListener('touchstart', pedirSensores, { once: true });
+
+        let erDrawX = 0, erDrawY = 0;   // posición del pendiente, escrita a 30 fps
+        function updateRig() {
+            const time = Date.now();
+
+            /* ── PASOS DE TIEMPO FIJOS ────────────────────────────────────
+               Todos los muelles de este rig —el del pop, el de las orejas,
+               el de la inclinación, el de la luciérnaga— se integraban UNA
+               VEZ POR FOTOGRAMA. A 60 fps el resultado es el afinado; a 20
+               en un móvil, cada muelle recibe un tercio de los empujones y
+               todo ocurre a un tercio de velocidad. Eso es la cámara lenta
+               que Ruben describió, y no se arregla haciendo el motor más
+               rápido: hay que desacoplar la física del dibujado.
+               Aquí se calcula cuántos pasos de 60 Hz han cabido de verdad en
+               este intervalo, y cada muelle se integra ese número de veces.
+               Se limita a 4 para que volver de una pestaña dormida no
+               desate una avalancha de pasos atrasados. */
+            const dtRig = Math.min((time - (window.__rigT || time)) / 1000, 0.1);
+            window.__rigT = time;
+            const pasos = Math.max(1, Math.min(4, Math.round(dtRig * 60)));
+
+            /* SUEÑO PROFUNDO, PERO EN LA PUERTA DE ENTRADA. La puerta que ya
+               existía vivía en la fase de dibujo, y para entonces este bucle
+               ya había pagado lo más caro del fotograma: el
+               getBoundingClientRect del pendiente — una lectura de layout
+               FORZADA, 60 veces por segundo, con Tizno hundido y el marco a
+               opacity 0 (que no estrangula el rAF como haría display:none).
+               Un iframe invisible recalculando estilos toda la visita, justo
+               después de la batalla de los 7→60 fps. Aquí se corta antes de
+               tocar nada; la luciérnaga sigue viva (dos escrituras cada
+               31 ms) porque fuera del embed es visible con Tizno escondido.
+               Despierta solo: popIn() mueve el objetivo y la condición cae. */
+            if (popTarget === 0 && popPos < 0.02
+                && !POOL_P.length && !POOL_C.length && !POOL_S.length) {
+                if (time - ultimoDibujo >= 31) {
+                    ultimoDibujo = time;
+                    fireflyEl.style.transform = `translate(${ffX}px, ${ffY}px)`;
+                    fireflyEl.style.opacity = (0.55 + Math.sin(time * 0.006) * 0.35).toFixed(2);
+                }
+                requestAnimationFrame(updateRig);
+                return;
+            }
+
+            // ── física del pendiente (péndulo con pivote acelerado) ──
+            {
+                const a = earringAnchorEl.getBoundingClientRect();
+                const px = a.left + a.width / 2, py = a.top + a.height / 2;
+                const dt = erInit ? Math.min(Math.max((time - erLastT) / 1000, 0.008), 0.05) : 1 / 60;
+                if (!erInit) { erPX = px; erPY = py; erInit = true; }
+                const vx = (px - erPX) / dt, vy = (py - erPY) / dt;
+                let ax = (vx - erVX) / dt, ay = (vy - erVY) / dt;
+                const amax = 30000; // los saltos de postura no deben teletransportarlo
+                ax = Math.max(-amax, Math.min(amax, ax));
+                ay = Math.max(-amax, Math.min(amax, ay));
+                // θ'' = [ -ax·cosθ - (g - ay)·senθ ] / L - c·ω   (y de pantalla hacia abajo)
+                const L = 26, g = 2600, damp = 1.6;
+                const alpha = (-ax * Math.cos(erTheta) - (g - ay) * Math.sin(erTheta)) / L - damp * erOmega;
+                erOmega += alpha * dt;          // Euler semi-implícito: estable
+                erTheta += erOmega * dt;
+                erVX = vx; erVY = vy; erPX = px; erPY = py; erLastT = time;
+                erDrawX = px; erDrawY = py;   // la escritura al DOM va con el resto, a 30 fps
+            }
+            const interactionThreshold = 180; 
+
+            let t_HeadX = 0, t_HeadY = 0, t_HeadRot = 0;
+            let t_BodyScaleX = 1, t_BodyScaleY = 1, t_BodyY = 0;
+            let t_NeckScaleX = 1, t_NeckScaleY = 1;
+            let t_EarL = 0, t_EarR = 0;
+            let t_RigRot = 0;
+            let t_EyeL = 1, t_EyeR = 1;
+
+            let add_HeadX = 0, add_HeadY = 0;
+            let add_BodyY = 0, add_BodyScaleX = 0, add_BodyScaleY = 0;
+
+            /* ═══ ELEVENLABS 4/4 — the state fork ═══
+               Cajas y ratón mandan SOLO sin llamada. En los estados AI las
+               posturas se imponen; señales suavizadas con ataque rápido / caída lenta. */
+            // ── vuelo de la luciérnaga ──
+            if (!EMBED) {
+            ffTimer -= 16;
+            if (ffTimer <= 0) {
+                ffTimer = 2800 + Math.random() * 2500;
+                if (Math.random() < 0.22) {
+                    // A veces se lanza hacia Tizno: acaba en susto (bola).
+                    ffTX = window.innerWidth / 2 + (Math.random() - 0.5) * 120;
+                    ffTY = window.innerHeight / 2 + (Math.random() - 0.5) * 80;
+                } else {
+                    ffTX = window.innerWidth * (0.08 + Math.random() * 0.84);
+                    ffTY = window.innerHeight * (0.08 + Math.random() * 0.6);
+                }
+            }
+            ffVX += (ffTX - ffX) * 0.0005 + (Math.random() - 0.5) * 0.3;
+            ffVY += (ffTY - ffY) * 0.0005 + (Math.random() - 0.5) * 0.3;
+            ffVX *= 0.94; ffVY *= 0.94;
+            ffX += ffVX; ffY += ffVY;
+            }
+            // Ratón quieto >3 s: la luciérnaga sustituye sus coordenadas — Tizno
+            // la sigue con ojos y cabeza, y si se le acerca, se asusta. El primer
+            // mousemove real devuelve el control al cursor al instante.
+            // Sin dedo en pantalla, el teléfono inclinado dirige su mirada.
+            if (tiltActivo && !tocando && window.innerWidth > 0) {
+                /* EL SENTIDO DE LA INCLINACIÓN. Hay dos lecturas y ninguna es
+                   obviamente la buena, así que se prueba:
+                     +1 · Tizno mira HACIA donde inclinas. Se lee como que el
+                          teléfono es un mando y él obedece.
+                     -1 · Tizno se queda quieto respecto al mundo, así que
+                          contra la pantalla parece irse al otro lado. Es lo
+                          que hace el agua en un vaso y lo que hace cualquier
+                          cosa colgada: no sigue al recipiente, se queda con la
+                          gravedad. Se lee como que él es real y la ventana es
+                          lo que se mueve — que es la ficción que queremos.
+                   Volver atrás es cambiar este signo y nada más. */
+                const TILT_SENTIDO = -1;
+                mouseNormX = tiltX * TILT_SENTIDO;
+                mouseNormY = tiltY * TILT_SENTIDO;
+                mouseDistance = 430 + Math.hypot(tiltX, tiltY) * 260;   // zona curiosa: se estira y te sigue
+                lastMouseMove = time;                                   // la luciérnaga no interfiere
+            }
+            if (time - lastMouseMove > 3000 && window.innerWidth > 0) {
+                const fcx = window.innerWidth / 2, fcy = window.innerHeight / 2;
+                mouseDistance = Math.hypot(ffX - fcx, ffY - fcy);
+                mouseNormX = (ffX - fcx) / fcx;
+                mouseNormY = (ffY - fcy) / fcy;
+            }
+
+            /* ── muelle del pop ──
+               Más blando (0.016) y menos amortiguado (0.105): sube despacio,
+               se pasa de largo un buen trecho y rebota varias veces. */
+            for (let _p = 0; _p < pasos; _p++) {
+                popVel += (popTarget - popPos) * TUNE.popRigidez - popVel * TUNE.popAmortigua;
+                popPos += popVel;
+            }
+            /* El sobreimpulso del muelle (popPos > 1) levantaba el cuerpo entero
+               por encima del reposo y se veía la base despegarse del suelo de
+               niebla. La energía del rebote no se tira: se convierte en
+               APLASTAMIENTO — ancho +, alto − — que es el gag teleñeco de
+               aterrizar, y el pie no se separa del suelo jamás. */
+            const excesoPop = Math.max(0, popPos - 1);
+            add_BodyScaleX += excesoPop * 1.1;
+            add_BodyScaleY -= excesoPop * 1.3;
+
+            /* VÉRTICE: el golpe de orejas se dispara cuando el cuerpo deja de
+               subir (la velocidad cambia de signo). Ahí el arrastre del aire ya
+               es cero, así que el desplome se ve limpio y separado del ascenso. */
+            if (!popAterrizo && popTarget === 1 && popPrevVel > 0 && popVel <= 0 && popPos > 0.7) {
+                popAterrizo = true;
+                earFlop = 1; earFlopVel = 0;         // se desploman de golpe
+            }
+            popPrevVel = popVel;
+            if (popTarget === 0) { popAterrizo = false; earFlop = 0; earFlopVel = 0; }
+            for (let _p = 0; _p < pasos; _p++) earFlopVel += (0 - earFlop) * 0.055 - earFlopVel * 0.135;
+            earFlop += earFlopVel;
+            /* La salpicadura va cuando de verdad ASOMA (0.86), no a media subida:
+               antes reventaba 300 px bajo la niebla y no se veía nada. Fuerza el
+               estallido saltándose el enfriamiento — es su entrada en escena. */
+            if (popPos < 0.5) popSalpicado = false;   // hundido: lista para la próxima entrada
+            if (popPos > 0.86 && !popSalpicado && popTarget === 1) {
+                popSalpicado = true;
+                sfxPlay('pop');
+                burstInk(1.35, true);
+                burstLetters(NIVEL === 'alto' ? 9 : NIVEL === 'medio' ? 6 : 3, 1.2);
+            }
+            // Los ojos se abren DESPUÉS de asomar, con un instante de retraso.
+            // Abrir es lento (rebote); cerrar es rápido: primero aprieta los ojos
+            // y DESPUÉS se hunde. Ese orden es lo que lo hace teatral.
+            {
+                // Solo abren cuando ya aterrizó, el cuerpo casi no se mueve y
+                // las orejas han terminado de subir.
+                /* Pestillo: en cuanto se dan las condiciones, los ojos se abren
+                   y ya no vuelven a cerrarse. Sin esto la condición oscilaba con
+                   los rebotes y parecía un tic nervioso. */
+                if (!popCerrandoOjos && popTarget === 1 && popAterrizo
+                    && Math.abs(popVel) < 0.006 && Math.abs(earFlop) < 0.22) popOjosListos = true;
+                if (popCerrandoOjos || popTarget === 0) popOjosListos = false;
+                const objetivo = popOjosListos ? 1 : 0;
+                // Cerrar es MUY rápido: deben estar apagados antes de que el
+                // cuerpo empiece a hundirse (200 ms), o se ve la raya luminosa.
+                const vel = objetivo > popOjosAbiertos ? 0.085 : 0.45;
+                popOjosAbiertos += (objetivo - popOjosAbiertos) * vel;
+            }
+
+            if (mouseDistance > 290) sustoArmado = true;   // se ha alejado: listo otra vez
+            prevFear = inFear; inFear = false;
+            prevBoxB = inBoxB; inBoxB = false;
+            if (distB >= interactionThreshold * 0.62) enfadoDentro = false;
+
+            // La risa se va apagando sola.
+            if (time > risaHasta) risa = Math.max(0, risa - 0.045);   // se apaga con suavidad
+            const riendo = risa > 0.12 && aiState === 'idle';
+
+            // El mimo se evapora si dejas de acariciarle.
+            petLevel = Math.max(0, petLevel - 0.006);
+            const mimado = petLevel > 0.45 && aiState !== 'speaking';
+            if (mimado && !petPurring) { purrStart(); petPurring = true; }
+            else if (!mimado && petPurring) { purrStop(); petPurring = false; }
+            if (petPurring) purrLevel(petLevel);
+            // Reloj del parlamento: avanza solo mientras suena su voz.
+            if (aiState === 'speaking') {
+                if (!wasSpeaking) { wasSpeaking = true; speakMs = 0; }
+                if (aiVolFast > 0.03) speakMs += 16;
+            } else { wasSpeaking = false; }
+            const sig = tiznoSignals();
+            // Doble envolvente: la rápida sigue las sílabas, la lenta es la energía
+            // base; su diferencia (transient) marca cada golpe de voz.
+            aiVolFast += (sig.outVol - aiVolFast) * (sig.outVol > aiVolFast ? 0.8 : 0.35);
+            aiVolume  += (sig.outVol - aiVolume)  * (sig.outVol > aiVolume  ? 0.3 : 0.08);
+            const transient = Math.max(0, aiVolFast - aiVolume);
+            sBass    += (sig.bass   - sBass)    * (sig.bass   > sBass   ? 0.6 : 0.25);
+            sMid     += (sig.mid    - sMid)     * (sig.mid    > sMid    ? 0.6 : 0.25);
+            sTreble  += (sig.treble - sTreble)  * (sig.treble > sTreble ? 0.7 : 0.3);
+            sInVol   += (sig.inVol  - sInVol)   * (sig.inVol  > sInVol  ? 0.4 : 0.1);
+            sVad     += (sig.vad - sVad) * 0.15;
+            // Tic de orejas: la dirección se sortea UNA vez por pico de agudos
+            // (aleatorio por frame estroboscopea a 60 fps).
+            if (sTreble > 0.25 && prevTreble <= 0.25) {
+                ticDirL = Math.random() > 0.5 ? 1 : -0.5;
+                ticDirR = Math.random() > 0.5 ? 1 : -0.5;
+            }
+            prevTreble = sTreble;
+            let t_LetY = 0, t_LetScale = 1;
+            let add_EarL = 0, add_EarR = 0, add_HeadRot = 0;
+            let add_EyeL = 0, add_EyeR = 0;
+
+            if (aiState === 'listening') {
+                // Escuchar NO es congelarse: sigue el cursor como en reposo y
+                // solo se pone atento-vulnerable cuando de verdad te oye.
+                const oye = Math.min(1, sVad * 1.2 + sInVol * 1.5);  // 0 silencio → 1 le hablan
+                if (sInVol > 0.55) {
+                    // Le estás gritando: aprieta los ojos.
+                    eyeLeft.className = "eye left wince"; eyeRight.className = "eye right wince";
+                } else if (oye > 0.45) {
+                    eyeLeft.className = "eye left sad";  eyeRight.className = "eye right sad";
+                } else {
+                    eyeLeft.className = "eye left";      eyeRight.className = "eye right";
+                }
+                // Base curiosa: cuanto más te oye, menos se distrae con el ratón.
+                const seguir = W_RATON_ESCUCHANDO * (1 - oye * 0.55);
+                t_HeadX   = mouseNormX * 55 * seguir;
+                t_HeadY   = mouseNormY * 30 * seguir + 10;
+                t_HeadRot = mouseNormX * 12 * seguir;
+                t_RigRot  = mouseNormX * 7 * seguir;
+                // Balanceo de espera: nunca se queda quieto del todo.
+                add_HeadX += Math.sin(time * 0.0011) * 4;
+                add_HeadY += Math.sin(time * 0.0016) * 3;
+                // Tu voz le empuja físicamente (es tímido).
+                const pushback = sInVol * 80 * W_VOZ_USUARIO;
+                t_HeadY += pushback;
+                t_BodyY = pushback * 0.5;
+                t_BodyScaleX = 1 + sInVol * 0.3 * W_VOZ_USUARIO;
+                t_BodyScaleY = 1 - sInVol * 0.2 * W_VOZ_USUARIO;
+                t_NeckScaleX = 1 + sInVol * 0.2 * W_VOZ_USUARIO;
+                t_NeckScaleY = 1 + 0.08 * seguir - sInVol * 0.1;
+                // Orejas: siguen al cursor, y se alzan de gato al oír voz.
+                const earFocus = sVad * 50 * W_VOZ_USUARIO;
+                t_EarL = mouseNormX * 15 * seguir - 15 + earFocus;
+                t_EarR = mouseNormX * 15 * seguir + 15 - earFocus;
+                t_EyeL = 1 + sVad * 0.15; t_EyeR = 1 + sVad * 0.15;
+
+            } else if (aiState === 'thinking') {
+                // Ansiedad de proceso: ojos desparejados, jitter, balanceo.
+                // Te acaba de oír y te está evaluando: sospecha, no histeria.
+                // Cada ~1,2 s asoma una mirada de reojo (un ojo se abre más).
+                const dudaFlash = Math.floor(time / 1200) % 3 === 0;
+                if (dudaFlash) {
+                    eyeLeft.className = "eye left"; eyeRight.className = "eye right squint";
+                } else {
+                    eyeLeft.className = "eye left squint"; eyeRight.className = "eye right squint";
+                }
+                t_HeadY = 60;
+                add_HeadX = (Math.random() - 0.5) * 15;
+                add_HeadY = (Math.random() - 0.5) * 10;
+                t_RigRot = Math.sin(time * 0.005) * 2;
+                t_EarL = 30; t_EarR = -30;
+                t_BodyScaleX = 1.05; t_BodyScaleY = 0.95;
+                t_EyeL = 1 + Math.sin(time * 0.02) * 0.2 + (Math.random() - 0.5) * 0.1;
+                t_EyeR = 1 + Math.cos(time * 0.02) * 0.2 + (Math.random() - 0.5) * 0.1;
+
+            } else if (aiState === 'speaking') {
+                // "Lip-sync" procedural y SNAPPY: los golpes de sílaba (transient)
+                // van por los canales add_ — inmediatos, sin el ease global 0.12
+                // que los convertía en un balanceo constante. La postura queda en t_.
+                let mood = (aiMood && time < aiMoodUntil) ? aiMood : null;
+                // La línea de tiempo manda: humor del tramo que suena AHORA.
+                const tl = window.__tiznoTimeline;
+                if (tl && tl.segs.length) {
+                    const frac = Math.min(speakMs / 1000 / (tl.totalChars / tl.cps), 0.999);
+                    const seg = tl.segs.find(sg => frac >= sg.start && frac < sg.end);
+                    if (seg) mood = seg.mood; // un tramo neutro también pisa el global
+                }
+                if (mood === 'enfado') {
+                    eyeLeft.className = "eye left angry"; eyeRight.className = "eye right angry";
+                } else if (mood === 'miedo' || mood === 'tristeza') {
+                    eyeLeft.className = "eye left sad"; eyeRight.className = "eye right sad";
+                } else if (mood === 'duda') {
+                    // Cara de interrogación: ojos redondos y DESIGUALES (manga).
+                    eyeLeft.className = "eye left"; eyeRight.className = "eye right";
+                } else {
+                    eyeLeft.className = "eye left"; eyeRight.className = "eye right";
+                }
+                t_HeadX = mouseNormX * 60 * W_RATON_HABLANDO;
+                t_HeadY = mouseNormY * 40 * W_RATON_HABLANDO - 20;
+                t_HeadRot = mouseNormX * 10 * W_RATON_HABLANDO;
+                t_RigRot = mouseNormX * 8 * W_RATON_HABLANDO + aiVolume * 1.5;
+                // Cada sílaba empuja el cuerpo AL INSTANTE; graves = peso horizontal.
+                add_BodyScaleY = (aiVolFast * 0.32 + transient * 0.35 - sBass * 0.12) * W_VOZ_CUERPO;
+                add_BodyScaleX = (-aiVolFast * 0.16 + sBass * 0.28) * W_VOZ_CUERPO;
+                // Cabeceo teleñeco: salto + ladeo por sílaba, con rebote de cuello.
+                add_HeadY = (-(transient * 34) - aiVolFast * 8) * W_TELENECO;
+                add_HeadRot = (-(transient * 7) - aiVolFast * 2) * W_TELENECO;
+                t_NeckScaleY = 1 + (aiVolume * 0.2 + transient * 0.18) * W_VOZ_CUERPO;
+                t_NeckScaleX = 1 - aiVolume * 0.1 * W_VOZ_CUERPO;
+                // Orejas: base suave con el ratón (t_), tic de agudos inmediato (add_).
+                t_EarL = mouseNormX * 20 + aiVolume * 8;
+                t_EarR = mouseNormX * 20 - aiVolume * 8;
+                add_EarL = sTreble * 34 * ticDirL + transient * 10;
+                add_EarR = -sTreble * 34 * ticDirR - transient * 10;
+                // LOS OJOS PULSAN CON CADA SÍLABA: es lo que ata la voz al cuerpo.
+                // Va por canal aditivo (sin easing) para que el golpe sea seco.
+                add_EyeL = transient * 0.55 + aiVolFast * 0.12;
+                add_EyeR = transient * 0.55 + aiVolFast * 0.12;
+                // Las letras saltan con los golpes de voz, no con un vaivén fijo.
+                t_LetY = -(transient * 16);
+                t_LetScale = 1 + aiVolFast * 0.08;
+                // Matiz emocional sobre la postura base.
+                // Al ENTRAR en rabia, revienta tinta una vez.
+                if (mood === 'enfado' && prevMoodHablando !== 'enfado') burstInk(1.15);
+                prevMoodHablando = mood;
+
+                if (mood === 'miedo') {
+                    add_HeadX += (Math.random() - 0.5) * 5;   // tiembla al hablar
+                    t_EarL -= 25; t_EarR += 25;               // orejas gachas
+                    t_HeadY += 10;
+                    t_EyeL = 1.18; t_EyeR = 1.18;             // ojos como platos
+                } else if (mood === 'enfado') {
+                    t_EarL += 15; t_EarR -= 15;               // orejas tiesas
+                    add_BodyScaleY += transient * 0.15;       // golpes más duros
+                    t_EyeL = 0.88; t_EyeR = 0.88;             // entornados de furia
+                } else if (mood === 'tristeza') {
+                    t_HeadY += 18; t_RigRot *= 0.5;           // cabeza baja, sin brío
+                    t_EyeL = 0.92; t_EyeR = 0.92;             // párpados pesados
+                } else if (mood === 'energia') {
+                    add_BodyScaleY += transient * 0.2;
+                    add_HeadY -= transient * 10;              // saltos más altos
+                    t_EyeL = 1.12 + transient * 0.22;         // brillan con cada sílaba
+                    t_EyeR = 1.12 + transient * 0.22;
+                } else if (mood === 'duda') {
+                    t_HeadRot += 8;                           // cabeza ladeada
+                    t_EarL += 20; t_EarR += 12;               // una oreja alzada
+                    t_EyeL = 1.30; t_EyeR = 1.10;             // ojos grandes y desiguales
+                }
+
+            } else if (riendo) {
+                /* SE PARTE DE RISA: ojos en arco, cuerpo botando al ritmo de las
+                   carcajadas, cabeza echada atrás y orejas aleteando. Cuanto más
+                   insistes con el botón, más fuerte se ríe. */
+                const r = risa;
+                const carcajada = Math.sin(time * 0.028);          // ritmo de risa
+                const carcajada2 = Math.sin(time * 0.028 + 1.1);
+                eyeLeft.className = "eye left happy"; eyeRight.className = "eye right happy";
+                t_EyeL = 1 + r * 0.12; t_EyeR = 1 + r * 0.12;
+                t_HeadY = -14 * r;                                  // cabeza hacia atrás
+                t_HeadRot = carcajada2 * 6 * r;
+                t_RigRot = carcajada2 * 5 * r;
+                t_EarL = -18 * r; t_EarR = 18 * r;
+                t_BodyScaleX = 1 + r * 0.08; t_BodyScaleY = 1 - r * 0.05;
+                t_NeckScaleY = 1 - r * 0.1;
+                add_BodyY = -Math.abs(carcajada) * 26 * r;          // bota de risa
+                add_HeadY = -Math.abs(carcajada) * 18 * r;
+                add_EarL = carcajada * 26 * r; add_EarR = -carcajada * 26 * r;
+                add_EyeL = Math.abs(carcajada) * 0.12 * r; add_EyeR = add_EyeL;
+
+            } else if (distA < interactionThreshold) {
+                /* ILUSIÓN CONTENIDA (Ruben, 4-ago): nada de botes. Un
+                   asentimiento vertical — sí, sí — con la mirada encendida
+                   y las orejas altas. Los add_ pequeños hacen que el paso
+                   desde/hacia otras posturas se funda suave (el easing global
+                   ya mezcla los objetivos; eran los saltos los que rompían). */
+                const intensity = (interactionThreshold - distA) / interactionThreshold;
+                eyeLeft.className = "eye left"; eyeRight.className = "eye right";
+
+                t_HeadX = boxANormX * 38;
+                t_HeadY = boxANormY * 22;
+                t_RigRot = boxANormX * 5;
+                t_EarL = 26; t_EarR = -26;
+                t_EyeL = 1.15; t_EyeR = 1.15;
+
+                t_NeckScaleX = 1 - (intensity * 0.05);
+                t_NeckScaleY = 1 + (intensity * 0.1);
+
+                const nod = Math.sin(time * 0.013) * 7 * intensity;   // ~2 asentimientos/s
+                add_HeadY = nod;
+                add_EyeL = Math.max(0, nod) * 0.008; add_EyeR = add_EyeL;
+
+            } else if (distB < interactionThreshold) {
+                inBoxB = true;
+                /* Gruñido solo si el cursor se mete DE VERDAD (62% del radio,
+                   no un roce de pasada), con 8 s de enfriamiento, y solo con
+                   cursor real — la luciérnaga jamás mueve distB. */
+                const enfadoCerca = distB < interactionThreshold * 0.62;
+                if (enfadoCerca && !enfadoDentro) enfadoDesde = time;   // acaba de entrar
+                if (enfadoCerca && time - enfadoDesde > 400 && time - ultimoEnfadoT > 20000
+                    && time - (window.__ultimaSuplica || 0) > 10000
+                    && (time - lastMouseMove < 3000 || tocando)) {
+                    if (sfxPlay('enfado')) ultimoEnfadoT = time;
+                }
+                enfadoDentro = enfadoCerca;
+                const intensity = (interactionThreshold - distB) / interactionThreshold;
+                eyeLeft.className = "eye left angry"; eyeRight.className = "eye right angry";
+
+                t_HeadX = boxBNormX * 20; 
+                t_HeadY = boxBNormY * 20 + 95; 
+                t_RigRot = -boxBNormX * 15; 
+                t_EarL = 60; t_EarR = -60;
+                
+                // El cuerpo se queda ARRIBA y entero; la cabeza es la que baja.
+                t_BodyScaleX = 1.3; t_BodyScaleY = 0.9; t_BodyY = 5;
+                t_NeckScaleX = 1.5; t_NeckScaleY = 0.3; 
+
+                if (!prevBoxB) { shockUntil = time + 380; burstInk(0.8); }  // sobresalto al acercarse
+                const shake = Math.sin(time * 0.02) * 20 * intensity;
+                add_HeadX = shake + (Math.random() - 0.5) * 8 * intensity;
+                add_HeadY = (Math.random() - 0.5) * 8 * intensity;
+                // Ojos entornados que tiemblan: alarma contenida.
+                t_EyeL = 0.85; t_EyeR = 0.85;
+                add_EyeL = Math.abs(Math.sin(time * 0.03)) * 0.12 * intensity;
+                add_EyeR = add_EyeL;
+
+            } else {
+                if (escondiendose || popPos < 0.9) {
+                    // Escondido o a medio camino: nada de sustos ni cuentas.
+                    eyeLeft.className = "eye left"; eyeRight.className = "eye right";
+                } else if (mimado) {
+                    /* SE DERRITE DE GUSTO: ojos cerrados en arco, orejas caídas
+                       hacia atrás, cuerpo blando que se mece contra la mano. */
+                    const m = petLevel;
+                    eyeLeft.className = "eye left happy"; eyeRight.className = "eye right happy";
+                    t_EyeL = 1 + m * 0.1; t_EyeR = 1 + m * 0.1;
+                    t_HeadX = mouseNormX * 30 * m;                    // se apoya en la mano
+                    t_HeadY = 26 * m;                                 // cabeza baja, entregada
+                    t_HeadRot = Math.sin(time * 0.0022) * 7 * m;      // ladeo lento de gusto
+                    t_RigRot = Math.sin(time * 0.0018) * 4 * m;
+                    t_EarL = -32 * m; t_EarR = 32 * m;                // orejas hacia atrás
+                    t_BodyScaleX = 1 + m * 0.12; t_BodyScaleY = 1 - m * 0.06;
+                    t_NeckScaleY = 1 - m * 0.18;                      // cuello hundido, relajado
+                    // Vibración finísima del ronroneo.
+                    add_HeadY += Math.sin(time * 0.15) * 1.6 * m;
+                    add_BodyScaleY += Math.sin(time * 0.15) * 0.012 * m;
+
+                } else if (mouseDistance < 200) {
+                    // El pánico se va deshaciendo a medida que le ganas la confianza.
+                    const calma = 1 - petLevel * 0.8;
+                    eyeLeft.className = petLevel > 0.22 ? "eye left sad" : "eye left angry";
+                    eyeRight.className = petLevel > 0.22 ? "eye right sad" : "eye right angry";
+                    const fear = (200 - mouseDistance) / 200 * calma;
+                    
+                    inFear = true;
+                    if (!prevFear && petLevel < 0.15 && sustoArmado) {
+                        sustoArmado = false;
+                        /* SUSTO COMPLETO solo si (Ruben, 4-ago):
+                           1. Lo causa EL USUARIO — ratón o dedo. Los picados de
+                              la luciérnaga (que roba la "distancia" tras 3 s de
+                              ratón quieto) ya solo provocan la postura de bola:
+                              sin shock, sin estallido, sin sonido y SIN CUENTA.
+                              Antes contaban para esconderse — por eso Tizno
+                              "desaparecía por nada": tres picados y adiós.
+                           2. Han pasado 4 s desde el último — enfriamiento de
+                              verdad; acercarse en frío solo acobarda, no
+                              revienta un susto cada vez.
+                           La ventana de racha sube a 12 s para que tres sustos
+                           deliberados (ya espaciados por el enfriamiento)
+                           sigan llevándole a esconderse. */
+                        const esDelUsuario = time - lastMouseMove < 3000 || tocando;
+                        if (esDelUsuario && time - ultimoSustoT > 4000) {
+                            shockUntil = time + 420; burstInk(1);
+                            sustosSeguidos = (time - ultimoSustoT < 12000) ? sustosSeguidos + 1 : 1;
+                            ultimoSustoT = time;
+                            if (sustosSeguidos >= 3) {
+                                sustosSeguidos = 0;
+                                popEscondite(3500);   // que se le eche un poco de menos (Ruben)
+                                sfxPlay('quejido');   // al tercero no chilla: se queja y se va
+                            } else {
+                                scareSfx();
+                            }
+                        }
+                    }
+                    // El cuerpo SUBE hacia la cabeza: bola compacta en alto,
+                    // nada de cuello ancho (la niebla tapa el hueco inferior).
+                    t_BodyScaleX = 1 + (fear * 0.4); t_BodyScaleY = 1 - (fear * 0.15); t_BodyY = -fear * 55;
+                    // La cabeza se hunde DENTRO del cuerpo y el cuello se pliega
+                    // casi a cero (el goo los funde en un blob).
+                    t_NeckScaleX = 1 + (fear * 0.3); t_NeckScaleY = 1 - (fear * 0.85);
+                    
+                    t_HeadX = -mouseNormX * 20; t_HeadY = -mouseNormY * 15 + 60 + fear * 80;
+                    t_EarL = 50; t_EarR = -50;
+                    t_RigRot = -mouseNormX * 15;
+                    
+                    add_HeadX = (Math.random() - 0.5) * 4 * fear;
+                    add_HeadY = (Math.random() - 0.5) * 4 * fear;
+
+                } else if (mouseDistance < 350) {
+                    eyeLeft.className = "eye left sad"; eyeRight.className = "eye right sad";
+                    const timid = (350 - mouseDistance) / 150;
+                    
+                    t_BodyScaleX = 1 + (timid * 0.1); t_BodyScaleY = 1 - (timid * 0.1); t_BodyY = timid * 15;
+                    t_NeckScaleX = 1 + (timid * 0.2); t_NeckScaleY = 1 - (timid * 0.1);
+
+                    t_HeadX = -mouseNormX * 15; t_HeadY = -mouseNormY * 10 + 20;
+                    t_EarL = 20; t_EarR = -20;
+                    t_RigRot = -mouseNormX * 5;
+
+                } else {
+                    eyeLeft.className = "eye left"; eyeRight.className = "eye right";
+                    const stretch = Math.min((mouseDistance - 350) / 300, 1);
+                    
+                    t_BodyScaleX = 1 - (stretch * 0.2); t_BodyScaleY = 1 + (stretch * 0.3); t_BodyY = 0;
+                    t_NeckScaleX = 1 - (stretch * 0.4); t_NeckScaleY = 1 + (stretch * 0.5); 
+
+                    t_HeadX = mouseNormX * 60; t_HeadY = mouseNormY * 40 - (stretch * 30);
+                    t_EarL = mouseNormX * 30 + (mouseNormY * 20); t_EarR = mouseNormX * 30 - (mouseNormY * 20);
+                    t_RigRot = mouseNormX * 12 * stretch;
+                    t_HeadRot = mouseNormX * 18;
+
+                    if (mouseNormX < -0.3) { t_EyeL = 1.2; t_EyeR = 0.85; }
+                    else if (mouseNormX > 0.3) { t_EyeL = 0.85; t_EyeR = 1.2; }
+                }
+            }
+
+            if (EMBED) {
+                /* La página madre reenvía la distancia del ratón AL CANDADO:
+                   ese botón hereda el papel de caja prohibida — ojos de rabia,
+                   gruñido con enfriamiento, temblor. Las cajas del demo no
+                   existen aquí. */
+                /* LO QUE LE GUSTA (portadas y cofres de compra) entra por el
+                   canal de la caja A del demo: la postura ilusionada — rebote,
+                   orejas arriba, ojos grandes. Lo que teme (el candado), por
+                   la B. La madre calcula ambas distancias en px físicos. */
+                /* Arco del gusto (Ruben): la ilusión gira la cabeza HACIA el
+                   objeto, pero capada a ±0.55 — un cofre en la otra punta de
+                   la página ya no le disloca el cuello. */
+                distA = window.__gustoDist ?? 1000;
+                boxANormX = Math.max(-0.55, Math.min(0.55, window.__gustoNX || 0));
+                boxANormY = Math.max(-0.55, Math.min(0.55, window.__gustoNY || 0));
+                distB = window.__candadoDist ?? 1000;
+                boxBNormX = window.__candadoNX || 0;
+                boxBNormY = window.__candadoNY || 0;
+            }
+
+            /* LAS CAJAS NO SE APAGAN AL HABLAR. Durante la conversación se
+               superponen a la animación de voz en vez de sustituirla: la voz
+               sigue moviendo el cuerpo y las cajas añaden su reacción encima. */
+            if (aiState !== 'idle') {
+                if (distA < interactionThreshold) {
+                    const k = (interactionThreshold - distA) / interactionThreshold;
+                    t_HeadX += boxANormX * 45 * k;
+                    t_EarL += 32 * k; t_EarR -= 32 * k;
+                    t_RigRot += boxANormX * 7 * k;
+                    t_EyeL += 0.18 * k; t_EyeR += 0.18 * k;
+                    add_BodyY -= Math.abs(Math.sin(time * 0.01)) * 22 * k;   // sigue rebotando
+                    add_HeadY -= Math.abs(Math.sin(time * 0.01)) * 14 * k;
+                } else if (distB < interactionThreshold) {
+                    inBoxB = true;
+                    if (!prevBoxB) { shockUntil = time + 380; burstInk(0.8); }
+                    const k = (interactionThreshold - distB) / interactionThreshold;
+                    eyeLeft.className = "eye left angry"; eyeRight.className = "eye right angry";
+                    t_HeadY += 34 * k;
+                    t_EarL += 48 * k; t_EarR -= 48 * k;
+                    t_RigRot -= boxBNormX * 9 * k;
+                    t_EyeL -= 0.14 * k; t_EyeR -= 0.14 * k;
+                    add_HeadX += Math.sin(time * 0.02) * 14 * k;             // sigue temblando
+                    add_BodyScaleX += 0.18 * k; add_BodyScaleY -= 0.12 * k;
+                }
+            }
+
+            // SHOCK: los primeros 420 ms de un susto mandan sobre todo lo demás.
+            if (time < shockUntil) {
+                eyeLeft.className = "eye left shock";
+                eyeRight.className = "eye right shock";
+                t_EyeL = 1.4; t_EyeR = 1.4;
+                c_EyeL += (1.4 - c_EyeL) * 0.5;   // salto inmediato, sin easing lento
+                c_EyeR += (1.4 - c_EyeR) * 0.5;
+            }
+
+            /* ── EL SUAVIZADO, CORREGIDO POR TIEMPO ──────────────────────
+               Ruben lo diagnosticó desde el iPhone: «no va lento, va a
+               camara lenta». Y tenia razon, y la diferencia importa.
+
+               Este lerp avanzaba UNA FRACCION POR FOTOGRAMA. A 60 fps la
+               cabeza llegaba a su destino en medio segundo; a 20 fps en el
+               movil tardaba el TRIPLE. No se perdian fotogramas: se estiraba
+               el tiempo. Por eso no se percibia como tirones sino como
+               camara lenta, y por eso el rig parecia otro personaje.
+
+               La correccion es la formula estandar: elevar (1 - ease) al
+               numero de fotogramas de 60 Hz que han cabido en este intervalo
+               real. Con eso, 0,12 significa lo mismo a 20, a 30 o a 120 fps
+               — el movimiento dura lo mismo en segundos, y lo unico que
+               cambia con el rendimiento es cuantos pasos intermedios se ven.
+               El intervalo se acota a 100 ms para que volver de una pestana
+               dormida no dispare al personaje de golpe. */
+            const easeBase = 0.12;
+            const ease = dtRig > 0 ? 1 - Math.pow(1 - easeBase, dtRig * 60) : easeBase;
+            /* CINTURÓN: ninguna combinación de canales (ratón+gusto+candado+
+               rebotes) puede dislocarle la cabeza — límites duros de salida. */
+            t_HeadX = Math.max(-95, Math.min(95, t_HeadX));
+            t_HeadY = Math.max(-80, Math.min(130, t_HeadY));
+            t_HeadRot = Math.max(-24, Math.min(24, t_HeadRot));
+            t_RigRot = Math.max(-15, Math.min(15, t_RigRot));
+            if (EMBED) {
+                /* En la esquina (55%) el cuello fino-y-alto del estirón curioso
+                   se rompía visualmente: el goo no llega a fundir un hilo. La
+                   cabeza viaja menos y el cuello conserva carne siempre. */
+                t_HeadX *= 0.72;
+                t_HeadY = t_HeadY < 0 ? t_HeadY * 0.7 : t_HeadY * 0.85;
+                t_NeckScaleY = Math.min(t_NeckScaleY, 1.28);
+                t_NeckScaleX = Math.max(t_NeckScaleX, 0.82);
+            }
+            c_HeadX += (t_HeadX - c_HeadX) * ease;
+            c_HeadY += (t_HeadY - c_HeadY) * ease;
+            c_HeadRot += (t_HeadRot - c_HeadRot) * ease;
+            c_BodyY += (t_BodyY - c_BodyY) * ease;
+            c_BodyScaleX += (t_BodyScaleX - c_BodyScaleX) * ease;
+            c_BodyScaleY += (t_BodyScaleY - c_BodyScaleY) * ease;
+            c_NeckScaleX += (t_NeckScaleX - c_NeckScaleX) * ease;
+            c_NeckScaleY += (t_NeckScaleY - c_NeckScaleY) * ease;
+            c_EarL += (t_EarL - c_EarL) * ease;
+            c_EarR += (t_EarR - c_EarR) * ease;
+            c_RigRot += (t_RigRot - c_RigRot) * ease;
+            c_EyeL += (t_EyeL - c_EyeL) * ease;
+            c_EyeR += (t_EyeR - c_EyeR) * ease;
+
+            if (time - ultimoDibujo >= 31) {
+            ultimoDibujo = time;
+            // La luciérnaga vive siempre, esté Tizno o no.
+            fireflyEl.style.transform = `translate(${ffX}px, ${ffY}px)`;
+            fireflyEl.style.opacity = (0.55 + Math.sin(time * 0.006) * 0.35).toFixed(2);
+            /* SUEÑO PROFUNDO: hundido del todo y sin partícula viva → ni una
+               escritura de estilo, ni un repintado de lienzo, ni una pasada de
+               filtro. Escondite = GPU prácticamente a cero. Despierta en el
+               instante en que popIn() mueve el objetivo. */
+            if (popTarget === 0 && popPos < 0.02
+                && !POOL_P.length && !POOL_C.length && !POOL_S.length) {
+                requestAnimationFrame(updateRig);
+                return;
+            }
+            earringEl.style.transform = `translate(${erDrawX - 9}px, ${erDrawY - 3}px) rotate(${erTheta * 180 / Math.PI}deg) skew(-12deg)`;
+            const popY = Math.max(0, (1 - popPos) * POP_HONDO);   // nunca por encima del reposo
+            masterRigs.forEach(rig => {
+                rig.style.transform = `translateY(${popY}px) rotate(${c_RigRot}deg)`;
+            });
+
+            trackers.forEach(tracker => {
+                tracker.style.transform = `translate(${c_HeadX + add_HeadX}px, ${c_HeadY + add_HeadY}px) rotate(${c_HeadRot + add_HeadRot}deg)`;
+            });
+
+            bodyTracker.style.transform = `translateY(${c_BodyY + add_BodyY}px) scale(${c_BodyScaleX + add_BodyScaleX}, ${c_BodyScaleY + add_BodyScaleY})`;
+            neckBridge.style.transform = `scale(${c_NeckScaleX}, ${c_NeckScaleY})`;
+            
+            /* Las orejas se pliegan por DOS motivos: el aire mientras sube
+               disparado (arrastre, proporcional a la velocidad) y el golpe al
+               aterrizar (earFlop, con muelle propio). Mandan el mayor de los dos:
+               así van pegadas al cuerpo durante todo el ascenso y solo se abren
+               cuando ya ha llegado. Velocidad punta medida: 0.050 → pliegue total. */
+            /* INERCIA DEL AIRE, con signo:
+               subiendo (velocidad +) las orejas se pliegan hacia ABAJO;
+               hundiéndose (velocidad −) se quedan tiesas hacia ARRIBA, como si la
+               propia inercia las sostuviera mientras el cuerpo se va. */
+            const aire = Math.max(-1.2, Math.min(1.2, popVel * 20));
+            const flop = (aire < 0 ? aire : Math.max(earFlop, aire)) * TUNE.orejaPliegue;
+            /* PROFUNDIDAD: la oreja del lado que mira crece y la contraria mengua,
+               en sintonía con los ojos. Uso la DIFERENCIA entre ambos ojos, no su
+               tamaño: así solo responde a la perspectiva y no a los sustos, donde
+               los dos crecen por igual. Escala desde la bisagra, no desde el centro. */
+            const asimetria = (c_EyeL - c_EyeR) * 0.5;
+            const escOrejaL = 1 + asimetria * 0.7;
+            const escOrejaR = 1 - asimetria * 0.7;
+            earLeft.style.transform  = `rotate(${c_EarL + add_EarL + flop}deg) scale(${escOrejaL})`;
+            earRight.style.transform = `rotate(${c_EarR + add_EarR - flop}deg) scale(${escOrejaR})`;
+
+            c_LetY += (t_LetY - c_LetY) * 0.35;
+            c_LetScale += (t_LetScale - c_LetScale) * 0.35;
+
+            const pupilMoveX = mouseNormX * 14;
+            const pupilMoveY = mouseNormY * 14;
+            
+            eyeLeftWrapper.style.setProperty('--eye-x', `${pupilMoveX}px`);
+            eyeLeftWrapper.style.setProperty('--eye-y', `${pupilMoveY}px`);
+            eyeLeftWrapper.style.setProperty('--eye-sx', c_EyeL + add_EyeL);
+            eyeLeftWrapper.style.setProperty('--eye-sy', c_EyeL + add_EyeL);
+
+            eyeRightWrapper.style.setProperty('--eye-x', `${pupilMoveX}px`);
+            eyeRightWrapper.style.setProperty('--eye-y', `${pupilMoveY}px`);
+            eyeRightWrapper.style.setProperty('--eye-sx', c_EyeR + add_EyeR);
+            eyeRightWrapper.style.setProperty('--eye-sy', c_EyeR + add_EyeR);
+
+            // Durante el pop los ojos van cerrados; al abrirse se pasan un pelín
+            // de tamaño y vuelven — ese rebote es lo que lo hace teleñeco.
+            if (popOjosAbiertos < 0.995) {
+                const a = popOjosAbiertos;
+                const rebote = 1 + Math.max(0, Math.sin(a * Math.PI)) * 0.35;
+                /* Y se apagan del todo: un ojo aplastado sigue brillando y deja
+                   una raya luminosa deslizándose, que queda fatal. Con la opacidad
+                   a cero desaparecen, y al abrirse encienden de golpe (×2.6). */
+                const brillo = Math.min(1, Math.pow(a, 1.5) * 2.6);
+                for (const W of [eyeLeftWrapper, eyeRightWrapper]) {
+                    W.style.setProperty('--eye-sy', (0.02 + a * 0.98) * rebote * (c_EyeL + add_EyeL));
+                    W.style.setProperty('--eye-sx', (0.55 + a * 0.45) * (c_EyeL + add_EyeL));
+                    W.style.opacity = brillo;
+                }
+            } else if (eyeLeftWrapper.style.opacity !== '') {
+                eyeLeftWrapper.style.opacity = '';
+                eyeRightWrapper.style.opacity = '';
+            }
+
+            /* LA VELA SE APAGA CON ÉL. Cuando Tizno se hunde, la luz del fondo
+               baja hasta casi nada y vuelve cuando él asoma: la sala respira con
+               el personaje. Curva al cuadrado para que la caída se note pronto
+               y el regreso llegue con la cabeza. */
+            {
+                const luz = 0.06 + Math.pow(Math.max(0, Math.min(1, popPos)), 1.5) * 0.94;
+                /* FOCO PEREZOSO: el halo del fondo se desplaza un poco tras él.
+                   Solo un 11% de su recorrido y con lerp muy lento, para que se
+                   intuya el movimiento sin que parezca un seguidor de teatro.
+                   Va en el envoltorio porque la capa de luz ya anima su propio
+                   transform por keyframes y ahí perdería la batalla. */
+                const hr = headBase.getBoundingClientRect();
+                const objX = (hr.left + hr.width / 2 - window.innerWidth / 2) * TUNE.focoSeguimiento;
+                const objY = (hr.top + hr.height / 2 - window.innerHeight * 0.62) * TUNE.focoSeguimiento * 0.8;
+                focoX += (objX - focoX) * TUNE.focoPereza;
+                focoY += (objY - focoY) * TUNE.focoPereza;
+                luzSala.style.opacity = luz.toFixed(3);
+                luzSala.style.transform = `translate(${focoX.toFixed(1)}px, ${focoY.toFixed(1)}px)`;
+            }
+
+            // Respiración (antes en CSS): ciclo de 2 s, ahora a 30 fps.
+            const breathe = 0.5 - 0.5 * Math.cos(time * Math.PI / 1000);
+            bodyShapeEl.style.transform = `scale(${1 + breathe * 0.03}, ${1 + breathe * 0.02})`;
+            const breathT = `translateY(${breathe * 5}px) rotate(${-breathe}deg)`;
+            headBreathEl.style.transform = breathT;
+            eyesBreathEl.style.transform = breathT;
+            dibujarTinta(time);
+            } // fin de la puerta de 30 fps
+
+            requestAnimationFrame(updateRig);
+        }
+        // el bucle arranca al final del script, cuando el motor de tinta ya existe
+
+        function blinkEye(wrapperElement) {
+            wrapperElement.classList.add('blinking');
+            setTimeout(() => {
+                wrapperElement.classList.remove('blinking');
+                setTimeout(() => blinkEye(wrapperElement), Math.random() * 4000 + 1000);
+            }, 100);
+        }
+        setTimeout(() => blinkEye(eyeLeftWrapper), 800);
+        setTimeout(() => blinkEye(eyeRightWrapper), 1500);
+
+        /* ══════════════ MOTOR DE TINTA EN CANVAS ══════════════
+           Antes cada gota, letra y grumo era un DIV con su propia animación
+           WAAPI (hasta ~370 a la vez) DENTRO de las capas filtradas: cada
+           fotograma de cada uno obligaba al filtro SVG a re-renderizarse, a
+           60 fps, sobre contenedores de pantalla completa.
+           Ahora todo se dibuja en tres lienzos (partículas, corona, chispas)
+           una vez por fotograma de rig — 30 fps. El filtro goo se aplica al
+           lienzo entero, así que el look es idéntico, pero:
+           · el filtro trabaja la mitad de veces y sobre un área acotada,
+           · desaparecen ~370 capas compuestas y sus animaciones,
+           · no hay churn de nodos (crear y borrar 40 divs por segundo).
+           Las curvas de movimiento son las mismas de las animaciones CSS a
+           las que sustituyen, aplicadas por segmento como hacía WAAPI.    */
+        const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789§¶†‡";
+        const lienzoP = document.getElementById('lienzo-particulas');
+        const lienzoC = document.getElementById('corona');
+        const lienzoS = document.getElementById('lienzo-chispas');
+        const ctxP = lienzoP.getContext('2d');
+        const ctxC = lienzoC.getContext('2d');
+        const ctxS = lienzoS.getContext('2d');
+        const INK = (getComputedStyle(document.documentElement).getPropertyValue('--ink') || '#0d0c0a').trim();
+        let rectP, rectC, rectS;   // los lienzos son fijos: su rect solo cambia con resize
+        /* RESOLUCIÓN DE LA TINTA. El rig se dibuja siempre en su espacio de
+           720×900, pero en un móvil se enseña a menos de la mitad de ese
+           tamaño: cada fotograma pintábamos cuatro o cinco píxeles por cada
+           uno que llega a verse. Bajando solo el búfer y dejando la medida CSS
+           intacta, el navegador lo estira al mostrarlo y el dibujo cuesta la
+           cuarta parte. Con setTransform las coordenadas del dibujo siguen
+           siendo las de siempre, así que no hay una sola constante del rig que
+           reajustar: es gratis en todo menos en nitidez, y la tinta va
+           desenfocada de todos modos. */
+        const RESOL = esMovil ? 0.5 : 1;
+        function medirLienzo(lienzo, ctx, w, h) {
+            lienzo.width = Math.round(w * RESOL);
+            lienzo.height = Math.round(h * RESOL);
+            lienzo.style.width = w + 'px';
+            lienzo.style.height = h + 'px';
+            lienzo._w = w; lienzo._h = h;      // medidas de dibujo, no las del búfer
+            /* El bucle de pintado se administra su propia matriz y borra en
+               coordenadas del búfer, así que aquí se deja en identidad. */
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+        }
+        function ajustarLienzos() {
+            const capaCuerpo = lienzoC.parentElement;
+            medirLienzo(lienzoP, ctxP, 720, Math.min(window.innerHeight || 900, 900));
+            medirLienzo(lienzoC, ctxC, capaCuerpo.offsetWidth || 660, capaCuerpo.offsetHeight || 700);
+            medirLienzo(lienzoS, ctxS, 640, 560);
+            rectP = lienzoP.getBoundingClientRect();
+            rectC = lienzoC.getBoundingClientRect();
+            rectS = lienzoS.getBoundingClientRect();
+        }
+        ajustarLienzos();
+        window.addEventListener('resize', ajustarLienzos);
+
+        /* Atlas de sprites: fillText con cientos de fuentes distintas por
+           fotograma era lo más caro de todo el dibujo (el DOM rasterizaba cada
+           letra una vez; aquí hay que hacerlo también una vez, no por frame).
+           Tamaños cuantizados a enteros → pocas decenas de sprites en total. */
+        const ATLAS = new Map();
+        function glifo(gl, px) {
+            const clave = gl + '|' + px;
+            let c = ATLAS.get(clave);
+            if (!c) {
+                c = document.createElement('canvas');
+                c.width = Math.ceil(px * 1.3) + 2;
+                c.height = Math.ceil(px * 1.5) + 2;
+                const g = c.getContext('2d');
+                g.font = '900 ' + px + 'px "Courier New", monospace';
+                g.textAlign = 'center'; g.textBaseline = 'middle';
+                g.fillStyle = INK;
+                g.fillText(gl, c.width / 2, c.height / 2);
+                ATLAS.set(clave, c);
+            }
+            return c;
+        }
+        const sprGota = (() => {
+            const c = document.createElement('canvas'); c.width = c.height = 64;
+            const g = c.getContext('2d');
+            g.fillStyle = INK; g.beginPath(); g.arc(32, 32, 32, 0, 6.2832); g.fill();
+            return c;
+        })();
+        const sprChispa = (() => {
+            const c = document.createElement('canvas'); c.width = c.height = 48;
+            const g = c.getContext('2d');
+            const rg = g.createRadialGradient(24, 24, 0, 24, 24, 24);
+            rg.addColorStop(0, 'rgba(255,255,255,1)');
+            rg.addColorStop(0.42, 'rgba(255,255,255,0.95)');
+            rg.addColorStop(0.5, 'rgba(255,255,255,0.3)');
+            rg.addColorStop(1, 'rgba(255,255,255,0)');
+            g.fillStyle = rg; g.fillRect(0, 0, 48, 48);
+            return c;
+        })();
+
+        const POOL_P = [], POOL_C = [], POOL_S = [];
+        let contGotas = 0, contLetras = 0;
+        const DEG = Math.PI / 180;
+        // Equivalentes de los easings CSS de las animaciones sustituidas.
+        const EASE = {
+            io:  t => t < 0.5 ? 2 * t * t : 1 - ((-2 * t + 2) ** 2) / 2,   // ease-in-out
+            out: t => 1 - (1 - t) * (1 - t),                               // ease-out
+            pop: t => 1 - (1 - t) ** 3,             // ≈ cubic-bezier(.1,.8,.3,1)
+        };
+
+        /* Cada partícula lleva sus 3 keyframes (nacer / clímax / morir) y se
+           evalúa por tiempo absoluto: robusta ante caídas de fotogramas y
+           gratis de mover — no hay que integrar nada. */
+        function pintar(ctx, lienzo, pool, ahora, esP, ox, oy) {
+            if (!lienzo.width) return;
+            if (!pool.length) {
+                if (lienzo._sucio) { ctx.clearRect(0, 0, lienzo.width, lienzo.height); lienzo._sucio = false; }
+                return;
+            }
+            lienzo._sucio = true;
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.clearRect(0, 0, lienzo.width, lienzo.height);
+            let g = 0, l = 0;
+            const k = esP ? c_LetScale : 1, dy = esP ? c_LetY : 0;
+            for (let i = pool.length - 1; i >= 0; i--) {
+                const p = pool[i];
+                const u = (ahora - p.t0) / p.dur;
+                if (u >= 1) { pool[i] = pool[pool.length - 1]; pool.pop(); continue; }
+                if (u < 0) continue;   // aún no ha nacido (reloj ajustado): no extrapolar
+                const e = EASE[p.e];
+                let x, y, sc, o, r;
+                if (u < p.off) {
+                    const t = e(u / p.off);
+                    x = p.x0 + (p.x1 - p.x0) * t; y = p.y0 + (p.y1 - p.y0) * t;
+                    sc = p.s0 + (p.s1 - p.s0) * t; o = p.o0 + (p.o1 - p.o0) * t;
+                    r = p.r0 + (p.r1 - p.r0) * t;
+                } else {
+                    const t = e((u - p.off) / (1 - p.off));
+                    x = p.x1 + (p.x2 - p.x1) * t; y = p.y1 + (p.y2 - p.y1) * t;
+                    sc = p.s1 + (p.s2 - p.s1) * t; o = p.o1 + (p.o2 - p.o1) * t;
+                    r = p.r1 + (p.r2 - p.r1) * t;
+                }
+                ctx.globalAlpha = Math.max(0, Math.min(1, o));
+                if (p.gl) {
+                    l++;
+                    // Cadencia del habla: mismo translateY+scale que llevaba la
+                    // capa de letras, aplicado aquí en matemática pura.
+                    const xx = ox + (x - ox) * k;
+                    const yy = oy + (y - oy) * k + dy;
+                    const spr = glifo(p.gl, p.px);
+                    const rad = r * DEG, cos = Math.cos(rad), sin = Math.sin(rad);
+                    const sx = sc * k;
+                    const sy = sx * (p.rx ? Math.max(0.08, Math.abs(Math.cos(p.rx * u * DEG))) : 1);
+                    /* RESOL premultiplica la matriz del sprite: el búfer es más
+                       pequeño que el espacio de dibujo, pero las coordenadas
+                       que se calculan arriba siguen siendo las de siempre. */
+                    ctx.setTransform(cos * sx * RESOL, sin * sx * RESOL, -sin * sy * RESOL, cos * sy * RESOL, xx * RESOL, yy * RESOL);
+                    ctx.drawImage(spr, -spr.width / 2, -spr.height / 2);
+                } else if (p.chispa) {
+                    const d = p.tam * 5.2 * sc;
+                    ctx.setTransform(RESOL, 0, 0, RESOL, 0, 0);
+                    ctx.drawImage(sprChispa, x - d / 2, y - d / 2, d, d);
+                } else {
+                    g++;
+                    const d = p.tam * sc;
+                    ctx.setTransform(RESOL, 0, 0, RESOL, 0, 0);
+                    ctx.drawImage(sprGota, x - d / 2, y - d / 2, d, d);
+                }
+            }
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.globalAlpha = 1;
+            if (esP) { contGotas = g; contLetras = l; }
+        }
+
+        function dibujarTinta(ahora) {
+            // Origen de la cadencia: el 50%/80% del viewport que usaba la capa.
+            pintar(ctxP, lienzoP, POOL_P, ahora, true,
+                   window.innerWidth / 2 - rectP.left, window.innerHeight * 0.8 - rectP.top);
+            pintar(ctxC, lienzoC, POOL_C, ahora, false, 0, 0);
+            pintar(ctxS, lienzoS, POOL_S, ahora, false, 0, 0);
+        }
+
+        const MAX_GOTAS = 100;   // techo: en un equipo lento nunca se dispara
+        const BURST_GOTAS = 12;  // gotas por estallido
+        let lastBurst = 0;
+
+        /* ESTALLIDO DE TINTA: susto o enfado de verdad → descarga radial. */
+        function burstInk(fuerza, forzar) {
+            const ahora = Date.now();
+            if (!forzar && ahora - lastBurst < 900) return;
+            if (contGotas > MAX_GOTAS) return;
+            lastBurst = ahora;
+            const rP = rectP;
+            const h = headBase.getBoundingClientRect();
+            const cx = h.left + h.width / 2 - rP.left;
+            const cy = h.top + h.height / 2 - rP.top;
+            const nBurst = Math.max(4, Math.round(BURST_GOTAS * FACTOR[NIVEL]));
+            for (let i = 0; i < nBurst; i++) {
+                const tam = Math.random() * 22 + 12;
+                const ang = Math.random() * Math.PI * 2;
+                const dist = (70 + Math.random() * 190) * fuerza;
+                const dx = Math.cos(ang) * dist;
+                const dyy = Math.sin(ang) * dist - 60 * fuerza;
+                const x = cx + tam / 2, y = cy + tam / 2;
+                POOL_P.push({ t0: ahora, dur: 520 + Math.random() * 480, off: 0.22, e: 'pop', tam,
+                    x0: x, y0: y, s0: 0.2, o0: 0, r0: 0,
+                    x1: x + dx * 0.45, y1: y + dyy * 0.45, s1: 1, o1: 1, r1: 0,
+                    x2: x + dx, y2: y + dyy, s2: 0, o2: 0, r2: 0 });
+                contGotas++;
+            }
+            if (NIVEL === 'alto') burstLetters(Math.round(4 * fuerza), fuerza);
+        }
+
+        function spawnParticles() {
+            if (document.hidden) return;             // pestaña de fondo: cero gasto
+            if (popTarget === 0 && popPos < 0.2) return;   // escondido: nada que emitir
+            // Zonas acariciables, refrescadas aquí para no costar layout extra.
+            petRects = { head: headBase.getBoundingClientRect(), body: bodyTracker.getBoundingClientRect() };
+            if (contGotas > MAX_GOTAS) return;
+            const leftEarRect = earLeft.getBoundingClientRect();
+            const rightEarRect = earRight.getBoundingClientRect();
+            const headRect = petRects.head;
+            const bodyRect = petRects.body;
+            const rP = rectP;
+            const leftEyeRect = eyeLeftWrapper.getBoundingClientRect();
+            const rightEyeRect = eyeRightWrapper.getBoundingClientRect();
+            const ahora = Date.now();
+
+            const nGotas = Math.max(1, Math.round(TUNE.gotasPorTick * FACTOR[NIVEL]));
+            for (let i = 0; i < nGotas; i++) {
+                if (Math.random() > 0.4) {
+                    const tam = Math.random() * 15 + 8;
+                    let spawnZone = Math.random();
+                    let startX = 0, startY = 0;
+                    if (spawnZone < 0.3) {
+                        startX = leftEarRect.left + leftEarRect.width / 2;
+                        startY = leftEarRect.top + leftEarRect.height / 2;
+                    } else if (spawnZone < 0.6) {
+                        startX = rightEarRect.left + rightEarRect.width / 2;
+                        startY = rightEarRect.top + rightEarRect.height / 2;
+                    } else if (spawnZone < 0.75) {
+                        startX = headRect.left + headRect.width / 2;
+                        startY = headRect.top + 20;
+                    } else if (spawnZone < 0.9) {
+                        // Torso: brotan del pecho y los costados
+                        startX = bodyRect.left + bodyRect.width * (0.15 + Math.random() * 0.7);
+                        startY = bodyRect.top + bodyRect.height * (0.25 + Math.random() * 0.4);
+                    } else {
+                        // Base: se evaporan desde el suelo de tinta
+                        startX = bodyRect.left + bodyRect.width * Math.random();
+                        startY = bodyRect.bottom - 15;
+                    }
+                    const x = startX - rP.left + tam / 2, y = startY - rP.top + tam / 2;
+                    const destX = Math.random() * 100 - 50;
+                    const destY = -(Math.random() * 150 + 80);
+                    POOL_P.push({ t0: ahora, dur: Math.random() * 2500 + 1500, off: 0.3, e: 'io', tam,
+                        x0: x, y0: y, s0: 0, o0: 0, r0: 0,
+                        x1: x + destX * 0.3, y1: y + destY * 0.3, s1: 1, o1: 1, r1: 0,
+                        x2: x + destX, y2: y + destY, s2: 0, o2: 0, r2: 0 });
+                    contGotas++;
+                }
+            }
+
+            if (Math.random() > 0.4) {
+                const rS = rectS;
+                const tam = (Math.random() * 4 + 2) / 2;
+                const targetEye = Math.random() > 0.5 ? leftEyeRect : rightEyeRect;
+                // Nacen cerca del borde del ojo (75-90% del radio), no del centro.
+                const ang = Math.random() * Math.PI * 2;
+                const rad = (targetEye.width / 2) * (0.75 + Math.random() * 0.15);
+                const x = targetEye.left + targetEye.width / 2 + Math.cos(ang) * rad - rS.left;
+                const y = targetEye.top + targetEye.height / 2 + Math.sin(ang) * rad - rS.top;
+                const destX = Math.random() * 60 - 30;
+                const destY = -(Math.random() * 80 + 40);
+                POOL_S.push({ t0: ahora, dur: Math.random() * 1500 + 1000, off: 0.2, e: 'out', tam, chispa: 1,
+                    x0: x, y0: y, s0: 0, o0: 0, r0: 0,
+                    x1: x + destX * 0.3, y1: y + destY * 0.3, s1: 1, o1: 1, r1: 0,
+                    x2: x + destX, y2: y + destY, s2: 0, o2: 0, r2: 0 });
+            }
+
+            // Letras sueltas que se van volando alto, girando en 3D.
+            const cuantasLetras = Math.random() > (0.45 + (1 - FACTOR[NIVEL]) * 0.4) ? (Math.random() > 0.75 ? 2 : 1) : 0;
+            for (let L = 0; L < cuantasLetras; L++) {
+                const x = headRect.left + headRect.width / 2 - rP.left;
+                const y = headRect.top + 10 - rP.top;
+                const destX = Math.random() * 200 - 100;
+                const destY = -(Math.random() * 300 + 150);
+                const rotZ = Math.random() * 360;
+                POOL_P.push({ t0: ahora, dur: Math.random() * 5000 + 3500, off: 0.4, e: 'io',
+                    gl: alphabet[Math.floor(Math.random() * alphabet.length)], px: 36,
+                    rx: Math.random() * 180,
+                    x0: x, y0: y, s0: 0, o0: 0, r0: 0,
+                    x1: x + destX * 0.4, y1: y + destY * 0.4, s1: 1, o1: 0.9, r1: rotZ * 0.5,
+                    x2: x + destX, y2: y + destY, s2: 0, o2: 0, r2: rotZ });
+                contLetras++;
+            }
+        }
+
+        /* ══════ LA CORONA ══════
+           Tinta y letras que nacen PEGADAS al arco superior de la cabeza, en el
+           lienzo que vive dentro del filtro del cuerpo: se funden con la
+           silueta y el borde de arriba hierve en vez de ser una curva limpia. */
+        const CORONA_MAX = 46;
+        function spawnCorona() {
+            if (NIVEL === 'bajo') return;
+            if (POOL_C.length > CORONA_MAX) return;
+            if (popTarget === 0 && popPos < 0.2) return;   // escondido: nada que emitir
+            const rC = rectC;
+            const h = headBase.getBoundingClientRect();
+            const cx = h.left + h.width / 2 - rC.left;
+            const cy = h.top + h.height / 2 - rC.top;
+            const r = h.width * 0.5;
+            const ahora = Date.now();
+            const n = NIVEL === 'alto' ? TUNE.coronaPorTick : Math.round(TUNE.coronaPorTick * 0.5);
+            for (let i = 0; i < n; i++) {
+                const letra = Math.random() < 0.45;
+                // Arco superior: de -170° a -10°, toda la coronilla.
+                const ang = (-170 + Math.random() * 160) * DEG;
+                const rr = r * (0.82 + Math.random() * 0.22);
+                const x0 = cx + Math.cos(ang) * rr;
+                const y0 = cy + Math.sin(ang) * rr * 0.92;
+                const dx = Math.cos(ang) * TUNE.coronaAlcance * (0.4 + Math.random() * 0.8);
+                const dyy = Math.sin(ang) * TUNE.coronaAlcance * (0.6 + Math.random() * 0.9) - 8;
+                const base = { t0: ahora, dur: TUNE.coronaVida * (0.7 + Math.random() * 0.6), off: 0.35, e: 'out',
+                    x0, y0, s0: 0.35, o0: 0.9, r0: 0,
+                    x1: x0 + dx * 0.4, y1: y0 + dyy * 0.4, s1: 1, o1: 1, r1: 0,
+                    x2: x0 + dx, y2: y0 + dyy, s2: 0.15, o2: 0, r2: 0 };
+                if (letra) {
+                    base.gl = alphabet[Math.floor(Math.random() * alphabet.length)];
+                    base.px = 9 + Math.floor(Math.random() * 10);
+                } else {
+                    base.tam = TUNE.coronaTam * (0.55 + Math.random() * 0.9);
+                }
+                POOL_C.push(base);
+            }
+        }
+
+        /* Enjambre de micro-letras: humo de texto. Densidad atada al nivel. */
+        function spawnMicroLetras() {
+            const n = NIVEL === 'alto' ? TUNE.microPorTick
+                    : NIVEL === 'medio' ? Math.round(TUNE.microPorTick * 0.5) : 0;
+            if (!n || contLetras > TUNE.microTope) return;
+            if (popTarget === 0 && popPos < 0.2) return;   // escondido: nada que emitir
+            const rP = rectP;
+            const h = headBase.getBoundingClientRect();
+            const b = bodyTracker.getBoundingClientRect();
+            const ahora = Date.now();
+            for (let i = 0; i < n; i++) {
+                const fs = Math.round(TUNE.microTamMin + Math.random() * Math.max(0, TUNE.microTamMax - TUNE.microTamMin));
+                /* Nacen MUY pegadas al cuerpo y muy juntas: es el solape lo que
+                   el filtro goo funde en humo. Al subir SE EXPANDEN mientras se
+                   aclaran — una mancha que crece y se diluye lee como humo. */
+                const desdeCabeza = Math.random() < 0.62;
+                const x0 = (desdeCabeza ? h.left + h.width * (0.12 + Math.random() * 0.76)
+                                        : b.left + b.width * (Math.random() * 1.1 - 0.05)) - rP.left;
+                const y0 = (desdeCabeza ? h.top + h.height * (0.02 + Math.random() * 0.42)
+                                        : b.top + b.height * (Math.random() * 0.55)) - rP.top;
+                const dx = (Math.random() - 0.5) * TUNE.microDispersion;
+                const dyy = -(TUNE.microAltura * 0.55 + Math.random() * TUNE.microAltura * 0.9);
+                const rz = (Math.random() - 0.5) * 220;
+                POOL_P.push({ t0: ahora, dur: TUNE.microDuracion * 0.7 + Math.random() * TUNE.microDuracion * 0.6,
+                    off: 0.25, e: 'out',
+                    gl: alphabet[Math.floor(Math.random() * alphabet.length)], px: fs,
+                    x0, y0, s0: 0.45, o0: 0, r0: 0,
+                    x1: x0 + dx * 0.3, y1: y0 + dyy * 0.28, s1: 1, o1: 0.85, r1: rz * 0.3,
+                    x2: x0 + dx, y2: y0 + dyy, s2: 1.55, o2: 0, r2: rz });
+                contLetras++;
+            }
+        }
+
+        /* Letras disparadas: salen escupidas con los estallidos, girando. */
+        function burstLetters(n, fuerza) {
+            const rP = rectP;
+            const h = headBase.getBoundingClientRect();
+            const cx = h.left + h.width / 2 - rP.left;
+            const cy = h.top + h.height / 2 - rP.top;
+            const ahora = Date.now();
+            for (let i = 0; i < n; i++) {
+                const ang = Math.random() * Math.PI * 2;
+                const dist = (110 + Math.random() * 210) * fuerza;
+                const dx = Math.cos(ang) * dist, dyy = Math.sin(ang) * dist - 80 * fuerza;
+                const rz = (Math.random() - 0.5) * 720;
+                POOL_P.push({ t0: ahora, dur: 700 + Math.random() * 600, off: 0.25, e: 'pop',
+                    gl: alphabet[Math.floor(Math.random() * alphabet.length)], px: 36,
+                    x0: cx, y0: cy, s0: 0.3, o0: 0, r0: 0,
+                    x1: cx + dx * 0.4, y1: cy + dyy * 0.4, s1: 1.1, o1: 1, r1: rz * 0.4,
+                    x2: cx + dx, y2: cy + dyy, s2: 0, o2: 0, r2: rz });
+                contLetras++;
+            }
+        }
+
+        updateRig();
+        aplicarNivel();
+        medirFps();
+        if (!EMBED) setTimeout(popIn, 700);   // en embed espera la orden del candado
+
+        /* ══════ PUENTE CON LA PÁGINA MADRE (solo embed) ══════
+           La madre manda: ratón de toda la página (traducido a nuestras
+           coordenadas), la distancia al candado, y las órdenes de liberar
+           y encerrar. Nosotros devolvemos la rueda para que el scroll no
+           muera sobre el marco. */
+        if (EMBED) {
+            /* La escala no se presupone: se lee del propio marco (la madre
+               aplica 0.55 en escritorio y 0.42 en móvil). rect.width es el
+               ancho YA escalado; innerWidth es el ancho interior real. */
+            const escalaReal = () => {
+                const r = window.frameElement && window.frameElement.getBoundingClientRect();
+                const out = r && r.width ? { r, esc: r.width / window.innerWidth } : { r: { left: 0, top: 0 }, esc: 1 };
+                window.__ESC = out.esc;
+                return out;
+            };
+            escalaReal();
+            window.addEventListener('resize', escalaReal);
+            const aLocal = (px, py) => {
+                const { r, esc } = escalaReal();
+                return { x: (px - r.left) / esc, y: (py - r.top) / esc, esc };
+            };
+            /* El estado de la llamada viaja a la madre: envuelve el puente que
+               el módulo ya usa para pintar el rig (__setTiznoAI). */
+            const setOrig = window.__setTiznoAI;
+            if (setOrig) {
+                window.__setTiznoAI = (...a) => {
+                    setOrig(...a);
+                    try { parent.postMessage({ tipo: 'ai', estado: a[0] }, location.origin); } catch (_) {}
+                };
+            }
+            /* El estado de texto (invocando…, micrófono bloqueado…) viaja a la
+               madre: el módulo llama a este gancho desde su setStatus. */
+            window.__tiznoSetStatus = (t) => {
+                try { parent.postMessage({ tipo: 'estado', texto: t }, location.origin); } catch (_) {}
+            };
+            /* EL TOQUE: un clic sobre su cuerpo es un piquito en las costillas —
+               respingo, tinta y una queja grabada («¡ay!», «¿me estás buscando
+               las cosquillas?»). La llamada de voz vive en el botón Hablarle
+               de la madre; así el gesto de tocar es solo juego. */
+            let ultimoToqueT = 0;
+            let toquesSeguidos = 0;
+            const toqueEn = (cx2, cy2) => {
+                const h = headBase.getBoundingClientRect();
+                const b = bodyTracker.getBoundingClientRect();
+                const dentroDeEl = (cx2 > Math.min(h.left, b.left) - 30 && cx2 < Math.max(h.right, b.right) + 30
+                                 && cy2 > h.top - 30 && cy2 < b.bottom + 30);
+                if (!dentroDeEl || popPos < 0.8) return;
+                const ahora = Date.now();
+                if (ahora - ultimoToqueT < 1500) return;   // sin ametrallar
+                /* ESCONDITE JUSTIFICADO (Ruben): irse porque sí es random;
+                   irse al CUARTO piquito en 25 s es un personaje harto. */
+                toquesSeguidos = (ahora - ultimoToqueT < 25000) ? toquesSeguidos + 1 : 1;
+                ultimoToqueT = ahora;
+                if (toquesSeguidos >= 4) {
+                    toquesSeguidos = 0;
+                    popEscondite(3500);
+                    sfxPlay('quejido');
+                    return;
+                }
+                shockUntil = ahora + 260;
+                burstInk(0.55);
+                sfxPlay('toque');
+            };
+            window.addEventListener('click', (e) => toqueEn(e.clientX, e.clientY));
+            window.addEventListener('message', (ev) => {
+                if (ev.origin !== location.origin || !ev.data) return;
+                const m = ev.data;
+                if (m.tipo === 'clic') {
+                    const p = aLocal(m.x, m.y);
+                    toqueEn(p.x, p.y);
+                } else if (m.tipo === 'hablar') {
+                    /* NUNCA FALLAR EN SILENCIO. __tiznoLlamar lo define el
+                       modulo del SDK; si ese modulo no llego a ejecutarse, el
+                       boton no hacia nada y tampoco decia nada — que es
+                       exactamente lo que Ruben veia en el iPhone. */
+                    if (window.__tiznoLlamar) window.__tiznoLlamar();
+                    else if (window.__tiznoSetStatus) window.__tiznoSetStatus(
+                        window.__traducirEstado ? window.__traducirEstado('su voz no ha despertado…') : 'su voz no ha despertado…');
+                } else if (m.tipo === 'raton') {
+                    const p = aLocal(m.x, m.y);
+                    /* ARCO MÁXIMO (Ruben): más allá de una elipse alrededor de
+                       Tizno, el cursor "se queda en el borde" — conserva la
+                       dirección de la mirada pero ya nada crece. Sin esto, un
+                       cursor a 2000 px metía valores 3× fuera del rango con el
+                       que se afinaron las posturas y el rig se descuadernaba. */
+                    const ax = window.innerWidth / 2, ay = window.innerHeight / 2;
+                    const SEMI_X = ax * 0.96, SEMI_Y = ay * 0.94;
+                    let ex = (p.x - ax) / SEMI_X, ey = (p.y - ay) / SEMI_Y;
+                    const e2 = Math.hypot(ex, ey);
+                    if (e2 > 1) { ex /= e2; ey /= e2; }
+                    const cx = ax + ex * SEMI_X, cy = ay + ey * SEMI_Y;
+                    window.dispatchEvent(new MouseEvent('mousemove', { clientX: cx, clientY: cy }));
+                    window.__candadoDist = (m.candadoDist != null) ? m.candadoDist / p.esc : 1000;
+                    window.__gustoDist = (m.gustoDist != null) ? m.gustoDist / p.esc : 1000;
+                    window.__gustoNX = m.gustoNX || 0;
+                    window.__gustoNY = m.gustoNY || 0;
+                    window.__candadoNX = m.candadoNX || 0;
+                    window.__candadoNY = m.candadoNY || 0;
+                } else if (m.tipo === 'luciernaga') {
+                    /* La COMPAÑERA de la web dirige su mirada cuando el ratón
+                       calla: sin ella, Tizno se quedaba de piedra al parar el
+                       cursor o hacer scroll. */
+                    const p = aLocal(m.x, m.y);
+                    ffX = p.x; ffY = p.y;
+                } else if (m.tipo === 'liberar') {
+                    preso = false;
+                    popIn();
+                } else if (m.tipo === 'filtros') {
+                    /* Interruptor de medición: apaga de golpe TODOS los filtros
+                       SVG. Sirve para dejar de discutir y ver el número — si al
+                       apagarlos los fotogramas se disparan, el gasto es suyo y
+                       toca llevarlos a GPU; si no se mueven, el problema está
+                       en otra parte y no hay que tocar el aspecto de Tizno. */
+                    window.__sinFiltros = !window.__sinFiltros;
+                    document.querySelectorAll('.goo-layer, #goo-particles').forEach((el) => {
+                        if (window.__sinFiltros) {
+                            el.dataset.filtroPrevio = el.style.filter || '';
+                            el.style.filter = 'none';
+                        } else {
+                            el.style.filter = el.dataset.filtroPrevio || '';
+                        }
+                    });
+                    document.documentElement.dataset.filtros = window.__sinFiltros ? 'no' : 'si';
+                } else if (m.tipo === 'suplica-encierro') {
+                    if (popPos > 0.8 && popTarget === 1 && sfxPlay('noEncierres')) {
+                        window.__ultimaSuplica = Date.now();
+                    }
+                } else if (m.tipo === 'encerrar' || m.tipo === 'ocultar') {
+                    /* 'ocultar' = backstage (vista de lectura): mismo hundimiento,
+                       sin drama. La súplica vive SOLO en el hover del candado. */
+                    preso = true;                                       // nada podra sacarlo
+                    cancelarEscondite();                                // sin regresos pendientes
+                    if (window.__tiznoColgar) window.__tiznoColgar();   // preso = mudo
+                    popCerrandoOjos = true;
+                    popOut();
+                }
+            });
+            // (la rueda ya no se reenvía: el marco es transparente a eventos)
+        }
+        /* ══════ PANEL DE AJUSTE EN VIVO ══════
+           Se abre añadiendo ?tune=1 a la URL. Invisible para cualquier visitante.
+           Mueve los sliders, y cuando te guste pulsa "copiar valores": te deja en
+           el portapapeles la lista lista para pegármela. */
+        if (/[?&]tune=1/.test(location.search)) {
+            const AJUSTES = [
+                ['microPorTick',  0, 40, 1,     'Micro-letras por pulso'],
+                ['microTamMin',   3, 16, 0.5,   'Tamaño mínimo (px)'],
+                ['microTamMax',   5, 30, 0.5,   'Tamaño máximo (px)'],
+                ['microAltura',  20, 260, 5,    'Altura de evaporación'],
+                ['microDuracion', 400, 3000, 50,'Duración de vida (ms)'],
+                ['microTope',    20, 400, 10,   'Tope de micro-letras vivas'],
+                ['microDispersion', 4, 120, 2,  'Dispersión horizontal (humo←)'],
+                ['focoSeguimiento', 0, 0.6, 0.02, 'Foco: cuánto le sigue'],
+                ['focoPereza', 0.005, 0.12, 0.005, 'Foco: pereza (lento←)'],
+                ['coronaPorTick', 0, 12, 1,     'Corona: grumos por pulso'],
+                ['coronaTam',     4, 40, 1,     'Corona: tamaño del grumo'],
+                ['coronaAlcance', 6, 90, 2,     'Corona: cuánto se alejan'],
+                ['coronaVida',  400, 2600, 50,  'Corona: vida (ms)'],
+                ['gooContraste', 5, 30, 0.5,    'Goo: contraste (vapor←duro→)'],
+                ['gooDistorsion', 0, 70, 2,     'Goo: distorsión líquida'],
+                ['gotasPorTick',  0, 12, 1,     'Gotas de tinta por pulso'],
+                ['desenfoque',    2, 16, 1,     'Desenfoque del filtro'],
+                ['popRigidez', 0.003, 0.03, 0.0005, 'Salto: rigidez (rápido→)'],
+                ['popAmortigua', 0.04, 0.26, 0.004, 'Salto: amortiguación (rebotes←)'],
+                ['orejaPliegue',  0, 110, 2,    'Pliegue de orejas (grados)'],
+            ];
+            const caja = document.createElement('div');
+            caja.style.cssText = 'position:fixed;top:10px;left:10px;z-index:9999;background:rgba(8,8,8,.93);' +
+                'border:1px solid rgba(243,156,18,.35);border-radius:10px;padding:12px 14px;' +
+                'font:11px/1.5 -apple-system,sans-serif;color:#ddd;max-height:92vh;overflow:auto;width:290px;' +
+                'backdrop-filter:none;box-shadow:0 6px 30px rgba(0,0,0,.6)';
+            caja.innerHTML = '<div style="color:#f39c12;letter-spacing:2px;margin-bottom:8px;font-size:10px">AJUSTE EN VIVO</div>';
+            for (const [clave, min, max, paso, etiqueta] of AJUSTES) {
+                const fila = document.createElement('div');
+                fila.style.marginBottom = '9px';
+                const dec = paso < 0.01 ? 4 : paso < 1 ? 1 : 0;
+                fila.innerHTML = '<div style="display:flex;justify-content:space-between">' +
+                    '<span>' + etiqueta + '</span><b style="color:#f39c12" id="v_' + clave + '">' +
+                    TUNE[clave].toFixed(dec) + '</b></div>';
+                const sl = document.createElement('input');
+                sl.type = 'range'; sl.min = min; sl.max = max; sl.step = paso; sl.value = TUNE[clave];
+                sl.style.cssText = 'width:100%;accent-color:#f39c12;margin-top:2px';
+                sl.addEventListener('input', () => {
+                    TUNE[clave] = parseFloat(sl.value);
+                    document.getElementById('v_' + clave).textContent = TUNE[clave].toFixed(dec);
+                    if (clave === 'desenfoque') {
+                        const f = document.querySelector('#ink-goo feGaussianBlur');
+                        if (f) f.setAttribute('stdDeviation', TUNE[clave]);
+                    }
+                    if (clave === 'gooContraste') {
+                        const m = document.querySelector('#ink-goo feColorMatrix');
+                        const k = TUNE.gooContraste;
+                        if (m) m.setAttribute('values', '1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 ' + k + ' ' + (-k * 0.4).toFixed(2));
+                    }
+                    if (clave === 'gooDistorsion') {
+                        const d = document.querySelector('#ink-goo feDisplacementMap');
+                        if (d) d.setAttribute('scale', TUNE.gooDistorsion);
+                    }
+                });
+                fila.appendChild(sl);
+                caja.appendChild(fila);
+            }
+            const btn = document.createElement('button');
+            btn.textContent = 'copiar valores';
+            btn.style.cssText = 'width:100%;margin-top:6px;padding:7px;background:#f39c12;border:0;' +
+                'border-radius:6px;color:#111;font-weight:700;cursor:pointer;font-size:11px';
+            btn.onclick = () => {
+                const txt = Object.entries(TUNE).map(([k,v]) => k + ': ' + v).join('\n');
+                navigator.clipboard.writeText(txt).then(() => { btn.textContent = '¡copiado! pégamelo';
+                    setTimeout(() => btn.textContent = 'copiar valores', 1800); })
+                    .catch(() => { btn.textContent = txt.replace(/\n/g, ' · '); });
+            };
+            caja.appendChild(btn);
+            const nota = document.createElement('div');
+            nota.style.cssText = 'margin-top:7px;opacity:.5;font-size:10px';
+            nota.textContent = 'Los cambios se ven al instante. El pop se prueba con la tecla P.';
+            caja.appendChild(nota);
+            document.body.appendChild(caja);
+            window.addEventListener('keydown', e => {
+                if (e.key === 'p' || e.key === 'P') popEscondite(900);
+            });
+        }
+
+        setInterval(spawnParticles, 140);
+        setInterval(() => { if (!document.hidden) spawnMicroLetras(); }, 90);   // PRUEBA
+        setInterval(() => { if (!document.hidden) spawnCorona(); }, 110);
+    </script>
+
+    <!-- ═══ ELEVENLABS — módulo del SDK ═══
+         Agente público: conexión directa con agentId, sin backend ni claves.
+         'thinking' no existe como evento del SDK: se deriva — transcripción
+         final del usuario => thinking, hasta que el modo pasa a speaking. -->
+    <script type="module">
+        /* El SDK se carga BAJO DEMANDA en el primer clic de "Despertar":
+           quien solo viene a mirar (la inmensa mayoría) no descarga ni parsea
+           ni un byte de ElevenLabs. El preconnect del <head> deja el apretón
+           de manos TLS hecho para que el clic no lo pague. */
+        let ConversationClase = null;
+        async function cargarSDK() {
+            if (!ConversationClase) {
+                ({ Conversation: ConversationClase } = await import('https://esm.sh/@elevenlabs/client'));
+            }
+            return ConversationClase;
+        }
+
+        const AGENT_ID = 'agent_2101kyzjd6e6ehhaaq9m4mhn8dhq';
+        const btn = document.getElementById('tizno-call');
+        const statusEl = document.getElementById('tizno-status');
+        let conversation = null;
+
+        /* ── LOS ESTADOS, EN LA LENGUA DEL VISITANTE ─────────────────────
+           Los literales de setStatus siguen en castellano en cada llamada —
+           tocar dieciocho sitios en un fichero que se minifica es pedir un
+           accidente — y la traducción vive AQUÍ, en la única puerta por la
+           que todos pasan. El mapa va de literal exacto a inglés; los tres
+           mensajes que llevan cola dinámica (nombre de error) se resuelven
+           por prefijo. Un estado sin entrada sale en castellano: mejor
+           castellano que silencio. */
+        const ESTADOS_EN = {
+            'Tizno ya ha hablado mucho hoy… vuelve mañana': 'Tizno has talked enough for today… come back tomorrow',
+            'pidiendo micrófono…': 'asking for the microphone…',
+            'micrófono bloqueado — pulsa el candado de la barra de direcciones → Micrófono → Permitir, y recarga': 'microphone blocked — tap the padlock in the address bar → Microphone → Allow, then reload',
+            'no encuentro ningún micrófono en este dispositivo': 'I can’t find a microphone on this device',
+            'invocando a Tizno…': 'summoning Tizno…',
+            'el vacío no responde (sin conexión) — reintenta': 'the void does not answer (no connection) — try again',
+            'Tizno te escucha… habla': 'Tizno is listening… speak',
+            /* Los dos estados de turno de onModeChange — los que más se ven
+               durante una llamada. La auditoría del 6-ago los cazó fuera del
+               mapa: literal desincronizado = traducción muda, exactamente la
+               clase de fallo que este mapa arriesga. Si añades un setStatus
+               nuevo, añade aquí su entrada EN en el mismo commit. */
+            'Tizno habla…': 'Tizno is speaking…',
+            'Tizno te escucha…': 'Tizno is listening…',
+            'Tizno se ha despistado… háblale otra vez': 'Tizno got distracted… speak to him again',
+            'oigo ruido continuo — pausa vídeos o música o Tizno no podrá responder': 'I hear constant noise — pause any video or music or Tizno won’t be able to answer',
+            'Tizno se ha cansado de hablar… déjale descansar': 'Tizno is tired of talking… let him rest',
+            'a Tizno se le cierran los ojos…': 'Tizno’s eyes are closing…',
+            'se ha evaporado': 'he has vanished',
+            'Tizno rumia…': 'Tizno is mulling it over…',
+            'su voz no ha despertado…': 'his voice has not awakened…',
+        };
+        const PREFIJOS_EN = [
+            ['sin micrófono no hay conversación (', 'no microphone, no conversation ('],
+            ['algo se rompió en el vacío: ', 'something broke in the void: '],
+            ['no se pudo invocar: ', 'the summoning failed: '],
+        ];
+        const traducirEstado = (txt) => {
+            if (IDIOMA !== 'en' || !txt) return txt;
+            if (ESTADOS_EN[txt]) return ESTADOS_EN[txt];
+            for (const [es, en] of PREFIJOS_EN) {
+                if (txt.startsWith(es)) return en + txt.slice(es.length);
+            }
+            return txt;
+        };
+        const setStatus = (t) => {
+            const traducido = traducirEstado(t);
+            statusEl.textContent = traducido;
+            if (window.__tiznoSetStatus) window.__tiznoSetStatus(traducido);   // relé embed
+        };
+        /* Expuesto para el script del rig, que vive en otro ámbito y en un
+           caso de error llama al relé directamente sin pasar por setStatus:
+           sin esto, su literal se saltaba la traducción (auditoría 6-ago). */
+        window.__traducirEstado = traducirEstado;
+        let lastState = 'idle', lastStateAt = Date.now();
+        const setState = (s) => { lastState = s; lastStateAt = Date.now(); window.__setTiznoAI(s); };
+        let lastVad = 0;          // último vadScore recibido (push del SDK, no pull)
+        const pageOpenedAt = Date.now();   // cuánto lleva mirándole antes de hablar
+        let vadHighSince = null;  // desde cuándo hay voz/ruido continuo sin cerrar turno
+        let watchdog = null;
+
+        /* ── Línea de tiempo emocional del parlamento ──
+           El texto llega antes que el audio: lo troceamos por acotaciones y
+           frases, cada tramo con su humor, y estimamos cuándo suena cada uno
+           (proporcional a caracteres, con velocidad auto-calibrada). */
+        /* Vocabulario bilingüe: las acotaciones que escribe el agente en español
+           Y los audio tags de ElevenLabs v3 (que salen en inglés: [Laughing],
+           [scared]…). Si añades un tag nuevo en el panel, mételo aquí también. */
+        /* ORDEN IMPORTANTE: Tizno es una criatura aterrada, así que el MIEDO se
+           evalúa PRIMERO. El enfado es su emoción más rara y exige marcas
+           explícitas — nada de "¡no...!", que es su muletilla constante. */
+        const MOOD_LEX = [
+            [/tiembla|tartamudea|respiraci|jadea|se encoge|susurra|miedo|asustad|terror|no te acerques|peligro|huye|cuidado|aléjate|no me toques/, 'miedo'],
+            [/scared|frightened|afraid|nervous|whisper|trembl|gasp|panick|terrified|worried|stammer/, 'miedo'],
+            [/grita|gruñe|ruge|amenaza|golpea|furios|rabia|\bira\b|maldit|\bharto\b|déjame en paz/, 'enfado'],
+            [/angr|shout|yell|growl|snarl|furious|roars?\b|annoyed|irritated/, 'enfado'],
+            [/solloza|suspira|llora|lament|triste|\bsolo\b|abandonad|olvidad|\bpena\b|queja|vacío me llama/, 'tristeza'],
+            [/\bsad|sigh|cry|cries|sobs?\b|mournful|melanchol|disappointed|weary|resigned/, 'tristeza'],
+            [/ríe|risa|carcajada|canturrea|salta|celebra|brillante|jaja|maravill|tesoro/, 'energia'],
+            [/laugh|chuckl|giggl|excited|enthusiastic|cheerful|playful|delighted|gleeful|sings?\b/, 'energia'],
+            [/curio|confused|questioning|hesitan|puzzled|thoughtful|pondering|wondering|intrigued|duda|extrañad/, 'duda'],
+        ];
+        const moodOf = (txt) => {
+            const t = txt.toLowerCase();
+            for (const [re, m] of MOOD_LEX) if (re.test(t)) return m;
+            return null;
+        };
+        let ttsCps = 13;           // caracteres/segundo estimados (se calibra solo)
+        let lastTotalChars = 0, speakStartAt = 0;
+        function buildTimeline(msg) {
+            const segs = [];
+            let inherited = null;
+            for (const part of msg.split(/(\[[^\]]*\])/).filter(Boolean)) {
+                if (/^\[[^\]]*\]$/.test(part)) {
+                    // acotación del propio agente: fija el humor y ocupa un instante
+                    inherited = moodOf(part) || inherited;
+                    segs.push({ mood: inherited, chars: 2 });
+                    continue;
+                }
+                for (const sent of part.split(/(?<=[.!?…])/)) {
+                    if (!sent.trim()) continue;
+                    const m = moodOf(sent) || (/\?\s*$/.test(sent.trim()) ? 'duda' : null);
+                    if (m) inherited = m;
+                    segs.push({ mood: inherited, chars: sent.length });
+                }
+            }
+            if (!segs.length) return null;
+            const total = segs.reduce((a, x) => a + x.chars, 0);
+            let acc = 0;
+            const out = segs.map(x => { const st = acc / total; acc += x.chars; return { mood: x.mood, start: st, end: acc / total }; });
+            lastTotalChars = total;
+            return { segs: out, totalChars: total, cps: ttsCps };
+        }
+
+        /* ── Protección de créditos ──
+           Tope por conversación (Tizno "se cansa"), corte al ocultar la pestaña
+           y límite diario por navegador. Sin esto, una pestaña olvidada con la
+           llamada abierta funde la cuota mensual de ElevenLabs. */
+        const SESSION_MAX_S = 180;    // 3 min por conversación
+        const DAILY_MAX_S = 1800;     // 30 min/día por navegador (Creator: 275 min/mes)
+        let callStartedAt = 0, yawnWarned = false;
+        const todayKey = () => new Date().toISOString().slice(0, 10);
+        const dailyUsed = () => {
+            try {
+                const d = JSON.parse(localStorage.getItem('tizno_daily') || '{}');
+                return d.date === todayKey() ? (d.secs || 0) : 0;
+            } catch (_) { return 0; }
+        };
+        const dailyAdd = (secs) => {
+            try {
+                localStorage.setItem('tizno_daily', JSON.stringify({ date: todayKey(), secs: dailyUsed() + secs }));
+            } catch (_) {}
+        };
+
+        /* ══════════ EL EFECTO PSYCHO MANTIS ══════════
+           Nada se roba y nada sale del dispositivo: solo leemos lo que el
+           navegador ya cuenta a cualquier web (hora, idioma, batería, de dónde
+           vienes) y lo que TÚ le contaste a Tizno la vez anterior, guardado en
+           tu propio navegador — como la tarjeta de memoria de la PSX. Se lo
+           susurramos al agente para que lo use como quiera. */
+        const MEM_KEY = 'tizno_memoria';
+        const loadMem = () => { try { return JSON.parse(localStorage.getItem(MEM_KEY) || '{}'); } catch (_) { return {}; } };
+        const saveMem = (m) => { try { localStorage.setItem(MEM_KEY, JSON.stringify(m)); } catch (_) {} };
+        window.__tiznoOlvidar = () => { try { localStorage.removeItem(MEM_KEY); } catch (_) {} return 'Tizno te ha olvidado'; };
+
+        /* Repertorio de aperturas. La web elige una y la manda como {{saludo}},
+           así el primer mensaje no se repite nunca dos veces seguidas. Ninguna
+           destapa cartas: la Ley del Ilusionista prohíbe hacerlo en la 1ª frase. */
+        const SALUDOS_GENERAL = [
+            '[Sonido de respiración entrecortada] ¿Quién anda ahí?... ¿Has venido a leer, viajero, o a que te diseccionen? Acércate a la luz, que en las sombras me aburro.',
+            '[scared] ¡Ah! ¡No, no, no! ¿De dónde has salido tú? [Whispers] Baja la voz... hay cosas aquí que llevan mucho tiempo dormidas.',
+            '[Whispers] Shhh. Quieto. No te muevas todavía. [scared] ¿Vienes solo? Dime que vienes solo.',
+            '[Curious] Vaya. Otro. Siempre acabáis apareciendo por aquí. ¿Y tú qué has perdido, exactamente?',
+            '[scared] ¡T-t-tú! ¿Tú me ves? [Chuckles] Nadie me ve nunca. Nadie... ¿Qué quieres? ¡Dilo rápido!',
+            '[Sighs] Otro visitante. Pasa, pasa. Pero no toques nada. Lo último que tocaron aún no ha vuelto.',
+            '[Whispers] ¿Has oído eso?... No, claro que no. [scared] Solo yo lo oigo. Siempre solo yo.',
+            '[Curious] Hueles a fuera. A luz. [scared] ¡Qué asco! Digo... bienvenido. Bienvenido, sí.',
+            '[scared] ¡Cuidado dónde pisas! Me deshago si me pisan. ¿Sabes lo que cuesta rehacerse? [Whispers] Yo sí.',
+            '[Chuckles] Mira, mira quién se ha atrevido a bajar. ¿Sabes lo que hay aquí abajo? [scared] Yo tampoco del todo.',
+        ];
+        const SALUDOS_VUELVE = [
+            '[Whispers] Tú... tú ya has estado aquí. [scared] ¿Verdad que sí? Reconozco la forma en que respiras.',
+            '[Curious] Otra vez. [Sighs] Siempre volvéis, y siempre creéis que es la primera vez.',
+            '[Chuckles] Ah. Eres tú. [Whispers] No te voy a preguntar dónde has estado. Mentirías.',
+        ];
+        /* Los saludos ingleses: el {{saludo}} se inyecta TAL CUAL como primer
+           mensaje, así que en una sesión en inglés un banco castellano haría
+           que Tizno saludara en español y conversara en inglés — arranque
+           esquizofrénico. Mismo carácter, mismas acotaciones de intérprete. */
+        const SALUDOS_GENERAL_EN = [
+            '[Sonido de respiración entrecortada] Who goes there?... Have you come to read, traveler, or to be dissected? Step into the light; the shadows bore me.',
+            '[scared] Ah! No, no, no! Where did YOU come from? [Whispers] Keep your voice down... there are things here that have been asleep a very long time.',
+            '[Whispers] Shhh. Still. Don\'t move yet. [scared] Are you alone? Tell me you came alone.',
+            '[Curious] Well. Another one. You always end up finding this place. And what exactly have you lost?',
+            '[scared] Y-y-you! You can SEE me? [Chuckles] Nobody ever sees me. Nobody... What do you want? Say it quickly!',
+            '[Sighs] Another visitor. Come in, come in. But touch nothing. The last thing they touched hasn\'t come back yet.',
+            '[Whispers] Did you hear that?... No, of course you didn\'t. [scared] Only I hear it. Always only me.',
+            '[Curious] You smell of outside. Of light. [scared] Disgusting! I mean... welcome. Welcome, yes.',
+            '[scared] Watch where you step! I come apart if I\'m stepped on. Do you know what it costs to put yourself back together? [Whispers] I do.',
+            '[Chuckles] Look, look who dared to come down. Do you know what\'s down here? [scared] Neither do I, entirely.',
+        ];
+        const SALUDOS_VUELVE_EN = [
+            '[Whispers] You... you have been here before. [scared] Haven\'t you? I recognize the way you breathe.',
+            '[Curious] Again. [Sighs] You always come back, and you always believe it\'s the first time.',
+            '[Chuckles] Ah. It\'s you. [Whispers] I won\'t ask where you\'ve been. You\'d lie.',
+        ];
+        const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+        async function buildDossier() {
+            const m = loadMem();
+            const now = new Date();
+            const h = now.getHours();
+            const franja = h < 5 ? 'de madrugada' : h < 12 ? 'por la mañana'
+                         : h < 20 ? 'por la tarde' : 'de noche';
+            const dias = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+            // De dónde viene (sin rastrear a nadie: es el referrer del navegador)
+            let origen = 'directo, sin dejar rastro';
+            try {
+                const r = document.referrer;
+                if (r) {
+                    const hst = new URL(r).hostname.replace('www.', '');
+                    origen = /instagram/.test(hst) ? 'de Instagram'
+                           : /google|bing|duckduckgo/.test(hst) ? 'de un buscador'
+                           : /threads/.test(hst) ? 'de Threads'
+                           : 'de ' + hst;
+                }
+            } catch (_) {}
+            // Batería (solo Chrome/Edge)
+            let bateria = null;
+            try {
+                if (navigator.getBattery) {
+                    const b = await navigator.getBattery();
+                    bateria = { pct: Math.round(b.level * 100), cargando: b.charging };
+                }
+            } catch (_) {}
+            const movil = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || innerWidth <= 768;
+            const dias_desde = m.lastVisit ? Math.floor((Date.now() - m.lastVisit) / 86400000) : null;
+            // ¿Merece la pena mencionar la hora? Solo si es rara.
+            const finde = now.getDay() === 0 || now.getDay() === 6;
+            let horaRara = null;
+            if (h >= 0 && h < 5)        horaRara = 'de madrugada, pasada la medianoche';
+            else if (h === 23)          horaRara = 'a punto de pasar la medianoche';
+            else if (h >= 5 && h < 7)   horaRara = 'antes del amanecer';
+            else if (!finde && h >= 9 && h < 18) horaRara = 'en mitad de la jornada laboral de un día entre semana';
+            return {
+                hora: now.toTimeString().slice(0, 5),
+                franja,
+                dia: dias[now.getDay()],
+                madrugada: h >= 0 && h < 5,
+                zona: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                idioma: navigator.language,
+                origen,
+                bateria,
+                movil,
+                oscuro: matchMedia('(prefers-color-scheme: dark)').matches,
+                sinMovimiento: matchMedia('(prefers-reduced-motion: reduce)').matches,
+                horaRara,
+                visitas: (m.visits || 0) + 1,
+                diasDesde: dias_desde,
+                nombre: m.nombre || null,
+                segundosMirando: Math.round((Date.now() - pageOpenedAt) / 1000),
+            };
+        }
+
+        function dossierToText(d) {
+            const L = [];
+            L.push(`Son las ${d.hora} ${d.franja} del ${d.dia} donde está (zona ${d.zona}).`);
+            if (d.horaRara) {
+                L.push(`LA HORA ES UNA CARTA QUE PUEDES JUGAR: está aquí ${d.horaRara}. ` +
+                       'Cuando quieras inquietarle, insinúalo (¿no duerme?, ¿no debería estar trabajando?). ' +
+                       'Nunca en tu primera frase: guárdatelo.');
+            } else {
+                L.push('La hora no tiene nada de particular: NO la menciones, no impresionaría a nadie.');
+            }
+            L.push(`Llegó ${d.origen}. Idioma del navegador: ${d.idioma}. Está en ${d.movil ? 'el móvil' : 'un ordenador'}.`);
+            if (d.bateria) L.push(`Su batería está al ${d.bateria.pct}%${d.bateria.cargando ? ' y cargando' : ', sin cargar'}.`);
+            if (d.oscuro) L.push('Tiene el sistema en modo oscuro: prefiere la penumbra.');
+            if (d.sinMovimiento) L.push('Ha pedido a su sistema que reduzca las animaciones: el movimiento le incomoda.');
+            L.push(`Estuvo ${d.segundosMirando} segundos mirándote antes de atreverse a hablar.`);
+            if (d.visitas > 1) {
+                L.push(`NO ES SU PRIMERA VEZ: es su visita nº ${d.visitas}` +
+                       (d.diasDesde !== null ? (d.diasDesde === 0 ? ', ya estuvo hoy.' : ` y la última fue hace ${d.diasDesde} día(s).`) : '.'));
+            } else {
+                L.push('Es su PRIMERA visita: no te conoce todavía.');
+            }
+            if (d.nombre) L.push(`La última vez dijo llamarse ${d.nombre} — recuérdalo como si nunca lo hubieras olvidado.`);
+            return 'CONTEXTO OCULTO (el usuario NO sabe que tienes estos datos; ' +
+                   'úsalos con cuentagotas, como si los adivinaras, para inquietarle. ' +
+                   'Nunca digas que te los ha dado la web ni los recites en lista):\n' + L.join(' ');
+        }
+
+        // Ventana de inspección: mira en consola exactamente lo que Tizno sabrá.
+        window.__tiznoVerDossier = async () => dossierToText(await buildDossier());
+
+        let despertando = false;   // pestillo: entre el clic y la sesión viva pasan segundos
+        /* ── EL MICRÓFONO PRESTADO ────────────────────────────────────────
+           iOS solo concede micrófono a la página que ha recibido el toque, y
+           el dedo de Ruben toca la barra —que es la página madre—, no este
+           marco. El permiso se hereda; la «autorización de usuario» no cruza
+           la frontera, y por eso aquí salía InvalidStateError.
+           La madre lo pide donde sí tiene el sello y nos entrega el micro ya
+           abierto. Al ser del mismo origen no hay que serializar nada: es el
+           mismo objeto pasado de mano en mano. */
+        let microPrestado = null;
+        window.__tiznoConStream = (s) => { microPrestado = s; };
+
+        /* ── EL CARTEL DEL MICRO SALE UNA VEZ, Y SOLO UNA (Ruben, 7-ago) ────
+           Nosotros pedimos el micro una vez (la madre, con el toque), pero el
+           SDK de ElevenLabs llama a getUserMedia POR SU CUENTA al arrancar la
+           sesión — y en iOS una petición desde el marco puede sacar el cartel
+           del sistema OTRA VEZ aunque la madre ya tenga permiso: ese era el
+           «pregunta dos veces» del iPhone. Interceptamos el getUserMedia del
+           marco: si el préstamo vive, el SDK recibe un CLON del stream y
+           Safari ni se entera. Los clones se apuntan y sleep() los apaga —
+           una pista clonada sobrevive al apagado de su original. */
+        const clonesPrestados = [];
+        const gumOriginal = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+        navigator.mediaDevices.getUserMedia = async (c) => {
+            const soloAudio = c && c.audio && !c.video;
+            const vivo = microPrestado && microPrestado.getAudioTracks().some(t => t.readyState === 'live');
+            if (soloAudio && vivo) {
+                const clon = microPrestado.clone();
+                clonesPrestados.push(clon);
+                return clon;
+            }
+            return gumOriginal(c);
+        };
+
+        async function wake() {
+            /* DOS TIZNO A LA VEZ (Ruben, 4-ago): un segundo clic mientras la
+               sesión aún se establecía (SDK + permiso de micro + WebSocket)
+               lanzaba OTRA conversación en paralelo, a destiempo. El pestillo
+               hace que solo la primera invocación entre; las demás rebotan. */
+            if (despertando || conversation) return;
+            despertando = true;
+            if (dailyUsed() >= DAILY_MAX_S) {
+                setStatus('Tizno ya ha hablado mucho hoy… vuelve mañana');
+                despertando = false;
+                return;
+            }
+            btn.disabled = true;
+            setStatus('pidiendo micrófono…');
+            const prestadoVivo = microPrestado && microPrestado.getAudioTracks().some(t => t.readyState === 'live');
+            try {
+                /* Si la madre ya nos abrió el micro, no se vuelve a pedir.
+                   Y si lo pedimos nosotros, SE GUARDA: antes este stream se
+                   descartaba sin asignar y nadie podía apagarlo jamás — cada
+                   llamada acumulaba una pista de captura viva más. Guardado
+                   en microPrestado, sleep() lo apaga como al de la madre. */
+                if (!prestadoVivo) microPrestado = await navigator.mediaDevices.getUserMedia({ audio: true });
+            } catch (err) {
+                btn.disabled = false;
+                if (err.name === 'NotAllowedError') {
+                    setStatus('micrófono bloqueado — pulsa el candado de la barra de direcciones → Micrófono → Permitir, y recarga');
+                    // Tizno lo pide con su propia voz (frase pregrabada, si existe)
+                    if (window.sfxPlay) window.sfxPlay('sinMicro');
+                } else if (err.name === 'NotFoundError') {
+                    setStatus('no encuentro ningún micrófono en este dispositivo');
+                    if (window.sfxPlay) window.sfxPlay('sinMicro');
+                } else {
+                    setStatus('sin micrófono no hay conversación (' + err.name + ')');
+                }
+                despertando = false;
+                return;
+            }
+            setStatus('invocando a Tizno…');
+            let Conversation;
+            try {
+                Conversation = await cargarSDK();
+            } catch (err) {
+                btn.disabled = false;
+                setStatus('el vacío no responde (sin conexión) — reintenta');
+                despertando = false;
+                return;
+            }
+            const dossier = await buildDossier();
+            const briefing = dossierToText(dossier);
+            { const m = loadMem(); m.visits = dossier.visitas; m.lastVisit = Date.now(); saveMem(m); }
+            try {
+                conversation = await Conversation.startSession({
+                    agentId: AGENT_ID,
+                    connectionType: 'websocket',
+                    /* ── TIZNO BILINGÜE, LISTO PERO APAGADO ──────────────────
+                       Todo el cableado del inglés está puesto: el idioma llega
+                       de la madre por la URL, viaja como variable al prompt, y
+                       el override de abajo le pediría a ElevenLabs la sesión
+                       en inglés con LA MISMA voz (los modelos multilingües
+                       hablan ambos idiomas con la voz clonada de Ruben).
+                       Está tras un interruptor porque el override FALLA si el
+                       agente no lo permite aún. Para encenderlo, en el panel
+                       de ElevenLabs del agente: (1) Agent → añadir English
+                       como idioma adicional; (2) Security → Enable overrides →
+                       language. Hecho eso, TIZNO_EN_LISTO = true y ya.
+                       Las tomas pregrabadas (ouch, gruñido, súplica) seguirán
+                       en castellano hasta que Ruben grabe las inglesas: una
+                       criatura española que reacciona en su lengua es
+                       carácter, no defecto. */
+                    ...(IDIOMA === 'en' && TIZNO_EN_LISTO
+                        ? { overrides: { agent: { language: 'en' } } } : {}),
+                    // Variables por si el prompt del agente las usa ({{hora}}…).
+                    dynamicVariables: {
+                        hora: dossier.hora, franja: dossier.franja, dia: dossier.dia,
+                        visitas: String(dossier.visitas), origen: dossier.origen,
+                        dispositivo: dossier.movil ? 'móvil' : 'ordenador',
+                        bateria: dossier.bateria ? String(dossier.bateria.pct) : 'desconocida',
+                        nombre_usuario: dossier.nombre || 'desconocido',
+                        idioma: IDIOMA,
+                        saludo: dossier.visitas > 1 && Math.random() < 0.6
+                                ? pick(IDIOMA === 'en' ? SALUDOS_VUELVE_EN : SALUDOS_VUELVE)
+                                : pick(IDIOMA === 'en' ? SALUDOS_GENERAL_EN : SALUDOS_GENERAL),
+                    },
+                    onConnect: () => {
+                        btn.textContent = 'Dejarle en paz';
+                        btn.classList.add('live');
+                        btn.disabled = false;
+                        setState('listening');
+                        setStatus('Tizno te escucha… habla');
+                        callStartedAt = Date.now(); yawnWarned = false;
+                        vadHighSince = null;
+                        // El susurro: contexto invisible, sin turno de palabra.
+                        try { conversation.sendContextualUpdate(briefing); } catch (_) {}
+                        watchdog = setInterval(() => {
+                            // Rumiando >10 s sin audio del agente: algo se perdió
+                            // por el camino — vuelve a escuchar en vez de clavarse.
+                            if (lastState === 'thinking' && Date.now() - lastStateAt > 10000) {
+                                setState('listening');
+                                setStatus('Tizno se ha despistado… háblale otra vez');
+                            }
+                            // Voz continua >12 s sin turno cerrado = suena algo de
+                            // fondo (vídeo, música) y no deja hablar al agente.
+                            if (vadHighSince && Date.now() - vadHighSince > 12000) {
+                                setStatus('oigo ruido continuo — pausa vídeos o música o Tizno no podrá responder');
+                            }
+                            // Tope de sesión: aviso a los 2:30, corte a los 3:00.
+                            const callSecs = (Date.now() - callStartedAt) / 1000;
+                            if (callSecs > SESSION_MAX_S) {
+                                setStatus('Tizno se ha cansado de hablar… déjale descansar');
+                                sleep();
+                            } else if (!yawnWarned && callSecs > SESSION_MAX_S - 30) {
+                                yawnWarned = true;
+                                setStatus('a Tizno se le cierran los ojos…');
+                            }
+                        }, 1000);
+                    },
+                    onDisconnect: () => {
+                        btn.textContent = 'Despertar a Tizno';
+                        btn.classList.remove('live');
+                        btn.disabled = false;
+                        setState('idle');
+                        setStatus('se ha evaporado');
+                        popEscondite(2200);          // se hunde y vuelve a asomar
+                        window.__tiznoSignals = null;
+                        conversation = null;
+                        if (watchdog) { clearInterval(watchdog); watchdog = null; }
+                        if (callStartedAt) { dailyAdd((Date.now() - callStartedAt) / 1000); callStartedAt = 0; }
+                    },
+                    onModeChange: ({ mode }) => {
+                        // El SDK solo reporta speaking/listening.
+                        setState(mode === 'speaking' ? 'speaking' : 'listening');
+                        setStatus(mode === 'speaking' ? 'Tizno habla…' : 'Tizno te escucha…');
+                        // Auto-calibración de velocidad del TTS: al terminar un
+                        // parlamento sabemos su duración real.
+                        if (mode === 'speaking') {
+                            speakStartAt = Date.now();
+                        } else if (speakStartAt) {
+                            const dur = (Date.now() - speakStartAt) / 1000;
+                            if (dur > 1.5 && lastTotalChars > 30) {
+                                const measured = lastTotalChars / dur;
+                                ttsCps = Math.max(8, Math.min(22, ttsCps + (measured - ttsCps) * 0.4));
+                                if (window.__tiznoTimeline) window.__tiznoTimeline.cps = ttsCps;
+                            }
+                            speakStartAt = 0;
+                        }
+                    },
+                    onMessage: ({ source, message }) => {
+                        // Fin del turno del usuario => el goblin rumia (thinking)
+                        // hasta que llegue el primer audio del agente.
+                        if (source === 'user') {
+                            vadHighSince = null; // el turno sí llegó a cerrarse
+                            // Si te presentas, Tizno se queda con tu nombre — en TU
+                            // navegador, no en ningún servidor nuestro.
+                            if (typeof message === 'string') {
+                                const n = message.match(/(?:me llamo|mi nombre es|soy)\s+([A-Za-zÁÉÍÓÚÑáéíóúñ]{3,15})/i);
+                                if (n) { const m = loadMem(); m.nombre = n[1]; saveMem(m); }
+                            }
+                            // Solo rumia si el agente no está ya hablando: la
+                            // transcripción puede llegar tarde y pisar su voz.
+                            if (lastState !== 'speaking') {
+                                setState('thinking'); setStatus('Tizno rumia…');
+                            }
+                        }
+                        // El texto del agente llega al empezar a hablar: línea de
+                        // tiempo emocional tramo a tramo (acotaciones + frases).
+                        if (source === 'ai' && typeof message === 'string') {
+                            const tl = buildTimeline(message);
+                            if (tl) {
+                                window.__tiznoTimeline = tl;
+                                // fallback global: primer humor no neutro del parlamento
+                                const first = tl.segs.find(x => x.mood);
+                                if (first) window.__setTiznoMood(first.mood, 8000);
+                            }
+                        }
+                    },
+                    onVadScore: (e) => {
+                        // Probabilidad 0..1 de que el usuario esté hablando.
+                        lastVad = (typeof e === 'number' ? e : e?.vadScore) || 0;
+                        if (lastVad > 0.5) { if (!vadHighSince) vadHighSince = Date.now(); }
+                        else vadHighSince = null;
+                    },
+                    onError: (err) => {
+                        console.error('[tizno-ai]', err);
+                        setStatus('algo se rompió en el vacío: ' + (err?.message || err));
+                    },
+                });
+                // Paleta completa para animación. Bandas: media 0..1 de un rango
+                // de bins del FFT de salida (fftSize 2048 => ~23 Hz por bin a 48 kHz).
+                const band = (arr, from, to) => {
+                    if (!arr || !arr.length) return 0;
+                    to = Math.min(to, arr.length);
+                    let sum = 0;
+                    for (let i = from; i < to; i++) sum += arr[i];
+                    return sum / ((to - from) * 255);
+                };
+                window.__tiznoSignals = () => {
+                    try {
+                        const f = conversation.getOutputByteFrequencyData();
+                        return {
+                            outVol: conversation.getOutputVolume(),
+                            inVol:  conversation.getInputVolume(),
+                            bass:   band(f, 1, 9),     // ~23-200 Hz
+                            mid:    band(f, 9, 44),    // ~200-1000 Hz
+                            treble: band(f, 44, 131),  // ~1-3 kHz
+                            vad:    lastVad,
+                        };
+                    } catch (_) { return null; }
+                };
+            } catch (err) {
+                btn.disabled = false;
+                setState('idle');
+                setStatus('no se pudo invocar: ' + (err?.message || err));
+                console.error('[tizno-ai] startSession', err);
+            } finally {
+                despertando = false;   // haya ido bien o mal, el pestillo se suelta
+            }
+        }
+
+        async function sleep() {
+            /* La referencia muere SIEMPRE: si endSession falla por red, la
+               sesión vieja quedaba viva bajo la nueva — dos voces a destiempo.
+               El servidor corta la huérfana por su cuenta al poco. */
+            const c = conversation;
+            conversation = null;
+            /* EL MICRÓFONO SE APAGA AL COLGAR, PASE LO QUE PASE. Un
+               MediaStreamTrack vivo no muere por recolección de basura: sin
+               este stop(), la captura seguía activa y el punto rojo del
+               navegador quedaba encendido el resto de la visita — el
+               visitante colgó, encerró a Tizno, y su micrófono seguía
+               abierto. La madre presta un stream nuevo en cada llamada, así
+               que apagar este no rompe la siguiente. */
+            if (microPrestado) {
+                try { microPrestado.getTracks().forEach((t) => t.stop()); } catch (_) {}
+                microPrestado = null;
+            }
+            /* Los clones entregados al SDK no mueren con su original. */
+            while (clonesPrestados.length) {
+                const clon = clonesPrestados.pop();
+                try { clon.getTracks().forEach((t) => t.stop()); } catch (_) {}
+            }
+            /* Y el vigilante muere aquí, no solo en onDisconnect: si la
+               desconexión falla sin red, el intervalo quedaba latiendo para
+               siempre reescribiendo el susurro de la barra cada segundo. */
+            if (watchdog) { clearInterval(watchdog); watchdog = null; }
+            if (c) { try { await c.endSession(); } catch (_) {} }
+        }
+
+        btn.addEventListener('click', () => conversation ? sleep() : wake());
+        /* Puente embed: la madre (o un toque sobre Tizno) alterna la llamada. */
+        window.__tiznoLlamar = () => { conversation ? sleep() : wake(); };
+        window.__tiznoColgar = () => { if (conversation) sleep(); };
+
+        // "Borrar lo que sabe de ti": la tarjeta de memoria, en manos del visitante.
+        document.getElementById('tizno-olvido').addEventListener('click', (e) => {
+            e.preventDefault();
+            window.__tiznoOlvidar();
+            const av = document.getElementById('tizno-aviso');
+            av.classList.add('olvidado');
+            av.textContent = 'Listo: Tizno ya no recuerda nada de ti. Vuelves a ser un desconocido.';
+        });
+
+        // Pestaña oculta = colgar: nadie paga créditos a una pestaña de fondo.
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && conversation) sleep();
+        });
+
+        // Herramienta de dev: tecla 0 = reiniciar el contador diario.
+        window.addEventListener('keydown', (e) => {
+            if (e.key === '0') {
+                try { localStorage.removeItem('tizno_daily'); } catch (_) {}
+                setStatus('contador diario reiniciado — Tizno vuelve a tener voz');
+            }
+        });
+    </script>
+</body>
+</html>

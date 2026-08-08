@@ -1,5 +1,75 @@
 # HANDOVER.md — El Umbral / Soulware
-*Last updated: July 5, 2026 — Session 12 (Anatomía del Vacío Phase 0: full manuscript scored)*
+*Last updated: August 6, 2026 — Session 13 (cofre galería + Tizno EN + audits; PR #63 listo para enseñar a Javier)*
+
+---
+
+## What was completed — Session 13 (August 6, 2026)
+
+**All on branch `feat/umbral-footer` (PR #63, deploy-preview-63). NOT merged — Ruben approved the chest design ("amazing, i think we got it"); next step is showing Javier, then the merge conversation. PR #62 (Tizno) also NO MERGEAR.**
+
+- **Cofre "versión galería" (final)**: the buyable card is cover-only — no DISPONIBLE
+  pill, no repeated title/subtitle (the cover art carries them; the h3 stays as
+  `.sr-only` for SEO/a11y). Full-width cover + one shop row spread edge-to-edge
+  (space-evenly), ebook last behind a vertical filete with its EBOOK note
+  (letter-spacing optically compensated). Icon size is fluid via **container query on
+  the card** — floor 40px on ~280px cards (1280 laptops), 46px where they fit; NOTE:
+  container queries measure the **content-box**. Both chests identical height (strip
+  `min-height` reserves the EBOOK-note space). Mobile: cover capped at 250px and
+  centered so the whole 513px chest fits one viewport; frame + strip stay edge-to-edge.
+- **La Emperatriz "transparent text" — third skin of the same ghost, finally dead**:
+  the 4s welcome `--highlighted` expired and dropped the pillar description back to
+  opacity 0.75, only on the column you arrive with (nearly always hers). Rest state is
+  now opacity 1; hover keeps the gold title + video reveal. (Commit de19a3a.)
+- **Mobile pillars**: archetype title + description centered; "LAS CRÓNICAS" reveal no
+  longer reflows (scaleX instead of animating letter-spacing).
+- **New covers installed** (renamed, never overwritten — cache doctrine):
+  `filamentos-de-oscuridad-v2.webp`, `anatomia-del-vacio-v2.webp` + `/mobile/` 280w
+  variants; og-pages references updated. Astra cover still pending delivery.
+- **Tizno English live end-to-end**: ElevenLabs agent has English published + language
+  override; `tizno-ai.html` reads `?lang=`, EN status map incl. turn states
+  (`window.__traducirEstado`), EN greeting pools; TiznoTease passes the lang.
+  Knowledge base: Javier's 5 docs uploaded as separate text docs, RAG multilingual
+  embeddings. **Bilingual glossary COMPLETED Aug 7** (Tierra Médula terms verified
+  against the official EN manuscript of Pulse of the Core) — committed as
+  `GLOSARIO.md` (plain-text dump of Ruben's docx). ⏳ NEXT SESSION: upload it as a
+  text doc to Tizno's ElevenLabs KB (Create Text dialog, same flow as the other 6).
+- **Audits closed**: Claude verification 8/8 after the i18n fix; GPT's "Chrome doesn't
+  sleep" P0 refuted with Ruben's real Task Manager (47.9% visible → 0.4% hidden).
+  Earlier in the session: mobile canvas 7→60fps (half-resolution buffer), iOS mic fixed
+  (audioSession 'play-and-record'), 8 leaks sealed, a11y batch, obra deep links restore
+  the ficha (ES + EN).
+
+**Pre-merge / pre-launch checklist (the Javier conversation):**
+1. ElevenLabs agent **domain allowlist → soulware.live** — REHEARSED Aug 7, then reverted.
+   Findings (verified live with a raw WS-handshake probe, `scratchpad/ws-origin-probe.mjs`
+   pattern): enforcement WORKS — rejected origins get an in-band close ("Host X is not
+   allowed"), accepted ones get conversation metadata; the HTTP 101 handshake succeeds
+   either way, so a probe must read the FIRST FRAME, not the status code. Matching is
+   EXACT hostname: no wildcards (`*` rejected by the form validator) and the validator
+   also rejects Netlify's `--` deploy-preview hosts, so the preview can never be
+   allowlisted → the list stays open while preview testing is ongoing. AT LAUNCH: add
+   `soulware.live` (+ optionally `el-umbral.netlify.app`, both validated) in Settings →
+   Security → Allowlist and Publish — 3 clicks; "Fail when Origin header is missing"
+   arms itself with the list.
+2. ✅ DONE Aug 7 — `microphone=(self)` deployed to **main** (commit cab3158, inert until
+   Tizno merges: nothing in production requests the mic yet).
+3. Email capture for PRÓXIMAMENTE — **REBUILT Aug 7 as "El Aviso"** (Ruben caught
+   that the old pact form no longer existed, then chose a plain popup, explicitly
+   NOT tied to Tizno). Implemented: `#aviso-modal` (index.html, next to the pacto
+   consent modal) — obra title in gold, "¿Quieres que te avisemos cuando esté
+   disponible? Déjanos tu email.", email field + AVISADME; all PRÓXIMAMENTE /
+   notify / locked CTAs (grid AND reading view) open it; submits by fetch to the
+   long-registered Netlify mailbox `el-pacto` with an `obra` field saying which
+   book. Bilingual (aviso.* keys). Gotchas encoded in comments: card click-guard
+   now ignores `.obra-btn` (the soon CTA is a span — same click used to open the
+   ficha underneath), reopen-race timer cleared, reflow instead of rAF (background
+   tabs never run rAF). → REMAINING E2E (2 min, needs Javier's Netlify panel):
+   click a PRÓXIMAMENTE on the deploy preview, submit a real email, confirm it
+   lands in Netlify → Forms → el-pacto (preview submissions are collected too).
+4. Ruben tests Tizno EN voice on `/en/` preview (allowlist reverted, preview connects —
+   re-verified Aug 7).
+5. Post-launch backlog: CSP report-only · Firefox idle-GPU trim · SEO content pass on
+   obra pages · CLS Pulso mobile + render-blocking CSS.
 
 ---
 

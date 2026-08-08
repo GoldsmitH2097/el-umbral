@@ -10,7 +10,7 @@ body { cursor: default; }
    default arrow everywhere, pointer on clickables, text ONLY in the email input. */
 a, button, [role="button"], label[for], input[type="checkbox"],
 .archive-pillar, .obra-cover--clickable, .obra-btn, .reading-tab, .obra-tab,
-#tizno-tease, .footer-legal a, .site-nav .links span,
+.footer-legal a, .site-nav .links span,
 #skip-btn, #btn-volver, #replay-intro-btn { cursor: pointer; }
 
 input[type="text"]:not([readonly]), input[type="email"], textarea { cursor: text; }
@@ -34,7 +34,8 @@ input[type="text"]:not([readonly]), input[type="email"], textarea { cursor: text
 .read-body p, .mobile-detail-lore p, .site-hero-sub,
 .reading-obra-vision, .reading-obra-subtitle, .obra-subtitle,
 .tizno-pacto-label, #editorial-watermark, .site-hero-editorial,
-.archive-pillar .pillar-content p { text-wrap: pretty; }
+.archive-pillar .pillar-content p,
+#aviso-modal p, #legal-modal-body p { text-wrap: pretty; }
 
 body, html {
   margin: 0; padding: 0; background-color: #020202; height: 100vh; overflow: hidden;
@@ -174,6 +175,12 @@ body, html {
   position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
   z-index: 3; pointer-events: none;
   transition: opacity 0.4s ease-out;
+  /* NACE OCULTO. Aunque no dibujemos nada, un canvas estirado a 100vw/100vh
+     es una capa compositada de pantalla completa: a DPR 2 son ~20 MB de
+     textura en la GPU permanentes, también en /obras/, donde el intro no
+     existe. display:none lo saca del árbol de capas del todo; el motor lo
+     muestra al encenderse (VisualEngine._encender). */
+  display: none;
 }
 
 /* Mobile-only overlays — hidden by default, shown by mobile.css on ≤768px */

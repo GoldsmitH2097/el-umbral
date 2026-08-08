@@ -665,12 +665,28 @@
    ALL animation is transform/opacity/filter on tiny elements — compositor
    work only, nothing that repaints layout (the blur(20px) lesson stands).
    Everything is gated behind prefers-reduced-motion at the end of this file. */
-.obra-editions--shop {
+/* ── EL COFRE ES LA TARJETA ENTERA (rediseño Ruben, 6-ago) ────────────────
+   Unificado escritorio + móvil, versión galería (2ª iteración, mismo día):
+   la portada habla sola — título, subtítulo y DISPONIBLE murieron de la
+   tarjeta porque la portada ya los lleva tipografiados y el marco dorado con
+   tiendas ya dice «comprable». Portada a todo el ancho, fila de tiendas de
+   lado a lado debajo. El h3 sigue en el DOM como .sr-only (ArchiveDOM).
+   Las capas decorativas del cofre (aura, lecho, destello) son absolutas: al
+   dejar .obra-editions--shop en static, su ancla pasa a ser la tarjeta y la
+   visten entera. Las esquinas talladas murieron aquí (Ruben: «too much»). */
+.obra-book--available {
   position: relative;
+  /* Contenedor de consulta para el tamaño de los iconos de tienda. Va AQUÍ y
+     no en .obra-editions: la contención de layout convierte al elemento en
+     ancla de los absolutos, y las capas del cofre deben seguir ancladas a la
+     tarjeta (el mis-anclaje de la v1). La tarjeta ya era el ancla — inocuo. */
+  container-type: inline-size;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-areas: 'cover' 'tiendas';
+  gap: 14px; align-items: start;
   border: 2px solid transparent;
-  padding: 20px 14px 22px;
-  margin-top: 12px;
-  gap: 8px;
+  padding: 16px 14px 20px;
   background:
     linear-gradient(#050403, #050403) padding-box,
     linear-gradient(160deg, #6d4a12, #c8922a 30%, #3c2a08 55%, #c8922a 80%, #6d4a12) border-box;
@@ -681,10 +697,67 @@
   transition: box-shadow 0.6s ease;
 }
 /* inner hairline — the double frame */
-.obra-editions--shop::before {
+.obra-book--available::before {
   content: ''; position: absolute; inset: 6px; pointer-events: none; z-index: 4;
   border: 1px solid rgba(200,146,42,0.26);
   transition: border-color 0.6s ease;
+}
+.obra-book--available .obra-cover { grid-area: cover; max-width: none; min-width: 0; width: 100%; margin: 0; }
+.obra-book--available .obra-editions { grid-area: tiendas; }
+.obra-editions--shop { position: static; padding: 0; margin: 0; }
+.loot-corner { display: none; }
+/* La fila única de tiendas: de lado a lado; el ebook cierra tras un filete
+   vertical con su nota minúscula debajo — separación y etiqueta, no epígrafe. */
+.cofre-strip {
+  display: flex; flex-wrap: wrap; align-items: center;
+  /* space-evenly a ancho completo: el aire entre puertas crece con la tarjeta,
+     y cuando solo hay una tienda (Filamentos) queda centrada sola. El gap es
+     únicamente el mínimo de seguridad contra el salto de línea. */
+  justify-content: space-evenly; gap: 12px 4px; width: 100%;
+  position: relative; z-index: 3;
+  /* La nota EBOOK hace la fila de Pulso ~12px más alta que la de Filamentos
+     (solo Amazon). Reservarlo siempre iguala la altura de los dos cofres —
+     la simetría que pidió Ruben con la versión galería. */
+  min-height: calc(var(--slot) + 12px);
+  /* El ancho de tarjeta va de ~280px (portátil 1280, rejilla de 4 columnas) a
+     ~350px (pantallas anchas) — un slot fijo o parte la fila o queda enano.
+     MEDIDO: cada ancla ocupa slot+4px. Suelo 40px ⇒ fila mínima 5×44+1+5×4
+     = 241px, que cabe en los 247px del portátil de 1280. La container query
+     de abajo sube a 46px donde las cinco puertas caben holgadas. */
+  --slot: 40px;
+}
+/* OJO: la container query mide el CONTENT-BOX de la tarjeta (sin padding ni
+   borde), que es exactamente el ancho de la fila. 295px ⇒ caben los 46px con
+   aire: 5×50+1+5×8 = 291px. El 375 móvil (~303px) y las pantallas anchas
+   (~311px) entran; el portátil de 1280 (~247px) se queda en el suelo. */
+@container (min-width: 295px) {
+  .cofre-strip { --slot: 46px; gap: 12px 8px; }
+}
+/* Viewports 900–1220 (columnas de 4 muy estrechas, p. ej. iPad apaisado a
+   1024): ni el suelo de 40px cabe en una fila — space-evenly la parte en un
+   3+2 que se ve deliberado. Reservamos DOS filas en ambos cofres para que
+   Pulso (3+2) y Filamentos (amazon solo, centrado en vertical) sigan siendo
+   gemelos de altura. */
+@container (max-width: 240px) {
+  .cofre-strip { min-height: calc(var(--slot) * 2 + 26px); align-content: center; }
+}
+/* Tablet vertical (569–768: layout móvil en pantalla ancha): el cofre a todo
+   el ancho era un descampado — portada náufraga y tiendas a kilómetros. La
+   tarjeta se acota y centra; el marco conserva proporción de cofre. */
+@media (min-width: 569px) and (max-width: 768px) {
+  .obra-book--available { max-width: 460px; margin-left: auto; margin-right: auto; }
+}
+.cofre-sep {
+  width: 1px; align-self: stretch; min-height: 34px;
+  background: linear-gradient(to bottom, transparent, rgba(200,146,42,0.4), transparent);
+}
+.cofre-ebook { display: flex; flex-direction: column; align-items: center; }
+.cofre-ebook i {
+  font-style: normal; font-size: 8px; letter-spacing: 2.5px;
+  text-transform: uppercase; color: #8a7458; margin-top: -2px;
+  /* El letter-spacing deja su hueco tras la K y descentra la palabra respecto
+     al icono; la sangría lo compensa y el centro óptico vuelve a coincidir. */
+  padding-left: 2.5px;
 }
 /* faint aura drifting inside — the box is alive */
 .loot-aura {
@@ -703,7 +776,12 @@
 .loot-glint {
   position: absolute; inset: -2px; padding: 2px; pointer-events: none; z-index: 5;
   overflow: hidden;
+  /* La máscara recorta el destello para que sea SOLO el marco. Iba solo con
+     prefijo, y Firefox la ignora por completo (devuelve maskImage:none): se
+     salvaba de milagro porque el degradado cónico es transparente casi
+     entero. Con la estándar al lado, el recorte existe en los tres motores. */
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor; mask-composite: exclude;
 }
 /* El cono vive en un hijo GRANDE que gira por transform (compositor, sin
@@ -718,7 +796,16 @@
   transform: translate(-50%, -50%) rotate(0deg);
   animation: lootGlint 7s linear infinite;
 }
-@keyframes lootGlint { to { transform: translate(-50%, -50%) rotate(360deg); } }
+/* EL ORO REFLEJA SEGÚN CÓMO LO SOSTIENES (Ruben). La inclinación se suma
+   DENTRO de los fotogramas clave: si se pusiera en el elemento, la animación
+   sobrescribiría el transform entero y se perdería. Así el cono sigue
+   girando solo y además se adelanta o retrasa con el aparato — que es lo que
+   hace una superficie metálica bajo una luz fija en la habitación.
+   Sigue siendo transform puro: compositor, cero repintado. */
+@keyframes lootGlint {
+  from { transform: translate(-50%, -50%) rotate(calc(0deg   + var(--inclina-x, 0) * 34deg)); }
+  to   { transform: translate(-50%, -50%) rotate(calc(360deg + var(--inclina-x, 0) * 34deg)); }
+}
 /* art-deco corners: stepped double-L + twinkling diamond tip */
 .loot-corner { position: absolute; width: 24px; height: 24px; pointer-events: none; transition: filter 0.5s ease; z-index: 6; will-change: transform; }
 .loot-corner--tl { top: -8px; left: -8px; }
@@ -833,20 +920,20 @@
   background: linear-gradient(90deg, transparent, rgba(200,146,42,0.05) 35%, rgba(232,200,122,0.09) 50%, rgba(200,146,42,0.05) 65%, transparent); }
 .loot-sheen b { width: 18%;
   background: linear-gradient(90deg, transparent, rgba(255,241,205,0.10) 35%, rgba(255,246,220,0.22) 50%, rgba(255,241,205,0.10) 65%, transparent); }
-.obra-editions--shop:hover .loot-sheen i { animation: lootSweep 1.35s cubic-bezier(0.33,0,0.15,1) forwards; }
-.obra-editions--shop:hover .loot-sheen b { animation: lootSweep 1.35s cubic-bezier(0.33,0,0.15,1) 0.12s forwards; }
+.obra-book--available:hover .loot-sheen i { animation: lootSweep 1.35s cubic-bezier(0.33,0,0.15,1) forwards; }
+.obra-book--available:hover .loot-sheen b { animation: lootSweep 1.35s cubic-bezier(0.33,0,0.15,1) 0.12s forwards; }
 @keyframes lootSweep {
   0% { left: -90%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; }
   100% { left: 170%; opacity: 0; }
 }
-.obra-editions--shop:hover {
+.obra-book--available:hover {
   box-shadow:
     0 0 44px rgba(200,146,42,0.26),
     0 0 90px rgba(200,146,42,0.09),
     inset 0 0 54px rgba(200,146,42,0.08),
     inset 0 0 8px rgba(0,0,0,0.9);
 }
-.obra-editions--shop:hover::before {
+.obra-book--available:hover::before {
   border-color: rgba(232,200,122,0.55);
   animation: lootFrameFlash 1.35s ease forwards;
 }
@@ -855,9 +942,9 @@
   45%  { box-shadow: inset 0 0 20px rgba(232,200,122,0.18); }
   100% { box-shadow: inset 0 0 8px rgba(232,200,122,0.07); }
 }
-.obra-editions--shop:hover .obra-edition-invite { color: #e8c87a; text-shadow: 0 0 14px rgba(232,200,122,0.45); }
-.obra-editions--shop:hover .loot-corner { filter: drop-shadow(0 0 6px rgba(232,200,122,0.8)); }
-.obra-editions--shop:hover .loot-bed { animation-duration: 2.2s; }
+.obra-book--available:hover .obra-edition-invite { color: #e8c87a; text-shadow: 0 0 14px rgba(232,200,122,0.45); }
+.obra-book--available:hover .loot-corner { filter: drop-shadow(0 0 6px rgba(232,200,122,0.8)); }
+.obra-book--available:hover .loot-bed { animation-duration: 2.2s; }
 /* content sits above the decor layers */
 .obra-editions--shop .obra-edition-invite,
 .obra-editions--shop .obra-edition-block,
@@ -871,6 +958,25 @@
 }
 .obra-editions--shop .retailer-strip { border-bottom: none; padding-bottom: 0; }
 .obra-editions--shop .obra-edition-head { margin-top: 2px; }
+
+/* ── Fuera de vista, el cofre duerme ─────────────────────────────────────────
+   Cada cofre lleva ~31 animaciones infinitas (aura, brillo, esquinas, lecho,
+   fundido, burbujas, meniscos) y vive muy por debajo del pliegue. Corriendo
+   siempre obligan al compositor a repintar sin descanso algo que nadie está
+   mirando — con dos cofres son ~62 animaciones perpetuas invisibles. La clase
+   la pone un IntersectionObserver (ArchiveDOM) con 300 px de margen, así el
+   cofre ya está vivo antes de asomar: nadie ve el arranque. */
+.obra-editions--shop:not(.cofre-a-la-vista),
+.obra-editions--shop:not(.cofre-a-la-vista) *,
+.obra-editions--shop:not(.cofre-a-la-vista) *::before,
+.obra-editions--shop:not(.cofre-a-la-vista) *::after {
+  animation-play-state: paused !important;
+  /* Y ADEMÁS SE DESPROMUEVEN. Congelar la animación no devuelve la textura:
+     `will-change: transform` mantiene viva la capa aunque nada se mueva, y
+     el destello del cofre mide 340% en cuadrado — a DPR 2 son ~19 MB por
+     cofre, ~38 MB entre los dos, permanentes y fuera de la pantalla. */
+  will-change: auto !important;
+}
 
 /* ── Reduced motion: the legendary box falls still but keeps its gold ────── */
 @media (prefers-reduced-motion: reduce) {

@@ -3,95 +3,41 @@
    ══════════════════════════════════════════════════════════════════════════ */
 
 /* Backdrop — transparent overlay, closes drawer on click outside */
-#tizno-backdrop {
-  position: fixed; inset: 0; z-index: 43;
-  display: none; background: transparent;
-}
-#tizno-backdrop.active { display: block; }
-
-/* Peek element — STATIC at bottom, no bounce */
-#tizno-tease {
-  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
-  z-index: 45; cursor: pointer !important;
-  display: none; flex-direction: column; align-items: center;
-  /* No tiznoBounce animation — silhouette stays fixed at bottom */
-  transition: filter 0.4s ease;
-}
-#tizno-tease.visible { display: flex; }
-#tizno-tease:hover { filter: brightness(1.4); }
-
-/* Silhouette blob */
-.tizno-silhouette {
-  width: 52px; height: 38px;
-  background: radial-gradient(ellipse at 50% 60%, #0a0a0a 60%, #151515 100%);
-  border-radius: 50% 50% 0 0 / 70% 70% 0 0;
-  position: relative;
-  box-shadow: 0 -4px 20px rgba(200,146,42,0.1), 0 0 0 1px rgba(200,146,42,0.1);
-}
-
-/* Eyes container — centered within the silhouette */
-.tizno-eyes {
-  position: absolute; bottom: 7px; left: 0; right: 0;
-  display: flex; justify-content: center; gap: 14px;
-  pointer-events: none;
-}
-
-/* Eyes — wiggle independently inside the silhouette */
-.tizno-eye {
-  width: 7px; height: 9px;
-  background: #c8922a; border-radius: 50%;
-  box-shadow: 0 0 6px 2px rgba(200,146,42,0.9), 0 0 16px 5px rgba(200,146,42,0.4);
-  transform-origin: center;
-  transition: transform 0.06s ease-in, box-shadow 0.06s ease;
-  animation: eyeFloat 3.5s ease-in-out infinite;
-}
-.tizno-eye:last-child { animation-duration: 3.1s; animation-delay: 0.4s; }
-@keyframes eyeFloat {
-  0%, 100% { transform: translateY(0px); }
-  35%       { transform: translateY(-3px); }
-  65%       { transform: translateY(-1px); }
-}
-.tizno-eye.blink {
-  transform: scaleY(0.06) !important;
-  animation-play-state: paused;
-  box-shadow: 0 0 3px 1px rgba(200,146,42,0.5);
-}
-
-/* Glow ring below silhouette */
-.tizno-glow {
-  width: 44px; height: 5px;
-  background: radial-gradient(ellipse at center, rgba(200,146,42,0.3) 0%, transparent 70%);
-  margin-top: -2px;
-}
 
 /* ── Panel ────────────────────────────────────────────────────────────────── */
-#tizno-panel {
-  position: fixed; bottom: 0; left: 0; width: 100vw;
-  background: #050505; border-top: 1px solid rgba(200,146,42,0.2);
-  z-index: 44; transform: translateY(100%);
-  transition: transform 0.55s cubic-bezier(0.25, 1, 0.5, 1);
-  padding: 32px 5vw 36px; overflow-y: auto;
+/* EL CAJÓN DE CONTACTO — desplegable inline dentro del footer. La página
+   sigue haciendo scroll con él abierto; nada de modal ni backdrop. */
+.footer-contacto {
+  max-height: 0; overflow: hidden; opacity: 0;
+  transition: max-height 0.45s cubic-bezier(0.25, 1, 0.4, 1), opacity 0.35s ease;
+  border-top: 1px solid rgba(255,255,255,0);
 }
-#tizno-panel.open { transform: translateY(0); }
+.footer-contacto.open {
+  max-height: 640px; opacity: 1;
+  border-top-color: rgba(255,255,255,0.05);
+  margin-top: 26px;
+}
 
-#tizno-panel-close {
-  position: absolute; top: 12px; right: 16px;
-  background: transparent; border: none; cursor: pointer !important;
-  color: rgba(255,255,255,0.25); font-size: 22px; line-height: 1;
-  padding: 4px 8px; transition: color 0.3s; z-index: 2;
-}
-#tizno-panel-close:hover { color: rgba(255,255,255,0.8); }
-#tizno-panel-close:focus { outline: none; }
-#tizno-panel-close:focus-visible { outline: 1px solid rgba(200,146,42,0.5); outline-offset: 2px; }
 
 /* 3-column grid on desktop — wide and shallow */
-#tizno-panel-inner {
+.contacto-simple {
+  display: flex; align-items: center; justify-content: center;
+  gap: 38px; flex-wrap: wrap;
+  padding: 30px 5vw 10px; box-sizing: border-box;
+}
+.contacto-simple .tizno-social-row { margin: 0; }
+#tizno-panel-inner {  /* (muerta — se conserva por si el cajón crece) */
   max-width: 1100px; margin: 0 auto;
   display: grid;
   grid-template-columns: 1fr 1.2fr 1.2fr;
   gap: 48px;
   align-items: start;
+  /* el padding lateral vivía en el panel modal; ahora lo pone el cajón */
+  padding: 30px 5vw 10px;
+  box-sizing: border-box;
 }
+/* dentro del cajón nada puede desbordar el viewport */
+.footer-contacto input, .footer-contacto .tizno-pacto-row { max-width: 100%; box-sizing: border-box; }
 
 .tizno-col { display: flex; flex-direction: column; gap: 12px; }
 
@@ -151,9 +97,11 @@
 
 /* Mobile: single column */
 @media (max-width: 768px) {
-  #tizno-panel { padding: 24px 5vw 28px; max-height: 80vh; }
   #tizno-panel-inner { grid-template-columns: 1fr; gap: 20px; max-width: 100%; }
   .tizno-col--contact { align-items: center; text-align: center; border-right: none; padding-right: 0; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .tizno-form-title { text-align: center; width: 100%; }
+  .tizno-pacto-row { flex-wrap: nowrap; }
+  .tizno-pacto-form input[type="email"] { min-width: 0; flex: 1; }
   .tizno-col--brand   { border-right: none; padding-right: 0; }
   .tizno-col--pacto   { padding-top: 0; border-top: none; }
 }

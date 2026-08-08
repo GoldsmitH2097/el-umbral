@@ -92,7 +92,7 @@ function fichaBlock(item) {
 // were repeating "tapa blanda" back at the reader) and use ONE heading —
 // "Reclamar mi Ejemplar", which already means "buy" — over both routes:
 // the ebook link, then the shops that carry the print edition.
-function renderCta(item, { detail = false } = {}) {
+export function renderCta(item, { detail = false } = {}) {
   if (item.editions) {
     const linkable = item.editions.filter(
       ed => ed.status === 'available' && (ed.retailers || []).some(r => r.url));
@@ -133,17 +133,24 @@ function renderCta(item, { detail = false } = {}) {
           <i style="--x:87%;--d:2.1s;--h:-34px;--w:4px;--t:3.2s"></i>
         </span>
         <span class="loot-sheen" aria-hidden="true"><i></i><b></b></span>`;
+      /* UNA SOLA FILA DE TIENDAS (rediseño Ruben, 6-ago). Los rótulos
+         «Edición Física» / «Edición Digital» y sus bloques apilados eran
+         ruido: las tiendas se explican solas. Ahora todos los logos van en
+         una fila de lado a lado; el ebook cierra la fila tras un filete
+         vertical y con su propia nota minúscula debajo — separación y
+         etiqueta, no otro epígrafe. */
+      const impresas = [], digitales = [];
+      linkable.forEach(ed => {
+        const esDigital = /ebook|digital|kindle/i.test(`${ed.label || ''} ${ed.id || ''}`);
+        (ed.retailers || []).filter(r => r.url).forEach(r => (esDigital ? digitales : impresas).push(r));
+      });
       return `<div class="obra-editions ${detail ? 'obra-editions--detail' : 'obra-editions--shop'}">
         ${lootDecor}
         <p class="obra-edition-invite">${t('cta.buy')}</p>
-        ${linkable.map(ed => {
-          const meta = getField(ed, 'meta');
-          return `<div class="obra-edition-block">
-            <p class="obra-edition-head">${getField(ed, 'label')}</p>
-            ${detail || !meta ? '' : `<p class="obra-edition-meta">${meta}</p>`}
-            <div class="retailer-strip">${(ed.retailers || []).filter(r => r.url).map(retailerLink).join('')}</div>
-          </div>`;
-        }).join('')}
+        <div class="cofre-strip">
+          ${impresas.map(retailerLink).join('')}
+          ${digitales.length ? `<span class="cofre-sep" aria-hidden="true"></span><span class="cofre-ebook">${digitales.map(retailerLink).join('')}<i aria-hidden="true">ebook</i></span>` : ''}
+        </div>
       </div>`;
     }
     // Nothing linkable yet — fall back to the per-edition coming-soon rows.
@@ -163,8 +170,11 @@ function renderCta(item, { detail = false } = {}) {
   return `<span class="obra-btn obra-btn--soon">${buyLabel || t('cta.notify')}</span>`;
 }
 
-// Social platform SVG icons
-const ICONS = {
+// Social platform SVG icons. Exportado: mobile.js llevaba su propia copia
+// «para evitar un import circular» que nunca existió (este fichero no importa
+// nada de mobile.js), y las copias ya habían divergido — el glifo de Threads
+// era distinto en el detalle móvil y en la vista de lectura.
+export const ICONS = {
   instagram: `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>`,
   threads: `<svg width="16" height="16" viewBox="0 0 192 192" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M141.537 88.9883C140.71 88.5919 139.87 88.2104 139.019 87.8451C137.537 60.5382 122.616 44.905 97.5619 44.745C97.4484 44.7443 97.3355 44.7443 97.222 44.7443C82.2364 44.7443 69.7731 51.1409 62.102 62.7807L75.881 72.2328C81.6116 63.5383 90.6052 61.6848 97.2286 61.6848C97.3051 61.6848 97.3819 61.6848 97.4576 61.6855C105.707 61.7381 111.932 64.1366 115.961 68.814C118.893 72.2193 120.854 76.925 121.825 82.8638C114.511 81.6207 106.601 81.2385 98.145 81.7233C74.3247 83.0954 59.0111 96.9879 60.0396 116.292C60.5615 126.084 65.4397 134.508 73.775 140.011C80.8224 144.663 89.899 146.938 99.3323 146.423C111.79 145.74 121.563 140.987 128.381 132.296C133.559 125.696 136.834 117.143 138.28 106.366C144.217 109.949 148.617 114.664 151.047 120.332C155.179 129.967 155.42 145.8 142.501 158.708C131.182 170.016 117.576 174.908 97.0135 175.059C74.2042 174.89 56.9538 167.575 45.7381 153.317C35.2355 139.966 29.8077 120.682 29.6052 96C29.8077 71.3178 35.2355 52.0336 45.7381 38.6827C56.9538 24.4249 74.2039 17.1095 97.0132 16.9405C119.988 17.1108 137.539 24.4614 149.184 38.788C154.894 45.8136 159.199 54.6488 162.037 64.9503L178.184 60.6422C174.744 47.9622 169.331 37.0357 161.965 27.974C147.036 9.60668 125.202 0.195148 97.0695 0H96.9569C68.8816 0.19447 47.2921 9.6418 32.7883 28.0793C19.8819 44.4864 13.2244 67.3157 13.0007 95.9325L13 96L13.0007 96.0675C13.2244 124.684 19.8819 147.514 32.7883 163.921C47.2921 182.358 68.8816 191.806 96.9569 192H97.0695C122.03 191.827 139.624 185.292 154.118 170.811C173.081 151.866 172.51 128.119 166.26 113.541C161.776 103.087 153.227 94.5962 141.537 88.9883ZM98.4405 129.507C88.0005 130.095 77.1544 125.409 76.6196 115.372C76.2232 107.93 81.9158 99.626 99.0812 98.6368C101.047 98.5234 102.976 98.468 104.871 98.468C111.106 98.468 116.939 99.0737 122.242 100.233C120.264 124.935 108.662 128.946 98.4405 129.507Z"/></svg>`
 };
@@ -249,7 +259,13 @@ export class ArchiveDOM {
       // (caught in May-21 Chrome trace: arlequin requested 3× over 38 s).
       // Stash the canonical char.src on dataset for any future re-pick path.
       video.dataset.charSrc = char.src;
-      video.src = pickPillarSrc(char.src);
+      /* SIN src AL NACER. Asignarlo aquí condenaba a los cuatro pilares a
+         llegar a readyState 4 (cuatro descodificadores y sus texturas vivos
+         a la vez, aunque estuvieran pausados). Ahora la fuente espera en el
+         dataset y solo se monta la columna que alguien mira: ver
+         _activarPilar. Hasta entonces se ve el póster, que es el retrato
+         congelado del personaje. */
+      video.dataset.pillarSrc = pickPillarSrc(char.src);
 
       // Social links only in reading/detail view — NOT on the grid pillar
       const content = document.createElement('div');
@@ -259,9 +275,9 @@ export class ArchiveDOM {
       pillar.appendChild(video);
       pillar.appendChild(content);
 
-      pillar.addEventListener('mouseenter', () => video.play().catch(() => {}));
-      pillar.addEventListener('mouseleave', () => video.pause());
-      pillar.addEventListener('touchstart', () => video.play().catch(() => {}), { passive: true });
+      pillar.addEventListener('mouseenter', () => this._activarPilar(video));
+      pillar.addEventListener('mouseleave', () => { try { video.pause(); } catch (_) {} });
+      pillar.addEventListener('touchstart', () => this._activarPilar(video), { passive: true });
 
       if (char.status !== 'missing') {
         pillar.addEventListener('click', () => { if (window.innerWidth > 768) this.openReading(i); });
@@ -316,15 +332,23 @@ export class ArchiveDOM {
 
           const ctaHtml = renderCta(item);
 
-          const statusLabels = { 'available': t('pill.available'), 'coming-soon': t('pill.coming-soon'), 'countdown': t('pill.countdown') };
           const formatLabels = { 'Novela': t('format.book'), 'Novela — Edición de coleccionista': t('format.book'), 'Experiencia web interactiva': t('format.experience'), 'Antología': t('format.anthology') };
 
-          card.innerHTML = `
+          /* El cofre comprable es galería, no ficha (Ruben, 6-ago): la portada
+             ya lleva título y subtítulo tipografiados, y el marco dorado con
+             la fila de tiendas ya dice «disponible» — repetirlos era ruido.
+             El h3 queda .sr-only: lectores de pantalla y buscadores siguen
+             oyendo el nombre del libro aunque la vista sea solo portada. */
+          card.innerHTML = item.status === 'available'
+            ? `
+            ${coverHtml}
+            <h3 class="sr-only">${itemTitle}${itemSubtitle ? ` — ${itemSubtitle}` : ''}</h3>
+            ${ctaHtml}`
+            : `
             ${coverHtml}
             <div class="obra-meta">
               <div class="obra-badges">
-                ${item.status === 'available' ? `<span class="obra-status-pill obra-status-pill--${item.status}">${statusLabels[item.status]}</span>` : ''}
-                ${item.status !== 'available' && item.format ? `<span class="obra-format-badge">${formatLabels[item.format] || item.format}</span>` : ''}
+                ${item.format ? `<span class="obra-format-badge">${formatLabels[item.format] || item.format}</span>` : ''}
               </div>
               <h3 class="obra-title">${itemTitle}</h3>
               ${itemSubtitle ? `<p class="obra-subtitle">${itemSubtitle}</p>` : ''}
@@ -341,7 +365,9 @@ export class ArchiveDOM {
           const openLibros = () => { if (window.innerWidth > 768) this.openReading(charIdx, 'libros'); };
           if (coverEl) {
             card.addEventListener('click', (e) => {
-              if (e.target.closest('a, button')) return;
+              /* .obra-btn incluido: PRÓXIMAMENTE es un <span> con papel de botón
+                 — sin esto, el mismo clic abría el aviso Y la ficha debajo. */
+              if (e.target.closest('a, button, .obra-btn')) return;
               openLibros();
             });
             coverEl.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openLibros(); });
@@ -381,10 +407,10 @@ export class ArchiveDOM {
       firstCol?.classList.add('archive-col--active');
     }
 
-    // Coming-soon / locked CTAs → open Tizno panel for email capture
+    // Coming-soon / locked CTAs → modal del Aviso (email), sin Tizno (Ruben, 7-ago)
     grid.addEventListener('click', e => {
       const btn = e.target.closest('.obra-btn--soon, .obra-btn--notify, .obra-btn--locked');
-      if (btn) { e.preventDefault(); this._tizno?.open(); }
+      if (btn) { e.preventDefault(); this._abrirAviso(btn); }
     });
 
     grid.addEventListener('scroll', () => {
@@ -402,8 +428,15 @@ export class ArchiveDOM {
       });
       // Mobile: active column = full-color video
       if (window.innerWidth <= 768) {
+        const quieto = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         document.querySelectorAll('.archive-col').forEach((col, i) => {
           col.classList.toggle('archive-col--active', i === idx);
+          /* UN descodificador, no cuatro: en el carrusel horizontal solo se ve
+             una columna. _activarPilar monta esa y suelta las otras tres. */
+          const v = col.querySelector('.archive-pillar video');
+          if (!v) return;
+          if (i === idx) this._activarPilar(v, !quieto);
+          else if (!v.paused) { try { v.pause(); } catch (_) {} }
         });
       }
     }, { passive: true });
@@ -413,6 +446,7 @@ export class ArchiveDOM {
       this._initCoverTilt();
     }
     this._initScrollReveal();
+    this._initCofresPerezosos();
     this._initPillarPreloadOnScroll();
   }
 
@@ -427,18 +461,72 @@ export class ArchiveDOM {
   // start downloading pillar videos *during the intro*, on top of the gallery
   // video. (Caught by Uptrends, May 14: 1080p Emperatriz + 720p Emperatriz both
   // fetching in the same waterfall.)
-  _initPillarPreloadOnScroll() {
-    if (typeof IntersectionObserver === 'undefined') return;
-    const io = new IntersectionObserver(entries => {
-      if (state.activeScene < 4) return;
-      entries.forEach(entry => {
-        if (!entry.isIntersecting) return;
-        const v = entry.target.querySelector('video');
-        if (v && v.preload !== 'auto') v.preload = 'auto';
-        io.unobserve(entry.target);
+  /* OBSOLETO desde la política de un solo descodificador: los pilares nacen
+     sin `src`, así que subir su `preload` no precargaba nada. Quien decide
+     qué vídeo existe es _activarPilar (hover, columna activa o entrada a la
+     escena 4). Se deja el método vacío para no tocar sus llamadores. */
+  _initPillarPreloadOnScroll() {}
+
+  /* ─── UN SOLO DESCODIFICADOR ────────────────────────────────────────────
+     Cuatro vídeos preparados a la vez no solo ocupan memoria: al pulsar un
+     enlace de tienda había que destruir cuatro tuberías de vídeo en el mismo
+     instante en que el navegador levanta el proceso de la tienda, y esa
+     ráfaga simultánea es la mejor explicación del bloqueo de todo Chrome.
+     Con uno residente, el mismo gesto cuesta una destrucción, no cuatro. */
+  _montarPilar(v) {
+    if (!v || v.getAttribute('src')) return;
+    const fuente = v.dataset.pillarSrc || pickPillarSrc(v.dataset.charSrc || '');
+    if (!fuente) return;
+    v.src = fuente;
+    v.preload = 'auto';
+  }
+
+  _soltarPilar(v) {
+    if (!v || !v.getAttribute('src')) return;
+    try { v.pause(); } catch (_) {}
+    v.removeAttribute('src');
+    try { v.load(); } catch (_) {}   // devuelve descodificador y textura
+  }
+
+  /** Monta este pilar, prepara al vecino y suelta el resto. */
+  _activarPilar(v, reproducir = true) {
+    if (!v) return;
+    this._pilarActivo = v;
+    this._montarPilar(v);
+    if (reproducir) v.play().catch(() => {});
+
+    /* EL VECINO, LISTO PERO CALLADO (Ruben). Con un solo descodificador, al
+       deslizar te encontrabas la columna siguiente en su póster mientras el
+       vídeo cargaba. Se monta también el de al lado —sin reproducirlo— para
+       que el deslizamiento lo encuentre hecho. Son dos descodificadores en
+       vez de uno: el doble de lo mínimo, pero la mitad de lo que había, y a
+       cambio el gesto principal del móvil deja de tener costura. */
+    const todos = [...document.querySelectorAll('.archive-pillar video')];
+    const i = todos.indexOf(v);
+    const vecino = todos[i + 1] || todos[i - 1] || null;
+    if (vecino) this._montarPilar(vecino);
+
+    /* Los demás se sueltan con un respiro: barrer el ratón por las cuatro
+       columnas no debe montar y desmontar a toda prisa. */
+    clearTimeout(this._limpiezaPilares);
+    this._limpiezaPilares = setTimeout(() => {
+      todos.forEach(o => {
+        if (o !== this._pilarActivo && o !== vecino) this._soltarPilar(o);
       });
-    }, { rootMargin: '200px 0px' });
-    document.querySelectorAll('.archive-pillar').forEach(p => io.observe(p));
+    }, 600);
+  }
+
+  /** El cofre solo respira cuando está a la vista (ver obras.css). */
+  _initCofresPerezosos() {
+    const cofres = document.querySelectorAll('.obra-editions--shop');
+    if (!cofres.length || !('IntersectionObserver' in window)) {
+      cofres.forEach(c => c.classList.add('cofre-a-la-vista'));
+      return;
+    }
+    const io = new IntersectionObserver((entradas) => {
+      entradas.forEach(e => e.target.classList.toggle('cofre-a-la-vista', e.isIntersecting));
+    }, { rootMargin: '300px 0px' });
+    cofres.forEach(c => io.observe(c));
   }
 
   _initScrollReveal() {
@@ -647,6 +735,7 @@ export class ArchiveDOM {
       }
     }
 
+    this._gridTransformToken = (this._gridTransformToken || 0) + 1;
     this._gridView.style.transform='scale(0.95)'; this._gridView.style.opacity='0';
     setTimeout(()=>{
       this._readingView.style.display='block';
@@ -696,10 +785,28 @@ export class ArchiveDOM {
       this._readingView.setAttribute('inert', '');
       this._readingView.setAttribute('aria-hidden', 'true');
       this._gridView.style.transform='scale(1)'; this._gridView.style.opacity='1';
+      /* scale(1) NO es inocuo: CUALQUIER transform, aunque sea la
+         identidad, convierte a #grid-view en el bloque contenedor de sus
+         descendientes position:fixed — y la barra del footer vive dentro.
+         Al volver de un libro el footer dejaba de estar anclado a la
+         ventana y se hundía al final del scroll, mientras Tizno (que
+         cuelga de #main-site, fuera del grid) seguía flotando solo. En
+         cuanto acaba la transición borramos el transform del todo; el
+         testigo evita que un libro abierto mientras tanto se coma su
+         propio zoom. */
+      const testigo = this._gridTransformToken = (this._gridTransformToken || 0) + 1;
+      setTimeout(() => {
+        if (this._gridTransformToken === testigo) this._gridView.style.transform = '';
+      }, 900);
       this._readingBgVideo.pause(); this._readingBgVideo.src=''; this._onSceneChange(4);
       // Return focus to the pillar that triggered reading view
       setTimeout(()=>{ this._lastReadingFocus?.focus(); this._lastReadingFocus = null; }, 50);
-    },500);
+    /* 1000, no 500: #reading-view transiciona su opacidad en 1 s
+       (archive.css). A los 500 ms el velo iba por la mitad y el display:none
+       lo cortaba en seco — cada cierre de la lectura acababa con un salto en
+       vez del fundido. El par móvil (0.4 s CSS / 400 ms JS) siempre estuvo
+       bien emparejado: estas dos cifras van juntas o no van. */
+    },1000);
     if(this._router) this._router.navigateToArchive();
   }
 
@@ -742,6 +849,70 @@ export class ArchiveDOM {
     }
   }
 
+  /* ── El Aviso: captura de email para los PRÓXIMAMENTE (Ruben, 7-ago) ─────
+     Popup sobrio y sin Tizno. Envía por fetch al buzón Netlify 'el-pacto'
+     (registrado por el stub oculto del footer — si el stub muere, esto
+     enviaría al vacío). El campo `obra` dice qué libro despertó el interés. */
+  _abrirAviso(btn) {
+    const modal = document.getElementById('aviso-modal');
+    if (!modal) return;
+    this._avisoObra = btn.closest('.obra-book')?.querySelector('.obra-title')?.textContent?.trim() || '';
+    modal.querySelector('#aviso-modal-title').textContent = this._avisoObra;
+    const body = modal.querySelector('#aviso-body');
+    body.textContent = t('aviso.body');
+    const form = modal.querySelector('#aviso-form');
+    form.style.display = '';
+    const mail = modal.querySelector('#aviso-email');
+    mail.value = '';
+    mail.setAttribute('aria-label', t('aviso.email-aria'));
+    modal.querySelector('#aviso-close').setAttribute('aria-label', t('aviso.close-aria'));
+
+    if (!modal.dataset.avisoLigado) {
+      modal.dataset.avisoLigado = '1';
+      modal.querySelector('#aviso-close').addEventListener('click', () => this._cerrarAviso());
+      modal.addEventListener('click', e => { if (e.target === modal) this._cerrarAviso(); });
+      modal.addEventListener('keydown', e => { if (e.key === 'Escape') this._cerrarAviso(); });
+      form.addEventListener('submit', e => {
+        e.preventDefault();
+        const email = mail.value.trim();
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { mail.focus(); return; }
+        const submitBtn = form.querySelector('#aviso-submit');
+        submitBtn.disabled = true;
+        fetch('/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({ 'form-name': 'el-pacto', email, obra: this._avisoObra, 'bot-field2': '' }).toString(),
+        })
+          .then(r => { if (!r.ok) throw new Error(r.status); form.style.display = 'none'; body.textContent = t('aviso.success'); })
+          .catch(() => { body.textContent = t('aviso.error'); })
+          .finally(() => { submitBtn.disabled = false; });
+      });
+    }
+
+    this._avisoFocoPrevio = document.activeElement;
+    clearTimeout(this._avisoOcultar); // reabrir dentro de la ventana de cierre no debe ocultarlo
+    modal.style.display = '';
+    /* Reflow forzado en vez de rAF: los rAF no corren en pestañas de fondo y
+       el modal se quedaría armado pero invisible. El reflow es síncrono y la
+       transición de opacidad anima igual. La clase .open (patrón del modal
+       legal) enciende opacidad Y el backdrop-blur, que solo se paga abierto. */
+    void modal.offsetHeight;
+    modal.classList.add('open');
+    modal.removeAttribute('inert');
+    modal.removeAttribute('aria-hidden');
+    setTimeout(() => mail.focus(), 120);
+  }
+
+  _cerrarAviso() {
+    const modal = document.getElementById('aviso-modal');
+    if (!modal) return;
+    modal.classList.remove('open');
+    modal.setAttribute('inert', '');
+    modal.setAttribute('aria-hidden', 'true');
+    this._avisoOcultar = setTimeout(() => { modal.style.display = 'none'; }, 450);
+    try { this._avisoFocoPrevio?.focus(); } catch (_) {}
+  }
+
   _bindObraModal() {
     const modal = document.getElementById('obra-modal');
     const closeBtn = document.getElementById('obra-modal-close');
@@ -753,10 +924,10 @@ export class ArchiveDOM {
     document.querySelectorAll('.obra-tab').forEach(btn => {
       btn.addEventListener('click', () => this._switchModalTab(btn.dataset.tab));
     });
-    // Reading-view obras list — delegated once. Coming-soon CTAs open the Tizno panel.
+    // Reading-view obras list — delegated once. Coming-soon CTAs → modal del Aviso.
     document.getElementById('reading-obras-list')?.addEventListener('click', e => {
       const btn = e.target.closest('.obra-btn--soon, .obra-btn--notify, .obra-btn--locked');
-      if (btn) { e.preventDefault(); this._tizno?.open(); }
+      if (btn) { e.preventDefault(); this._abrirAviso(btn); }
     });
 
     // Hover sounds — character-tuned chime on book covers, soft metallic
@@ -929,16 +1100,14 @@ export class ArchiveDOM {
     // background buffer is ~1.6 MB — comfortable even on weak connections.
     Events.on('sceneChange', ({ to }) => {
       if (to !== 4) return;
-      const pillars = document.querySelectorAll('.archive-pillar video');
-      pillars.forEach((v, i) => {
-        setTimeout(() => {
-          // Ensure 720p src (idempotent — pickPillarSrc was already set at
-          // build time, but a stale dataset / external reset would re-correct).
-          const want = pickPillarSrc(v.dataset.charSrc || v.src);
-          if (!v.src.endsWith(want)) v.src = want;
-          if (v.preload !== 'auto') v.preload = 'auto';
-        }, i * 250); // 0, 250, 500, 750 ms — first pillar starts immediately
-      });
+      /* Se monta UN pilar, el primero: en escritorio deja el primer hover
+         instantáneo, y en móvil es justo la columna que se está viendo. Los
+         otros tres se quedan en su póster hasta que alguien los pida. */
+      const primero = document.querySelector('.archive-pillar video');
+      if (!primero) return;
+      const movil = window.innerWidth <= 768;
+      const quieto = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      setTimeout(() => this._activarPilar(primero, movil && !quieto), 250);
     });
 
     // Adentrarse — stylized 1.4s transition (CSS choreography), THEN actually enter the Archive
@@ -989,7 +1158,14 @@ export class ArchiveDOM {
         }
       });
       const wrap = doc.querySelector('.legal-wrap, main, article, body');
-      return wrap ? wrap.innerHTML : '';
+      if (!wrap) return { titulo: null, html: '' };
+      /* El primer encabezado del documento pasa a ser EL título del modal
+         (completo, en dorado) y se retira del cuerpo — antes salía duplicado:
+         'Privacidad' arriba y 'POLÍTICA DE PRIVACIDAD' justo debajo. */
+      const h = wrap.querySelector('h1, h2');
+      const titulo = h ? h.textContent.trim() : null;
+      if (h) h.remove();
+      return { titulo, html: wrap.innerHTML };
     };
     // Warm the cache after first user interaction — by the time anyone clicks
     // a legal link, the content is already in memory and the modal opens
@@ -1028,16 +1204,42 @@ export class ArchiveDOM {
       document.body.style.overflow = 'hidden';
     };
 
+    // El pacto de Tizno: contenido inline (no hay página que descargar) —
+    // el disclaimer, lo que su memoria guarda (vive en el dispositivo del
+    // visitante) y el botón del olvido.
+    const _tiznoSabe = () => {
+      let m = null;
+      try { m = JSON.parse(localStorage.getItem('tizno_memoria') || 'null'); } catch (_) {}
+      if (!m || (!m.visits && !m.nombre)) return t('tizno.sabe-nada');
+      const partes = [];
+      if (m.visits) partes.push(t('tizno.sabe-visitas') + ' ' + m.visits);
+      if (m.nombre) partes.push(t('tizno.sabe-nombre') + ' ' + m.nombre);
+      if (m.lastVisit) partes.push(t('tizno.sabe-ultima') + ' ' + new Date(m.lastVisit).toLocaleDateString());
+      return t('tizno.sabe-intro') + ' ' + partes.join(' · ');
+    };
+    const _abrirPactoTizno = () => {
+      _showLegal('Tizno', `
+        <p>${t('tizno.disclaimer')}</p>
+        <p id="tizno-sabe" style="font-style:italic;color:#59493a;">${_tiznoSabe()}</p>
+        <button id="tizno-olvidar-btn" class="obra-btn obra-btn--buy">${t('tizno.olvidar')}</button>`);
+      document.getElementById('tizno-olvidar-btn')?.addEventListener('click', () => {
+        try { localStorage.removeItem('tizno_memoria'); localStorage.removeItem('tizno_daily'); } catch (_) {}
+        const el = document.getElementById('tizno-sabe');
+        if (el) el.textContent = t('tizno.olvidado');
+      });
+    };
+
     const openLegal = async (slug, title) => {
+      if (slug === 'tizno') { _abrirPactoTizno(); return; }
       const key = _cacheKey(slug);
       // Cache hit → render synchronously. No loading flash.
-      if (legalCache.has(key)) { _showLegal(title, legalCache.get(key)); return; }
+      if (legalCache.has(key)) { const c = legalCache.get(key); _showLegal(c.titulo || title, c.html); return; }
       // Cache miss → fetch in the background, modal stays unopened until ready.
       try {
         const html = await (await fetch(_legalUrl(slug))).text();
         const content = _parseLegal(html);
         legalCache.set(key, content);
-        _showLegal(title, content);
+        _showLegal(content.titulo || title, content.html);
       } catch {
         _showLegal(title, `<p style="color:#555;">${lang === 'en' ? 'Content could not be loaded.' : 'No se pudo cargar el contenido.'}</p>`);
       }

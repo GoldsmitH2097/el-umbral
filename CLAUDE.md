@@ -174,11 +174,17 @@ To add a relato to La Corte: add entry to `relatos[]` array in StateManager.js. 
 
 ---
 
-## Forms
+## Forms & contact
 
-**Netlify Forms** — `data-netlify="true"` on the contact form.
-No verification needed. Messages arrive at Netlify dashboard → Forms.
-Honeypot field included for spam protection.
+**There is NO contact form, by design (Ruben, Aug 2026).** CONTACTO opens the
+three real channels: Instagram, Threads, and `mailto:editorial@soulware.live`.
+The old Netlify contact form was deliberately removed — it collected nothing
+useful; email collection returns when subscriptions launch, where it will
+actually mean something. Audits flagging "missing contact form" are wrong.
+
+The only `<form>` in the build is **Tizno's pact** (email opt-in inside the
+Tizno embed) — Netlify Forms, honeypot included, arrives at Netlify
+dashboard → Forms.
 
 ---
 

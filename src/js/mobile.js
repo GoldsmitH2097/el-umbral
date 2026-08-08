@@ -1,13 +1,13 @@
 import { CHARACTERS, CATALOGUE, state } from './core/StateManager.js';
 import { t, getField } from './core/i18n.js';
+/* ICONS viene de ArchiveDOM, no de una copia local. La copia decía
+   «duplicated here to avoid circular import», pero el ciclo nunca existió
+   (ArchiveDOM no importa nada de aquí) y las dos copias ya habían divergido:
+   el glifo de Threads del detalle móvil no era el de la vista de lectura.
+   Dos verdades que deben decir lo mismo acaban separándose; que haya una. */
+import { renderCta, ICONS } from './ui/ArchiveDOM.js';
 
 const isMobile = () => window.innerWidth <= 768;
-
-// ── ICONS (duplicated here to avoid circular import) ──────────────────────
-const ICONS = {
-  instagram: `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>`,
-  threads: `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.03-3.579.879-6.43 2.525-8.482C5.845 1.205 8.6.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.589 12c.027 3.086.718 5.496 2.057 7.164 1.43 1.783 3.631 2.698 6.54 2.717 2.623-.02 4.358-.631 5.8-2.045 1.647-1.613 1.618-3.593 1.09-4.798-.31-.71-.873-1.3-1.634-1.75-.192 1.352-.622 2.446-1.284 3.272-.886 1.102-2.14 1.704-3.73 1.79-1.202.065-2.361-.218-3.259-.801-1.063-.689-1.685-1.74-1.752-2.964-.065-1.19.408-2.285 1.33-3.082.88-.76 2.119-1.207 3.583-1.291a13.853 13.853 0 0 1 3.02.142c-.126-.742-.375-1.332-.75-1.757-.513-.586-1.308-.883-2.378-.887h-.018c-.852 0-1.953.254-2.692 1.61L7.436 8.98c.904-1.672 2.498-2.598 4.48-2.598h.023c3.019.014 4.822 1.913 5.153 5.33.17.056.34.117.508.183 1.305.52 2.297 1.338 2.869 2.37.77 1.397.982 3.552-.24 5.856-1.713 3.148-4.507 4.789-7.93 4.885H12.186z"/></svg>`
-};
 
 // ── SCENE 2 MOBILE: Sequential tap-to-reveal whispers ──────────────────────
 export function initMobileScene2(onAllFound) {
@@ -104,15 +104,19 @@ export function initMobileScene2(onAllFound) {
 }
 
 // ── ARCHIVE MOBILE: Tap character to open full detail view ─────────────────
+let _archivoMovilListo = false;
 export function initMobileArchive() {
   if (!isMobile()) return;
+  /* PESTILLO: la puerta del skip re-ejecuta esta init en cada popstate de
+     ruta profunda. Sin él, el click delegado del grid y el del botón de
+     cierre se apilaban — cada toque abría el detalle dos veces. */
+  if (_archivoMovilListo) return;
+  _archivoMovilListo = true;
 
-  // Autoplay archive-pillar videos on mobile
-  setTimeout(() => {
-    document.querySelectorAll('.archive-pillar video').forEach(v => {
-      v.play().catch(() => {});
-    });
-  }, 600);
+  /* El arranque del vídeo ya no vive aquí. Esto reproducía los CUATRO
+     pilares a la vez —cuatro descodificadores en un teléfono, tres de ellos
+     fuera de pantalla en el carrusel—. Ahora ArchiveDOM monta uno solo: el
+     primero al entrar en la escena 4, y el que toque al deslizar. */
 
   const detail = document.getElementById('mobile-char-detail');
   const detailTitle = document.getElementById('mobile-detail-title');
@@ -146,12 +150,16 @@ export function initMobileArchive() {
           const itemTitle = getField(item, 'title');
           const itemSubtitle = getField(item, 'subtitle');
           const itemVision = getField(item, 'vision') || getField(item, 'desc');
-          const itemBuyLabel = getField(item, 'buyLabel');
-          let cta = item.status === 'available' && item.buyUrl
-            ? `<a href="${item.buyUrl}" target="_blank" rel="noopener" class="obra-btn obra-btn--buy">${itemBuyLabel}</a>`
-            : item.status === 'countdown'
-            ? `<div class="obra-countdown"><div class="countdown-timer" data-release="${item.releaseDate}"></div><span class="obra-btn obra-btn--locked">${itemBuyLabel}</span></div>`
-            : `<span class="obra-btn obra-btn--soon">${t('cta.coming-soon')}</span>`;
+          /* LA MISMA FUNCIÓN QUE EL ESCRITORIO, NO UNA COPIA PARECIDA.
+             Aquí vivía una versión simplificada que solo entendía la forma
+             antigua del catálogo (`status` + `buyUrl` planos). Cuando Pulso
+             pasó a tener `editions[]` con sus `retailers[]`, esta copia dejó
+             de reconocerlo como disponible y lo enseñaba como PRÓXIMAMENTE:
+             en el móvil desaparecía el botón de comprar de los dos únicos
+             libros a la venta, justo en el sitio donde más gente entra.
+             Dos funciones que tienen que decir lo mismo acaban divergiendo
+             siempre; la única defensa es que haya una. */
+          const cta = renderCta(item, { detail: true });
           const coverHtml = item.img ? `<img src="${item.img}" alt="${itemTitle}" class="mobile-book-cover" />` : '';
           return `<div class="mobile-detail-book">
             ${coverHtml}
@@ -210,6 +218,8 @@ export function initMobileArchive() {
   const switchMobileTab = (tab) => {
     document.querySelectorAll('#mobile-char-detail .reading-tab').forEach(b => {
       b.classList.toggle('reading-tab--active', b.dataset.tab === tab);
+      // La copia de escritorio siempre lo hizo; esta lo perdió al divergir.
+      b.setAttribute('aria-selected', b.dataset.tab === tab ? 'true' : 'false');
     });
     document.getElementById('mobile-panel-autor')?.classList.toggle('mobile-panel--active', tab === 'autor');
     document.getElementById('mobile-panel-libros')?.classList.toggle('mobile-panel--active', tab === 'libros');
@@ -222,8 +232,33 @@ export function initMobileArchive() {
   // Single event delegation on the grid — reliable, no duplicates
   const grid = document.querySelector('.archive-grid');
   if (grid) {
+    /* UN ARRASTRE NO ES UN TOQUE. Deslizar el carrusel sobre una tarjeta
+       disparaba el click al soltar y abría la ficha en vez de avanzar de
+       columna. La primera versión de esta guarda escuchaba touchstart y
+       touchmove — y el segundo audit la esquivó por DOS costuras: un
+       arrastre DE RATÓN en viewport móvil no emite eventos táctiles, y en
+       iOS el sistema puede cortar el gesto con touchcancel (el carrusel se
+       queda el dedo, un diálogo del sistema aparece…) antes de que llegue
+       ningún touchmove. Los POINTER EVENTS son la secuencia única que cubre
+       dedo y ratón a la vez: pointerdown ancla, pointermove mide, y da igual
+       quién termine el gesto — si hubo más de 12 px de recorrido, el click
+       sintético que lo siga se ignora. pointercancel no resetea a propósito:
+       la bandera solo se limpia al empezar un gesto nuevo o al consumirse. */
+    let _toqueX = 0, _toqueY = 0, _fueArrastre = false;
+    grid.addEventListener('pointerdown', (e) => {
+      _toqueX = e.clientX; _toqueY = e.clientY; _fueArrastre = false;
+    }, { passive: true });
+    grid.addEventListener('pointermove', (e) => {
+      if (_fueArrastre) return;
+      if (Math.hypot(e.clientX - _toqueX, e.clientY - _toqueY) > 12) _fueArrastre = true;
+    }, { passive: true });
+    /* Un gesto CANCELADO (el navegador se queda el scroll, un diálogo del
+       sistema interrumpe) nunca es un toque limpio: se marca como arrastre
+       aunque no diera tiempo a medir los 12 px. */
+    grid.addEventListener('pointercancel', () => { _fueArrastre = true; }, { passive: true });
     grid.addEventListener('click', (e) => {
       if (!isMobile()) return;
+      if (_fueArrastre) { _fueArrastre = false; return; }
       // Book cover click → open character detail (same as pillar tap)
       const cover = e.target.closest('.obra-cover--clickable');
       if (cover) {
@@ -251,12 +286,109 @@ function initCountdown(el) {
   if (prior) clearInterval(prior);
   const target = new Date(el.dataset.release).getTime();
   const update = () => {
+    /* AUTOLIMPIEZA, como la copia de escritorio (_initSingleCountdown). El
+       WeakMap de arriba solo protege si se re-inicializa el MISMO nodo — pero
+       cada apertura del detalle reconstruye innerHTML y crea nodos NUEVOS:
+       el intervalo del nodo viejo quedaba vivo para siempre, escribiendo en
+       un elemento desmontado, uno más por reapertura. Es literalmente el
+       mismo patrón del bug de renderCta que motivó la auditoría. Latente hoy
+       (ningún libro usa 'countdown'), armado para el primero que lo use. */
+    const handle = _mobileCountdownTimers.get(el);
+    if (!document.contains(el)) { if (handle) clearInterval(handle); return; }
     const diff = target - Date.now();
-    if (diff <= 0) { el.textContent = t('countdown.now'); return; }
+    if (diff <= 0) { el.textContent = t('countdown.now'); if (handle) clearInterval(handle); return; }
     const d = Math.floor(diff/86400000), h = Math.floor((diff%86400000)/3600000);
     const m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
     el.innerHTML = `<span>${d}<em>d</em></span><span>${h}<em>h</em></span><span>${m}<em>m</em></span><span>${s}<em>s</em></span>`;
   };
-  update();
   _mobileCountdownTimers.set(el, setInterval(update, 1000));
+  update();
+}
+
+// ── MENÚ DE MÓVIL ───────────────────────────────────────────────────────────
+/**
+ * La barra de abajo tenía que sostener en un teléfono lo mismo que en un
+ * monitor: volver al umbral, cuatro enlaces legales y Tizno. No cabía, y se
+ * desparramaba en tres líneas encima del contenido.
+ *
+ * Aquí la cabecera se queda con una hamburguesa que abre el MISMO panel de
+ * enlaces que en escritorio va en línea; dentro se recolocan, MOVIENDO los
+ * nodos (no copiándolos), el «volver al umbral» y los legales. Al mover en
+ * vez de duplicar, sus escuchadores, sus ids y sus traducciones siguen
+ * siendo los mismos: no hay dos verdades que mantener sincronizadas.
+ *
+ * Y la barra inferior queda con un único propósito: Tizno.
+ */
+export function initMenuMovil() {
+  const burger = document.getElementById('nav-burger');
+  const panel  = document.getElementById('nav-panel');
+  if (!burger || !panel) return;
+  /* PESTILLO: con dos ejecuciones (popstate sobre ruta profunda), el burger
+     tenía dos listeners y cada toque hacía toggle('abierto') DOS veces — el
+     panel se abría y se cerraba en el mismo gesto: menú inutilizado hasta
+     recargar. El pestillo vive en el nodo, no en el módulo, para que un
+     hipotético rebuild de la cabecera vuelva a cablearse solo. */
+  if (burger.dataset.menuLigado) return;
+  burger.dataset.menuLigado = '1';
+
+  const legales = document.querySelector('.footer-legal');
+  const volver  = document.getElementById('replay-intro-btn');
+  const idioma  = document.getElementById('lang-selector');
+  const cunaLegales = legales?.parentElement;   // de dónde salieron, para devolverlos
+  const cunaVolver  = volver?.parentElement;
+  const cunaIdioma  = idioma?.parentElement;
+  const estrecho = window.matchMedia('(max-width: 768px)');
+
+  const nav = burger.parentElement;   // la cabecera, que marca el estado abierto
+  const cerrar = () => {
+    panel.classList.remove('abierto');
+    burger.classList.remove('abierto');
+    nav.classList.remove('menu-abierto');
+    burger.setAttribute('aria-expanded', 'false');
+  };
+
+  /* Los nodos viven en la cabecera o en el pie según el ancho. Se sincroniza
+     en los dos sentidos para que girar el teléfono no deje el menú a medias. */
+  const recolocar = () => {
+    if (estrecho.matches) {
+      if (volver && volver.parentElement !== panel) panel.appendChild(volver);
+      if (legales && legales.parentElement !== panel) panel.appendChild(legales);
+      /* El idioma NO va dentro del panel sino en la propia cabecera, junto a
+         la X (Ruben): cambiar de idioma no debería obligar a abrir un menú. */
+      if (idioma && idioma.parentElement !== burger.parentElement) {
+        burger.parentElement.insertBefore(idioma, burger);
+      }
+    } else {
+      cerrar();
+      if (volver && cunaVolver && volver.parentElement !== cunaVolver) cunaVolver.prepend(volver);
+      if (legales && cunaLegales && legales.parentElement !== cunaLegales) cunaLegales.appendChild(legales);
+      if (idioma && cunaIdioma && idioma.parentElement !== cunaIdioma) cunaIdioma.appendChild(idioma);
+    }
+  };
+
+  burger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const abierto = panel.classList.toggle('abierto');
+    burger.classList.toggle('abierto', abierto);
+    nav.classList.toggle('menu-abierto', abierto);
+    // el panel desplaza aire: las luciérnagas lo notan (ver ArchiveFireflies)
+    document.dispatchEvent(new CustomEvent('menuSopla', { detail: { abierto } }));
+    burger.setAttribute('aria-expanded', abierto ? 'true' : 'false');
+  });
+
+  // un toque fuera, la tecla de escape o elegir algo: se cierra
+  document.addEventListener('click', (e) => {
+    if (!panel.classList.contains('abierto')) return;
+    if (e.target.closest('#nav-panel, #nav-burger')) return;
+    cerrar();
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cerrar(); });
+  panel.addEventListener('click', (e) => {
+    // el desplegable de contacto vive dentro del panel: no cierra el menú
+    if (e.target.closest('#contact-popover, #nav-contacto, #lang-selector')) return;
+    if (e.target.closest('a, [role="button"], button')) cerrar();
+  });
+
+  estrecho.addEventListener('change', recolocar);
+  recolocar();
 }

@@ -128,9 +128,26 @@
     text-shadow: 0 0 20px rgba(200,146,42,0.4) !important;
   }
   .archive-col--active .archive-pillar .pillar-content p { opacity: 1 !important; }
-  .archive-pillar .pillar-content { text-align: left !important; }
+  /* Centrado, no bandera (Ruben, 6-ago): título del arquetipo y descripción
+     comparten eje con el retrato. */
+  .archive-pillar .pillar-content { text-align: center !important; }
   .archive-pillar .pillar-content h3 { margin: 0 0 10px !important; font-size: 14px; letter-spacing: 4px; color: rgba(255,255,255,0.85) !important; }
-  .archive-pillar .pillar-content p { opacity: 1 !important; font-size: 12px; margin: 0; max-width: none; line-height: 1.7; }
+  /* CADA FRASE CAÍA DONDE LE PARECÍA. El párrafo heredaba del escritorio un
+     `display:flex` con `align-items:flex-start` y un `min-height` de 5.1em
+     —una reserva pensada para que los cuatro títulos se alineasen estando en
+     columna, uno al lado del otro—, pero en el móvil se ven de uno en uno y
+     esa reserva ya no alinea nada: solo deja un hueco distinto bajo cada
+     nombre según la frase sea de una línea o de tres. Y el flex, además,
+     desarmaba el centrado del texto en las que ocupaban varias líneas: la
+     Sortílega salía en bandera a la izquierda y las demás centradas.
+     Aquí vuelve a ser un párrafo normal, centrado y sin reserva: las cuatro
+     se comportan igual. El ancho en `ch` corta por número de caracteres, así
+     que las líneas quedan parecidas de largo vengan de la frase que vengan. */
+  .archive-pillar .pillar-content p {
+    opacity: 1 !important; font-size: 12px; line-height: 1.7;
+    display: block; min-height: 0;
+    margin: 0 auto; max-width: 34ch; text-align: center;
+  }
 
   .archive-books { border-top: 1px solid rgba(255,255,255,0.04); }
   .obra-book { flex-direction: row; align-items: flex-start; gap: 18px; }
@@ -142,6 +159,22 @@
   .obra-badges { justify-content: flex-start !important; }
   .obra-cover { max-width: 80px; min-width: 80px; }
   .obra-cover img { filter: brightness(1) !important; }
+
+  /* El cofre-tarjeta (marco, rejilla portada|título, fila de tiendas) es
+     ahora GLOBAL — vive en obras.css, unificado escritorio + móvil. Aquí
+     solo quedan los ajustes de medida del teléfono. */
+  .obra-book--available { gap: 10px 14px; }
+  /* El Aviso en un 375: caja ceñida, título contenido, campo a ancho de caja. */
+  #aviso-modal-inner { padding: 28px 20px 24px; }
+  #aviso-modal h2 { font-size: 12px; letter-spacing: 4px; }
+  #aviso-form { flex-direction: column; align-items: center; }
+  #aviso-email { min-width: 0; width: 100%; }
+  /* El cofre entero en un vistazo (Ruben, 6-ago): la portada a todo el ancho
+     medía ~467px de alto y echaba la fila de tiendas fuera de pantalla.
+     Capada a 250px (~375 de alto) el cofre completo —marco, portada, RECLAMAR
+     y las cinco puertas— cabe en un 812. El marco y la fila siguen de lado a
+     lado; solo la portada se centra. */
+  .obra-book--available .obra-cover { max-width: 250px; margin: 0 auto; }
   .obra-title { font-size: 13px; letter-spacing: 2px; color: #ddd; }
   .obra-desc { opacity: 1 !important; max-height: none !important; font-size: 12px; color: #777; line-height: 1.7; }
   .obra-btn { margin-top: 8px; padding: 8px 16px; font-size: 9px; align-self: flex-start; }
@@ -167,7 +200,6 @@
 
 /* ── Tizno — reposition on mobile so it clears the footer + iOS home indicator ── */
 @media (max-width: 768px) {
-  #tizno-tease { bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
 }
 
 /* ── Mobile Scene 1 instruction ───────────────────────────────────────────── */
@@ -184,5 +216,269 @@
 /* ── iOS safe area — ensure footer is reachable past home indicator ──────── */
 @media (max-width: 768px) {
   #main-site { padding-bottom: max(20px, env(safe-area-inset-bottom, 20px)); }
-  .site-footer { padding-bottom: max(24px, env(safe-area-inset-bottom, 24px)); }
+  /* El max(24px, …) forzaba 24 px por debajo aunque el teléfono no los
+     necesitara, así que el botón quedaba alto dentro de su propia barra. Se
+     respeta el área segura real —donde vive el indicador de inicio y no se
+     puede tocar nada— pero sin inventar hueco donde no hace falta. */
+  .site-footer { padding-bottom: max(6px, env(safe-area-inset-bottom, 6px)); }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   MENÚ DE MÓVIL Y BARRA DE UN SOLO PROPÓSITO (Ruben, 5-ago-2026)
+   
+   El footer no tenía NI UNA regla de móvil: la barra se diseñó como una fila
+   de escritorio —volver al umbral, cuatro legales centrados en absoluto y
+   Tizno— y en un teléfono se desparramaba en tres líneas encima del
+   contenido. Aquí la cabecera se queda con una hamburguesa que abre el mismo
+   panel de enlaces de escritorio, dentro del cual mobile.js recoloca también
+   los legales y el volver al umbral. Abajo queda solo Tizno, que es lo que
+   hace la barra entendible: un único propósito.
+   ═════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+
+  /* ── La hamburguesa ─────────────────────────────────────────────────── */
+  #nav-burger {
+    display: flex; flex-direction: column; justify-content: center; gap: 4px;
+    width: 40px; height: 34px; padding: 0 8px; flex: none;
+    background: transparent; border: none; cursor: pointer;
+  }
+  #nav-burger span {
+    display: block; height: 1px; width: 100%;
+    background: rgba(200,146,42,0.75);
+    transition: transform 0.28s ease, opacity 0.2s ease;
+  }
+  /* abierta: las dos exteriores se cruzan y la del medio se va */
+  #nav-burger.abierto span:nth-child(1) { transform: translateY(5px) rotate(45deg); }
+  #nav-burger.abierto span:nth-child(2) { opacity: 0; }
+  #nav-burger.abierto span:nth-child(3) { transform: translateY(-5px) rotate(-45deg); }
+  #nav-burger:focus-visible { outline: 1px solid rgba(200,146,42,0.6); outline-offset: 2px; }
+
+  .site-nav { padding: 12px 5vw; }
+
+  /* ── El panel: el mismo .links, desplegado bajo la cabecera ─────────── */
+  .site-nav .links {
+    position: absolute; top: 100%; left: 0; right: 0;
+    flex-direction: column; align-items: stretch; gap: 0;
+    background: rgba(6,5,4,0.985);
+    border-bottom: 1px solid rgba(200,146,42,0.45);
+    padding: 0 6vw;
+    max-height: 0; overflow: hidden; opacity: 0;
+    transition: max-height 0.35s ease, opacity 0.25s ease, padding 0.35s ease;
+    z-index: 40;
+  }
+  .site-nav .links.abierto {
+    max-height: 78vh; overflow-y: auto; opacity: 1; padding: 10px 6vw 22px;
+  }
+  /* cada entrada, una línea con su separador */
+  .site-nav .links span[role="button"] {
+    margin-left: 0; padding: 15px 0; font-size: 13px; letter-spacing: 4px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  /* el volver al umbral, recolocado aquí por mobile.js, se lee como uno más */
+  .site-nav .links #replay-intro-btn {
+    text-align: left; padding: 15px 0; font-size: 13px; letter-spacing: 4px;
+    border-bottom: 1px solid rgba(255,255,255,0.05); width: 100%;
+  }
+  /* los legales, en fila al pie del panel */
+  .site-nav .links .footer-legal {
+    position: static; transform: none;
+    justify-content: flex-start; gap: 18px; flex-wrap: wrap;
+    padding: 18px 0 4px; margin: 0;
+  }
+  .site-nav .links .footer-legal a { font-size: 10px; letter-spacing: 2px; }
+  /* el idioma cierra el panel, alineado a la izquierda como el resto */
+  .site-nav .links .lang-toggle { align-self: flex-start; margin: 16px 0 0; }
+  /* el desplegable de contacto, dentro del panel, sin flotar */
+  .site-nav .links #contact-popover {
+    position: static; transform: none; opacity: 1; visibility: visible;
+    border: none; background: transparent; padding: 4px 0 12px;
+    box-shadow: none; min-width: 0;
+  }
+
+  /* ── La barra de abajo: solo Tizno ──────────────────────────────────── */
+  .site-footer .footer-bar { justify-content: center; padding: 7px 5vw; }
+  /* fb-left se queda vacío al mudarse sus dos inquilinos al panel */
+  .site-footer .fb-left { display: none; }
+  .site-footer .fb-right { gap: 10px; }
+}
+
+/* Pantallas muy estrechas: la etiqueta del intro no cabía entera y quedaba
+   pegada a la barra de estado. Se acorta el espaciado y se baja del borde. */
+@media (max-width: 420px) {
+  #skip-btn { top: max(14px, env(safe-area-inset-top, 14px)); font-size: 11px; letter-spacing: 2px; padding: 7px 11px; }
+}
+
+/* ── Correcciones del iPhone de Ruben (5-ago, 22:57) ────────────────────── */
+@media (max-width: 768px) {
+
+  /* LA EMPERATRIZ SE LEÍA LAVADA. No era opacidad —arriba ya se fuerza a 1—
+     sino contraste: su retrato es el más luminoso de los cuatro y el texto
+     caía encima sin nada que lo separase. Un velo que sube desde abajo
+     resuelve las cuatro columnas a la vez, sea cual sea la imagen. */
+  .archive-pillar { position: relative; }
+  .archive-pillar::after {
+    content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 62%;
+    background: linear-gradient(to top, rgba(2,2,2,0.92) 0%, rgba(2,2,2,0.72) 38%, transparent 100%);
+    pointer-events: none; z-index: 1;
+  }
+  .archive-pillar .pillar-content { position: relative; z-index: 2; }
+
+  /* EL LOGO DEL FINAL SALÍA CORTADO: la barra fija se comía el último tramo
+     de página porque aquí el hueco inferior estaba en 20 px, sin contar con
+     ella. Ahora reserva su altura real más el área segura del iPhone. */
+  #main-site { padding-bottom: calc(58px + env(safe-area-inset-bottom, 0px)); }
+
+  /* Del menú (Ruben): la palabra CONTACTO sobra, porque sus tres enlaces
+     están ahí mismo desplegados. */
+  .site-nav .links #nav-contacto { display: none; }
+
+  /* Los legales, centrados. */
+  .site-nav .links .footer-legal { justify-content: center; }
+
+  /* El idioma se muda a la cabecera, junto a la X: mobile.js lo recoloca ahí.
+     Separado del botón para que no se toquen sin querer. */
+  .site-nav > .lang-toggle { margin-left: auto; margin-right: 14px; flex: none; }
+}
+
+/* TIZNO, PEGADO A SU BARRA. El desplazamiento de 88 px se calculó para el
+   footer viejo, el de tres líneas. Con la barra reducida a un solo propósito
+   quedaba flotando en mitad de la página, despegado de donde nace. */
+@media (max-width: 820px) {
+  #tizno-frame { bottom: 6px; }
+}
+
+/* ── Segunda pasada del iPhone (Ruben) ──────────────────────────────────── */
+@media (max-width: 768px) {
+
+  /* EL «FADE OUT» DE LA EMPERATRIZ TENÍA NOMBRE: el párrafo nace con
+     opacidad 0,75 y una transición de 0,4 s, y solo sube a 1 en la columna
+     activa. Al deslizar a otra, la anterior se atenuaba — eso era el
+     desvanecimiento. En escritorio distingue la columna que miras de las
+     tres vecinas; en un teléfono NO PINTA NADA, porque solo se ve una
+     columna cada vez. Aquí todas van a plena opacidad. */
+  .archive-pillar .pillar-content p,
+  .archive-pillar .pillar-content h3 { opacity: 1 !important; }
+
+  /* El velo, un poco más firme: el retrato de la Emperatriz es luminoso
+     hasta arriba y el texto necesita más suelo del que le puse. */
+  .archive-pillar::after {
+    height: 70%;
+    background: linear-gradient(to top, rgba(2,2,2,0.96) 0%, rgba(2,2,2,0.82) 42%, transparent 100%);
+  }
+
+  /* EL FINAL DE LA PÁGINA SEGUÍA CORTADO, y el hueco no era el problema:
+     100vh en iOS mide HASTA DEBAJO de la barra del navegador, así que el
+     último tramo del contenedor vive en una zona que nunca se ve. dvh mide
+     lo que de verdad hay en pantalla. */
+  #main-site { height: 100dvh; padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+
+  /* El idioma solo cuando el menú está abierto: es parte del menú, no de la
+     cabecera (Ruben). Aparece junto a la X, con su aire de separación. */
+  .site-nav > .lang-toggle { display: none; }
+  .site-nav.menu-abierto > .lang-toggle { display: inline-flex; }
+}
+
+/* ── LA INVITACIÓN A ENCENDER LA LLAMA (Ruben) ──────────────────────────────
+   Era un renglón de 11 px en versalitas al 30 % de opacidad: pedía permiso
+   para existir, y competía en desventaja con el botón de saltar. Ahora es lo
+   más grande de la pantalla, en cursiva inglesa —la letra de una dedicatoria
+   manuscrita, no de una interfaz— y aun así translúcida, para que invite sin
+   tapar la tumba. Entra con un aliento y, pasado el primer segundo, la
+   recorre un destello: el mismo gesto de la llama que está pidiendo. */
+@media (max-width: 768px) {
+  /* Solo la COLOCACIÓN es cosa del móvil: centrada en la tumba. El aspecto y
+     el aliento viven en archive.css, compartidos con escritorio. */
+  /* CENTRADO SIN TRANSFORM, y no es un capricho: la animación de humo usa
+     transform para subir el texto, y un transform en los fotogramas PISA al
+     que lo centraba. El resultado era la frase pegada al borde y cortada por
+     la mitad. Con una rejilla a pantalla completa el centrado no depende de
+     transform, así que la animación puede moverlo libremente. */
+  #instruccion-mobile {
+    position: fixed; inset: 0; display: grid; place-items: center;
+    padding: 0 7vw; transform: none; width: auto; max-width: none;
+    font-size: clamp(17px, 5vw, 24px); letter-spacing: 4px;
+    opacity: 0; pointer-events: none; z-index: 6; transition: none;
+  }
+
+  /* ── El velo, más suave, y el texto con su propio suelo ────────────────
+     Ruben: en los otros arquetipos el negro tapaba demasiado. Bajo el velo
+     general y, en su lugar, doy a la franja del texto un suelo propio y
+     ceñido: menos negro en total, más contraste justo donde hace falta. */
+  .archive-pillar::after {
+    height: 52%;
+    background: linear-gradient(to top, rgba(2,2,2,0.78) 0%, rgba(2,2,2,0.42) 46%, transparent 100%);
+  }
+  /* LA PLACA SE DESVANECÍA JUSTO DONDE ESTÁ EL TÍTULO. El degradado moría
+     en transparente por arriba, y el h3 va arriba del todo: la descripción
+     tenía suelo y el nombre del arquetipo no. Se ve clarísimo en la
+     Emperatriz, cuyo retrato es el más luminoso. Ahora la placa cubre el
+     bloque entero y solo se afila en el borde superior, para no cortar. */
+  /* LA PLACA MORÍA JUSTO DONDE ESTÁ EL TÍTULO, Y ESE ERA TODO EL MISTERIO.
+     Llevábamos días tratando esto como un problema de opacidad del texto y
+     poniéndole `opacity: 1 !important` al h3 y al p, una y otra vez, sin que
+     cambiara nada. No podía cambiar: el texto siempre estuvo opaco. Lo que
+     fallaba era el suelo oscuro que lo separa del vídeo — este degradado
+     llegaba a 0.5 al 88% y a transparente al 100%, y el h3 vive exactamente
+     en ese borde de arriba. Sobre los otros tres retratos daba igual porque
+     son oscuros; sobre la Emperatriz, que es el más luminoso de los cuatro,
+     su cara se encendía al arrancar el vídeo y se comía las letras. De ahí
+     que Ruben lo describiera como «sale bien al principio y hace un fade
+     out»: no se desvanecía el texto, se encendía el fondo — el póster inmóvil
+     es oscuro y el primer fotograma en movimiento ya no.
+     Ahora el suelo se mantiene alto por todo el bloque y solo se afila en el
+     último 8%, que es aire por encima del título y no el título. */
+  .archive-pillar .pillar-content {
+    background: linear-gradient(to top,
+      rgba(2,2,2,0.86) 0%, rgba(2,2,2,0.8) 62%, rgba(2,2,2,0.64) 92%, rgba(2,2,2,0) 100%);
+    padding: 16px 16px 10px; margin: 0 -16px -8px;
+  }
+  /* Y el texto, legible en las cuatro columnas pase lo que pase detrás. */
+  .archive-pillar .pillar-content h3 { color: #f0e2c2 !important; text-shadow: 0 1px 6px rgba(0,0,0,0.9); }
+  .archive-pillar .pillar-content p  { color: #cfc8bd !important; text-shadow: 0 1px 5px rgba(0,0,0,0.9); }
+}
+
+/* La trama también en el menú, emanando de su línea dorada inferior — la
+   misma regla que en las dos barras: la textura es consecuencia de la
+   línea, no relleno. */
+@media (max-width: 768px) {
+  .site-nav .links.abierto::before {
+    content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+    background-image:
+      radial-gradient(rgba(200,146,42,0.15) 0.45px, transparent 0.55px),
+      linear-gradient(45deg,  transparent 47.7%, rgba(200,146,42,0.055) 47.7% 52.3%, transparent 52.3%),
+      linear-gradient(-45deg, transparent 47.7%, rgba(200,146,42,0.055) 47.7% 52.3%, transparent 52.3%);
+    background-size: 10px 10px;
+    -webkit-mask-image: linear-gradient(to top, #000 0%, rgba(0,0,0,0) 88%);
+            mask-image: linear-gradient(to top, #000 0%, rgba(0,0,0,0) 88%);
+  }
+  .site-nav .links > * { position: relative; z-index: 1; }
+}
+
+/* El susurro de estado, legible en un teléfono: sobre la barra, centrado y
+   con suelo propio, porque ahí detrás puede estar pasando cualquier cosa. */
+@media (max-width: 768px) {
+  /* ── EL SUSURRO, SIN CAJA ──────────────────────────────────────────────
+     Era un cartel con fondo y borde flotando sobre Tizno, y un cartel pide
+     que lo leas. Lo que dice —«Tizno te escucha», «Tizno habla»— no es un
+     aviso: es el pulso de la llamada, algo que se mira de reojo. Así que
+     pierde la caja y se pega al botón, que es lo que está describiendo.
+
+     Se queda JUSTO ENCIMA de la barra y no dentro de ella por una razón de
+     sitio, no de gusto: en un móvil el botón ya ocupa casi todo el ancho, y
+     meterle texto al lado obligaría a estrujarlo. Alineado a la derecha cae
+     sobre el botón mismo, que a efectos de lectura es estar a su lado. */
+  #liberar-susurro {
+    right: 0; left: auto; transform: none;
+    bottom: calc(100% + 7px);
+    font-size: 10px; letter-spacing: 1.5px;
+    color: #8a7458; background: none; border: 0; padding: 0;
+    max-width: 78vw; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; text-align: right;
+  }
+  /* Los mensajes de error sí son avisos y sí hay que leerlos enteros: solo
+     ellos recuperan varias líneas. La clase la pone el propio diagnóstico. */
+  #liberar-susurro.aviso {
+    white-space: normal; text-align: right; font-size: 11px;
+    line-height: 1.5; max-width: 72vw;
+  }
 }
