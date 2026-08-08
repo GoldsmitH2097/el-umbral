@@ -754,10 +754,13 @@
             sinMicro: { archivos: ['frase-sin-micro-1.mp3', 'frase-sin-micro-2.mp3'],
                         archivosEn: ['frase-sin-micro-en-1.mp3', 'frase-sin-micro-en-2.mp3', 'frase-sin-micro-en-3.mp3', 'frase-sin-micro-en-4.mp3'], vol: 0.85 },
             toque:    { archivos: ['toque-1.mp3', 'toque-2.mp3', 'toque-5.mp3'], vol: 0.6 },   // 3 y 4 al banquillo: largas para un piquito
-            /* EN 1-3 NotTheBox · 4-6 DontYouDare · 7-8 ItsDarkInThere ·
-               9-11 NoNo · 12-17 HereAgain (mapa en TOMAS-EN.md) */
+            /* EN 1-3 NotTheBox · 4-6 DontYouDare · 7-8 ItsDarkInThere · 9-11 NoNo */
             noEncierres: { archivos: ['no-encierres-1.mp3', 'no-encierres-2.mp3', 'no-encierres-3.mp3', 'no-encierres-4.mp3', 'no-encierres-5.mp3'],
-                           archivosEn: Array.from({ length: 17 }, (_, i) => `no-encierres-en-${i + 1}.mp3`), vol: 0.8 },
+                           archivosEn: Array.from({ length: 11 }, (_, i) => `no-encierres-en-${i + 1}.mp3`), vol: 0.8 },
+            /* Saludo de REGRESO (HereAgain ×6): suena en la primera emersión
+               de la sesión si la memoria dice que este visitante ya vino.
+               Solo hay tomas EN; en ES el pool está vacío y cae al pop. */
+            vuelve:   { archivos: [], archivosEn: Array.from({ length: 6 }, (_, i) => `vuelve-en-${i + 1}.mp3`), vol: 0.8 },
         };
         const sfxCache = {};
         function sfxObtener(nombre) {
@@ -1194,7 +1197,16 @@
             if (popPos < 0.5) popSalpicado = false;   // hundido: lista para la próxima entrada
             if (popPos > 0.86 && !popSalpicado && popTarget === 1) {
                 popSalpicado = true;
-                sfxPlay('pop');
+                /* Visitante que VUELVE: la primera emersión de la sesión lo
+                   saluda con una toma de regreso ('vuelve') en vez del pop —
+                   Tizno te reconoce. Si el banco no existe para el idioma
+                   (ES, hoy) o ya saludó, salpica como siempre. */
+                let saludoDeVuelta = false;
+                if (!window.__vueltaSaludada) {
+                    window.__vueltaSaludada = true;
+                    try { if ((loadMem().visits || 0) >= 1) saludoDeVuelta = sfxPlay('vuelve'); } catch (_) {}
+                }
+                if (!saludoDeVuelta) sfxPlay('pop');
                 burstInk(1.35, true);
                 burstLetters(NIVEL === 'alto' ? 9 : NIVEL === 'medio' ? 6 : 3, 1.2);
             }
