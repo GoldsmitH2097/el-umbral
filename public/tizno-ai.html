@@ -2,6 +2,14 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <script>
+      /* LA URL DESNUDA ERA LA DEMO (Ruben, 8-ago): /tizno-ai.html a pelo
+         servía el traje viejo de la PR #62 — «COMPRAR…», «CERRAR DEMO» — en
+         producción. Tizno vive embebido (?embed=1) en el footer; el acceso
+         directo va a la home. ?demo=1 es la puerta del equipo para abrir el
+         rig standalone a mano. */
+      if (!/[?&](embed|demo)=1/.test(location.search)) location.replace('/');
+    </script>
     <link rel="preconnect" href="https://esm.sh" crossorigin>
     <link rel="preconnect" href="https://api.elevenlabs.io">
     <link rel="dns-prefetch" href="https://api.us.elevenlabs.io">
