@@ -741,11 +741,17 @@
            de Tizno, 2026-08-04) y suena una al azar, nunca la misma dos veces
            seguidas: la repetición exacta es lo que delata a una máquina.
            El ronroneo es bucle: una única toma estable, con empalme fundido. */
+        /* POLÍTICA DE IDIOMA (Ruben, 8-ago: «aún mezcla frases — bloquea
+           cualquier castellano en la web inglesa»): en EN solo suena un pool
+           si tiene banco inglés (archivosEn) o está CERTIFICADO sin palabras
+           (sinIdioma: true — solo pop y ronroneo, sonidos mecánicos). Todo lo
+           demás calla en EN hasta que Ruben escuche la toma y la certifique
+           o le genere gemela. Silencio antes que idioma equivocado. */
         const SFX = {
             susto:    { archivos: ['susto-1.mp3'], vol: 0.55 },
-            ronroneo: { archivos: ['ronroneo.mp3'], vol: 0.45, bucle: true },
-            pop:      { archivos: ['pop-1.mp3', 'pop-2.mp3', 'pop-3.mp3', 'pop-4.mp3', 'pop-5.mp3', 'pop-6.mp3'], vol: 0.5 },
-            enfado:   { archivos: ['enfado-1.mp3', 'enfado-2.mp3', 'enfado-3.mp3', 'enfado-4.mp3'], vol: 0.5, soloEs: true },
+            ronroneo: { archivos: ['ronroneo.mp3'], vol: 0.45, bucle: true, sinIdioma: true },
+            pop:      { archivos: ['pop-1.mp3', 'pop-2.mp3', 'pop-3.mp3', 'pop-4.mp3', 'pop-5.mp3', 'pop-6.mp3'], vol: 0.5, sinIdioma: true },
+            enfado:   { archivos: ['enfado-1.mp3', 'enfado-2.mp3', 'enfado-3.mp3', 'enfado-4.mp3'], vol: 0.5 },
             quejido:  { archivos: ['quejido-1.mp3', 'quejido-2.mp3'], vol: 0.5 },
             risa:     { archivos: ['risa-1.mp3', 'risa-2.mp3'], vol: 0.55 },
             /* archivosEn: banco inglés (generado con la voz clonada, 8-ago).
@@ -753,11 +759,7 @@
                idioma. sfxObtener elige banco según IDIOMA, con fallback ES. */
             sinMicro: { archivos: ['frase-sin-micro-1.mp3', 'frase-sin-micro-2.mp3'],
                         archivosEn: ['frase-sin-micro-en-1.mp3', 'frase-sin-micro-en-2.mp3', 'frase-sin-micro-en-3.mp3', 'frase-sin-micro-en-4.mp3'], vol: 0.85 },
-            /* toque y enfado HABLAN castellano («hey, no me hagas eso») —
-               hasta que existan sus gemelas EN, en inglés callan (soloEs):
-               mejor mudo que en el idioma equivocado. Al añadirles archivosEn
-               el silencio se desarma solo (ver sfxObtener). */
-            toque:    { archivos: ['toque-1.mp3', 'toque-2.mp3', 'toque-5.mp3'], vol: 0.6, soloEs: true },   // 3 y 4 al banquillo: largas para un piquito
+            toque:    { archivos: ['toque-1.mp3', 'toque-2.mp3', 'toque-5.mp3'], vol: 0.6 },   // 3 y 4 al banquillo: largas para un piquito
             /* EN 1-3 NotTheBox · 4-6 DontYouDare · 7-8 ItsDarkInThere · 9-11 NoNo */
             noEncierres: { archivos: ['no-encierres-1.mp3', 'no-encierres-2.mp3', 'no-encierres-3.mp3', 'no-encierres-4.mp3', 'no-encierres-5.mp3'],
                            archivosEn: Array.from({ length: 11 }, (_, i) => `no-encierres-en-${i + 1}.mp3`), vol: 0.8 },
@@ -770,12 +772,10 @@
         function sfxObtener(nombre) {
             const def = SFX[nombre];
             if (!def) return null;
-            /* Banco por idioma: si la sesión es EN y el pool tiene tomas
-               inglesas, hablan ellas; si todas se rompieran, cae al ES.
-               soloEs sin banco EN = pool que habla castellano y aún no tiene
-               gemelas: en inglés calla (Ruben, 8-ago: «aún dice 'hey, no me
-               hagas eso' en la página EN»). */
-            if (IDIOMA === 'en' && def.soloEs && !def.archivosEn) return null;
+            /* Banco por idioma. En EN rige la LISTA BLANCA: solo suena un pool
+               con banco inglés o certificado sinIdioma; el resto calla — ver
+               el aviso sobre el manifiesto SFX. En ES, todo como siempre. */
+            if (IDIOMA === 'en' && !def.archivosEn && !def.sinIdioma) return null;
             let banco = (IDIOMA === 'en' && def.archivosEn) ? def.archivosEn : def.archivos;
             let vivos = banco.filter(f => !def[f + '_roto']);
             if (!vivos.length && banco !== def.archivos) vivos = def.archivos.filter(f => !def[f + '_roto']);
