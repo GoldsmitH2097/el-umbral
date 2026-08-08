@@ -47,14 +47,15 @@ Trucos del generador: los `[corchetes]` son la emoción, los `...` marcan
 pausa, las MAYÚSCULAS dan golpe de voz. Genera 2–3 variantes por línea y
 quédate con la buena.
 
-**frase-sin-micro-en-1.mp3**
+**frase-sin-micro-en-1.mp3** *(borrador corto — se ajustará al texto real de
+la toma ES; sin ubicar el candado, que cambia según navegador/dispositivo)*
 ```
-[whispers] My voice can't REACH you... [sighs] the microphone is... sealed. [whispers] Tap the padlock... up in the address bar... and set me FREE.
+[whispers] I can't hear you... the microphone is sealed. Set it free.
 ```
 
-**frase-sin-micro-en-2.mp3**
+**frase-sin-micro-en-2.mp3** *(borrador corto, ídem)*
 ```
-[sighs] Still sealed... [sarcastic] the padlock, wanderer. Address bar. Microphone. Allow. [whispers] I'll wait... I ALWAYS wait.
+[sighs] Still sealed... [whispers] free the microphone... I'll wait. I always wait.
 ```
 
 **no-encierres-en-1.mp3**
@@ -64,7 +65,7 @@ quédate con la buena.
 
 **no-encierres-en-2.mp3**
 ```
-[angry] Don't you DARE shut me in... [growls]
+[angry] Don't you DARE... [growls]
 ```
 
 **no-encierres-en-3.mp3**
@@ -79,7 +80,7 @@ quédate con la buena.
 
 **no-encierres-en-5.mp3**
 ```
-[sighs] Again...? Fine. [whispers] I remember every hand that's done this.
+[sighs] Again...? [whispers] I remember every hand.
 ```
 
 Si el v3 se resiste con alguna emoción, prueba etiquetas libres — el modelo
