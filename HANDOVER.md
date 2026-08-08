@@ -1,9 +1,26 @@
 # HANDOVER.md — El Umbral / Soulware
-*Last updated: August 7, 2026 — Session 13 (PUBLICADO: PR #63 en producción; allowlist armada; guion de tomas EN en TOMAS-EN.md)*
+*Last updated: August 8, 2026 — Session 13 (PUBLICADO + Tizno bilingüe completo: 34 tomas EN, regla de idioma en el agente, El Aviso notificando)*
 
 ---
 
 ## What was completed — Session 13 (August 6, 2026)
+
+**Post-launch same-day (Aug 8) — Tizno's English voice + polish, all live on main:**
+EN voice bank complete (34 takes, generated with the cloned voice + ElevenLabs v3 audio
+tags): frase-sin-micro-en ×4, no-encierres-en ×11 (NotTheBox/DontYouDare/ItsDarkInThere/
+NoNo), toque-en ×6, enfado-en ×7, vuelve-en ×6 (return greeting — plays on first
+emergence when memory says the visitor has been here; ES falls back to pop). LANGUAGE
+WHITELIST in sfxObtener: on /en/ only pools with an EN bank or certified sinIdioma
+(pop, ronroneo) may sound — susto/risa/quejido stay SILENT in EN until Ruben certifies
+them wordless or records twins. Agent system prompt got REGLA DE IDIOMA (published):
+{{idioma}} variable enforced, no mixing, untranslated titles cited in Spanish per
+GLOSARIO.md. Bare /tizno-ai.html redirects home (?demo=1 = team door; ?embed=1
+untouched). Petting now beats 'listening' for the face (cute melt during calls;
+speaking theater still wins). Footer turn-states («Tizno habla/te escucha») removed —
+susurro reserved for mic failures/remedies. EL AVISO NOTIFICATIONS WORK: Netlify
+delivers form emails in delayed batches (~30-40 min) — configured to editorial@
+soulware.live + goldsmith2097@gmail.com; Javier should confirm the editorial@ mailbox
+exists in Zoho. PR #62 closed as superseded.
 
 **🚀 PUBLISHED Aug 7, 2026 — Ruben tested everything on-device ("probado y va todo perfecto") and said "vamos a publicar". PR #63 merged to main (merge commit c8f5564), production verified (aviso-modal live, tizno-ai.html 200). ElevenLabs allowlist ARMED the same hour: soulware.live + el-umbral.netlify.app, origin-header required — WS-probe verified (prod accepted, alien origins refused). NOTE: deploy previews can no longer connect to the agent; to test Tizno on a preview, open the allowlist temporarily and re-arm it after. PR #62 is superseded (614 lines behind what shipped) — close it on GitHub. Remaining: EN voice takes (script in TOMAS-EN.md) + per-language pool wiring; El Aviso E2E now testable directly on production (submit → Netlify Forms → el-pacto).**
 
