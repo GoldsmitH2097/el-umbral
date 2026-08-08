@@ -41,6 +41,52 @@ Suena cuando arrastran a Tizno hacia la caja prohibida. Archivos:
 - Nombres EXACTOS de arriba, a `public/tizno-sfx/`. Los archivos se
   versionan por nombre — nunca sobrescribir uno ES.
 
+## Versión para el generador de ElevenLabs (pegar tal cual)
+Con la voz clonada de Rubén y el modelo v3 (el que entiende audio tags).
+Trucos del generador: los `[corchetes]` son la emoción, los `...` marcan
+pausa, las MAYÚSCULAS dan golpe de voz. Genera 2–3 variantes por línea y
+quédate con la buena.
+
+**frase-sin-micro-en-1.mp3**
+```
+[whispers] My voice can't REACH you... [sighs] the microphone is... sealed. [whispers] Tap the padlock... up in the address bar... and set me FREE.
+```
+
+**frase-sin-micro-en-2.mp3**
+```
+[sighs] Still sealed... [sarcastic] the padlock, wanderer. Address bar. Microphone. Allow. [whispers] I'll wait... I ALWAYS wait.
+```
+
+**no-encierres-en-1.mp3**
+```
+[terrified] No—no, NOT the box!
+```
+
+**no-encierres-en-2.mp3**
+```
+[angry] Don't you DARE shut me in... [growls]
+```
+
+**no-encierres-en-3.mp3**
+```
+[sad] [whispers] Please... it's dark in there... darker than me.
+```
+
+**no-encierres-en-4.mp3**
+```
+[angry] NO! [growls]
+```
+
+**no-encierres-en-5.mp3**
+```
+[sighs] Again...? Fine. [whispers] I remember every hand that's done this.
+```
+
+Si el v3 se resiste con alguna emoción, prueba etiquetas libres — el modelo
+entiende descripciones naturales: `[cold]`, `[resigned]`, `[panicking]`,
+`[low growl]`. Y si una toma sale plana, añade contexto delante y recórtalo
+después en el editor.
+
 ## Después (me toca a mí)
 Cuando los archivos estén en la carpeta: cableo el selector de idioma en
 `tizno-ai.html` (pools `-en` cuando `IDIOMA === 'en'`, con fallback al ES si
