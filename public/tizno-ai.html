@@ -2577,7 +2577,11 @@
            y límite diario por navegador. Sin esto, una pestaña olvidada con la
            llamada abierta funde la cuota mensual de ElevenLabs. */
         const SESSION_MAX_S = 180;    // 3 min por conversación
-        const DAILY_MAX_S = 1800;     // 30 min/día por navegador (Creator: 275 min/mes)
+        /* 10 min/día por navegador (Ruben, 8-ago: «un usuario no puede fundir
+           todos los créditos»). El tope de 30 era de la época de pruebas: a
+           ~670 créditos/min, un solo entusiasta podía quemarse el mes en seis
+           días. Diez minutos siguen siendo mucho goblin diario. */
+        const DAILY_MAX_S = 600;
         let callStartedAt = 0, yawnWarned = false;
         const todayKey = () => new Date().toISOString().slice(0, 10);
         const dailyUsed = () => {
