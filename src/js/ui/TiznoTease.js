@@ -176,6 +176,11 @@ export class TiznoTease {
         const span = this._hablarBtn?.querySelector('span');
         if (span) span.textContent = t(this._llamando ? 'footer.colgar' : 'footer.hablar');
       } else if (m.tipo === 'estado' && this._susurroEl()) {
+        /* Los estados de turno («Tizno habla…», «Tizno te escucha…» y sus
+           gemelos EN) ya no se muestran (Ruben, 8-ago: sobran — el turno se
+           ve en el propio Tizno). El susurro queda para lo que importa:
+           fallos del micro y sus remedios. */
+        if (/^tizno (habla|te escucha|is (speaking|listening))/i.test((m.texto || '').trim())) return;
         const el = this._susurroEl();
         /* LA CAUSA MANDA SOBRE EL SÍNTOMA. El marco anuncia su fracaso medio
            segundo después de que la madre anuncie el suyo, y al escribir en el

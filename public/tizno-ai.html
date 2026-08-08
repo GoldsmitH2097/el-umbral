@@ -1283,7 +1283,11 @@
             let add_EarL = 0, add_EarR = 0, add_HeadRot = 0;
             let add_EyeL = 0, add_EyeR = 0;
 
-            if (aiState === 'listening') {
+            /* !mimado: la caricia gana a la escucha (Ruben, 8-ago: «con el
+               micro encendido no pone cara cute»). Si lo estás acariciando
+               mientras escucha, cae a la rama del mimo y se derrite; hablando
+               el teatro del parlamento sigue mandando (mimado ya lo excluye). */
+            if (aiState === 'listening' && !mimado) {
                 // Escuchar NO es congelarse: sigue el cursor como en reposo y
                 // solo se pone atento-vulnerable cuando de verdad te oye.
                 const oye = Math.min(1, sVad * 1.2 + sInVol * 1.5);  // 0 silencio → 1 le hablan
