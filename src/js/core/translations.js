@@ -227,7 +227,7 @@ export const STRINGS = {
     'nav.menu-aria': 'Open menu',
     'site-hero.title':        'The Chronicles',
     'site-hero.sub-html':     '<span class="hero-frase hero-frase--inline">Four archetypes.</span><span class="hero-frase hero-frase--inline">Four universes.</span><span class="hero-frase">Welcome to the Soulware Archive.</span>',
-    'site-hero.editorial':    'Soulware — an independent publisher<br>of dark fiction and author-driven universes.',
+    'site-hero.editorial':    'Soulware is an independent publisher<br>of dark fiction and author-driven universes.',
     'editorial.watermark-html': 'Independent publisher<br>of dark fiction and author-driven universes',
     'site-footer.tagline':    'Nothing is as it seems.',
     'reading-view.back':      '← BACK',
