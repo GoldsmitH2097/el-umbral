@@ -1,11 +1,11 @@
 # HANDOVER.md — El Umbral / Soulware
-*Last updated: August 6, 2026 — Session 13 (cofre galería + Tizno EN + audits; PR #63 listo para enseñar a Javier)*
+*Last updated: August 7, 2026 — Session 13 (PUBLICADO: PR #63 en producción; allowlist armada; guion de tomas EN en TOMAS-EN.md)*
 
 ---
 
 ## What was completed — Session 13 (August 6, 2026)
 
-**All on branch `feat/umbral-footer` (PR #63, deploy-preview-63). NOT merged — Ruben approved the chest design ("amazing, i think we got it"); next step is showing Javier, then the merge conversation. PR #62 (Tizno) also NO MERGEAR.**
+**🚀 PUBLISHED Aug 7, 2026 — Ruben tested everything on-device ("probado y va todo perfecto") and said "vamos a publicar". PR #63 merged to main (merge commit c8f5564), production verified (aviso-modal live, tizno-ai.html 200). ElevenLabs allowlist ARMED the same hour: soulware.live + el-umbral.netlify.app, origin-header required — WS-probe verified (prod accepted, alien origins refused). NOTE: deploy previews can no longer connect to the agent; to test Tizno on a preview, open the allowlist temporarily and re-arm it after. PR #62 is superseded (614 lines behind what shipped) — close it on GitHub. Remaining: EN voice takes (script in TOMAS-EN.md) + per-language pool wiring; El Aviso E2E now testable directly on production (submit → Netlify Forms → el-pacto).**
 
 - **Cofre "versión galería" (final)**: the buyable card is cover-only — no DISPONIBLE
   pill, no repeated title/subtitle (the cover art carries them; the h3 stays as
