@@ -93,11 +93,20 @@
            como en el arte. Una textura compuesta una vez: casi gratis. */
         #niebla-grabada { display: none; }
         html.estancia #niebla-grabada {
-            display: block; position: fixed; left: 0; right: 0; bottom: 0;
-            height: 44vh; z-index: 5; pointer-events: none;
+            display: block; position: fixed; left: 0; right: 0; bottom: -12px;
+            height: 24vh; z-index: 5; pointer-events: none;
             background: url('/tizno-niebla.jpg') bottom center / cover no-repeat;
-            -webkit-mask-image: linear-gradient(to top, black 52%, transparent 100%);
-            mask-image: linear-gradient(to top, black 52%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to top, black 42%, transparent 100%);
+            mask-image: linear-gradient(to top, black 42%, transparent 100%);
+            /* Marea: las volutas respiran — transform puro, coste compositor. */
+            animation: marea-grabada 16s ease-in-out infinite alternate;
+        }
+        @keyframes marea-grabada {
+            from { transform: translateY(0); }
+            to   { transform: translateY(10px); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            html.estancia #niebla-grabada { animation: none; }
         }
         /* SIN zoom interno: mezclaba px escalados con % del viewport y las
            capas fijas (cuerpo vs ojos) se desalineaban según el ancho de la
