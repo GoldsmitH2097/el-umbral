@@ -115,8 +115,12 @@
             display: block; position: fixed; left: -1.5vw; right: -10.9vw; bottom: 0;
             height: calc(44vh - 90px); z-index: 5; pointer-events: none;
             background: url('/tizno-niebla.jpg') bottom center / cover no-repeat;
-            -webkit-mask-image: linear-gradient(to top, black 52%, transparent 100%);
-            mask-image: linear-gradient(to top, black 52%, transparent 100%);
+            /* Las crestas SE VEN ACABAR (Ruben, 14-ago): nada de fundirlas en
+               humo — el velo queda solo en el último 14% para tapar la línea
+               de recorte del cover (la caja corta la lámina a media altura);
+               el resto de la talla llega sólida hasta su propio remate. */
+            -webkit-mask-image: linear-gradient(to top, black 86%, transparent 100%);
+            mask-image: linear-gradient(to top, black 86%, transparent 100%);
             /* Marea: las volutas navegan — vaivén X+Y con respiración de
                escala (la base 1.05 da margen para derivar en X sin enseñar
                bordes). Transform puro, coste compositor. La v1 de 10px/16s
@@ -817,6 +821,16 @@
         let prevMoodHablando = null;   // flanco para el estallido de rabia
         let inBoxB = false, prevBoxB = false;   // flanco de entrada a la caja prohibida
         let enfadoDentro = false, ultimoEnfadoT = 0, enfadoDesde = 0;   // gruñido: entrada profunda + permanencia + enfriamiento
+        /* LA ILUSIÓN CADUCA (Ruben, 14-ago): «que no se quede colgado
+           reaccionando como un perro jadeando eternamente». Plena 3 s, se
+           funde en ~0.9 s y vuelve al reposo aunque el cursor siga ahí; se
+           rearma al salir del radio y volver a entrar. El miedo al candado
+           NO caduca: una amenaza que aburre deja de ser amenaza. */
+        let gustoDesde = 0;
+        const gustoFade = (time) => {
+            if (!gustoDesde) return 0;
+            return Math.max(0, Math.min(1, 1 - (time - gustoDesde - 3000) / 900));
+        };
         window.__setTiznoMood = (m, holdMs) => { aiMood = m; aiMoodUntil = Date.now() + (holdMs || 8000); };
         /* Línea de tiempo emocional: el módulo instala window.__tiznoTimeline
            ({segs, totalChars, cps}) por cada parlamento; el rig avanza un reloj
@@ -873,7 +887,10 @@
            Deja los mp3 en /tizno-sfx/ con estos nombres y suenan solos.
            Si un archivo no existe, simplemente no suena: nada se rompe.
            Puedes ir añadiéndolos de uno en uno. */
-        const SFX_BASE = 'tizno-sfx/';
+        /* ROOT-RELATIVE u nada (doctrina CLAUDE.md, misma lección que los
+           vídeos): con base relativa, la Estancia (/tizno/) resolvía cada
+           toma a /tizno/tizno-sfx/… → 404 → Tizno MUDO solo allí (14-ago). */
+        const SFX_BASE = '/tizno-sfx/';
         /* Cada reacción tiene un POOL de tomas (grabadas por Ruben con la voz
            de Tizno, 2026-08-04) y suena una al azar, nunca la misma dos veces
            seguidas: la repetición exacta es lo que delata a una máquina.
@@ -1593,20 +1610,23 @@
                 add_EarL = carcajada * 26 * r; add_EarR = -carcajada * 26 * r;
                 add_EyeL = Math.abs(carcajada) * 0.12 * r; add_EyeR = add_EyeL;
 
-            } else if (distA < interactionThreshold) {
+            } else if (distA < interactionThreshold && gustoFade(time) > 0) {
                 /* ILUSIÓN CONTENIDA (Ruben, 4-ago): nada de botes. Un
                    asentimiento vertical — sí, sí — con la mirada encendida
                    y las orejas altas. Los add_ pequeños hacen que el paso
                    desde/hacia otras posturas se funda suave (el easing global
-                   ya mezcla los objetivos; eran los saltos los que rompían). */
-                const intensity = (interactionThreshold - distA) / interactionThreshold;
+                   ya mezcla los objetivos; eran los saltos los que rompían).
+                   Y CADUCA (14-ago): fade multiplica los objetivos hacia el
+                   reposo; al llegar a 0 la rama se apaga y manda el idle. */
+                const fade = gustoFade(time);
+                const intensity = ((interactionThreshold - distA) / interactionThreshold) * fade;
                 eyeLeft.className = "eye left"; eyeRight.className = "eye right";
 
-                t_HeadX = boxANormX * 38;
-                t_HeadY = boxANormY * 22;
-                t_RigRot = boxANormX * 5;
-                t_EarL = 26; t_EarR = -26;
-                t_EyeL = 1.15; t_EyeR = 1.15;
+                t_HeadX = boxANormX * 38 * fade;
+                t_HeadY = boxANormY * 22 * fade;
+                t_RigRot = boxANormX * 5 * fade;
+                t_EarL = 26 * fade; t_EarR = -26 * fade;
+                t_EyeL = 1 + 0.15 * fade; t_EyeR = 1 + 0.15 * fade;
 
                 t_NeckScaleX = 1 - (intensity * 0.05);
                 t_NeckScaleY = 1 + (intensity * 0.1);
@@ -1768,13 +1788,18 @@
                 boxBNormX = window.__candadoNX || 0;
                 boxBNormY = window.__candadoNY || 0;
             }
+            /* El reloj de la ilusión: arranca al entrar en el radio del gusto
+               y solo se rearma saliendo de él (ver gustoFade). */
+            if (distA < interactionThreshold) { if (!gustoDesde) gustoDesde = time; }
+            else gustoDesde = 0;
 
             /* LAS CAJAS NO SE APAGAN AL HABLAR. Durante la conversación se
                superponen a la animación de voz en vez de sustituirla: la voz
                sigue moviendo el cuerpo y las cajas añaden su reacción encima. */
             if (aiState !== 'idle') {
                 if (distA < interactionThreshold) {
-                    const k = (interactionThreshold - distA) / interactionThreshold;
+                    // La misma caducidad que en reposo: la ilusión se apaga a los 3 s.
+                    const k = ((interactionThreshold - distA) / interactionThreshold) * gustoFade(time);
                     t_HeadX += boxANormX * 45 * k;
                     t_EarL += 32 * k; t_EarR -= 32 * k;
                     t_RigRot += boxANormX * 7 * k;
