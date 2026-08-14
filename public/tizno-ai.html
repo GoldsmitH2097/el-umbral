@@ -1355,13 +1355,28 @@
                 /* Visitante que VUELVE: la primera emersión de la sesión lo
                    saluda con una toma de regreso ('vuelve') en vez del pop —
                    Tizno te reconoce. Si el banco no existe para el idioma
-                   (ES, hoy) o ya saludó, salpica como siempre. */
-                let saludoDeVuelta = false;
+                   (ES, hoy) o ya saludó, salpica como siempre.
+                   AUTOPLAY (Ruben, 14-ago: «no habla NADA»): en la Estancia y
+                   la demo la emersión llega SIN gesto del usuario y el
+                   navegador veta el play — el saludo moría en silencio (en el
+                   embed vive porque el clic al candado de la madre ya cuenta,
+                   mismo origen). Si aún no hubo gesto, el saludo queda
+                   PENDIENTE y suena con el primero. */
                 if (!window.__vueltaSaludada) {
                     window.__vueltaSaludada = true;
-                    try { if ((loadMem().visits || 0) >= 1) saludoDeVuelta = sfxPlay('vuelve'); } catch (_) {}
+                    const saludar = () => {
+                        let dicho = false;
+                        try { if ((loadMem().visits || 0) >= 1) dicho = sfxPlay('vuelve'); } catch (_) {}
+                        if (!dicho) sfxPlay('pop');
+                    };
+                    if (navigator.userActivation && !navigator.userActivation.hasBeenActive) {
+                        window.addEventListener('pointerdown', saludar, { once: true });
+                    } else {
+                        saludar();
+                    }
+                } else {
+                    sfxPlay('pop');
                 }
-                if (!saludoDeVuelta) sfxPlay('pop');
                 burstInk(1.35, true);
                 burstLetters(NIVEL === 'alto' ? 9 : NIVEL === 'medio' ? 6 : 3, 1.2);
             }
