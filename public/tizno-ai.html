@@ -23,6 +23,18 @@
           if (b) b.textContent = 'LOCK TIZNO AWAY';
           const c = document.getElementById('tizno-call');
           if (c) c.textContent = 'Speak to Tizno';
+          const st = document.getElementById('tizno-status');
+          if (st) st.textContent = 'press to speak with him';
+          /* El aviso de privacidad, en inglés — CIRUGÍA, no innerHTML: el
+             enlace #tizno-olvido conserva su nodo (y sus listeners). */
+          const aviso = document.getElementById('tizno-aviso');
+          const olvido = document.getElementById('tizno-olvido');
+          if (aviso && olvido) {
+            olvido.textContent = 'erase what he knows about you';
+            [...aviso.childNodes].forEach((n) => { if (n.nodeType === 3) n.textContent = ''; });
+            aviso.insertBefore(document.createTextNode('No cookies here: we have no wish to pry into your life, or to take anything from you that could be sold. Tizno remembers things about you — but he keeps them inside your own device; we keep nothing. If it puts you at ease, you can '), olvido);
+            aviso.appendChild(document.createTextNode('.'));
+          }
         });
       }
       /* Conmutador de idioma de la Estancia: marca el activo y deja la
@@ -48,11 +60,11 @@
     <link rel="canonical" href="https://soulware.live/tizno" />
     <meta property="og:title" content="Tizno — El Custodio del Umbral" />
     <meta property="og:description" content="Una criatura minúscula vive en la niebla de Soulware. Habla con ella. No la encierres." />
-    <meta property="og:image" content="https://soulware.live/og-image.jpg" />
+    <meta property="og:image" content="https://soulware.live/tizno-og.jpg" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://soulware.live/tizno" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content="https://soulware.live/og-image.jpg" />
+    <meta name="twitter:image" content="https://soulware.live/tizno-og.jpg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <style>
         /* ══════ MODO EMBED (?embed=1) — Tizno como criatura de la web ══════
@@ -76,6 +88,17 @@
         }
         #idiomas a.activo { color: #e8c87a; background: rgba(200, 146, 42, 0.12); }
         #idiomas a:hover:not(.activo) { color: #9a8a6e; }
+        /* La niebla grabada (Ruben, 14-ago): la banda de volutas de la lámina
+           oficial, delante del tallo — Tizno asoma por detrás de los grabados
+           como en el arte. Una textura compuesta una vez: casi gratis. */
+        #niebla-grabada { display: none; }
+        html.estancia #niebla-grabada {
+            display: block; position: fixed; left: 0; right: 0; bottom: 0;
+            height: 44vh; z-index: 5; pointer-events: none;
+            background: url('/tizno-niebla.jpg') bottom center / cover no-repeat;
+            -webkit-mask-image: linear-gradient(to top, black 52%, transparent 100%);
+            mask-image: linear-gradient(to top, black 52%, transparent 100%);
+        }
         /* SIN zoom interno: mezclaba px escalados con % del viewport y las
            capas fijas (cuerpo vs ojos) se desalineaban según el ancho de la
            ventana. La madre escala el iframe entero con transform. */
@@ -492,6 +515,7 @@
     <nav id="idiomas" aria-label="Idioma / Language">
       <a id="idioma-es" href="/tizno">ES</a><a id="idioma-en" href="/en/tizno">EN</a>
     </nav>
+    <div id="niebla-grabada" aria-hidden="true"></div>
 
     <!-- ═══ ELEVENLABS 2/4 — call UI ═══ -->
     <div id="tizno-call-ui">
