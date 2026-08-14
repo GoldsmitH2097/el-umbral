@@ -13,15 +13,29 @@
       /* La Estancia pública va limpia: sin cajas de juego (Ruben, 14-ago) —
          solo Tizno, la niebla y el botón. ?demo=1 conserva el patio entero. */
       if (esEstancia) document.documentElement.classList.add('estancia');
+      const esIngles = /[?&]lang=en/.test(location.search) || /^\/en\//.test(location.pathname);
       /* En la Estancia inglesa, los rótulos estáticos hablan inglés (el resto
-         del rig ya se traduce solo con ?lang=en). */
-      if (/[?&]lang=en/.test(location.search)) {
+         del rig ya se traduce solo). */
+      if (esIngles) {
         addEventListener('DOMContentLoaded', () => {
           const a = document.getElementById('box-a'), b = document.getElementById('box-b');
           if (a) a.textContent = 'BUY PULSE OF THE CORE';
           if (b) b.textContent = 'LOCK TIZNO AWAY';
           const c = document.getElementById('tizno-call');
           if (c) c.textContent = 'Speak to Tizno';
+        });
+      }
+      /* Conmutador de idioma de la Estancia: marca el activo y deja la
+         elección en sw_lang (la web principal la honra en la próxima visita). */
+      if (esEstancia) {
+        addEventListener('DOMContentLoaded', () => {
+          const activo = document.getElementById(esIngles ? 'idioma-en' : 'idioma-es');
+          if (activo) activo.classList.add('activo');
+          document.querySelectorAll('#idiomas a').forEach((a) => {
+            a.addEventListener('click', () => {
+              try { localStorage.setItem('sw_lang', a.id === 'idioma-en' ? 'en' : 'es'); } catch (_) {}
+            });
+          });
         });
       }
     </script>
@@ -47,6 +61,21 @@
         html.embed, html.embed body { background: transparent !important; }
         /* La Estancia (/tizno): sin cajas de juego — solo la criatura. */
         html.estancia #box-a, html.estancia #box-b { display: none !important; }
+        /* Conmutador de idioma: solo vive en la Estancia, esquina superior
+           derecha, con la piel del selector del sitio. */
+        #idiomas { display: none; }
+        html.estancia #idiomas {
+            display: flex; position: fixed; top: 18px; right: 20px; z-index: 40;
+            border: 1px solid rgba(200, 146, 42, 0.28); border-radius: 999px;
+            overflow: hidden; backdrop-filter: blur(4px);
+        }
+        #idiomas a {
+            font-family: 'Times New Roman', serif; font-size: 11px;
+            letter-spacing: 3px; text-decoration: none; padding: 7px 14px 7px 17px;
+            color: #6e6252; transition: color 0.3s, background 0.3s;
+        }
+        #idiomas a.activo { color: #e8c87a; background: rgba(200, 146, 42, 0.12); }
+        #idiomas a:hover:not(.activo) { color: #9a8a6e; }
         /* SIN zoom interno: mezclaba px escalados con % del viewport y las
            capas fijas (cuerpo vs ojos) se desalineaban según el ancho de la
            ventana. La madre escala el iframe entero con transform. */
@@ -456,6 +485,13 @@
 
     <div id="firefly"></div>
     <div id="earring"></div>
+
+    <!-- Conmutador de idioma — SOLO en la Estancia (html.estancia). Navega
+         entre /tizno y /en/tizno y deja la elección en sw_lang para que la
+         web principal la recuerde (mismo contrato que el selector del sitio). -->
+    <nav id="idiomas" aria-label="Idioma / Language">
+      <a id="idioma-es" href="/tizno">ES</a><a id="idioma-en" href="/en/tizno">EN</a>
+    </nav>
 
     <!-- ═══ ELEVENLABS 2/4 — call UI ═══ -->
     <div id="tizno-call-ui">
