@@ -8,15 +8,20 @@
          pública (/tizno y /en/tizno, rewrites de Netlify: misma criatura a
          pantalla completa, un solo frente). /tizno-ai.html a pelo sigue
          yendo a la home: esa URL no es canon. */
-      if (!/[?&](embed|demo)=1/.test(location.search)
-          && !/^\/(en\/)?tizno\/?$/.test(location.pathname)) location.replace('/');
-      /* En la Estancia inglesa, las cajas hablan inglés (etiquetas estáticas;
-         el resto del rig ya se traduce solo con ?lang=en). */
+      const esEstancia = /^\/(en\/)?tizno\/?$/.test(location.pathname);
+      if (!/[?&](embed|demo)=1/.test(location.search) && !esEstancia) location.replace('/');
+      /* La Estancia pública va limpia: sin cajas de juego (Ruben, 14-ago) —
+         solo Tizno, la niebla y el botón. ?demo=1 conserva el patio entero. */
+      if (esEstancia) document.documentElement.classList.add('estancia');
+      /* En la Estancia inglesa, los rótulos estáticos hablan inglés (el resto
+         del rig ya se traduce solo con ?lang=en). */
       if (/[?&]lang=en/.test(location.search)) {
         addEventListener('DOMContentLoaded', () => {
           const a = document.getElementById('box-a'), b = document.getElementById('box-b');
           if (a) a.textContent = 'BUY PULSE OF THE CORE';
           if (b) b.textContent = 'LOCK TIZNO AWAY';
+          const c = document.getElementById('tizno-call');
+          if (c) c.textContent = 'Speak to Tizno';
         });
       }
     </script>
@@ -38,6 +43,8 @@
            Fondo transparente, sin cajas ni UI de llamada ni luciérnaga propia:
            la página madre pone el mundo; aquí solo vive él, al 62%. */
         html.embed, html.embed body { background: transparent !important; }
+        /* La Estancia (/tizno): sin cajas de juego — solo la criatura. */
+        html.estancia #box-a, html.estancia #box-b { display: none !important; }
         /* SIN zoom interno: mezclaba px escalados con % del viewport y las
            capas fijas (cuerpo vs ojos) se desalineaban según el ancho de la
            ventana. La madre escala el iframe entero con transform. */
@@ -450,7 +457,7 @@
 
     <!-- ═══ ELEVENLABS 2/4 — call UI ═══ -->
     <div id="tizno-call-ui">
-        <button id="tizno-call">Despertar a Tizno</button>
+        <button id="tizno-call">Hablar con Tizno</button>
         <div id="tizno-status">pulsa para hablar con él</div>
         <p id="tizno-aviso">
             En esta web no usamos cookies: no queremos entrometernos en tu vida ni sacar
@@ -2631,6 +2638,12 @@
            así el primer mensaje no se repite nunca dos veces seguidas. Ninguna
            destapa cartas: la Ley del Ilusionista prohíbe hacerlo en la 1ª frase. */
         const SALUDOS_GENERAL = [
+            /* Cosecha del First Message de Casanova (14-ago), vestida con el
+               temblor de Tizno — la Mente bajo el Miedo estrena voz. */
+            '[Curious] Ah. Ya estás aquí. [Whispers] Pregunta, provoca... o trae una idea a medio hacer. Lo último suele ser lo mejor.',
+            '[Whispers] ¿Has venido a buscar una respuesta... una buena pregunta... [Curious] o una pequeña grieta en la realidad?',
+            '[Sighs] Un misterio contado antes de tiempo no es conocimiento: es mobiliario roto. [Curious] Pregunta igualmente.',
+            '[Chuckles] Puedes intentar desconcertarme. Suele ser divertido... [Whispers] para mí.',
             '[Sonido de respiración entrecortada] ¿Quién anda ahí?... ¿Has venido a leer, viajero, o a que te diseccionen? Acércate a la luz, que en las sombras me aburro.',
             '[scared] ¡Ah! ¡No, no, no! ¿De dónde has salido tú? [Whispers] Baja la voz... hay cosas aquí que llevan mucho tiempo dormidas.',
             '[Whispers] Shhh. Quieto. No te muevas todavía. [scared] ¿Vienes solo? Dime que vienes solo.',
@@ -2652,6 +2665,12 @@
            que Tizno saludara en español y conversara en inglés — arranque
            esquizofrénico. Mismo carácter, mismas acotaciones de intérprete. */
         const SALUDOS_GENERAL_EN = [
+            /* Harvest from Casanova's First Message (Aug 14), dressed in
+               Tizno's tremor. */
+            '[Curious] Ah. You made it. [Whispers] Ask me something, bring me a half-formed idea... or try to confuse me. The last one is often entertaining.',
+            '[Whispers] Did you come looking for an answer... a better question... [Curious] or a small crack in reality?',
+            '[Sighs] A mystery told too soon is not knowledge; it is broken furniture. [Curious] Ask anyway.',
+            '[Chuckles] Spoilers are a lazy form of time travel. [Whispers] Everything else is fair game.',
             '[Sonido de respiración entrecortada] Who goes there?... Have you come to read, traveler, or to be dissected? Step into the light; the shadows bore me.',
             '[scared] Ah! No, no, no! Where did YOU come from? [Whispers] Keep your voice down... there are things here that have been asleep a very long time.',
             '[Whispers] Shhh. Still. Don\'t move yet. [scared] Are you alone? Tell me you came alone.',
@@ -2907,7 +2926,7 @@
                         }, 1000);
                     },
                     onDisconnect: () => {
-                        btn.textContent = 'Despertar a Tizno';
+                        btn.textContent = IDIOMA === 'en' ? 'Speak to Tizno' : 'Hablar con Tizno';
                         btn.classList.remove('live');
                         btn.disabled = false;
                         setState('idle');
