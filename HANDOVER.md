@@ -5,6 +5,25 @@
 
 ## What was completed — Session 13 (August 6, 2026)
 
+**Aug 14 — La Mente, La Estancia y la aduana de Casanova:**
+Casanova delivered 3 docs (QA bank, 2-min First Message, Muster Knowledge). Customs
+findings applied with Ruben's decisions: temperament FUSED (fear outside, sage inside
+— new prompt section LA MENTE BAJO EL MIEDO), origin = LA ESCALERA DE LA INSISTENCIA
+(hints on insistence, NEVER vendor names), 2-min monologue discarded (best lines
+harvested into 8 new short saludos ES/EN in the rig pools), «Custodian of the
+Threshold» now OFFICIAL in GLOSARIO.md, the eight-dynamics framework was a
+recognizable Scientology parallel → replaced by LAS CUATRO LLAMAS anchored to the
+canon domains (Honor·Conocimiento·Identidad·Juicio), brands/citation artifacts
+removed. Both prompt sections PUBLISHED to the agent. KB now 8 docs: added «Las
+Cuatro Llamas» (master copy TIZNO-CUATRO-LLAMAS.md) and the long-pending bilingual
+GLOSARIO. QA bank lives in repo as TIZNO-BANCO-PRUEBAS.md (NEVER upload to KB —
+it's the exam). PENDING: run the quick-pass (20 tests, list in the bank doc) in ES
+and EN — needs voice, Ruben's hands. Also: LA ESTANCIA — soulware.live/tizno and
+/en/tizno (SECRET URL, nothing links to it; rewrite 200 to tizno-ai.html, same
+single-front rig): play boxes hidden in public Estancia (?demo=1 keeps them),
+button verb is now «Hablar con Tizno»/«Speak to Tizno» everywhere, OG/meta for
+shareability. Box B relabeled «ENCERRAR A TIZNO».
+
 **Post-launch same-day (Aug 8) — Tizno's English voice + polish, all live on main:**
 EN voice bank complete (34 takes, generated with the cloned voice + ElevenLabs v3 audio
 tags): frase-sin-micro-en ×4, no-encierres-en ×11 (NotTheBox/DontYouDare/ItsDarkInThere/
