@@ -109,18 +109,18 @@
                54.7vw para que ese 45.8% caiga EXACTO en 50vw, bajo su cuerpo,
                sin destapar el borde izquierdo (cover mapea la imagen al ancho
                de la caja en apaisado). */
-            /* Crestas dos botones más abajo (Ruben, 14-ago): el fondo sigue
-               clavado al pie y la caja pierde ~90px de alto — como el cover
-               mapea por ancho, recortar alto solo baja la línea de cumbres. */
+            /* LA GEOMETRÍA BENDECIDA (Ruben, 14-ago: «así como lo hiciste la
+               primera vez estaba genial, solo hay que bajarlo un poquito»):
+               la banda ORIGINAL de 44vh con su fundido suave, y el descenso
+               se hace empujando LA IMAGEN (bottom -60px) — encoger la caja
+               no baja las crestas, las decapita: la imagen no se mueve, la
+               ventana recorta (la lección de esta noche, tres intentos). El
+               -60px es EL mando: más negativo = nubes más abajo. */
             display: block; position: fixed; left: -1.5vw; right: -10.9vw; bottom: 0;
-            height: calc(44vh - 90px); z-index: 5; pointer-events: none;
-            background: url('/tizno-niebla.jpg') bottom center / cover no-repeat;
-            /* Las crestas SE VEN ACABAR (Ruben, 14-ago): nada de fundirlas en
-               humo — el velo queda solo en el último 14% para tapar la línea
-               de recorte del cover (la caja corta la lámina a media altura);
-               el resto de la talla llega sólida hasta su propio remate. */
-            -webkit-mask-image: linear-gradient(to top, black 86%, transparent 100%);
-            mask-image: linear-gradient(to top, black 86%, transparent 100%);
+            height: 44vh; z-index: 5; pointer-events: none;
+            background: url('/tizno-niebla.jpg') center bottom -60px / cover no-repeat;
+            -webkit-mask-image: linear-gradient(to top, black 52%, transparent 100%);
+            mask-image: linear-gradient(to top, black 52%, transparent 100%);
             /* Marea: las volutas navegan — vaivén X+Y con respiración de
                escala (la base 1.05 da margen para derivar en X sin enseñar
                bordes). Transform puro, coste compositor. La v1 de 10px/16s

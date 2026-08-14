@@ -5,6 +5,44 @@
 
 ## What was completed — Session 13 (August 6, 2026)
 
+**Aug 14 (night) — the Estancia finds its voice (commits 8bea709→5eca01a, all verified live):**
+- **THE MUTE ESTANCIA — two stacked causes, both real**: (1) `SFX_BASE` was
+  RELATIVE (`tizno-sfx/`) so from `/tizno/` every take resolved to
+  `/tizno/tizno-sfx/…` → 404 → total silence ONLY there (the embed lives at
+  root and never suffered it). Now `/tizno-sfx/` — same root-relative doctrine
+  as the videos in CLAUDE.md. (2) Autoplay policy: the emergence greeting fired
+  ~1.5s after load with NO user gesture and the rejected `play()` was swallowed
+  by the catch; in the embed the padlock click in the parent grants activation
+  (same origin). Now, if `navigator.userActivation.hasBeenActive` is false the
+  greeting (vuelve/pop) goes PENDING and plays on the first pointerdown.
+- **Hover reaction expires** (Ruben: «no more panting dog»): `gustoDesde` +
+  `gustoFade()` — full illusion 3s, ~0.9s fade back to idle even if the cursor
+  stays, re-arms on leaving the radius. Applied to the idle branch AND the
+  during-call overlay. The padlock FEAR does NOT expire (a threat that bores
+  stops being a threat).
+- **THE FOG-LOWERING LESSON (three attempts — do not repeat)**: with
+  `cover` anchored bottom, SHRINKING THE BOX does not lower the crests — it
+  DECAPITATES them (the image never moves; the window crops, and the mask then
+  eats the cut tops — Ruben's «sigue con un fade» complaint). Lowering is done
+  by PUSHING THE IMAGE: `background-position: center bottom -60px`. Final
+  blessed geometry (Ruben: «como la primera vez, solo bajado un poquito»):
+  box 44vh + mask 52% (the original soft look), image pushed -60px, box
+  widened to 112vw centered at 54.7vw so the artwork's ink column (at 45.8%
+  of the image width, canvas-measured; crest tops at y≈503-557 of 893) sits
+  under Tizno's axis. The `-60px` is THE knob for future taste passes.
+  Mobile caveat noted: in portrait, cover maps by HEIGHT and squeezes the
+  whole artwork into the band — pre-existing, revisit with its own framing.
+- **MONDAY (Ruben, tired but willing)**: record ES `vuelve` takes (3–6 return
+  greetings, list given in chat: «¿Otra vez tú?», «Has vuelto… lo sabía.»,
+  «Te estaba esperando.», «¡Ah! Conozco esos pasos.», «¿Me echabas de menos?»,
+  «Bienvenido otra vez al Umbral») + EN `quejido` ×2 and `risa` ×2 — OR, if the
+  ES quejido/risa takes turn out wordless, certify them `sinIdioma` and they
+  sound in EN for free. Ruben listens and decides.
+- **Javier is submitting the ElevenLabs grant** (GRANT-SOLICITUD.md): remind
+  him his LinkedIn Experience must list Soulware BEFORE submitting, and the
+  editorial@soulware.live mailbox must actually exist in Zoho (decision email
+  goes there).
+
 **Aug 14 (late) — La Estancia settles (commit 21fd8cb, deployed + verified):**
 - **THE EYES LESSON (do not repeat)**: both `.master-rig`s (body AND eyes layer)
   share the class, so `html.estancia .master-rig { bottom: 21vh }` raises them IN
