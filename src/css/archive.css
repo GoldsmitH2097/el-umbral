@@ -832,6 +832,14 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
 #tizno-frame.visible { opacity: 1; }
 /* backstage: en la vista de lectura el marco se desvanece del todo */
 #tizno-frame.backstage { opacity: 0 !important; }
+/* EL ESCUDO DE TIZNO (Ruben, 14-ago): círculo invisible sobre su cuerpo,
+   z 29 — sobre el marco (28), bajo la barra (30). El marco es transparente a
+   eventos y los cofres de las obras quedan justo detrás de su silueta: sin
+   escudo, tocar a Tizno compraba libros. El escudo traga esos clics (y el
+   reenvío global de TiznoTease los convierte en toque para él). Solo existe
+   mientras Tizno está fuera: sigue las clases del marco por hermandad. */
+#tizno-escudo { position: fixed; z-index: 29; border-radius: 50%; display: none; }
+#tizno-frame.visible:not(.backstage) + #tizno-escudo { display: block; }
 @media (max-width: 820px) {
   #tizno-frame { right: 0; bottom: 88px; transform: scale(0.42); }
 }

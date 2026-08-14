@@ -31,8 +31,13 @@
           const olvido = document.getElementById('tizno-olvido');
           if (aviso && olvido) {
             olvido.textContent = 'erase what he knows about you';
-            [...aviso.childNodes].forEach((n) => { if (n.nodeType === 3) n.textContent = ''; });
-            aviso.insertBefore(document.createTextNode('No cookies here: we have no wish to pry into your life, or to take anything from you that could be sold. Tizno remembers things about you — but he keeps them inside your own device; we keep nothing. If it puts you at ease, you can '), olvido);
+            [...aviso.childNodes].forEach((n) => {
+              if (n.nodeType === 3) n.textContent = '';
+              else if (n.tagName === 'BR') n.remove();   // el <br> del ES: aquí va el nuestro
+            });
+            aviso.insertBefore(document.createTextNode('No cookies here: we have no wish to pry into your life, or to take anything from you that could be sold. Tizno remembers things about you — but he keeps them inside your own device; we keep nothing.'), olvido);
+            aviso.insertBefore(document.createElement('br'), olvido);
+            aviso.insertBefore(document.createTextNode('If it puts you at ease, you can '), olvido);
             aviso.appendChild(document.createTextNode('.'));
           }
         });
@@ -97,7 +102,14 @@
                entera de 44vh llenando el pie de la escena como en la lámina.
                A quien se sube es a TIZNO (ver las reglas de abajo), no se
                toca la niebla. */
-            display: block; position: fixed; left: 0; right: 0; bottom: 0;
+            /* La columna de tinta de la lámina vive en el 45.8% del ancho de
+               la imagen (medida en canvas, 14-ago), no en el 50%: centrada a
+               pelo quedaba descolgada del eje de Tizno (Ruben: «the center
+               should match»). La caja se ensancha a 112vw con el centro en
+               54.7vw para que ese 45.8% caiga EXACTO en 50vw, bajo su cuerpo,
+               sin destapar el borde izquierdo (cover mapea la imagen al ancho
+               de la caja en apaisado). */
+            display: block; position: fixed; left: -1.5vw; right: -10.9vw; bottom: 0;
             height: 44vh; z-index: 5; pointer-events: none;
             background: url('/tizno-niebla.jpg') bottom center / cover no-repeat;
             -webkit-mask-image: linear-gradient(to top, black 52%, transparent 100%);
@@ -113,18 +125,20 @@
            par (en vh, para que el nivel case con las volutas en cualquier
            pantalla). Su base queda tras las crestas: emerge, no flota. */
         html.estancia .master-rig { bottom: 21vh; }
-        /* Los ojos suben por TRANSFORM, no por padding: el padding encoge la
-           caja del layer y desbarata la base de cálculo del JS (ojos rotos,
-           14-ago). El transform desplaza el visual y los rects a la par,
-           exactamente la misma delta que el rig (de 50px a 21vh). */
-        html.estancia #eyes-layer-container { transform: translateY(calc(-21vh + 50px)); }
+        /* Los OJOS no se tocan: el JS los ancla al rect de la cabeza cada
+           frame, así que siguen al rig solos. Cualquier desplazamiento extra
+           del layer los empuja EL DOBLE (los dos ojos rotos del 14-ago
+           fueron exactamente eso — padding primero, transform después). */
+        /* Casi quietud (Ruben: «almost static is fine»): deriva mínima en
+           24s — se percibe solo si te quedas mirando, como debe ser. */
         @keyframes marea-grabada {
-            0%   { transform: scale(1.05) translate(0, 6px); }
-            25%  { transform: scale(1.065) translate(-12px, -5px); }
-            50%  { transform: scale(1.05) translate(5px, 9px); }
-            75%  { transform: scale(1.075) translate(12px, -3px); }
-            100% { transform: scale(1.05) translate(0, 6px); }
+            0%   { transform: scale(1.05) translate(0, 3px); }
+            25%  { transform: scale(1.054) translate(-5px, -2px); }
+            50%  { transform: scale(1.05) translate(2px, 4px); }
+            75%  { transform: scale(1.057) translate(5px, -1px); }
+            100% { transform: scale(1.05) translate(0, 3px); }
         }
+        html.estancia #niebla-grabada { animation-duration: 24s; }
         @media (prefers-reduced-motion: reduce) {
             html.estancia #niebla-grabada { animation: none; }
         }
@@ -554,7 +568,7 @@
             En esta web no usamos cookies: no queremos entrometernos en tu vida ni sacar
             de ti nada que se pueda vender. Tizno recuerda cosas sobre ti, pero las guarda
             dentro de tu propio dispositivo — nosotros no nos quedamos con nada.
-            Si te quedas más tranquilo, puedes <a href="#" id="tizno-olvido">borrar lo que sabe de ti</a>.
+            <br>Si te quedas más tranquilo, puedes <a href="#" id="tizno-olvido">borrar lo que sabe de ti</a>.
         </p>
     </div>
 
@@ -2335,6 +2349,43 @@
         medirFps();
         if (!EMBED) setTimeout(popIn, 700);   // en embed espera la orden del candado
 
+        /* EL TOQUE: un clic sobre su cuerpo es un piquito en las costillas —
+           respingo, tinta y una queja grabada («¡ay!», «¿me estás buscando
+           las cosquillas?»). Vive FUERA del puente embed desde el 14-ago:
+           encerrado allí, la Estancia y la demo no tenían toque (el «no
+           reacciona al clic» de Ruben). En el embed el clic directo nunca
+           dispara (el marco es transparente a eventos): llega por mensaje. */
+        let ultimoToqueT = 0;
+        let toquesSeguidos = 0;
+        const toqueEn = (cx2, cy2) => {
+            const h = headBase.getBoundingClientRect();
+            const b = bodyTracker.getBoundingClientRect();
+            const dentroDeEl = (cx2 > Math.min(h.left, b.left) - 30 && cx2 < Math.max(h.right, b.right) + 30
+                             && cy2 > h.top - 30 && cy2 < b.bottom + 30);
+            if (!dentroDeEl || popPos < 0.8) return;
+            const ahora = Date.now();
+            if (ahora - ultimoToqueT < 1500) return;   // sin ametrallar
+            /* ESCONDITE JUSTIFICADO (Ruben): irse porque sí es random;
+               irse al CUARTO piquito en 25 s es un personaje harto. */
+            toquesSeguidos = (ahora - ultimoToqueT < 25000) ? toquesSeguidos + 1 : 1;
+            ultimoToqueT = ahora;
+            if (toquesSeguidos >= 4) {
+                toquesSeguidos = 0;
+                popEscondite(3500);
+                sfxPlay('quejido');
+                return;
+            }
+            shockUntil = ahora + 260;
+            burstInk(0.55);
+            sfxPlay('toque');
+        };
+        /* Un toque, una intención: si el clic cayó en un control (Hablar,
+           el conmutador de idioma, el enlace del olvido), no es para él. */
+        window.addEventListener('click', (e) => {
+            if (e.target.closest?.('button, a, nav, input, select, textarea, [role="button"]')) return;
+            toqueEn(e.clientX, e.clientY);
+        });
+
         /* ══════ PUENTE CON LA PÁGINA MADRE (solo embed) ══════
            La madre manda: ratón de toda la página (traducido a nuestras
            coordenadas), la distancia al candado, y las órdenes de liberar
@@ -2370,35 +2421,6 @@
             window.__tiznoSetStatus = (t) => {
                 try { parent.postMessage({ tipo: 'estado', texto: t }, location.origin); } catch (_) {}
             };
-            /* EL TOQUE: un clic sobre su cuerpo es un piquito en las costillas —
-               respingo, tinta y una queja grabada («¡ay!», «¿me estás buscando
-               las cosquillas?»). La llamada de voz vive en el botón Hablarle
-               de la madre; así el gesto de tocar es solo juego. */
-            let ultimoToqueT = 0;
-            let toquesSeguidos = 0;
-            const toqueEn = (cx2, cy2) => {
-                const h = headBase.getBoundingClientRect();
-                const b = bodyTracker.getBoundingClientRect();
-                const dentroDeEl = (cx2 > Math.min(h.left, b.left) - 30 && cx2 < Math.max(h.right, b.right) + 30
-                                 && cy2 > h.top - 30 && cy2 < b.bottom + 30);
-                if (!dentroDeEl || popPos < 0.8) return;
-                const ahora = Date.now();
-                if (ahora - ultimoToqueT < 1500) return;   // sin ametrallar
-                /* ESCONDITE JUSTIFICADO (Ruben): irse porque sí es random;
-                   irse al CUARTO piquito en 25 s es un personaje harto. */
-                toquesSeguidos = (ahora - ultimoToqueT < 25000) ? toquesSeguidos + 1 : 1;
-                ultimoToqueT = ahora;
-                if (toquesSeguidos >= 4) {
-                    toquesSeguidos = 0;
-                    popEscondite(3500);
-                    sfxPlay('quejido');
-                    return;
-                }
-                shockUntil = ahora + 260;
-                burstInk(0.55);
-                sfxPlay('toque');
-            };
-            window.addEventListener('click', (e) => toqueEn(e.clientX, e.clientY));
             window.addEventListener('message', (ev) => {
                 if (ev.origin !== location.origin || !ev.data) return;
                 const m = ev.data;
@@ -2615,6 +2637,7 @@
             'se ha evaporado': 'he has vanished',
             'Tizno rumia…': 'Tizno is mulling it over…',
             'su voz no ha despertado…': 'his voice has not awakened…',
+            'contador diario reiniciado — Tizno vuelve a tener voz': 'daily counter reset — Tizno has his voice back',
         };
         const PREFIJOS_EN = [
             ['sin micrófono no hay conversación (', 'no microphone, no conversation ('],
@@ -2992,7 +3015,7 @@
                                 : pick(IDIOMA === 'en' ? SALUDOS_GENERAL_EN : SALUDOS_GENERAL),
                     },
                     onConnect: () => {
-                        btn.textContent = 'Dejarle en paz';
+                        btn.textContent = IDIOMA === 'en' ? 'Leave him be' : 'Dejarle en paz';
                         btn.classList.add('live');
                         btn.disabled = false;
                         setState('listening');
@@ -3166,7 +3189,9 @@
             window.__tiznoOlvidar();
             const av = document.getElementById('tizno-aviso');
             av.classList.add('olvidado');
-            av.textContent = 'Listo: Tizno ya no recuerda nada de ti. Vuelves a ser un desconocido.';
+            av.textContent = IDIOMA === 'en'
+                ? 'Done: Tizno no longer remembers a thing about you. You are a stranger to him once more.'
+                : 'Listo: Tizno ya no recuerda nada de ti. Vuelves a ser un desconocido.';
         });
 
         // Pestaña oculta = colgar: nadie paga créditos a una pestaña de fondo.

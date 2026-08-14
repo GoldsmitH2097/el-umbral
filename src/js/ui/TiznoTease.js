@@ -227,6 +227,22 @@ export class TiznoTease {
          Como hermano del footer, 28 < 30 y la barra manda. position:fixed
          sigue siendo fiel al viewport (main-site no tiene transform). */
       (document.getElementById('main-site') || document.body).appendChild(this._frame);
+      /* EL ESCUDO: círculo invisible sobre su cuerpo (hermano inmediato del
+         marco: el CSS lo enciende y apaga con las clases de este). Traga los
+         clics que caían en los cofres de detrás — tocar a Tizno ya no compra
+         libros — y el reenvío de abajo los convierte en su «¡ay!». */
+      this._escudo = document.createElement('div');
+      this._escudo.id = 'tizno-escudo';
+      this._frame.after(this._escudo);
+      const colocarEscudo = () => {
+        const fr = this._frame.getBoundingClientRect();
+        const d = Math.round(fr.width * 0.38);           // diámetro: su torso + cabeza
+        this._escudo.style.width = this._escudo.style.height = d + 'px';
+        this._escudo.style.left = Math.round(fr.left + fr.width / 2 - d / 2) + 'px';
+        this._escudo.style.top = Math.round(fr.top + fr.height * 0.68 - d / 2) + 'px';
+      };
+      colocarEscudo();
+      window.addEventListener('resize', colocarEscudo);
       this._frame.addEventListener('load', () => {
         this._frameListo = true;
         this._sincronizarMarco();
