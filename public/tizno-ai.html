@@ -93,19 +93,23 @@
            como en el arte. Una textura compuesta una vez: casi gratis. */
         #niebla-grabada { display: none; }
         html.estancia #niebla-grabada {
-            /* La banda ENTERA (44vh de lámina, como la v1 que gustó), hundida
-               por posición: -20vh bajo el viewport → asoman ~24vh de crestas
-               completas y nítidas, sin recorte ni desvanecido (Ruben, 14-ago:
-               «no las cortes, bájalas»). La máscara queda solo como pluma en
-               el borde superior para fundir con la sala. */
-            display: block; position: fixed; left: 0; right: 0; bottom: -20vh;
+            /* LA VERSIÓN ORIGINAL, la espectacular (Ruben, 14-ago): banda
+               entera de 44vh llenando el pie de la escena como en la lámina.
+               A quien se sube es a TIZNO (ver las reglas de abajo), no se
+               toca la niebla. */
+            display: block; position: fixed; left: 0; right: 0; bottom: 0;
             height: 44vh; z-index: 5; pointer-events: none;
             background: url('/tizno-niebla.jpg') bottom center / cover no-repeat;
-            -webkit-mask-image: linear-gradient(to top, black 78%, transparent 100%);
-            mask-image: linear-gradient(to top, black 78%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to top, black 52%, transparent 100%);
+            mask-image: linear-gradient(to top, black 52%, transparent 100%);
             /* Marea: las volutas respiran — transform puro, coste compositor. */
             animation: marea-grabada 16s ease-in-out infinite alternate;
         }
+        /* Tizno sube sobre la niebla: el rig y su capa de ojos ascienden a la
+           par (en vh, para que el nivel case con las volutas en cualquier
+           pantalla). Su base queda tras las crestas: emerge, no flota. */
+        html.estancia .master-rig { bottom: 21vh; }
+        html.estancia #eyes-layer-container { padding-bottom: 21vh; }
         @keyframes marea-grabada {
             from { transform: translateY(0); }
             to   { transform: translateY(10px); }
