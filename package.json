@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "postbuild": "node scripts/generate-og-pages.js && node scripts/minify-tizno.cjs",
+    "postbuild": "node scripts/generate-og-pages.js && node scripts/minify-tizno.cjs && node scripts/generate-tizno-pages.js",
     "preview": "vite preview"
   },
   "devDependencies": {

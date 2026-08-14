@@ -37,6 +37,8 @@
     <meta property="og:image" content="https://soulware.live/og-image.jpg" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://soulware.live/tizno" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://soulware.live/og-image.jpg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <style>
         /* ══════ MODO EMBED (?embed=1) — Tizno como criatura de la web ══════
@@ -474,7 +476,9 @@
         /* El idioma llega en la URL (la madre lo pone al crear el marco): el
            embed no comparte el módulo i18n de la página, y este parámetro es
            su única fuente de verdad para hablar al visitante en su lengua. */
-        const IDIOMA = /[?&]lang=en/.test(location.search) ? 'en' : 'es';
+        /* Idioma: por query (?lang=en, el embed y los rewrites) o por ruta
+           (/en/tizno servido como página estática, sin query). */
+        const IDIOMA = (/[?&]lang=en/.test(location.search) || /^\/en\//.test(location.pathname)) ? 'en' : 'es';
         /* Interruptor de la VOZ en inglés (los textos ya van por IDIOMA).
            ENCENDIDO el 6-ago-2026: English añadido como idioma adicional del
            agente y override de language permitido en Security — los dos
