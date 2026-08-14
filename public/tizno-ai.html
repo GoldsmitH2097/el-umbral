@@ -102,17 +102,28 @@
             background: url('/tizno-niebla.jpg') bottom center / cover no-repeat;
             -webkit-mask-image: linear-gradient(to top, black 52%, transparent 100%);
             mask-image: linear-gradient(to top, black 52%, transparent 100%);
-            /* Marea: las volutas respiran — transform puro, coste compositor. */
-            animation: marea-grabada 16s ease-in-out infinite alternate;
+            /* Marea: las volutas navegan — vaivén X+Y con respiración de
+               escala (la base 1.05 da margen para derivar en X sin enseñar
+               bordes). Transform puro, coste compositor. La v1 de 10px/16s
+               era homeopatía (Ruben: «no veo ninguna animación»). */
+            transform-origin: bottom center;
+            animation: marea-grabada 18s ease-in-out infinite;
         }
         /* Tizno sube sobre la niebla: el rig y su capa de ojos ascienden a la
            par (en vh, para que el nivel case con las volutas en cualquier
            pantalla). Su base queda tras las crestas: emerge, no flota. */
         html.estancia .master-rig { bottom: 21vh; }
-        html.estancia #eyes-layer-container { padding-bottom: 21vh; }
+        /* Los ojos suben por TRANSFORM, no por padding: el padding encoge la
+           caja del layer y desbarata la base de cálculo del JS (ojos rotos,
+           14-ago). El transform desplaza el visual y los rects a la par,
+           exactamente la misma delta que el rig (de 50px a 21vh). */
+        html.estancia #eyes-layer-container { transform: translateY(calc(-21vh + 50px)); }
         @keyframes marea-grabada {
-            from { transform: translateY(0); }
-            to   { transform: translateY(10px); }
+            0%   { transform: scale(1.05) translate(0, 6px); }
+            25%  { transform: scale(1.065) translate(-12px, -5px); }
+            50%  { transform: scale(1.05) translate(5px, 9px); }
+            75%  { transform: scale(1.075) translate(12px, -3px); }
+            100% { transform: scale(1.05) translate(0, 6px); }
         }
         @media (prefers-reduced-motion: reduce) {
             html.estancia #niebla-grabada { animation: none; }
@@ -1040,6 +1051,12 @@
             distB = Math.hypot(e.clientX - centerBX, e.clientY - centerBY);
             boxBNormX = (centerBX - centerX) / centerX;
             boxBNormY = (centerBY - centerY) / centerY;
+            /* En la Estancia las cajas están ocultas: su rect mide 0×0 en
+               (0,0) y la esquina superior izquierda se volvía «caja prohibida»
+               fantasma (ojos furiosos sin motivo, 14-ago). Caja sin cuerpo =
+               caja en el infinito. */
+            if (!rectA.width) distA = Infinity;
+            if (!rectB.width) distB = Infinity;
         });
 
         /* ══════ MÓVIL: dedo, inclinación y sacudida ══════
