@@ -3,18 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <script>
-      /* LA URL DESNUDA ERA LA DEMO (Ruben, 8-ago): /tizno-ai.html a pelo
-         servía el traje viejo de la PR #62 — «COMPRAR…», «CERRAR DEMO» — en
-         producción. Tizno vive embebido (?embed=1) en el footer; el acceso
-         directo va a la home. ?demo=1 es la puerta del equipo para abrir el
-         rig standalone a mano. */
-      if (!/[?&](embed|demo)=1/.test(location.search)) location.replace('/');
+      /* LA PUERTA (v2, Ruben 14-ago): tres entradas legítimas — el embed del
+         footer (?embed=1), la puerta del equipo (?demo=1) y LA ESTANCIA
+         pública (/tizno y /en/tizno, rewrites de Netlify: misma criatura a
+         pantalla completa, un solo frente). /tizno-ai.html a pelo sigue
+         yendo a la home: esa URL no es canon. */
+      if (!/[?&](embed|demo)=1/.test(location.search)
+          && !/^\/(en\/)?tizno\/?$/.test(location.pathname)) location.replace('/');
+      /* En la Estancia inglesa, las cajas hablan inglés (etiquetas estáticas;
+         el resto del rig ya se traduce solo con ?lang=en). */
+      if (/[?&]lang=en/.test(location.search)) {
+        addEventListener('DOMContentLoaded', () => {
+          const a = document.getElementById('box-a'), b = document.getElementById('box-b');
+          if (a) a.textContent = 'BUY PULSE OF THE CORE';
+          if (b) b.textContent = 'LOCK TIZNO AWAY';
+        });
+      }
     </script>
     <link rel="preconnect" href="https://esm.sh" crossorigin>
     <link rel="preconnect" href="https://api.elevenlabs.io">
     <link rel="dns-prefetch" href="https://api.us.elevenlabs.io">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tizno: Elegant Dynamic Fog & Gooey Runes</title>
+    <title>Tizno — El Custodio del Umbral · Soulware</title>
+    <meta name="description" content="Habla con Tizno, el Custodio del Umbral: una criatura minúscula que vive en la niebla de Soulware. Acércate, acarícialo… y no lo encierres." />
+    <link rel="canonical" href="https://soulware.live/tizno" />
+    <meta property="og:title" content="Tizno — El Custodio del Umbral" />
+    <meta property="og:description" content="Una criatura minúscula vive en la niebla de Soulware. Habla con ella. No la encierres." />
+    <meta property="og:image" content="https://soulware.live/og-image.jpg" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://soulware.live/tizno" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <style>
         /* ══════ MODO EMBED (?embed=1) — Tizno como criatura de la web ══════
            Fondo transparente, sin cajas ni UI de llamada ni luciérnaga propia:
@@ -380,8 +398,10 @@
     </div>
     
     <!-- UI Elements -->
+    <!-- Las cajas de juego: A = la ilusión (CTA real), B = la prohibida (el
+         «no me encierres»). Etiquetas de la era demo rebautizadas 14-ago. -->
     <div id="box-a" class="ui-box">COMPRAR PULSO DEL NÚCLEO</div>
-    <div id="box-b" class="ui-box">CERRAR DEMO DE TIZNO</div>
+    <div id="box-b" class="ui-box">ENCERRAR A TIZNO</div>
 
     <!-- EL ABISMO FRONTAL (Niebla dinámica limpia) -->
     <div id="abyss-foreground"></div>

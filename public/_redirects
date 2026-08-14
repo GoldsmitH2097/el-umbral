@@ -4,6 +4,14 @@
 # pages) are served before any rule here is consulted.
 # ─────────────────────────────────────────────────────────────────────────────
 
+# La Estancia de Tizno — la misma criatura del footer, a pantalla completa en
+# URL propia. REWRITE (200), no redirect: la barra muestra /tizno y se sirve el
+# rig; la puerta del propio archivo permite estos pathnames (y ?embed/?demo).
+/tizno       /tizno-ai.html          200
+/tizno/      /tizno-ai.html          200
+/en/tizno    /tizno-ai.html?lang=en  200
+/en/tizno/   /tizno-ai.html?lang=en  200
+
 # Ghost paths from previous site versions — drop from Google index
 /read         /  301
 /saga         /  301
