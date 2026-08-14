@@ -109,8 +109,11 @@
                54.7vw para que ese 45.8% caiga EXACTO en 50vw, bajo su cuerpo,
                sin destapar el borde izquierdo (cover mapea la imagen al ancho
                de la caja en apaisado). */
+            /* Crestas dos botones más abajo (Ruben, 14-ago): el fondo sigue
+               clavado al pie y la caja pierde ~90px de alto — como el cover
+               mapea por ancho, recortar alto solo baja la línea de cumbres. */
             display: block; position: fixed; left: -1.5vw; right: -10.9vw; bottom: 0;
-            height: 44vh; z-index: 5; pointer-events: none;
+            height: calc(44vh - 90px); z-index: 5; pointer-events: none;
             background: url('/tizno-niebla.jpg') bottom center / cover no-repeat;
             -webkit-mask-image: linear-gradient(to top, black 52%, transparent 100%);
             mask-image: linear-gradient(to top, black 52%, transparent 100%);
