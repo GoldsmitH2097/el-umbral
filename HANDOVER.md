@@ -1,9 +1,47 @@
 # HANDOVER.md — El Umbral / Soulware
-*Last updated: August 8, 2026 — Session 13 (PUBLICADO + Tizno bilingüe completo: 34 tomas EN, regla de idioma en el agente, El Aviso notificando)*
+*Last updated: August 14, 2026 — Session 13 (La Estancia pulida: ojos, toque universal, escudo de clics, niebla centrada)*
 
 ---
 
 ## What was completed — Session 13 (August 6, 2026)
+
+**Aug 14 (late) — La Estancia settles (commit 21fd8cb, deployed + verified):**
+- **THE EYES LESSON (do not repeat)**: both `.master-rig`s (body AND eyes layer)
+  share the class, so `html.estancia .master-rig { bottom: 21vh }` raises them IN
+  PARALLEL — the eyes need NO extra help. Any additional push on
+  `#eyes-layer-container` (padding-bottom first, transform later) double-shifts
+  them (~21vh too high — the two broken-eyes screenshots). Fix was REMOVING all
+  eye overrides; verified by rect deltas (eyes at dx±40/dy+5 from head center,
+  identical in demo and Estancia).
+- **Toque universal**: `toqueEn` (click on his body → respingo + toque take, 4th
+  poke in 25s → hide + quejido) lived INSIDE `if (EMBED)` — the Estancia and demo
+  had NO click reaction at all. Hoisted to frame scope, registered for all modes
+  with a control guard (`button, a, nav, input…` clicks are not for him). The
+  embed message path ({tipo:'clic'}) still feeds the same function.
+- **El escudo (main site)**: Tizno was "transparent to clicks" — the iframe is
+  pointer-events:none and the obra chests sit behind his silhouette, so tapping
+  him bought books AND TiznoTease's forwarder skipped those clicks (its guard
+  ignores clicks that land on links/buttons). New `#tizno-escudo`: invisible
+  fixed circle (d = 0.38 × frame width, center at 50%/68% of frame), z-index 29
+  (above frame 28, below bar 30), created as the frame's next sibling; CSS shows
+  it only while `#tizno-frame.visible:not(.backstage)` — swallows the click so
+  the book doesn't fire, and the window forwarder turns it into his «¡ay!».
+- **EN call states completed**: «Leave him be» during calls (was «Dejarle en
+  paz» hardcoded), the olvido confirmation and the daily-reset dev status now
+  bilingual. Rule stands: every new `setStatus` literal needs its ESTADOS_EN
+  entry in the same commit.
+- **Aviso**: the erase sentence sits on its own line (`<br>` in ES markup; the
+  EN node-surgery now strips the ES `<br>` and inserts its own).
+- **Marea calmada**: Ruben wanted "almost static" — ±5px drift + 1.05→1.057
+  scale breathing over 24s.
+- **Niebla centrada**: the artwork's ink column lives at 45.8% of the image
+  width (canvas-measured), not 50% — the fog box is now 112vw wide with its
+  center at 54.7vw so the column lands exactly under Tizno's axis (50vw) without
+  exposing the left edge. Cover maps image→box width in landscape.
+- **Preview-pane caveat (tooling)**: the in-app browser keeps the tab
+  `document.hidden` → rAF frozen → the pop spring never fires and Tizno stays
+  sunken in screenshots. Not a site bug. Verify geometry via forced transforms +
+  rect math, or on a real browser.
 
 **Aug 14 — La Mente, La Estancia y la aduana de Casanova:**
 Casanova delivered 3 docs (QA bank, 2-min First Message, Muster Knowledge). Customs
