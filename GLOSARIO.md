@@ -84,8 +84,8 @@ el Archivista de la Memoria (Totalis Libertas)
 the Archivist of Memory
 Propuesta
 Custodio del Umbral
-Keeper of the Threshold
-Propuesta
+Custodian of the Threshold
+OFICIAL (decisión Ruben, 14-ago-2026 — antes «Keeper», propuesta descartada)
 Memoria del Navío
 Memory of the Vessel
 Propuesta
