@@ -93,11 +93,16 @@
            como en el arte. Una textura compuesta una vez: casi gratis. */
         #niebla-grabada { display: none; }
         html.estancia #niebla-grabada {
-            display: block; position: fixed; left: 0; right: 0; bottom: -12px;
-            height: 24vh; z-index: 5; pointer-events: none;
+            /* La banda ENTERA (44vh de lámina, como la v1 que gustó), hundida
+               por posición: -20vh bajo el viewport → asoman ~24vh de crestas
+               completas y nítidas, sin recorte ni desvanecido (Ruben, 14-ago:
+               «no las cortes, bájalas»). La máscara queda solo como pluma en
+               el borde superior para fundir con la sala. */
+            display: block; position: fixed; left: 0; right: 0; bottom: -20vh;
+            height: 44vh; z-index: 5; pointer-events: none;
             background: url('/tizno-niebla.jpg') bottom center / cover no-repeat;
-            -webkit-mask-image: linear-gradient(to top, black 42%, transparent 100%);
-            mask-image: linear-gradient(to top, black 42%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to top, black 78%, transparent 100%);
+            mask-image: linear-gradient(to top, black 78%, transparent 100%);
             /* Marea: las volutas respiran — transform puro, coste compositor. */
             animation: marea-grabada 16s ease-in-out infinite alternate;
         }
