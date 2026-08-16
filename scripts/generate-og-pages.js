@@ -282,6 +282,104 @@ function ghostObras(lang) {
   return `<h1>${t.works} — ${t.pub}</h1>${items}`;
 }
 
+/* ══════════════ DATOS ESTRUCTURADOS POR RUTA ══════════════
+   Todo se deriva de StateManager: nada aquí es un dato inventado.
+
+   SIN PRECIOS, a propósito (decisión del audit del 6-ago, confirmada hoy):
+   no existe ningún precio en el proyecto, y el mismo ISBN se vende a
+   distinto precio en cada tienda y se reajusta. Un precio erróneo en
+   datos estructurados CUESTA la elegibilidad de ficha de comercio en vez
+   de ganarla. Cuando alguien se comprometa a mantenerlos al día, se añaden.
+
+   La fecha de los vídeos es la real de su entrada al repositorio
+   (git log --diff-filter=A: 24-mar-2026), no una inventada. */
+const VIDEO_FECHA = '2026-03-24';
+
+function schemasFor(path, lang) {
+  const out = [];
+  const inicio = lang === 'en' ? 'Home' : 'Inicio';
+  const obras  = T[lang].works;
+
+  // Migas de pan: Inicio → Las Obras → ficha, o Inicio → personaje.
+  const crumbs = [{ name: inicio, item: url('', lang) }];
+  if (path.startsWith('obras')) crumbs.push({ name: obras, item: url('obras', lang) });
+  const esObra = path.startsWith('obras/');
+  const esChar = CHARACTERS.some(c => c.slug === path);
+  if (esObra) {
+    const id = Object.keys(OBRA_RUTA).find(k => OBRA_RUTA[k] === path);
+    const o = CATALOGUE.find(x => x.id === id);
+    if (o) crumbs.push({ name: o.title, item: url(path, lang) });
+  } else if (esChar) {
+    const c = CHARACTERS.find(x => x.slug === path);
+    crumbs.push({ name: f(c, 'title', lang), item: url(path, lang) });
+  }
+  if (crumbs.length > 1) {
+    out.push({
+      "@context": "https://schema.org", "@type": "BreadcrumbList",
+      "itemListElement": crumbs.map((c, i) => ({
+        "@type": "ListItem", "position": i + 1, "name": c.name,
+        "item": `${BASE}${c.item}`,
+      })),
+    });
+  }
+
+  // Página de personaje: el vídeo (Search Console dice 10 sin indexar, 0
+  // indexados — hoy no existen para Google) y el autor con sus redes, que
+  // es lo que ata la persona real a la entidad del buscador.
+  if (esChar) {
+    const c = CHARACTERS.find(x => x.slug === path);
+    const poster = c.src.replace(/^\//, '').replace(/\.mp4$/, '.webp');
+    out.push({
+      "@context": "https://schema.org", "@type": "VideoObject",
+      "name": f(c, 'title', lang),
+      "description": f(c, 'desc', lang),
+      "thumbnailUrl": `${BASE}/posters/${poster}`,
+      "contentUrl": `${BASE}${c.src}`,
+      "uploadDate": VIDEO_FECHA,
+      "publisher": { "@type": "Organization", "name": "Soulware", "url": BASE },
+    });
+    out.push({
+      "@context": "https://schema.org", "@type": "Person",
+      "name": c.author,
+      "url": `${BASE}${charUrl(c, lang)}`,
+      ...(c.social?.length ? { "sameAs": c.social.map(s => s.url) } : {}),
+      "worksFor": { "@type": "Organization", "name": "Soulware", "url": BASE },
+    });
+  }
+
+  // Catálogo: lista ordenada de las obras con página propia.
+  if (path === 'obras') {
+    out.push({
+      "@context": "https://schema.org", "@type": "ItemList",
+      "name": `${obras} — Soulware`,
+      "itemListElement": Object.entries(OBRA_RUTA).map(([id, ruta], i) => {
+        const o = CATALOGUE.find(x => x.id === id);
+        return { "@type": "ListItem", "position": i + 1, "name": o?.title || id,
+                 "url": `${BASE}${url(ruta, lang)}` };
+      }),
+    });
+  }
+
+  // Las obras que no llevaban ficha propia (Anatomía y Totalis Libertas):
+  // Book sin oferta, porque todavía no se venden. Decirlo así es la verdad.
+  if (esObra) {
+    const id = Object.keys(OBRA_RUTA).find(k => OBRA_RUTA[k] === path);
+    const o = CATALOGUE.find(x => x.id === id);
+    if (o && o.status !== 'available') {
+      out.push({
+        "@context": "https://schema.org", "@type": "Book",
+        "name": o.title,
+        "author": { "@type": "Person", "name": o.author },
+        "abstract": f(o, 'desc', lang),
+        "inLanguage": "es",
+        "publisher": { "@type": "Organization", "name": "Soulware", "url": BASE },
+        "url": `${BASE}${url(path, lang)}`,
+      });
+    }
+  }
+  return out;
+}
+
 /* Devuelve el bloque .sr-only completo de una ruta, o null para la home
    (que conserva el suyo: es el índice del sitio y ya está bien escrito). */
 function ghostFor(path, lang) {
@@ -297,7 +395,7 @@ function ghostFor(path, lang) {
   return `<div class="sr-only" inert aria-hidden="true">${inner}${navGhost(lang)}</div>`;
 }
 
-function patch(html, urlPath, { title, desc, image, bookSchema, langCode, altPath, altLang, ghost }) {
+function patch(html, urlPath, { title, desc, image, bookSchema, langCode, altPath, altLang, ghost, schemas }) {
   // All routes use a trailing slash on the canonical. The prerender writes
   // `dist/<path>/index.html` which Netlify serves at `/<path>/` — without a
   // trailing slash, Netlify 301-redirects to add one, creating a chain
@@ -349,6 +447,13 @@ function patch(html, urlPath, { title, desc, image, bookSchema, langCode, altPat
      conserva el suyo, que es el índice del sitio. */
   if (ghost) {
     out = out.replace(/<div class="sr-only" inert aria-hidden="true">[\s\S]*?<\/div>/, ghost);
+  }
+
+  if (schemas?.length) {
+    const bloques = schemas
+      .map(s => `  <script type="application/ld+json">${JSON.stringify(s, null, 2)}</script>`)
+      .join('\n');
+    out = out.replace('</head>', `${bloques}\n</head>`);
   }
 
   if (bookSchema) {
@@ -445,6 +550,7 @@ for (const route of ROUTES) {
       ...route.es, image: route.image, bookSchema: route.bookSchema,
       langCode: 'es', altPath: enPath, altLang: 'en',
       ghost: route.isHome ? null : ghostFor(route.path, 'es'),
+      schemas: route.isHome ? null : schemasFor(route.path, 'es'),
     }),
     'utf8'
   );
@@ -454,6 +560,7 @@ for (const route of ROUTES) {
       ...route.en, image: route.image, bookSchema: route.bookSchema,
       langCode: 'en', altPath: esPath, altLang: 'es',
       ghost: route.isHome ? null : ghostFor(route.path, 'en'),
+      schemas: route.isHome ? null : schemasFor(route.path, 'en'),
     }),
     'utf8'
   );
