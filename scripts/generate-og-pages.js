@@ -15,6 +15,8 @@ import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { STRINGS } from '../src/js/core/translations.js';
+import { CHARACTERS, CATALOGUE } from '../src/js/core/StateManager.js';
+import { RETAILERS } from '../src/js/core/retailers.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DIST = join(__dirname, '../dist');
@@ -141,7 +143,161 @@ const ROUTES = [
   },
 ];
 
-function patch(html, urlPath, { title, desc, image, bookSchema, langCode, altPath, altLang }) {
+/* ══════════════ EL CUERPO PROPIO DE CADA RUTA (15-ago-2026) ══════════════
+   EL FALLO QUE ESTO ARREGLA: hasta hoy este script sellaba <head> perfecto
+   —title, description, canonical, hreflang, JSON-LD— pero las 20 rutas
+   servían EL MISMO cuerpo: el DOM fantasma de la home. Medido en producción:
+   de 237 líneas de texto, 219 eran idénticas entre /obras/pulso-del-nucleo/,
+   /obras/totalis-libertas/ y /caballero/. Lo único propio era el título.
+
+   Google rastreó 10 de las 20, encontró la misma página con distintos
+   títulos y dejó de gastar rastreo: las otras 10 llevaban meses en
+   «Discovered – currently not indexed», Pulso del Núcleo incluido — el único
+   libro a la venta, invisible en el buscador.
+
+   Ni una palabra de aquí es inventada: todo sale de StateManager
+   (vision, desc, lore, ficha, editions) y de retailers.js. Si mañana se
+   edita la sinopsis de un libro, esta página se regenera sola.
+
+   Va en .sr-only por la misma doctrina de siempre (ver CLAUDE.md): el
+   visitante viene a una experiencia cinematográfica, no a un catálogo;
+   Googlebot lee el texto igual, y `inert` + `aria-hidden` evitan que un
+   lector de pantalla oiga el sitio dos veces. */
+
+// id de CATALOGUE → ruta pública (las que tienen página propia).
+const OBRA_RUTA = {
+  pulso:      'obras/pulso-del-nucleo',
+  filamentos: 'obras/filamentos-de-oscuridad',
+  anatomia:   'obras/anatomia-del-vacio',
+  'la-corte': 'obras/totalis-libertas',
+};
+
+const T = {
+  es: { works: 'Las Obras', chars: 'Las Crónicas', by: 'Por', sheet: 'Ficha técnica',
+        isbn: 'ISBN', pages: 'Páginas', binding: 'Encuadernación', lang: 'Idioma',
+        buy: 'Dónde comprarlo', soon: 'En preparación', avail: 'Disponible',
+        also: 'Explora el universo Soulware', pub: 'Editorial Soulware' },
+  en: { works: 'The Works', chars: 'The Chronicles', by: 'By', sheet: 'Technical details',
+        isbn: 'ISBN', pages: 'Pages', binding: 'Binding', lang: 'Language',
+        buy: 'Where to buy it', soon: 'In preparation', avail: 'Available',
+        also: 'Explore the Soulware universe', pub: 'Soulware Publishing' },
+};
+
+// Campo con variante idiomática: `vision`/`vision_en`. Cae al castellano
+// cuando no hay traducción (los títulos de libro no se traducen nunca).
+const f = (obj, key, lang) => (lang === 'en' && obj[`${key}_en`]) || obj[key] || '';
+
+const url = (p, lang) => lang === 'en'
+  ? (p ? `/en/${p}/` : '/en/')
+  : (p ? `/${p}/` : '/');
+
+// Ruta de un personaje en el idioma pedido (los slugs SÍ se traducen).
+const charUrl = (c, lang) => url(lang === 'en' ? c.slug_en : c.slug, lang);
+
+/* La red de enlaces internos, en TODAS las páginas. Sin esto, reemplazar el
+   DOM fantasma destruiría el grafo interno del sitio — que es justo lo que
+   Google usa para descubrir las fichas. */
+function navGhost(lang) {
+  const t = T[lang];
+  const chars = CHARACTERS.map(c =>
+    `<li><a href="${charUrl(c, lang)}">${f(c, 'title', lang)}</a></li>`).join('');
+  const obras = Object.entries(OBRA_RUTA).map(([id, ruta]) => {
+    const o = CATALOGUE.find(x => x.id === id);
+    return o ? `<li><a href="${url(ruta, lang)}">${o.title}</a></li>` : '';
+  }).join('');
+  return `<nav aria-label="${t.also}"><h2>${t.also}</h2>`
+       + `<h3>${t.chars}</h3><ul>${chars}</ul>`
+       + `<h3><a href="${url('obras', lang)}">${t.works}</a></h3><ul>${obras}</ul></nav>`;
+}
+
+// Ficha de personaje: su lore completo (prosa ya aprobada) + autor + redes.
+function ghostCharacter(slug, lang) {
+  const c = CHARACTERS.find(x => x.slug === slug);
+  if (!c) return '';
+  const t = T[lang];
+  const obra = CATALOGUE.find(o => o.archetype === slug && OBRA_RUTA[o.id]);
+  const social = c.social.map(s =>
+    `<li><a href="${s.url}" rel="noopener">${s.handle} · ${s.platform}</a></li>`).join('');
+  return `<h1>${f(c, 'title', lang)}</h1>`
+    + `<p>${f(c, 'desc', lang)}</p>`
+    + `<p>${t.by} <strong>${c.author}</strong> — ${t.pub}.</p>`
+    + f(c, 'lore', lang)
+    + (obra ? `<p><a href="${url(OBRA_RUTA[obra.id], lang)}">${obra.title}</a> — `
+            + `${f(obra, 'desc', lang)}</p>` : '')
+    + (social ? `<h3>${c.author}</h3><ul>${social}</ul>` : '');
+}
+
+// Ficha de obra: visión, sinopsis, ficha técnica y tiendas reales.
+function ghostObra(id, lang) {
+  const o = CATALOGUE.find(x => x.id === id);
+  if (!o) return '';
+  const t = T[lang];
+  const ch = CHARACTERS.find(c => c.slug === o.archetype);
+  let out = `<h1>${o.title}${o.subtitle ? ` — ${o.subtitle}` : ''}</h1>`
+    + `<p>${t.by} <strong>${o.author}</strong> — ${t.pub}.</p>`
+    + `<p>${f(o, 'seriesInfo', lang) || o.format || ''} · `
+    + `${o.status === 'available' ? t.avail : t.soon}</p>`
+    + `<p>${f(o, 'vision', lang)}</p>`
+    + `<p>${f(o, 'desc', lang)}</p>`;
+
+  if (o.ficha) {
+    const fi = o.ficha;
+    out += `<h2>${t.sheet}</h2><ul>`
+      + (fi.isbn ? `<li>${t.isbn}: ${fi.isbn}</li>` : '')
+      + (fi.pages ? `<li>${t.pages}: ${fi.pages}</li>` : '')
+      + (fi.binding ? `<li>${t.binding}: ${f(fi, 'binding', lang)}</li>` : '')
+      + (fi.language ? `<li>${t.lang}: ${f(fi, 'language', lang)}</li>` : '')
+      + `</ul>`;
+  }
+
+  if (o.editions?.length) {
+    out += `<h2>${t.buy}</h2>`;
+    for (const ed of o.editions) {
+      const shops = (ed.retailers || []).map(r => {
+        const name = RETAILERS[r.id]?.name || r.id;
+        return `<li><a href="${r.url}" rel="noopener">${o.title} — ${name}</a></li>`;
+      }).join('');
+      out += `<h3>${f(ed, 'label', lang)}</h3><ul>${shops}</ul>`;
+    }
+  }
+
+  if (ch) {
+    out += `<p><a href="${charUrl(ch, lang)}">${f(ch, 'title', lang)}</a> — `
+         + `${f(ch, 'desc', lang)}</p>`;
+  }
+  return out;
+}
+
+// El catálogo entero, con una entrada por obra.
+function ghostObras(lang) {
+  const t = T[lang];
+  const items = CATALOGUE.map(o => {
+    const ruta = OBRA_RUTA[o.id];
+    const head = ruta ? `<a href="${url(ruta, lang)}">${o.title}</a>` : o.title;
+    return `<article><h2>${head}</h2>`
+      + `<p>${t.by} ${o.author} · ${f(o, 'seriesInfo', lang) || o.format || ''} · `
+      + `${o.status === 'available' ? t.avail : t.soon}</p>`
+      + `<p>${f(o, 'desc', lang)}</p></article>`;
+  }).join('');
+  return `<h1>${t.works} — ${t.pub}</h1>${items}`;
+}
+
+/* Devuelve el bloque .sr-only completo de una ruta, o null para la home
+   (que conserva el suyo: es el índice del sitio y ya está bien escrito). */
+function ghostFor(path, lang) {
+  let inner = null;
+  if (path === 'obras') inner = ghostObras(lang);
+  else if (path.startsWith('obras/')) {
+    const id = Object.keys(OBRA_RUTA).find(k => OBRA_RUTA[k] === path);
+    if (id) inner = ghostObra(id, lang);
+  } else if (CHARACTERS.some(c => c.slug === path)) {
+    inner = ghostCharacter(path, lang);
+  }
+  if (!inner) return null;
+  return `<div class="sr-only" inert aria-hidden="true">${inner}${navGhost(lang)}</div>`;
+}
+
+function patch(html, urlPath, { title, desc, image, bookSchema, langCode, altPath, altLang, ghost }) {
   // All routes use a trailing slash on the canonical. The prerender writes
   // `dist/<path>/index.html` which Netlify serves at `/<path>/` — without a
   // trailing slash, Netlify 301-redirects to add one, creating a chain
@@ -185,6 +341,14 @@ function patch(html, urlPath, { title, desc, image, bookSchema, langCode, altPat
   // and the user briefly sees them before applyTranslations() runs at boot.
   if (langCode === 'en') {
     out = translateBody(out, STRINGS.en);
+  }
+
+  /* El cuerpo propio sustituye al DOM fantasma compartido — DESPUÉS de
+     traducir, porque este bloque ya viene en su idioma y no lleva claves
+     data-i18n que la traducción pudiera pisar. La home no pasa por aquí:
+     conserva el suyo, que es el índice del sitio. */
+  if (ghost) {
+    out = out.replace(/<div class="sr-only" inert aria-hidden="true">[\s\S]*?<\/div>/, ghost);
   }
 
   if (bookSchema) {
@@ -280,6 +444,7 @@ for (const route of ROUTES) {
     patch(base, esPath, {
       ...route.es, image: route.image, bookSchema: route.bookSchema,
       langCode: 'es', altPath: enPath, altLang: 'en',
+      ghost: route.isHome ? null : ghostFor(route.path, 'es'),
     }),
     'utf8'
   );
@@ -288,6 +453,7 @@ for (const route of ROUTES) {
     patch(base, enPath, {
       ...route.en, image: route.image, bookSchema: route.bookSchema,
       langCode: 'en', altPath: esPath, altLang: 'es',
+      ghost: route.isHome ? null : ghostFor(route.path, 'en'),
     }),
     'utf8'
   );
