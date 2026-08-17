@@ -292,8 +292,15 @@ function ghostObras(lang) {
    de ganarla. Cuando alguien se comprometa a mantenerlos al día, se añaden.
 
    La fecha de los vídeos es la real de su entrada al repositorio
-   (git log --diff-filter=A: 24-mar-2026), no una inventada. */
-const VIDEO_FECHA = '2026-03-24';
+   (git log --diff-filter=A: 24-mar-2026 a las 09:57), no una inventada.
+
+   ISO 8601 COMPLETA, CON ZONA HORARIA — no vale la fecha a secas.
+   Con '2026-03-24' Search Console avisó por correo el 17-ago: «Datetime
+   property "uploadDate" is missing a timezone» + «Invalid datetime value».
+   VideoObject.uploadDate exige fecha-hora con desplazamiento; +01:00 porque
+   el 24 de marzo España todavía estaba en horario de invierno (el cambio a
+   CEST fue el 29). */
+const VIDEO_FECHA = '2026-03-24T09:57:27+01:00';
 
 function schemasFor(path, lang) {
   const out = [];
@@ -336,6 +343,9 @@ function schemasFor(path, lang) {
       "thumbnailUrl": `${BASE}/posters/${poster}`,
       "contentUrl": `${BASE}${c.src}`,
       "uploadDate": VIDEO_FECHA,
+      /* Duración medida con ffprobe sobre los cuatro mp4: 7,958 s los cuatro.
+         Google la recomienda para los resultados enriquecidos de vídeo. */
+      "duration": "PT7.958S",
       "publisher": { "@type": "Organization", "name": "Soulware", "url": BASE },
     });
     out.push({
