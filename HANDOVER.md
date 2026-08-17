@@ -1,5 +1,58 @@
 # HANDOVER.md — El Umbral / Soulware
-*Last updated: August 14, 2026 — Session 13 (La Estancia pulida: ojos, toque universal, escudo de clics, niebla centrada)*
+*Last updated: August 16, 2026 — Session 14 (SEO: de 10/20 a 20/20 páginas indexadas en una noche)*
+
+---
+
+## Session 14 (night of Aug 15→16, 2026) — the whole site is finally in Google
+
+**THE ROOT CAUSE, and the lesson worth keeping**: `generate-og-pages.js` sealed a
+perfect `<head>` on all 20 routes — title, description, canonical, hreflang,
+JSON-LD — but every route served **the same body**: the home's ghost DOM.
+Measured in production: **219 of 237 text lines identical** across
+`/obras/pulso-del-nucleo/`, `/obras/totalis-libertas/` and `/caballero/`. The
+only unique content was the title and the offers JSON-LD. Google crawled 10 of
+20, found the same page with different titles, and stopped spending crawl.
+**Pulso del Núcleo — the only book on sale — had never been crawled** (`Last
+crawl: N/A`, `Referring page: None detected`). So had none of the four EN
+character pages, unindexed since the May bilingual launch.
+
+Fix (commits **5fe0331** + **d009f98**):
+- `ghostFor(path, lang)` seals a per-route `.sr-only` block built ENTIRELY from
+  `StateManager` (vision / desc / lore / ficha / editions) + `retailers.js`.
+  **Zero invented prose** — edit a synopsis and the page regenerates itself.
+  Home keeps its own ghost DOM (it's the site index). `navGhost()` preserves the
+  internal link graph on every page, now with trailing slashes (no 301 hops).
+- `schemasFor(path, lang)`: BreadcrumbList on all 18 inner routes, VideoObject
+  for the 4 character videos (uploadDate = real git add date 2026-03-24),
+  Person + sameAs for authors, ItemList on /obras/, Book for Anatomía and
+  Totalis. **No prices, deliberately** — none exist in the project and the same
+  ISBN sells at different prices per shop; a wrong price costs merchant
+  eligibility rather than earning it.
+- Then 10 × Request Indexing in GSC. **All 10 verified "URL is on Google"** the
+  same night; `/en/obras/` already shows "Breadcrumbs: 1 valid item detected".
+
+**GSC operating notes (hard-won)**: the URL-inspection bar needs a JS event
+dispatch (`Enter` never fires — already in memory). Each *Request indexing*
+click runs a ~90 s live test before queueing; navigating away sooner looks like
+it aborted (it usually didn't, but you can't confirm). The green toast fades, so
+verify by re-inspecting later, not by waiting for the toast. **The Pages report
+lags days behind live inspection** — it will keep saying 10/30 for a while.
+
+**PENDING, human hands only**:
+- **DNS TXT truncated**: published record is 37 chars, Google wants 43 — missing
+  `ektYMs` (someone copied it by eye from the dialog, which visually truncates).
+  Ruben's Netlify account CAN edit DNS (verified). I stopped before touching it:
+  the form put my cursor beside the delete buttons of the Zoho MX records and
+  breaking editorial@ mail wasn't worth a verification record. All 11 records
+  verified intact afterwards. Correct value:
+  `google-site-verification=iXdRL5kt969OLAwsC1LHtPQsvX7qrNk6TccPdektYMs`
+  Also delete the junk `google-site-verification=xxxx…` (36 x's).
+- **Backlinks are now THE bottleneck**: 14 external links, all to the home, from
+  auto-generated directories; zero to book pages. Amazon + Goodreads author
+  pages, todostuslibros.com by ISBN, deep links from social bios.
+- **Anatomía del Vacío** ficha is the thinnest — the data has little written
+  about it. Needs a few lines from Ruben.
+- Shareable report for Javier: https://claude.ai/code/artifact/8f7dd838-b51e-4304-b6df-145fab80af43
 
 ---
 
