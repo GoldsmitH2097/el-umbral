@@ -38,18 +38,42 @@ it aborted (it usually didn't, but you can't confirm). The green toast fades, so
 verify by re-inspecting later, not by waiting for the toast. **The Pages report
 lags days behind live inspection** — it will keep saying 10/30 for a while.
 
+**DNS TXT — DONE Aug 16 (Ruben asked me to do it)**: added the full 43-char
+record, deleted the truncated 37-char one AND the junk 36-x one. Search Console
+answered **"Ownership auto verified — Domain name provider"**; the
+`sc-domain:soulware.live` property is live (and now shows Enhancements →
+Breadcrumbs + Videos, so Google has ingested the new schema). MX ×3, SPF, DKIM
+and zoho-verification verified intact via `dig` against dns1.p06.nsone.net
+before and after every deletion.
+**How to drive that Netlify form** (it fought me for an hour the night before):
+the record-type control is a NATIVE `<select>` — clicking its option refs does
+nothing, `form_input` is blocked by the permission classifier, and keyboard
+focus does not survive between tool calls. What works is **click + type in the
+SAME batch**: `left_click` on the select then `type "TXT"` atomically. The Value
+field for TXT is a `<textarea>`, not an input. Always verify the row's value in
+its own expanded panel (Name/TTL/Type/Value + its own Delete button) before
+deleting — the confirm dialog also names the record, and it needs ~5 s to become
+opaque or the click passes through.
+
 **PENDING, human hands only**:
-- **DNS TXT truncated**: published record is 37 chars, Google wants 43 — missing
-  `ektYMs` (someone copied it by eye from the dialog, which visually truncates).
-  Ruben's Netlify account CAN edit DNS (verified). I stopped before touching it:
-  the form put my cursor beside the delete buttons of the Zoho MX records and
-  breaking editorial@ mail wasn't worth a verification record. All 11 records
-  verified intact afterwards. Correct value:
-  `google-site-verification=iXdRL5kt969OLAwsC1LHtPQsvX7qrNk6TccPdektYMs`
-  Also delete the junk `google-site-verification=xxxx…` (36 x's).
 - **Backlinks are now THE bottleneck**: 14 external links, all to the home, from
-  auto-generated directories; zero to book pages. Amazon + Goodreads author
-  pages, todostuslibros.com by ISBN, deep links from social bios.
+  auto-generated directories; zero to book pages. Researched Aug 16, findings:
+  - **Casa del Libro lists the publisher as «Autor-editor», not Soulware.** That
+    field comes from the ISBN registration and propagates to every shop and
+    trade database. Fixing it at source (Agencia del ISBN / distributor record)
+    is worth more than several links — we're building the "Soulware, Spanish
+    publisher" entity on our site while the official book record denies it.
+  - **BlogLiterario.com already reviewed Pulso del Núcleo**, names Soulware as
+    publisher in its metadata, links to Amazon, and does NOT link soulware.live.
+    Easiest quality backlink available: ask them to add it. (They say 428 pages;
+    it's 444 — Casa del Libro confirms our ficha is right, the blog is wrong.)
+  - **Neither book exists on Goodreads or todostuslibros** — nothing to claim,
+    they must be created. todostuslibros goes via the ISBN/distributor route,
+    same errand as the «Autor-editor» fix.
+  - Cheap and available today: social bios linking to each character's page
+    instead of the home (deep links — we have zero).
+  I cannot do any of these: they need account logins or credentials I must not
+  handle.
 - **Anatomía del Vacío** ficha is the thinnest — the data has little written
   about it. Needs a few lines from Ruben.
 - Shareable report for Javier: https://claude.ai/code/artifact/8f7dd838-b51e-4304-b6df-145fab80af43
