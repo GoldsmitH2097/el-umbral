@@ -368,6 +368,7 @@ function schemasFor(path, lang) {
     if (o && o.status !== 'available') {
       out.push({
         "@context": "https://schema.org", "@type": "Book",
+        "@id": `${BASE}/${path}/#book`,   // misma entidad que la del @graph
         "name": o.title,
         "author": { "@type": "Person", "name": o.author },
         "abstract": f(o, 'desc', lang),
@@ -460,12 +461,18 @@ function patch(html, urlPath, { title, desc, image, bookSchema, langCode, altPat
     const schema = JSON.stringify({
       "@context": "https://schema.org",
       "@type": "Book",
+      /* MISMO @id que el Book del @graph de index.html (que viaja en el <head>
+         de las 20 páginas). Sin esto, la ficha llevaba DOS entidades Book del
+         mismo libro con nombre y url distintos y Google tenía que adivinar
+         cuál era el libro — justo lo que impide que cuaje una entidad sólida.
+         Con el @id compartido, las dos declaraciones se fusionan en una. */
+      "@id": `${BASE}/${bookSchema.path}/#book`,
       "name": bookSchema.name,
       "author": { "@type": "Person", "name": bookSchema.author },
       ...(bookSchema.isbn ? { "isbn": bookSchema.isbn } : {}),
       "inLanguage": "es", // books are published in Spanish even on EN pages
       "publisher": { "@type": "Organization", "name": "Soulware", "url": "https://soulware.live" },
-      "url": `${BASE}/${bookSchema.path}`,
+      "url": `${BASE}/${bookSchema.path}/`,
       // One Offer per shop, each named via `seller`. NO `price`: the same ISBN
       // sells at different prices per retailer and they get adjusted, so any
       // number we bake into the prerender goes stale silently. A wrong price in
