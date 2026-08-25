@@ -1150,7 +1150,7 @@ export class ArchiveDOM {
     // Parse a fetched legal HTML page into the clean inner content we display.
     const _parseLegal = (html) => {
       const doc = new DOMParser().parseFromString(html, 'text/html');
-      doc.querySelectorAll('img, .legal-logo, .legal-back, nav, header, style, script').forEach(el => el.remove());
+      doc.querySelectorAll('img, .legal-logo, .legal-back, .legal-grant, nav, header, style, script').forEach(el => el.remove());
       doc.querySelectorAll('a').forEach(a => {
         const t = a.textContent.trim();
         if (t === 'Soulware' || t.includes('Volver') || t.includes('Back') || a.classList.contains('legal-logo') || a.classList.contains('legal-back')) {
