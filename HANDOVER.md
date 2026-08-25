@@ -5,6 +5,11 @@
 
 ## GRANT CONCEDIDO — Aug 18, 2026 🎉
 
+**ACTIVE since Aug 25, 2026**: Ruben enabled 2FA, accepted, 33,015,069
+credits confirmed in the dashboard (workspace on "Grant plan"; his paid
+subscription replaced). GRANT_ACTIVO=true deployed (aa42253) — Tizno now
+runs 10 min/session, 30 min/day per browser.
+
 **ElevenLabs Grants accepted Core Soulware**: unlimited Tizno credits for a
 year. Applied Aug 15 (Javier), granted Aug 18. Decision email went to Javier.
 
