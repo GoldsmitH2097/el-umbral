@@ -3,6 +3,33 @@
 
 ---
 
+## GRANT CONCEDIDO — Aug 18, 2026 🎉
+
+**ElevenLabs Grants accepted Core Soulware**: unlimited Tizno credits for a
+year. Applied Aug 15 (Javier), granted Aug 18. Decision email went to Javier.
+
+**JAVIER must do (his account, nobody else can)**: enable 2FA on the
+ElevenLabs account, THEN accept via the email link. Best not to let the
+acceptance link sit — do it before assuming the credits exist. Verify in the
+dashboard that the credits actually landed.
+
+**When Ruben is back from holidays (deliberately deferred)**:
+- Grants logo on the site: 12+ months with link, placement already decided
+  (legal footer / privacidad, next to credits). They sent HTML snippets — use
+  the WHITE logo (dark backgrounds): eleven-public-cdn.elevenlabs.io/payloadcms/cy7rxce8uki-IIElevenLabsGrants%201.webp
+  → https://elevenlabs.io/startup-grants. Five-minute job in ArchiveDOM/footer.
+- Loosen the credit protections, don't remove them: DAILY_MAX_S 600 and
+  SESSION_MAX_S 180 in tizno-ai.html were sized for a paid-credit economy.
+  With the grant, raise generously (e.g. session 5-8 min, daily 30-60 min)
+  but keep SOME cap — the limits also protect against abuse loops, not just
+  cost. Allowlist stays ARMED regardless (it gates who may embed the agent,
+  not spend).
+- Month-10 alarm (already in GRANT-SOLICITUD.md): after 12 months or on
+  credit exhaustion the account falls to Free unless negotiated. Plan the
+  transition ~May 2027 so Tizno doesn't lose his voice overnight.
+
+---
+
 ## Session 14 (night of Aug 15→16, 2026) — the whole site is finally in Google
 
 **THE ROOT CAUSE, and the lesson worth keeping**: `generate-og-pages.js` sealed a
