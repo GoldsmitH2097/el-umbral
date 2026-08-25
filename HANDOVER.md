@@ -8,10 +8,12 @@
 **ElevenLabs Grants accepted Core Soulware**: unlimited Tizno credits for a
 year. Applied Aug 15 (Javier), granted Aug 18. Decision email went to Javier.
 
-**JAVIER must do (his account, nobody else can)**: enable 2FA on the
-ElevenLabs account, THEN accept via the email link. Best not to let the
-acceptance link sit — do it before assuming the credits exist. Verify in the
-dashboard that the credits actually landed.
+**RUBEN must do (the ElevenLabs account is HIS, corrected 18-ago — the
+decision email just went to Javier as applicant)**: enable 2FA on his
+ElevenLabs account, THEN accept via the email link Javier received, while
+logged into the account where Tizno's agent lives — that's where the credits
+must land. Verify in the dashboard afterwards that they actually did. Best
+not to let the acceptance link sit.
 
 **When Ruben is back from holidays (deliberately deferred)**:
 - Grants logo on the site: 12+ months with link, placement already decided
