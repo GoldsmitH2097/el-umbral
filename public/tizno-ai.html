@@ -2786,13 +2786,20 @@
            seguridad». El tope de sesión sigue siendo el seguro del micrófono
            abierto olvidado; el diario, el freno anti-bucle. La allowlist
            queda armada igual: vigila QUIÉN incrusta al agente, no el gasto. */
+        /* LA CUENTA DEL GRANT (Ruben, 25-ago: «be mindful there is a limit»):
+           33.000.000 de créditos o 12 meses, lo que llegue antes. A ~670
+           créditos/min son ~49.250 min ≈ 821 horas ≈ 135 min/DÍA de media
+           en el año. Con 60 min/día por navegador, UN visitante podía comerse
+           el 44% del presupuesto diario; con 30, el 22%. Por eso 10/30 y no
+           10/60: el triple de lo actual, indistinguible de infinito para un
+           humano, y el año queda protegido. */
         const GRANT_ACTIVO = false;   // ← true cuando Ruben confirme los créditos
         const SESSION_MAX_S = GRANT_ACTIVO ? 600 : 180;    // 10 min · 3 min por conversación
         /* 10 min/día por navegador (Ruben, 8-ago: «un usuario no puede fundir
            todos los créditos»). El tope de 30 era de la época de pruebas: a
            ~670 créditos/min, un solo entusiasta podía quemarse el mes en seis
            días. Diez minutos siguen siendo mucho goblin diario. */
-        const DAILY_MAX_S = GRANT_ACTIVO ? 3600 : 600;   // 60 min · 10 min al día
+        const DAILY_MAX_S = GRANT_ACTIVO ? 1800 : 600;   // 30 min · 10 min al día
         let callStartedAt = 0, yawnWarned = false;
         const todayKey = () => new Date().toISOString().slice(0, 10);
         const dailyUsed = () => {

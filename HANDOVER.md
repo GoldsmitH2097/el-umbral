@@ -20,12 +20,15 @@ not to let the acceptance link sit.
   (legal footer / privacidad, next to credits). They sent HTML snippets — use
   the WHITE logo (dark backgrounds): eleven-public-cdn.elevenlabs.io/payloadcms/cy7rxce8uki-IIElevenLabsGrants%201.webp
   → https://elevenlabs.io/startup-grants. Five-minute job in ArchiveDOM/footer.
-- Loosen the credit protections, don't remove them: DAILY_MAX_S 600 and
-  SESSION_MAX_S 180 in tizno-ai.html were sized for a paid-credit economy.
-  With the grant, raise generously (e.g. session 5-8 min, daily 30-60 min)
-  but keep SOME cap — the limits also protect against abuse loops, not just
-  cost. Allowlist stays ARMED regardless (it gates who may embed the agent,
-  not spend).
+- Caps (RECALIBRATED 25-ago with the real number): the grant is 33,000,000
+  credits or 12 months, whichever first — at ~670 credits/min that is ~821
+  hours total ≈ 135 min/DAY averaged over the year. NOT infinite. The
+  GRANT_ACTIVO branch in tizno-ai.html is therefore 10 min/session and
+  30 min/day per browser (one browser = 22% of the daily average budget;
+  60 would have been 44%). Flag still OFF — flip when Ruben confirms the
+  credits are in his dashboard. Allowlist stays ARMED regardless (it gates
+  who may embed the agent, not spend). NOTE: accepting REPLACES his current
+  paid subscription; after the year it auto-downgrades to Free.
 - Month-10 alarm (already in GRANT-SOLICITUD.md): after 12 months or on
   credit exhaustion the account falls to Free unless negotiated. Plan the
   transition ~May 2027 so Tizno doesn't lose his voice overnight.
