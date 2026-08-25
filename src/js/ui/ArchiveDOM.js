@@ -1221,7 +1221,11 @@ export class ArchiveDOM {
       _showLegal('Tizno', `
         <p>${t('tizno.disclaimer')}</p>
         <p id="tizno-sabe" style="font-style:italic;color:#59493a;">${_tiznoSabe()}</p>
-        <button id="tizno-olvidar-btn" class="obra-btn obra-btn--buy">${t('tizno.olvidar')}</button>`);
+        <button id="tizno-olvidar-btn" class="obra-btn obra-btn--buy">${t('tizno.olvidar')}</button>
+        <div id="tizno-grant-sello">
+          <p>${t('tizno.grant-label')}</p>
+          <a href="https://elevenlabs.io/startup-grants" target="_blank" rel="noopener"><img src="/assets/elevenlabs-grants.webp" alt="ElevenLabs Grants" loading="lazy" /></a>
+        </div>`);
       document.getElementById('tizno-olvidar-btn')?.addEventListener('click', () => {
         try { localStorage.removeItem('tizno_memoria'); localStorage.removeItem('tizno_daily'); } catch (_) {}
         const el = document.getElementById('tizno-sabe');
