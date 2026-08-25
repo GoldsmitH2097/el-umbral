@@ -432,6 +432,10 @@
         }
         #tizno-aviso a:hover { color: rgba(243, 156, 18, 0.95); border-bottom-color: rgba(243, 156, 18, 0.6); }
         #tizno-aviso.olvidado { color: rgba(243, 156, 18, 0.5); }
+        #tizno-grant { display: none; }
+        html.estancia #tizno-grant { display: block; margin-top: 16px; }
+        html.estancia #tizno-grant img { width: 118px; opacity: 0.26; transition: opacity 0.35s; }
+        html.estancia #tizno-grant:hover img { opacity: 0.75; }
 
         /* --- LUCIÉRNAGA --- */
         #firefly {
@@ -577,6 +581,10 @@
             dentro de tu propio dispositivo — nosotros no nos quedamos con nada.
             <br>Si te quedas más tranquilo, puedes <a href="#" id="tizno-olvido">borrar lo que sabe de ti</a>.
         </p>
+        <!-- El grant (18-ago-2026): condición de 12+ meses con enlace. Solo
+             en la Estancia — el embed esconde el call-ui entero y la demo es
+             el patio del equipo. Reposo casi invisible; despierta al hover. -->
+        <a id="tizno-grant" href="https://elevenlabs.io/startup-grants" target="_blank" rel="noopener"><img src="/assets/elevenlabs-grants.webp" alt="ElevenLabs Grants" loading="lazy" /></a>
     </div>
 
     <script>
