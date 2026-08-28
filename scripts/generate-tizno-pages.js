@@ -31,6 +31,11 @@ writeFileSync(join(dist, 'tizno', 'index.html'), fuente);
 // EN: la fuente con la tarjeta sellada en inglés.
 let en = fuente;
 for (const [es, sub] of Object.entries(EN)) en = en.replaceAll(es, sub);
+/* El replaceAll de URLs (…/tizno → …/en/tizno) pisaba también la imagen de
+   la tarjeta: og:image pasaba a /en/tizno-og.jpg, que NO existe → la tarjeta
+   inglesa salía sin imagen en WhatsApp/redes (cazado 28-ago, a las puertas
+   del empuje). La imagen es la misma lámina para ambos idiomas: se restaura. */
+en = en.replaceAll('https://soulware.live/en/tizno-og.jpg', 'https://soulware.live/tizno-og.jpg');
 mkdirSync(join(dist, 'en', 'tizno'), { recursive: true });
 writeFileSync(join(dist, 'en', 'tizno', 'index.html'), en);
 
