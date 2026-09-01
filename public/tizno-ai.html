@@ -1132,7 +1132,6 @@
            Tizno, así que se le baja el pulso: sin partículas nuevas y a un
            cuarto de fotogramas. Vuelve solo 200 ms después de parar. */
         let quieto = false;
-        let saltoQuieto = 0;
         function popIn()  { if (preso) return; popCerrandoOjos = false; popTarget = 1; popAterrizo = false; }
         /* Primero aprieta los ojos, y 200 ms DESPUÉS se hunde. Ese respiro
            entre las dos cosas es lo que convierte el gesto en teatro. */
@@ -1243,10 +1242,17 @@
                este intervalo, y cada muelle se integra ese número de veces.
                Se limita a 4 para que volver de una pestaña dormida no
                desate una avalancha de pasos atrasados. */
-            /* El freno: mientras la madre hace scroll se dibuja 1 de cada 4
-               fotogramas. No se corta la cadena de rAF —cortarla arriesga no
-               volver— solo se salta el trabajo pesado. */
-            if (quieto && (++saltoQuieto % 4)) { requestAnimationFrame(updateRig); return; }
+            /* EL FRENO, SEGUNDA VUELTA (Javier: «el scroll es más duro con
+               Tizno liberado»). Con 1 de cada 4 fotogramas seguía notándose,
+               porque lo caro en WebKit no es el bucle: son los filtros SVG,
+               que rasteriza POR SOFTWARE cada vez que la capa se repinta — y
+               una capa fixed+scale se repinta con el scroll.
+               Ahora, mientras se hace scroll, se congela el dibujado ENTERO
+               (la cadena de rAF sigue viva; solo no se trabaja) y se le
+               quitan los filtros. Un sprite quieto y sin filtro es lo más
+               barato que puede componer un móvil. Nadie lo nota: dura lo que
+               dura el gesto, y el ojo está en el archivo, no en el duende. */
+            if (quieto) { requestAnimationFrame(updateRig); return; }
             const dtRig = Math.min((time - (window.__rigT || time)) / 1000, 0.1);
             window.__rigT = time;
             const pasos = Math.max(1, Math.min(4, Math.round(dtRig * 60)));
@@ -2499,6 +2505,21 @@
                         window.__traducirEstado ? window.__traducirEstado('su voz no ha despertado…') : 'su voz no ha despertado…');
                 } else if (m.tipo === 'quieto') {
                     quieto = !!m.v;
+                    /* Los filtros fuera mientras dura el gesto; aplicarNivel()
+                       ya sabe cuáles tocan según el NIVEL, así que restaurar
+                       es llamarlo y no duplicar la tabla aquí. */
+                    /* Se localizan IGUAL que en aplicarNivel (posición en el
+                       DOM), no por su filtro actual: buscarlos por el nombre
+                       del filtro fallaba a partir del segundo scroll, porque
+                       tras el primero su style ya decía 'none'. */
+                    const capa = document.getElementById('goo-particles');
+                    const cuerpoGoo = document.querySelectorAll('.goo-layer')[0];
+                    if (quieto) {
+                        if (capa) capa.style.filter = 'none';
+                        if (cuerpoGoo) cuerpoGoo.style.filter = 'none';
+                    } else {
+                        aplicarNivel();
+                    }
                 } else if (m.tipo === 'raton') {
                     const p = aLocal(m.x, m.y);
                     /* ARCO MÁXIMO (Ruben): más allá de una elipse alrededor de
