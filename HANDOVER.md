@@ -92,16 +92,40 @@ its own expanded panel (Name/TTL/Type/Value + its own Delete button) before
 deleting — the confirm dialog also names the record, and it needs ~5 s to become
 opaque or the click passes through.
 
-**PENDING — LLM del agente, fecha límite 20-oct-2026**: el panel avisa de que
-Gemini 2.5 Flash (el cerebro actual de Tizno) se depreca el 20 de octubre y
-ElevenLabs lo migrará solo y gradualmente a Gemini 3.5 Flash si no hacemos
-nada. NO dejar que migre solo: el carácter de Tizno es puro prompt afinado
-(Mente, escalera, regla de idioma, respuestas snappy) y una migración
-silenciosa puede derivarlo sin que nadie mire. Plan a la vuelta de Altafulla:
-crear una BRANCH del agente (el panel las soporta) con Gemini 3.5 Flash,
-pasar el quick-pass del banco de pruebas (TIZNO-BANCO-PRUEBAS.md, los 20
-tests ES+EN — siguen pendientes: dos pájaros de un tiro), comparar latencia
-(mediana actual ~2,2 s) y fidelidad de carácter, y solo entonces promover.
+**LLM — RAMA DE PRUEBA YA LISTA (1-sep-2026), falta el oído de Ruben**
+
+Gemini 2.5 Flash se depreca el **20-oct-2026**. Si no hacemos nada, ElevenLabs
+migra solo a **Gemini 3.5 Flash**: 0,1164 $/min — el más caro de la lista tras
+los Claude grandes, **3x el candidato**, y techo de latencia 3,35 s. Con el
+presupuesto del grant (49.250 min) esa diferencia son ~5.700 $ frente a
+~1.900 $ de créditos. Para Tizno la latencia ES carácter: un silencio de 3 s
+antes de cada frase rompe la ilusión más que un fallo de escritura.
+
+Comparativa medida en el panel (latencia · $/min):
+- **Gemini 3 Flash Preview — 1,1-1,85 s · 0,0388** ← elegido: único con techo
+  por debajo de 2 s
+- Gemini 3.5 Flash-Lite — 0,68-3,1 s · 0,0234
+- Gemini 3.5 Flash (el automático) — 0,92-3,35 s · 0,1164
+- Claude Haiku 4.5 — ~714 ms · 0,0774 (plan B: mejor media, doble precio)
+- Gemini 3.7 Flash — 2,25-4,87 s · 0,0581 (descartado: inasumible hablando)
+
+**HECHO**: rama `gemini-3-flash-preview` creada y publicada con ese modelo
+(+ Reasoning Effort «minimal», bueno para la latencia). **Traffic split 0%**,
+Main sigue 100% Live: producción intacta, verificado. El diff tocaba SOLO el
+LLM — prompt, voz y KB sin cambiar.
+
+**LO QUE FALTA (5 minutos de Ruben)**: en el panel, selector de rama arriba a
+la izquierda → `gemini-3-flash-preview` → hablar con él dos minutos. ¿Sigue
+tartamudeando, sigue siendo corto y nervioso, respeta el idioma, no nombra
+proveedores? Si sí: Branches → Edit traffic split → subirlo (o promover a
+Main). Si no: probar Claude Haiku 4.5 en la misma rama.
+Yo no puedo cerrar esto: el chat del panel responde en VOZ, no en texto, y las
+transcripciones no se dejan abrir por automatización. Es exactamente la parte
+que necesita oídos.
+
+**Nota para el futuro**: existe un MCP oficial de ElevenLabs para Claude
+(«Manage your voice and chat agents directly from Claude», anunciado en el
+panel). Conectarlo ahorraría toda esta pelea con el navegador.
 
 **PENDING, human hands only**:
 - **Backlinks are now THE bottleneck**: 14 external links, all to the home, from
