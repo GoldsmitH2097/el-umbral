@@ -3,6 +3,45 @@
 
 ---
 
+## Sep 1, 2026 — Safari móvil petaba con Tizno liberado (RESUELTO)
+
+**Síntoma** (Javier): la web le mataba la pestaña en Safari de iPhone haciendo
+scroll lateral por el archivo, con Tizno LIBERADO y sin llegar a hablar con él
+— «y se ha calentado bien el teléfono». **El calor era el diagnóstico**:
+sobrecarga térmica, no un error de código.
+
+**Causa**: el motor de la web principal SÍ se apaga en el archivo (VisualEngine
+deja de pedir frames en escena 4 y esconde su lienzo), pero el marco de Tizno
+no se enteraba. Dentro seguía su bucle a 60 fps y TRES generadores de
+partículas (140/90/110 ms) que solo miraban `document.hidden` — y **hacer
+scroll no oculta la pestaña**. Todo ello en una capa `position:fixed` +
+`transform:scale(0.42)` con filtros SVG que **WebKit rasteriza por software**,
+así que el compositor no puede cachear la capa mientras el scroll la mueve.
+
+**Arreglo en dos vueltas**:
+- `d3322b6` — la madre avisa por postMessage al empezar el scroll y 200 ms tras
+  parar (listener pasivo en TiznoTease). El marco deja de fabricar partículas y
+  dibuja 1 de cada 4 fotogramas. → deja de petar y de calentar.
+- `0fd787b` — no bastaba: **lo caro no es el bucle, son los filtros**. Ahora
+  durante el gesto se congela el dibujado entero (la cadena de rAF sigue viva,
+  solo no se trabaja) y se sueltan los filtros de la capa de partículas y del
+  cuerpo; `aplicarNivel()` los restaura al soltar. Las capas se localizan por
+  POSICIÓN en el DOM, no por el filtro que llevan puesto: buscarlas por filtro
+  fallaba a partir del segundo scroll (tras el primero su style ya decía none).
+
+**Estado**: resuelto y verificado por Javier en su iPhone. Queda un residuo
+inherente («sigue siendo más suave sin Tizno») — una capa compuesta de más en
+un móvil siempre cuesta; Ruben y Javier lo dan por normal y por bueno. **No
+seguir optimizando esto** salvo que vuelva a petar.
+
+**IDEA APARCADA (Ruben, decisión suya)**: que Tizno se duerma solo tras X
+segundos sin interacción y vuelva al detectar movimiento. Buena por
+rendimiento (libera el marco cuando nadie le hace caso) y por carácter (es
+tímido y ya sabe esconderse: lo hace al cuarto piquito). Falta que Ruben fije
+el número de segundos y si vuelve solo o hay que darle al candado.
+
+---
+
 ## GRANT CONCEDIDO — Aug 18, 2026 🎉
 
 **ACTIVE since Aug 25, 2026**: Ruben enabled 2FA, accepted, 33,015,069
