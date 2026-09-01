@@ -283,6 +283,34 @@ export class TiznoTease {
           gustoNY: Math.max(-1, Math.min(1, gy)),
         });
       }, { passive: true });
+      /* ══════ EL FRENO DEL SCROLL (1-sep-2026) ══════
+         Javier: la web le petó en Safari de iPhone haciendo scroll lateral,
+         con Tizno liberado, SIN hablar con él — «y se ha calentado bien el
+         teléfono». El calor es el diagnóstico: no es un fallo de código, es
+         sobrecarga térmica y Safari matando la pestaña.
+
+         Por qué: el motor de la web principal SÍ se apaga en el archivo
+         (VisualEngine deja de pedir frames en escena 4), pero el marco de
+         Tizno no se entera de nada. Dentro sigue su bucle a 60 fps y tres
+         generadores de partículas (140/90/110 ms) que solo miran
+         `document.hidden` — y hacer scroll NO oculta la pestaña. Todo eso
+         vive en una capa `position:fixed` + `transform:scale(0.42)` con
+         filtros SVG que WebKit rasteriza POR SOFTWARE, así que el compositor
+         no puede cachear la capa mientras el scroll la mueve.
+
+         Nadie mira a Tizno mientras lee el archivo: durante el scroll se le
+         pide que se esté quieto, y vuelve solo 200 ms después de parar. */
+      let quietoT = null;
+      window.addEventListener('scroll', () => {
+        if (!this._libre || !this._frameListo) return;
+        if (quietoT === null) this._enviar({ tipo: 'quieto', v: true });
+        else clearTimeout(quietoT);
+        quietoT = setTimeout(() => {
+          quietoT = null;
+          this._enviar({ tipo: 'quieto', v: false });
+        }, 200);
+      }, { passive: true });
+
       // el marco es transparente a eventos: los clics sobre su zona se reenvían
       window.addEventListener('click', (e) => {
         if (!this._libre || !this._frame) return;
