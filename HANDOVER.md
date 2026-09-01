@@ -92,6 +92,17 @@ its own expanded panel (Name/TTL/Type/Value + its own Delete button) before
 deleting — the confirm dialog also names the record, and it needs ~5 s to become
 opaque or the click passes through.
 
+**PENDING — LLM del agente, fecha límite 20-oct-2026**: el panel avisa de que
+Gemini 2.5 Flash (el cerebro actual de Tizno) se depreca el 20 de octubre y
+ElevenLabs lo migrará solo y gradualmente a Gemini 3.5 Flash si no hacemos
+nada. NO dejar que migre solo: el carácter de Tizno es puro prompt afinado
+(Mente, escalera, regla de idioma, respuestas snappy) y una migración
+silenciosa puede derivarlo sin que nadie mire. Plan a la vuelta de Altafulla:
+crear una BRANCH del agente (el panel las soporta) con Gemini 3.5 Flash,
+pasar el quick-pass del banco de pruebas (TIZNO-BANCO-PRUEBAS.md, los 20
+tests ES+EN — siguen pendientes: dos pájaros de un tiro), comparar latencia
+(mediana actual ~2,2 s) y fidelidad de carácter, y solo entonces promover.
+
 **PENDING, human hands only**:
 - **Backlinks are now THE bottleneck**: 14 external links, all to the home, from
   auto-generated directories; zero to book pages. Researched Aug 16, findings:
