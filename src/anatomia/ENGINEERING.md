@@ -44,6 +44,8 @@ src/
     ├── effects.js                # fx implementations (beat-level)
     ├── SceneFX.js                # environment layer (vignette, red wash, figura, blackout)
     ├── AnatomiaAudio.js          # synth ambience + SFX + (Phase 3) voiceover sprites
+    ├── ReaderMemory.js           # local+ephemeral record of the reader's hand (§10)
+    ├── TheOther.js               # the ninth-door twin, played back from ReaderMemory (§10)
     └── anatomia.css              # all styling + fx keyframes; brand: black/serif/amber
 public/audio/anatomia/            # Phase 3: <floorId>.mp3 sprites + manifest.json
 ```
@@ -331,6 +333,7 @@ flare 200 ms · `crujido` low ratchet burst · `tos` two bandpass barks 300 Hz, 
 | 0 ✅ | `score.es.json` | 615/615 lines match manuscript exactly; loop ref valid (validated 2026-07) |
 | 1 ✅ | Entry + engine + Prólogo | Shipped + feel pass (cross-fades, pre-laid stanzas, typographic scale, mono void-voice register, per-floor palettes incl. bone-white epilogue, dust field, drone ambience) |
 | 2 ✅ | All floors + full fx/sfx/ambience | Full §5 fx + §6 scenes + §7 SFX/ambience recipes. Extras shipped: tab title becomes 11:11 on clock beats; cursor becomes the zippo flame (cursor:none + glow) on floors 4-5; piso-8 titlecard flashes "NOVENO PISO" for 130 ms before correcting; paper-grain overlay on the carta epilogue; mecedora/columpio creak loops drift in stereo. Wipe requires the vaho beat and "Paso el dedo." to share a stanza (stack:true) — the wipe hooks the .fx-vaho-write element in the live stage |
+| 2.5 ✅ | Behavioural slice (§10) | Reader-memory core + ending twin wired together; proximity-repels hero interaction (piso-6 #62); asymptotic floor counter (piso-8 #14). Verified 2026-07 by driving beats via `window.__anatomia` + DOM assertions (rAF frozen in headless tabs, so motion is asserted on computed targets, not observed) |
 | 3 | Voiceover | Ruben casts voice from 3 candidates; sprites + manifest generated; VOZ toggle; sync verified on iOS Safari |
 | 4 | Polish | mobile pass; a11y audit (reduced-motion, keyboard-only, screen reader via antechamber transcript); PSI on the antechamber unchanged; cross-browser (Safari/iOS focus) |
 | 5 | Launch | antechamber "ENTRAR" CTA wired in StateManager CATALOGUE (status → `available`, buyUrl → `/obras/anatomia-del-vacio/leer`); full transcript ghost DOM added to antechamber prerender; Pacto announcement email; HANDOVER/CLAUDE docs updated |
@@ -346,3 +349,53 @@ flare 200 ms · `crujido` low ratchet burst · `tos` two bandpass barks 300 Hz, 
 - Netlify `_redirects`: specific rules BEFORE the `/*` catch-all or they never match.
 - The prerender postbuild rewrites `dist/obras/anatomia-del-vacio/index.html` — if you need
   to touch the antechamber's HTML, do it in `scripts/generate-og-pages.js`, not in `dist/`.
+
+---
+
+## 10. Behavioural layer (Phase 2.5)
+
+The thesis: the piece's next leap is not more typography but using the reader's
+own behaviour as narrative material, so the final line lands as *proof*, not
+another effect. This is the first vertical slice of that idea — enough to prove
+it before extending floor by floor.
+
+**`ReaderMemory.js` — the building learns the hand.**
+Records, per session: cadence (median gap between the reader's *manual*
+advances), hesitation (reveal → advance), pointer/tap trail, and auto-advance
+ratio. `AnatomiaEngine.advance()` calls `recordAdvance(force)`; `reveal()` calls
+`markReveal()`.
+**INVARIANT — never persist or transmit.** In-memory only: no localStorage,
+cookies, IndexedDB, or network. The piece is a surveillance *metaphor*; making
+it literal would contradict soulware.live's own /privacidad + /cookies pledge.
+Keep this class structurally incapable of persisting.
+
+**`TheOther.js` — the reader, played back at the ninth door.**
+A point (not a cursor — must read on touch; uses `var(--ink)` so it's dark on
+the bone-white epilogue). `birth()` on `fx: "gemelo"` (epilogue #27) — it echoes
+the reader's cadence, a beat behind. `take()` on `fx: "gemelo-forma"` (#28,
+"Y serás tú") — it pulses ~150 ms *before* the predicted beat and rises into a
+40vh standing shape. Pulse is `setTimeout` (survives tab-hidden); pointer-follow
+is rAF and desktop-only (skipped on touch). Engine dismisses it in `_finale()`.
+
+**Proximity that disobeys — `startProximidad()` in `effects.js`.**
+`interact: "proximidad"` (piso-6 #62, "la distancia ha dejado de obedecer").
+Same contract as `startWipe`: engine sets `pendingInteract=true`, the layer
+resolves itself (~5.5 s; tap after 3 s) and clears it. The reader drags a node
+toward a goal that repels harder the nearer it gets — equilibrium orbit ≈0.10
+normalized, never closing. The correct action, the wrong result.
+
+**Asymptote — `_asintota()` / `fx: "asintota"`** (piso-8 #14, "debería ser el
+noveno"). The number climbs 8 → 8·9 → 8·99 → … with each step slower than the
+last, then falls back to 8. Replaces the old wrong-floor flash: the ninth is
+not hidden, it is out of reach.
+
+Score annotations added (presentation only — Germán's `t` strings untouched):
+`piso-6 #62 interact:proximidad`, `piso-8 #14 fx:asintota`,
+`epilogo #27 fx:gemelo`, `epilogo #28 fx:gemelo-forma`.
+
+**Not yet done** (deliberately parked for Ruben's judgement of this slice):
+the twin's *anticipatory* pointer-lead is desktop-only and light on mobile
+(touch has no cursor to haunt — needs a tap-ripple pre-empt); the mechanic is
+proven on three beats, not yet extended to "one broken law per floor"; the
+whole-experience cumulative-scar model (persistent glyph substitution, 1px
+drift) is not built. See the audit notes in the session handover.
