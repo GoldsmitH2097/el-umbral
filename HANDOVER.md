@@ -3,6 +3,106 @@
 
 ---
 
+## Sep 8, 2026 — Pagos (decisión en marcha), El Último Pago, y los botones bajo Tizno
+
+### Pasarela de pagos — recomendación entregada, Javier crea la cuenta
+Ruben pidió una pasarela para (1) vender experiencias digitales (Anatomía:
+prólogo + primer piso gratis, el resto a 2,99 €) y (2) más adelante libros
+físicos con Lantia gestionando pedidos y envíos. **Recomendación: Stripe, una
+sola cuenta, dos carriles** — verificado en las fuentes el 8-sep:
+- Stripe normal para España/UE: 1,5 % + 0,25 € (tarjeta EEE), **Bizum en
+  Checkout y Payment Links desde mayo 2026** (changelog 2026-05-27), Apple/
+  Google Pay. Bajo 10.000 €/año de ventas transfronterizas B2C la UE permite
+  cobrar el IVA de casa; **libros electrónicos y audiolibros van al 4 %** en
+  España (art. 91 LIVA, RDL 15/2020; DGT avala audiolibros) — Anatomía es
+  texto + voz, encaja, pero lo confirma el gestor. El umbral cambia en
+  enero de 2027 (seguimiento por país de destino).
+- Stripe **Managed Payments** (merchant of record, GA, España elegible):
+  3,5 % SOBRE las tarifas de Payments; Stripe asume el IVA en 80+ países
+  (UK, MX, US…); **solo productos digitales, sin Bizum, sin dominio propio,
+  el recibo lo firma Link**; requiere revisión de elegibilidad. Es una
+  casilla en la misma Checkout Session: se activa por país del visitante
+  (Netlify Functions dan `context.geo`) para compradores fuera de la UE.
+- Descartadas: Lemon Squeezy / Paddle (solo digital, 5 % + 0,50 $, LS se
+  funde en MP), Gumroad (~10 %, su marca), Shopify (cuota, plataforma
+  entera), TPV bancario.
+- Economía a 2,99 € con IVA 4 %: quedan ~2,58 € (Stripe normal) / ~2,48 €
+  (MP). A 1,99 €: ~1,63 / ~1,56. Recomendado 2,99 €.
+- **Lantia**: tienen libros.cc, POD y agregación; la página del servicio a
+  editoriales no es pública. La compatibilidad depende de QUIÉN VENDE: si
+  Soulware vende y Lantia solo prepara/envía → Stripe cobra (dirección +
+  tarifas de envío) y una función les pasa el pedido; si vende Lantia → la
+  web solo enlaza. Preguntas pendientes a Lantia: vendedor, cómo llega el
+  pedido (API/webhook/panel), quién factura al lector, tarifas por zona.
+- **Estado**: Javier crea la cuenta de Stripe (NIF de Soulware; Bizum lo
+  exige; solicitar MP; activar Bizum/Apple/Google Pay; clave de test).
+  Ruben pregunta al gestor (4 % y umbral 2027) y a Lantia. Después: Javier
+  (o yo desde la sesión de Netlify de Ruben) mete 3 variables de entorno
+  (clave secreta, secreto del webhook, secreto de firma de la llave).
+- **Arquitectura pendiente (no empezar hasta que vuelva Anatomía)**: HOY el
+  texto ENTERO viaja en el bundle (`AnatomiaEngine.js: import score from
+  './score.es.json'`) — cualquiera lo lee con «inspeccionar». Para cobrar
+  de verdad: prólogo + piso 1 en el bundle, los otros 8 pisos servidos por
+  una función de Netlify que exige la llave firmada (primer serverless del
+  proyecto). Tres funciones: crear sesión (elige carril por país), verificar
+  + firmar llave (webhook), servir pisos. Llave en localStorage + enlace
+  guardable; recuperación por email de compra. Sin cuentas, sin DRM.
+  Condiciones de compra ES/EN nuevas + casilla de renuncia al desistimiento
+  (contenido digital, Directiva 2011/83/UE art. 16 m).
+- **Anatomía en pausa** (Ruben): se retoma en un par de días con
+  regrabación completa por Diego (amigo argentino). El motor ya admite una
+  toma por piso.
+
+### Catálogo — El Último Pago, y Totalis fuera por ahora (commit content(obras))
+- La obra de la Emperatriz es **El Último Pago**, Alicia Sarel, tragedia
+  lírica. Portada real (`/assets/el-ultimo-pago.webp`, 600×900 desde el PNG
+  1800×3000 de Descargas: es 3:5, así que 30 px de papel ESPEJADO por lado
+  para llegar a 2:3 sin recortar título ni sello) + móvil 280×420.
+- Nuevo estado en CATALOGUE: `retailers[{ id, soon: true }]` (sin url) →
+  marca apagada, sin ancla ni chispas, bajo «Próximamente en». Un libro con
+  solo tiendas anunciadas recibe el COFRE (clase --available + --pronto) —
+  «como un igual a Pulso y Filamentos». Cuando haya enlace: url, fuera el
+  soon, edición y obra a 'available'. Nunca un enlace de relleno.
+- Totalis Libertas (la-corte) fuera del catálogo «por ahora»: 301 al
+  catálogo (ES/EN) en _redirects, fuera de sitemap, @graph, fantasma y
+  Router. Entrada completa en git `26bbf11`; en StateManager hay una nota
+  con la lista de sitios que tocar para reponerla.
+- Filamentos: Amazon vivo + Casa del Libro/ECI/Fnac anunciadas tras el
+  filete con nota «próximamente». **No hay ebook y no lo habrá: la autora
+  no lo quiere** (decisión, no hueco). Pulso no cambia (sus 4 tiendas viven:
+  CdL y Amazon 200; ECI y Fnac 403 solo al bot).
+- Ruta /obras/el-ultimo-pago/ ES+EN prerenderizada (Book JSON-LD sin
+  oferta), sitemap con lastmod de hoy. El fantasma SEO no emite
+  href="undefined" para tiendas anunciadas.
+- Lectura de Ruben que tomé: «en pulso y filamentos podemos poner
+  próximamente en CdL, ECI, Fnac y Amazon» → Pulso ya tiene las cuatro
+  vivas, así que solo Filamentos recibió las anunciadas. Ajustable.
+
+### Tizno en la web madre — tres peticiones de Ruben (commit fix(tizno))
+- **Botones bajo Tizno, centrados**: con él suelto, `.footer-bar.tizno-libre
+  .fb-right` pasa a `position: fixed` centrado bajo el centro del marco
+  (right 8px + 910×0,55/2 ≈ 258px desde el borde de la VENTANA — la barra
+  tiene max-width 1500 y su borde no es el de la ventana). Franja 769–820:
+  el grupo baja a la segunda fila de la barra (en flujo, margen calculado
+  para el centro a 191px). ≤768: nada que hacer, la barra ya lo centra (y un
+  fixed ignoraría el safe-area de iOS). Verificado a 1200, 1440 (EN) y 800.
+- **Susurro apagado** («summoning Tizno…»): `_susurroEl()` devuelve null y
+  `#liberar-susurro { display:none !important }`. Los diagnósticos del
+  micrófono van a `console.warn('[Tizno] micrófono:')`. Tizno sigue
+  pidiendo el candado en voz (sinMicro) — el texto no hace falta.
+- **Súplica en español con la web en inglés**: `_latidoSuplica` cargaba
+  `frase-sin-micro-{1,2}.mp3` a pelo. Ahora rota por el banco del idioma
+  de la web: 2 tomas ES, 4 EN (`frase-sin-micro-en-1..4`).
+
+### Pendientes vivos
+- Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
+  ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
+- Idea aparcada: Tizno se duerme tras X s sin interacción (Ruben decide).
+- Lección de hoy: **nunca backticks dentro de `git commit -m "…"` en zsh**
+  (se ejecutan y se borran): usar `git commit -F - <<'EOF'`.
+
+---
+
 ## Sep 1, 2026 — Safari móvil petaba con Tizno liberado (RESUELTO)
 
 **Síntoma** (Javier): la web le mataba la pestaña en Safari de iPhone haciendo

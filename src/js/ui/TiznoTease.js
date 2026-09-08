@@ -189,6 +189,7 @@ export class TiznoTease {
            Cuando el marco se queja del micrófono y la madre sabe la razón,
            gana la razón. */
         const esFalloMicro = /micrófono|InvalidStateError/i.test(m.texto || '');
+        if (esFalloMicro) console.warn('[Tizno] micrófono:', this._causaMicro || m.texto);
         el.textContent = (esFalloMicro && this._causaMicro) ? this._causaMicro : m.texto;
         el.classList.add('visible');
         el.classList.toggle('aviso', esFalloMicro);
@@ -386,8 +387,16 @@ export class TiznoTease {
     this._ultimaSuplicaT = ahora;
     this._suplicasDichas++;
     try {
-      const a = new Audio('/tizno-sfx/frase-sin-micro-' + this._suplicaToma + '.mp3');
-      this._suplicaToma = this._suplicaToma === 1 ? 2 : 1;
+      /* EN SU LENGUA. Esto sonaba en castellano con la web en inglés
+         (Ruben, 8-sep-2026: «tizno me decía "ábreme, sácame de aquí…" en
+         español cuando tenía la web en inglés»): la madre cargaba la toma ES
+         a pelo, sin mirar el idioma, mientras el marco sí elige banco por
+         IDIOMA. Ahora rota por el banco del idioma de la web: 2 tomas ES,
+         4 tomas EN (frase-sin-micro-en-1..4, voz clonada del 8-ago). */
+      const en = lang === 'en';
+      const tomas = en ? 4 : 2;
+      const a = new Audio(`/tizno-sfx/frase-sin-micro-${en ? 'en-' : ''}${this._suplicaToma}.mp3`);
+      this._suplicaToma = (this._suplicaToma % tomas) + 1;
       a.volume = 0.8;
       this._suplicaAudio = a;
       /* Y EL CANDADO LE CONTESTA. Si él pide que le suelten y el botón que lo
@@ -410,7 +419,13 @@ export class TiznoTease {
     this._suplicaAudio = null;
   }
 
-  _susurroEl() { return document.getElementById('liberar-susurro'); }
+  /* EL SUSURRO SE APAGÓ (Ruben, 8-sep-2026: «quiero eliminar ese mini
+     texto» — el «summoning Tizno…» que flotaba sobre los botones). Devolver
+     null apaga de golpe los dos caminos que escribían en él (los estados del
+     marco y el parte médico del micrófono) sin tocar su lógica: si algún día
+     vuelve, basta con devolver el elemento otra vez. Mientras tanto, lo que
+     habría dicho va a la consola, que es donde se lee un fallo de verdad. */
+  _susurroEl() { return null; }
 
   /* El susurro es lo único que se lee en un móvil sin consola conectada, así
      que también sirve de parte médico cuando el micrófono falla. Se queda un
@@ -420,6 +435,7 @@ export class TiznoTease {
        ahí es donde esta frase tiene que volver a salir (ver el manejador de
        'estado'). */
     this._causaMicro = texto;
+    console.warn('[Tizno] micrófono:', texto);
     const el = this._susurroEl();
     if (!el) return;
     el.textContent = texto;
@@ -436,6 +452,9 @@ export class TiznoTease {
     if (span) span.textContent = t(this._libre ? 'footer.encerrar' : 'footer.liberar');
     this._candado?.classList.toggle('abierto', this._libre);
     this._candado?.setAttribute('aria-label', t(this._libre ? 'footer.encerrar-aria' : 'footer.liberar-aria'));
+    /* Con Tizno suelto, el grupo de botones se centra bajo su cuerpo
+       (Ruben, 8-sep-2026) — la regla vive en archive.css (.tizno-libre). */
+    document.querySelector('.footer-bar')?.classList.toggle('tizno-libre', !!this._libre);
     /* Coreografía (Ruben): preso → un solo botón LIBERAR A TIZNO.
        Libre → [candado icono] [Hablar con Tizno]. Encerrar lo pliega todo. */
     if (this._hablarBtn) {
