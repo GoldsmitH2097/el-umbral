@@ -74,6 +74,12 @@ sola cuenta, dos carriles** — verificado en las fuentes el 8-sep:
 - Ruta /obras/el-ultimo-pago/ ES+EN prerenderizada (Book JSON-LD sin
   oferta), sitemap con lastmod de hoy. El fantasma SEO no emite
   href="undefined" para tiendas anunciadas.
+- **Anatomía también en cofre grande** (Ruben, misma tarde): invitación
+  propia `cofreInvite` («Experiencia inmersiva» / «Immersive experience»),
+  cuatro LLAVES apagadas — los palos de la baraja, `palo-*.svg` de trazo fino
+  como ebook-fino — y la nota «próximamente» debajo. Son marcadores para el
+  acceso de pago futuro («we play later with the access»). `llave:true` en
+  retailers.js: el fantasma SEO no las lista como tiendas.
 - Lectura de Ruben que tomé: «en pulso y filamentos podemos poner
   próximamente en CdL, ECI, Fnac y Amazon» → Pulso ya tiene las cuatro
   vivas, así que solo Filamentos recibió las anunciadas. Ajustable.

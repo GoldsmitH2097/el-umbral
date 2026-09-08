@@ -50,6 +50,21 @@ export const RETAILERS = {
                    logo: '/assets/retailers/fnac.svg' },
   amazon:        { name: 'Amazon',          brand: '#ff9900',
                    logo: '/assets/retailers/amazon.svg' },
+
+  // ── LAS LLAVES DE ANATOMÍA (Ruben, 8-sep-2026) ─────────────────────────
+  // Anatomía del Vacío no se compra en una tienda: se entra. Para que su
+  // cofre pese lo mismo que los de los libros, su fila lleva cuatro marcas
+  // que no son comercios sino LLAVES — los cuatro palos de la baraja,
+  // «just random, we play later with the access». Hoy van apagadas
+  // (soon:true en CATALOGUE); cuando exista el acceso de pago, cada palo
+  // podrá ser una puerta distinta (o ninguna: se decidirá entonces).
+  // llave:true — el fantasma SEO no las lista como tiendas, y el aria-label
+  // lee el nombre a secas. Trazo fino como ebook-fino.svg, que es la marca
+  // que Ruben calibró contra los logotipos.
+  picas:      { name: 'Picas',      name_en: 'Spades',   shop: false, llave: true, logo: '/assets/retailers/palo-picas.svg' },
+  corazones:  { name: 'Corazones',  name_en: 'Hearts',   shop: false, llave: true, logo: '/assets/retailers/palo-corazones.svg' },
+  diamantes:  { name: 'Diamantes',  name_en: 'Diamonds', shop: false, llave: true, logo: '/assets/retailers/palo-diamantes.svg' },
+  treboles:   { name: 'Tréboles',   name_en: 'Clubs',    shop: false, llave: true, logo: '/assets/retailers/palo-treboles.svg' },
 };
 
 export function retailer(id) {

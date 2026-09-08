@@ -92,7 +92,8 @@ function fichaBlock(item) {
   return `<ul class="obra-ficha">${parts.map(v => `<li>${v}</li>`).join('')}</ul>`;
 }
 
-// ¿Tiene tiendas anunciadas sin enlace? (retailers con soon:true y sin url)
+// ¿Tiene marcas anunciadas sin enlace? (retailers con soon:true y sin url —
+// tiendas de verdad, o las llaves de Anatomía: al cofre le da igual)
 export function tieneTiendasPronto(item) {
   return !!item.editions?.some(ed => (ed.retailers || []).some(r => r.soon && !r.url));
 }
@@ -163,7 +164,7 @@ export function renderCta(item, { detail = false } = {}) {
       });
       return `<div class="obra-editions ${detail ? 'obra-editions--detail' : 'obra-editions--shop'}">
         ${lootDecor}
-        <p class="obra-edition-invite">${linkable.length ? t('cta.buy') : t('cta.soon-at')}</p>
+        <p class="obra-edition-invite">${getField(item, 'cofreInvite') || (linkable.length ? t('cta.buy') : t('cta.soon-at'))}</p>
         <div class="cofre-strip">
           ${impresas.map(retailerLink).join('')}
           ${digitales.length ? `<span class="cofre-sep" aria-hidden="true"></span><span class="cofre-ebook">${digitales.map(retailerLink).join('')}<i aria-hidden="true">ebook</i></span>` : ''}
@@ -171,8 +172,14 @@ export function renderCta(item, { detail = false } = {}) {
               /* Mezcla (Filamentos): las anunciadas cierran la fila tras un
                  filete, con su nota minúscula — el mismo lenguaje que el ebook. */
               ? `<span class="cofre-sep" aria-hidden="true"></span><span class="cofre-pronto">${pronto.map(retailerLink).join('')}<i aria-hidden="true">${t('cta.soon-note')}</i></span>`
-              /* Solo anunciadas (El Último Pago): la invitación ya lo dice. */
-              : pronto.map(retailerLink).join('')) : ''}
+              /* Solo anunciadas. Si la invitación es propia (Anatomía:
+                 «Experiencia inmersiva») no dice «próximamente», así que la
+                 nota va bajo las marcas, repartidas a lo ancho como en los
+                 demás cofres. Si la invitación ya es «Próximamente en»
+                 (El Último Pago), marcas a secas. */
+              : (item.cofreInvite
+                  ? `<span class="cofre-pronto cofre-pronto--solo">${pronto.map(retailerLink).join('')}<i aria-hidden="true">${t('cta.soon-note')}</i></span>`
+                  : pronto.map(retailerLink).join(''))) : ''}
         </div>
       </div>`;
     }

@@ -762,8 +762,17 @@
   display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
   gap: inherit;
 }
+/* Solas en la fila (Anatomía): a lo ancho como cualquier otro cofre, con la
+   nota centrada debajo de las cuatro. */
+.cofre-pronto--solo { width: 100%; justify-content: space-evenly; }
 .cofre-pronto i {
-  flex-basis: 100%; text-align: center;
+  /* Ocupa su propia línea bajo las marcas (flex-basis 100%) pero NO cuenta
+     para el ancho intrínseco del grupo: width 0 lo saca de la cuenta y el
+     min-width 100% lo devuelve a todo el ancho una vez colocado. Sin esto,
+     la palabra ensanchaba el grupo (~100px) y en Filamentos mandaba las
+     tres marcas a una segunda fila con sitio de sobra (visto a 1440). */
+  flex-basis: 100%; width: 0; min-width: 100%; white-space: nowrap;
+  text-align: center;
   font-style: normal; font-size: 8px; letter-spacing: 2.5px;
   text-transform: uppercase; color: #8a7458; margin-top: -2px;
   padding-left: 2.5px;

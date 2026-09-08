@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
+  <!-- Palo de la baraja — una de las cuatro LLAVES de Anatomía del Vacío
+       (Ruben, 8-sep-2026: «make up a new icon to balance with the shops…
+       clubs, hearts, diamonds and spades… we play later with the access»).
+       Trazo fino (13) como ebook-fino.svg, que es la marca que Ruben calibró
+       contra los logotipos: un relleno pesaba demasiado en la fila. Mismo
+       artboard 500×500 que todas las marcas — no recortar (ver README.md). -->
+  <g fill="none" stroke="#fff" stroke-width="13" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M250 96 C 250 96, 100 205, 100 288 C 100 340, 138 374, 184 374 C 214 374, 238 358, 250 336 C 262 358, 286 374, 316 374 C 362 374, 400 340, 400 288 C 400 205, 250 96, 250 96 Z" />
+    <path d="M250 336 C 252 378, 234 402, 208 418 L 292 418 C 266 402, 248 378, 250 336" />
+  </g>
+</svg>

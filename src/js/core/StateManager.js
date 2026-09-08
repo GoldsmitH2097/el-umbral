@@ -259,9 +259,29 @@ export const CATALOGUE = [
     vision_en: 'You do not enter to read a story. You enter to be dissected by it. Psychological horror sentence by sentence, in real time — no pages, no narration, no map for the way out. Only the descent. Only your silence.',
     desc: 'No entras a leer un relato. Entras para ser diseccionado por él.',
     desc_en: 'You do not enter to read a story. You enter to be dissected by it.',
-    buyUrl: null,
-    buyLabel: 'Próximamente',
-    buyLabel_en: 'Coming Soon',
+    // EL MISMO COFRE GRANDE QUE LOS LIBROS (Ruben, 8-sep-2026: «lets have
+    // anatomia del vacio in the same large format. And should read as
+    // "experiencia inmersiva" coming soon»). La invitación del cofre no es
+    // «Reclamar mi ejemplar» ni «Próximamente en»: es lo que ES, y la nota
+    // «próximamente» va bajo las marcas. Las marcas son las cuatro LLAVES
+    // (palos de la baraja, ver retailers.js): apagadas hasta que exista el
+    // acceso de pago — «we play later with the access. just add them for now».
+    cofreInvite: 'Experiencia inmersiva',
+    cofreInvite_en: 'Immersive experience',
+    editions: [
+      {
+        id: 'anatomia-acceso',
+        label: 'Experiencia inmersiva',
+        label_en: 'Immersive experience',
+        status: 'coming-soon',
+        retailers: [
+          { id: 'picas',     soon: true },
+          { id: 'corazones', soon: true },
+          { id: 'diamantes', soon: true },
+          { id: 'treboles',  soon: true },
+        ],
+      },
+    ],
   },
   // ── Boutique placeholder — architecture ready for Phase 4 commerce ──
   // {

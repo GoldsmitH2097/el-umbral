@@ -260,15 +260,19 @@ function ghostObra(id, lang) {
     // Tiendas anunciadas sin enlace (soon:true, 8-sep-2026): nombre a secas,
     // sin ancla — un href="undefined" sería un enlace roto para Googlebot.
     // Si ninguna tiene enlace todavía, el epígrafe ya lo dice.
+    // Las LLAVES de Anatomía (llave:true en retailers.js) no son tiendas:
+    // ni se listan ni convierten «En preparación» en «Próximamente en».
+    const esLlave = r => !!RETAILERS[r.id]?.llave;
     const hayEnlace = o.editions.some(ed => (ed.retailers || []).some(r => r.url));
-    out += `<h2>${hayEnlace ? t.buy : t.soonAt}</h2>`;
+    const hayTienda = o.editions.some(ed => (ed.retailers || []).some(r => r.url || !esLlave(r)));
+    out += `<h2>${hayEnlace ? t.buy : hayTienda ? t.soonAt : t.soon}</h2>`;
     for (const ed of o.editions) {
-      const shops = (ed.retailers || []).map(r => {
+      const shops = (ed.retailers || []).filter(r => !esLlave(r)).map(r => {
         const name = RETAILERS[r.id]?.name || r.id;
         if (!r.url) return `<li>${name}${hayEnlace ? ` — ${t.soonShop}` : ''}</li>`;
         return `<li><a href="${r.url}" rel="noopener">${o.title} — ${name}</a></li>`;
       }).join('');
-      out += `<h3>${f(ed, 'label', lang)}</h3><ul>${shops}</ul>`;
+      out += `<h3>${f(ed, 'label', lang)}</h3>${shops ? `<ul>${shops}</ul>` : ''}`;
     }
   }
 
