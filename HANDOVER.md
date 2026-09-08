@@ -165,6 +165,24 @@ se autocorrige, nada absurdo. Contrastado punto por punto y aplicado:
   «Autor»; CSP (más adelante, en report-only); perfilado del intro (constraint
   conocido).
 
+### Tizno: el nombre (8-sep, panel de ElevenLabs)
+Ruben: «corrige su nombre mucho… Tizno no, ¡Tizno!». Dos frentes, los dos
+publicados en Main y tirados a la rama gemini-3-flash-preview:
+- Bloque «TU NOMBRE — SIN QUISQUILLAS» al principio del system prompt:
+  cualquier «Tisno/Tizmo/Tino/Ticno/Tirso…» es él; nunca corrige, nunca
+  deletrea, lo dice una vez solo si se lo preguntan; igual con las Voces y
+  las obras; vale en inglés.
+- Settings → ASR → Keywords (máx. 20 caracteres/palabra): Tizno, Soulware,
+  Umbral, Emperatriz, Sortílega, Arlequín, Pulso del Núcleo, Filamentos,
+  Anatomía, Último Pago, Caballero — el reconocedor deja de inventarse
+  nombres a la entrada, que es donde nacía el error.
+Lo que Tizno YA sabe del visitante (buildDossier en tizno-ai.html, viaja
+como contexto oculto + variables): hora y si es rara, día, zona horaria,
+idioma del navegador, origen (Instagram/buscador/directo), batería, móvil,
+modo oscuro, reduced-motion, segundos mirándole antes de hablar, nº de
+visita y días desde la última, nombre recordado. El prompt ya tiene «LA LEY
+DEL ILUSIONISTA» para jugarlas con cuentagotas.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
