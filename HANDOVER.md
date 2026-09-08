@@ -201,6 +201,27 @@ que sea un poco big brother… que Tizno es muy listo, no que te observa».
   Harlequin, The Hollow, Totalis Libertas, Núcleo Eterno, Voces del Umbral.
   Una sola lista para ES y EN (máx. 20 caracteres por palabra, 50 en total).
 
+### Auditoría GPT, 3ª ronda (8-sep, 18:27) — contrastada y aplicada
+Nota de GPT: 8/10, «sí para difusión gradual». Confirma corregido lo de la
+2ª ronda. Tres abiertos, aplicados (commit fix(auditoria-3)):
+- **Foco sobre el catálogo oculto**: cierto — `#main-site` estaba a opacidad
+  0 tras el intro pero no inerte, y «LAS OBRAS» recibía Tab. Ahora nace
+  `inert aria-hidden` en el HTML y showArchive() (único camino por el que
+  se muestra) lo libera. «Volver al Umbral» recarga la página, así que
+  vuelve a nacer inerte. Verificado: al arrancar solo `skip-btn` es
+  tabulable; en /obras/ el nav vuelve a serlo.
+- **«Avísame» con la obra**: el modal envía `form-name=el-pacto` con el campo
+  `obra`, pero el form oculto de Netlify NO declaraba ese campo → Netlify lo
+  habría descartado (solo guarda campos declarados). Añadido
+  `<input type="hidden" name="obra">`. PENDIENTE un envío de prueba real
+  (es un formulario: lo hace Ruben o me da permiso) y mirar Netlify → Forms.
+- **Privacidad**: describe ahora el aviso de disponibilidad (correo + obra,
+  finalidad, borrado tras el aviso o a los 12 meses, Netlify Forms, derecho
+  de supresión) en ES y EN. Tizno sigue fuera de privacidad por decisión de
+  Ruben (agosto): va en el pacto y en el aviso legal.
+- No aplicado: perfilado del intro (constraint conocido), CSP (más adelante),
+  Buscalibre (plan de Ruben), matriz física de dispositivos.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.

@@ -700,6 +700,12 @@ export class ArchiveDOM {
   }
 
   showArchive({skipIntro=false}={}) {
+    /* NADA INVISIBLE EN EL TABULADOR (auditoría 8-sep-2026, 3ª ronda): el
+       catálogo nace `inert` en el HTML — a opacidad 0 tras el intro, sus
+       enlaces («LAS OBRAS», el pie…) seguían recibiendo foco. Aquí, que es
+       el único sitio por el que se muestra, vuelve al árbol de accesibilidad. */
+    this._mainSite.inert = false;
+    this._mainSite.removeAttribute('aria-hidden');
     if(skipIntro) this._mainSite.style.transition='none';
     this._mainSite.style.opacity='1'; this._mainSite.style.pointerEvents='auto';
     if(skipIntro) requestAnimationFrame(()=>{this._mainSite.style.transition='opacity 3s ease';});

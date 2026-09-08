@@ -272,7 +272,7 @@
 </div>
 
 <!-- SCENE 4: THE ARCHIVE -->
-<main id="main-site">
+<main id="main-site" inert aria-hidden="true">
   <div id="grid-view">
     <nav class="site-nav">
       <div class="logo"><img src="/assets/soulware-logo.webp" alt="Soulware" class="site-logo" width="120" height="120" /></div>
@@ -363,6 +363,10 @@
         <input type="text" name="bot-field2" />
         <input type="email" name="email" />
         <input type="checkbox" name="consent" />
+        <!-- «Avísame» (captación de correo por obra) envía a este mismo form con
+             el campo obra: Netlify solo guarda los campos declarados aquí —
+             sin esta línea el nombre de la obra se perdía (auditoría 8-sep). -->
+        <input type="hidden" name="obra" />
         <input type="hidden" name="obra" />
       </form>
     </footer>
