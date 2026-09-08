@@ -222,6 +222,26 @@ Nota de GPT: 8/10, «sí para difusión gradual». Confirma corregido lo de la
 - No aplicado: perfilado del intro (constraint conocido), CSP (más adelante),
   Buscalibre (plan de Ruben), matriz física de dispositivos.
 
+### Tizno vive en Gemini 3 (8-sep, tarde)
+Ruben: «movemos a 3.0 en la versión live y vemos qué pasa». Main → Gemini 3
+Flash Preview (reasoning effort «minimal»), publicado. La rama
+gemini-3-flash-preview queda redundante. Ojo: el aviso de ElevenLabs dice que
+migrarán 2.5 → 3.5 Flash automáticamente; en la lista hay 3.5/3.6/3.7 Flash.
+Si el 3 Preview desaparece o suena raro, el siguiente candidato es 3.5 Flash
+(latencia algo mayor: 0,9–3,8 s frente a 1,1–1,9 s).
+
+### Las Llaves de la Caja — instrucciones para Javier (8-sep)
+Artefacto: https://claude.ai/code/artifact/76996a43-2de4-47e5-aae1-a266a363c278
+Seis pasos: cuenta Stripe (NIF obligatorio para Bizum), Bizum/Apple/Google
+Pay + solicitar Managed Payments, STRIPE_SECRET_KEY (test) en Netlify,
+LLAVE_SECRET (openssl rand -hex 32), webhook cuando avise Claude
+(https://soulware.live/.netlify/functions/stripe-webhook →
+STRIPE_WEBHOOK_SECRET), y notificación por correo del form el-pacto a
+editorial@. Regla: las claves nunca pasan por el chat ni por Claude.
+Prueba del «Avísame» hecha desde producción (editorial@, El Último Pago):
+POST 200 y «Hecho»; falta verla en Netlify → Forms (sesión cerrada en el
+Chrome de Ruben; no entro en cuentas).
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
