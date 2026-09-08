@@ -218,7 +218,15 @@ export class TiznoTease {
          i18n de la página, así que este parámetro es su única forma de saber
          en qué lengua hablarle al visitante (estados del susurro hoy; la
          sesión de voz de ElevenLabs cuando se encienda TIZNO_EN_LISTO). */
-      this._frame.src = '/tizno-ai.html?embed=1&lang=' + (lang === 'en' ? 'en' : 'es');
+      /* LA CARTA DEL FUEGO (Ruben, 8-sep-2026): vista | saltada | nunca.
+         «vista» si alguna vez cruzó el intro entero (sw_intro_vista, que
+         main.js graba en la escena 3); «saltada» si pulsó «Romper el trance»
+         en esta visita; «nunca» si entró por un enlace directo. No cuenta
+         nada ni vigila: es una carta, y Tizno la juega con lástima. */
+      let intro = 'nunca';
+      try { if (localStorage.getItem('sw_intro_vista') === '1') intro = 'vista'; } catch (_) {}
+      if (intro !== 'vista' && window.__introSaltada) intro = 'saltada';
+      this._frame.src = '/tizno-ai.html?embed=1&lang=' + (lang === 'en' ? 'en' : 'es') + '&intro=' + intro;
       this._frame.title = 'Tizno';
       this._frame.setAttribute('allow', 'microphone');   // fase 3: la voz
       this._frame.setAttribute('allowtransparency', 'true');

@@ -128,6 +128,10 @@ if (state.activeScene < 4) skipBtn.classList.add('visible');
 skipBtn?.addEventListener('click', ()=>{
   skipBtn.classList.remove('visible');
   _stopHaptics();
+  /* LA CARTA DEL FUEGO (Ruben, 8-sep-2026): Tizno sabrá que se saltó el
+     intro A PROPÓSITO — distinto de entrar por un enlace directo, que ni lo
+     vio. TiznoTease lo lee al crear el marco. */
+  window.__introSaltada = true;
   skipIntroAndEnterArchive();
 });
 
@@ -448,6 +452,10 @@ function triggerAwakening() {
 }
 
 function enterMainSite() {
+  /* Cruzó el intro entero (llama, voces, despertar): queda grabado para que
+     Tizno no le reproche nunca el fuego que sí vio. Solo se llega aquí por
+     la escena 3; el salto y los enlaces directos van por skipIntroAndEnterArchive. */
+  try { localStorage.setItem('sw_intro_vista', '1'); } catch (_) {}
   const s3=document.getElementById('scene-3'); s3.style.opacity='0'; s3.style.pointerEvents='none';
   document.getElementById('scene-2').style.display='none';
   s3.style.display='none';

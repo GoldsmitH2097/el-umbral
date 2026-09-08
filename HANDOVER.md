@@ -183,6 +183,24 @@ modo oscuro, reduced-motion, segundos mirándole antes de hablar, nº de
 visita y días desde la última, nombre recordado. El prompt ya tiene «LA LEY
 DEL ILUSIONISTA» para jugarlas con cuentagotas.
 
+### La carta del fuego (8-sep, commit feat(tizno))
+La única idea nueva que Ruben aceptó: si el visitante se saltó el intro,
+Tizno le dice que se ha perdido algo bueno. Lo demás (ratón, contadores,
+tiendas pulsadas, pestañas) lo rechazó: «no me gusta que cuente x veces o
+que sea un poco big brother… que Tizno es muy listo, no que te observa».
+- main.js graba `sw_intro_vista=1` al cruzar la escena 3 (enterMainSite) y
+  `window.__introSaltada` al pulsar «Romper el trance».
+- TiznoTease añade `&intro=vista|saltada|nunca` al src del marco.
+- tizno-ai.html: `INTRO` (URL en el embed; localStorage en la Estancia),
+  `dossier.intro`, y dos líneas en dossierToText: «SE SALTÓ EL FUEGO…»
+  (lástima o reproche, que vuelva por «Volver al Umbral») y «ENTRÓ POR UNA
+  PUERTA LATERAL…» (invitarle a la puerta principal, sin vender).
+- Prompt (Main + rama): carta «El fuego» en TUS CARTAS.
+- ASR Keywords ampliadas a 26: + Alicia Sarel, Eidon, Irina, Germán Ferri,
+  Casa del Libro, Corte Inglés, Fnac, Pulse of the Core, Eternal Core, Sibyl,
+  Harlequin, The Hollow, Totalis Libertas, Núcleo Eterno, Voces del Umbral.
+  Una sola lista para ES y EN (máx. 20 caracteres por palabra, 50 en total).
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.

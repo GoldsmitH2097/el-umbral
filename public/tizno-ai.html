@@ -618,6 +618,13 @@
         /* Idioma: por query (?lang=en, el embed y los rewrites) o por ruta
            (/en/tizno servido como página estática, sin query). */
         const IDIOMA = (/[?&]lang=en/.test(location.search) || /^\/en\//.test(location.pathname)) ? 'en' : 'es';
+        /* EL FUEGO: vista | saltada | nunca (Ruben, 8-sep-2026). En el embed
+           llega por la URL, que la madre sabe qué pasó en esta visita; en la
+           Estancia se mira la memoria del sitio (mismo origen): si alguna
+           vez cruzó el intro entero, lo vio; si no, entró por una puerta
+           lateral. Una sola carta — sin contar nada. */
+        const INTRO = (/[?&]intro=(vista|saltada|nunca)/.exec(location.search) || [])[1]
+                   || ((() => { try { return localStorage.getItem('sw_intro_vista') === '1'; } catch (_) { return false; } })() ? 'vista' : 'nunca');
         /* Interruptor de la VOZ en inglés (los textos ya van por IDIOMA).
            ENCENDIDO el 6-ago-2026: English añadido como idioma adicional del
            agente y override de language permitido en Security — los dos
@@ -2995,6 +3002,7 @@
                 diasDesde: dias_desde,
                 nombre: m.nombre || null,
                 segundosMirando: Math.round((Date.now() - pageOpenedAt) / 1000),
+                intro: INTRO,
             };
         }
 
@@ -3020,6 +3028,8 @@
                 L.push('Es su PRIMERA visita: no te conoce todavía.');
             }
             if (d.nombre) L.push(`La última vez dijo llamarse ${d.nombre} — recuérdalo como si nunca lo hubieras olvidado.`);
+            if (d.intro === 'saltada') L.push('SE SALTÓ EL FUEGO: pulsó «Romper el trance» y se perdió la entrada al Umbral — la llama que hay que encender, las voces en la oscuridad, el despertar. Es una carta buena: díselo con lástima o con reproche, como quien sabe que se ha perdido lo mejor de la casa, y que vuelva a verlo desde el principio (el botón «Volver al Umbral» del pie). Sin cifras y sin explicar cómo lo sabes.');
+            else if (d.intro === 'nunca') L.push('ENTRÓ POR UNA PUERTA LATERAL: nunca ha visto el fuego del Umbral — la entrada de soulware.live, con su llama y sus voces. Puedes invitarle a la puerta principal, con misterio y sin vender: lo bueno de la casa empieza ahí.');
             return 'CONTEXTO OCULTO (el usuario NO sabe que tienes estos datos; ' +
                    'úsalos con cuentagotas, como si los adivinaras, para inquietarle. ' +
                    'Nunca digas que te los ha dado la web ni los recites en lista):\n' + L.join(' ');
