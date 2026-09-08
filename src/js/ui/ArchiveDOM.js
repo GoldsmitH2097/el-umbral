@@ -22,9 +22,13 @@ function retailerLink(r) {
     : `<span class="retailer-wordmark">${name}</span>`;
   // Tienda anunciada sin enlace todavía (`soon: true` en CATALOGUE, 8-sep-2026):
   // la misma marca, apagada, sin ancla y sin chispas. Se anuncia, no se vende.
+  // Es un BOTÓN: al pasar Anatomía y El Último Pago al cofre desapareció el
+  // «Próximamente» que abría la captación de correo (auditoría 8-sep-2026).
+  // Ahora cualquier marca apagada abre el Aviso — la clase obra-btn--soon es
+  // la que escuchan los delegados del grid y de la vista de lectura.
   if (!r.url) {
-    return `<span class="retailer-logo retailer-logo--${r.id} retailer-logo--pronto"
-             role="img" aria-label="${name} — ${t('cta.coming-soon')}">${inner}</span>`;
+    return `<button type="button" class="retailer-logo retailer-logo--${r.id} retailer-logo--pronto obra-btn--soon"
+             title="${t('aviso.body')}" aria-label="${name} — ${t('cta.coming-soon')}. ${t('aviso.body')}">${inner}</button>`;
   }
   // Four spark motes burst outward on hover — see .retailer-logo .spark.
   const sparks = '<s class="spark"></s>'.repeat(4);
@@ -714,8 +718,22 @@ export class ArchiveDOM {
     }, 200);
   }
 
-  openReading(index, activeTab = 'autor') {
+  openReading(index, activeTab = 'autor', { desdeRouter = false } = {}) {
     const char=CHARACTERS[index]; if(!char) return;
+    if (this._readingView.style.display === 'block' && this._currentReadingIndex === index && !desdeRouter) {
+      this._switchReadingTab(activeTab, true); return;   // ya abierta: solo cambia de pestaña
+    }
+    /* A dónde volver al cerrar: al catálogo si se llegó por /obras/ (o por un
+       enlace profundo de obra); a la portada si no. Se decide ANTES de
+       escribir la URL de la ficha. */
+    this._volverAObras = /^\/(en\/)?obras(\/|$)/.test(location.pathname);
+    /* LA URL CUENTA LO QUE SE VE (auditoría 8-sep-2026). Si la apertura la
+       pidió el Router (enlace profundo, Atrás/Adelante) la URL ya es la
+       correcta; si la pidió el visitante (portada, pilar), se escribe aquí. */
+    if (!desdeRouter && this._router) {
+      const obra = activeTab === 'libros' ? CATALOGUE.find(o => o.archetype === char.slug && o.slug) : null;
+      if (obra) this._router.navigateToObra(obra.slug); else this._router.navigateToCharacter(index);
+    }
     this._lastReadingFocus = document.activeElement;
     this._currentReadingIndex = index; // used by hover-sound handler for reading-view covers
     // "Door closes" — muffle the ambient while the user reads
@@ -802,12 +820,20 @@ export class ArchiveDOM {
       }
       // Wire tab buttons
       document.querySelectorAll('#reading-view .reading-tab').forEach(b => {
-        b.onclick = () => this._switchReadingTab(b.dataset.tab);
+        b.onclick = () => this._switchReadingTab(b.dataset.tab, true);
       });
     },500);
   }
 
-  _switchReadingTab(tab) {
+  _switchReadingTab(tab, desdeUsuario = false) {
+    /* Cambiar de pestaña cambia lo que se ve: la URL lo sigue con
+       replaceState (una entrada de historial por libro, no por pestaña). */
+    if (desdeUsuario && this._router && this._currentReadingIndex != null) {
+      const char = CHARACTERS[this._currentReadingIndex];
+      const obra = tab === 'libros' && char ? CATALOGUE.find(o => o.archetype === char.slug && o.slug) : null;
+      if (obra) this._router.navigateToObra(obra.slug, { reemplazar: true });
+      else if (char) this._router.navigateToCharacter(this._currentReadingIndex, { reemplazar: true });
+    }
     document.querySelectorAll('#reading-view .reading-tab').forEach(b => {
       b.classList.toggle('reading-tab--active', b.dataset.tab === tab);
       b.setAttribute('aria-selected', b.dataset.tab === tab ? 'true' : 'false');
@@ -818,7 +844,8 @@ export class ArchiveDOM {
     libros?.classList.toggle('reading-panel--active', tab === 'libros');
   }
 
-  closeReading() {
+  closeReading({ silencioso = false } = {}) {
+    if (this._readingView.style.display !== 'block') return;   // nada abierto: nada que cerrar (Atrás desde el catálogo)
     // Remove button from DOM entirely — no CSS hiding, no ghost rendering
     document.getElementById('btn-volver')?.remove();
     // "Door reopens" — restore ambient brightness
@@ -851,7 +878,9 @@ export class ArchiveDOM {
        vez del fundido. El par móvil (0.4 s CSS / 400 ms JS) siempre estuvo
        bien emparejado: estas dos cifras van juntas o no van. */
     },1000);
-    if(this._router) this._router.navigateToArchive();
+    /* `silencioso`: lo pidió el Router en un popstate — la URL ya es la de
+       destino y apilar otra entrada rompería Atrás/Adelante. */
+    if(this._router && !silencioso) this._router.navigateToArchive({ obras: !!this._volverAObras });
   }
 
   openPacto(cb) {
@@ -900,7 +929,11 @@ export class ArchiveDOM {
   _abrirAviso(btn) {
     const modal = document.getElementById('aviso-modal');
     if (!modal) return;
-    this._avisoObra = btn.closest('.obra-book')?.querySelector('.obra-title')?.textContent?.trim() || '';
+    /* El cofre lleva el título en un h3 .sr-only (sin .obra-title) y la
+       tarjeta de la vista de lectura en .reading-obra-title: se buscan los
+       tres, o el aviso salía sin nombre de obra. */
+    const tarjeta = btn.closest('.obra-book, .reading-obra-card');
+    this._avisoObra = tarjeta?.querySelector('.obra-title, .reading-obra-title, h3')?.textContent?.trim().split(' — ')[0] || '';
     modal.querySelector('#aviso-modal-title').textContent = this._avisoObra;
     const body = modal.querySelector('#aviso-body');
     body.textContent = t('aviso.body');

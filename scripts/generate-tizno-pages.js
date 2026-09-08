@@ -24,7 +24,8 @@ const EN = {
   '<html lang="es">': '<html lang="en">',
 };
 
-// ES: la fuente tal cual (su canonical ya apunta a /tizno).
+// ES: la fuente tal cual (su canonical apunta a /tizno/, CON barra: la URL sin
+// barra recibe un 301 y Google no quiere canónicas que redirigen — 8-sep-2026).
 mkdirSync(join(dist, 'tizno'), { recursive: true });
 writeFileSync(join(dist, 'tizno', 'index.html'), fuente);
 

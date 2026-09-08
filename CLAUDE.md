@@ -111,6 +111,8 @@ La Emperatriz is "en paradero desconocido" — this is narrative, not a bug.
 
 To add a relato to La Corte: add entry to `relatos[]` array in StateManager.js. No code changes needed.
 
+**`slug` on obras (since 2026-09-08):** every obra with its own page carries `slug` (`pulso-del-nucleo`, `filamentos-de-oscuridad`, `anatomia-del-vacio`, `el-ultimo-pago`). It is the single source for the public route `/obras/<slug>/`: `generate-og-pages.js` derives `OBRA_RUTA` from it, `Router.OBRA_META` keys must match it, and the client pushes it to the URL when a cover is opened. A new obra page = `slug` in CATALOGUE + entry in `OBRA_META` (Router) + route in `generate-og-pages.js` + sitemap.
+
 ---
 
 ## Architecture decisions — DO NOT REVERSE without reason

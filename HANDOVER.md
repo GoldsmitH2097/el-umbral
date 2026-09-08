@@ -126,6 +126,45 @@ de PSI ya no da cuota (429): se audita con `npx lighthouse` en local.
   base64 en soulware.live que NO existe en el sitio (Netlify le da 404):
   ignorarlo — el informe de Google no lo tiene.
 
+### Auditoría GPT del 8-sep — contrastada y aplicada (commit fix(auditoria))
+Ruben pasó la «segunda auditoría de lanzamiento» de GPT. Veredicto: seria,
+se autocorrige, nada absurdo. Contrastado punto por punto y aplicado:
+- **Cookies decía Formspree** (ES/EN) → Netlify Forms (Netlify, Inc.).
+- **Canonical de la Estancia** apuntaba a `/tizno` (301) → `/tizno/`; ES y EN
+  en el sitemap (prioridad 0,6). Los enlaces ES/EN del conmutador también
+  con barra. generate-tizno-pages: el replaceAll de URLs respeta la barra.
+- **SDK de ElevenLabs fijado** a `@elevenlabs/client@1.25.0` (esm.sh servía
+  «la última»). Para subir: cambiar, probar la Estancia, desplegar.
+- **Tecla «0»** (reinicia el tope diario) solo con `?tune=1`.
+- **Estancia**: enlace «← Soulware» arriba a la izquierda (/ o /en/).
+- **Privacidad de Tizno**: el pacto (web madre), el aviso de la Estancia
+  (ES/EN) y el aviso legal (ES/EN) dicen ahora que la voz la pone
+  ElevenLabs y que la voz + lo que recuerda viajan a sus servidores, con
+  enlace a su política. NO se tocó privacidad/cookies (Ruben, ago: Tizno
+  solo en aviso legal y en el pacto). Texto exacto en el commit.
+- **Grises de las páginas legales**: #666→#8c8c8c (6,1:1), #555→#8a8a8a.
+- **Nada invisible en el tabulador**: `#umbral-btn`, `#scene-2` y `#scene-3`
+  nacen `inert` en el HTML; las escenas se des-inertan al mostrarse. OJO:
+  `#umbral-btn` («EL UMBRAL») es un RESTO — ningún código lo hace visible
+  (el intro avanza solo); un MutationObserver lo des-inertaría si algún día
+  alguien le pusiera opacidad 1.
+- **La ficha vive en la URL** (lo más valioso del informe): abrir un libro
+  desde la portada hace pushState a `/obras/<slug>/` con título/canonical;
+  abrir un personaje desde el pilar, a `/<personaje>/`; cambiar de pestaña
+  Autor/Libros hace replaceState; Atrás cierra la lectura (Router avisa a
+  `closeReading({silencioso:true})`, que no apila); cerrar con el botón
+  vuelve a `/obras/` si se entró por ahí, a `/` si no. `slug` nuevo en
+  CATALOGUE (fuente única: el prerender deriva OBRA_RUTA de él). Probado:
+  portada → URL, Autor → /caballero/, Libros → /obras/pulso-del-nucleo/,
+  Atrás → /obras/ cerrada, Adelante → reabierta en Libros.
+- **«Avísame» recuperado**: al pasar Anatomía y El Último Pago al cofre
+  desapareció el botón que abría la captación de correo. Ahora las marcas
+  apagadas son <button> con la clase obra-btn--soon y abren el Aviso con el
+  título de la obra (busca .obra-title, .reading-obra-title o el h3).
+- **No aplicado, por decisión**: DOM fantasma → HTML visible; renombrar
+  «Autor»; CSP (más adelante, en report-only); perfilado del intro (constraint
+  conocido).
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.

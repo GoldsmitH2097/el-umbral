@@ -69,7 +69,8 @@ const router = new Router({
   // El segundo argumento es la pestaña: los enlaces profundos de OBRA abren
   // la vista de lectura de su arquetipo directamente en «Libros», que es
   // donde vive la ficha con el cofre de compra.
-  openReading: (index, tab) => archive.openReading(index, tab || 'autor'),
+  openReading: (index, tab) => archive.openReading(index, tab || 'autor', { desdeRouter: true }),
+  closeReading: (opts) => archive.closeReading(opts),
 });
 archive._router = router;
 
@@ -404,6 +405,7 @@ function enterScene2() {
   btn.style.opacity='0'; btn.style.pointerEvents='none';
   setTimeout(()=>{
     transitionTo(2); document.getElementById('scene-2').style.opacity='1';
+    document.getElementById('scene-2').inert = false;   // ya se ve: ya se tabula
     audio.setWindVolume(0.04); visual.enterScene2();
     initMobileScene2(() => triggerAwakening());
     _startScene2IdleWatch(); // desktop idle autoplay — reveals one whisper every 4s of inactivity
@@ -435,6 +437,7 @@ function triggerAwakening() {
   audio.playSpinningAwakening();
   setTimeout(()=>{
     const s3=document.getElementById('scene-3'); s3.style.opacity='1'; s3.style.pointerEvents='auto';
+    s3.inert = false;   // ya se ve: ya se tabula
     // Trigger the staggered h1 + button "smoke condensing" entrance
     s3.classList.add('scene-3--awakened');
     document.body.style.cursor='auto';
@@ -627,6 +630,14 @@ document.addEventListener('touchend', e => {
   handleUp();
 });
 const _umbralBtn = document.getElementById('umbral-btn');
+/* NADA INVISIBLE EN EL TABULADOR (auditoría 8-sep-2026): el botón nace con
+   `inert` en el HTML (está a opacidad 0 hasta que arde la llama, y la
+   opacidad no lo saca del orden de tabulación). Se revela por style desde
+   varios sitios, así que en vez de perseguirlos: mientras su opacidad no
+   sea 1, sigue inerte. Las escenas 2 y 3 hacen lo mismo donde se muestran. */
+if (_umbralBtn) new MutationObserver(() => {
+  _umbralBtn.inert = _umbralBtn.style.opacity !== '1';
+}).observe(_umbralBtn, { attributes: true, attributeFilter: ['style'] });
 _umbralBtn.addEventListener('click', function(e) {
   e.stopPropagation();
   this.style.pointerEvents = 'none';

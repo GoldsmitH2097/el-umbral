@@ -79,6 +79,7 @@ export const CHARACTERS = [
 export const CATALOGUE = [
   {
     id: 'emperatriz-obra',
+    slug: 'el-ultimo-pago',        // ruta pública /obras/<slug>/ (Router.OBRA_META y el prerender la leen de aquí)
     // Título y portada reales desde el 8-sep-2026 (Ruben). Hasta entonces era
     // «Título Sellado» con la portada provisional de Alicia (alicia-cover.webp).
     title: 'El Último Pago',
@@ -127,6 +128,7 @@ export const CATALOGUE = [
   // (@graph + artículo fantasma) y quitar su 301 de public/_redirects.
   {
     id: 'pulso',
+    slug: 'pulso-del-nucleo',
     title: 'Pulso del Núcleo',
     subtitle: 'Núcleo Eterno',
     // Book title and part-name are proper nouns of the trilogy — kept Spanish in EN.
@@ -196,6 +198,7 @@ export const CATALOGUE = [
   },
   {
     id: 'filamentos',
+    slug: 'filamentos-de-oscuridad',
     title: 'Filamentos de Oscuridad',
     subtitle: 'Resonancia de la Penumbra',
     // Book title and part-name kept Spanish — they're published as such.
@@ -246,6 +249,7 @@ export const CATALOGUE = [
   },
   {
     id: 'anatomia',
+    slug: 'anatomia-del-vacio',
     title: 'Anatomía del Vacío',
     subtitle: null,
     archetype: 'arlequin',

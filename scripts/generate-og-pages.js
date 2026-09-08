@@ -168,13 +168,11 @@ const ROUTES = [
    lector de pantalla oiga el sitio dos veces. */
 
 // id de CATALOGUE → ruta pública (las que tienen página propia).
-const OBRA_RUTA = {
-  // Mismo orden que el archivo: la columna de la Emperatriz va primero.
-  'emperatriz-obra': 'obras/el-ultimo-pago',
-  pulso:      'obras/pulso-del-nucleo',
-  filamentos: 'obras/filamentos-de-oscuridad',
-  anatomia:   'obras/anatomia-del-vacio',
-};
+// Derivado del `slug` de cada obra en CATALOGUE (una sola fuente desde el
+// 8-sep-2026: el cliente lo necesita para poner la URL al abrir un libro).
+// Mismo orden que el archivo: la columna de la Emperatriz va primero.
+const OBRA_RUTA = Object.fromEntries(
+  CATALOGUE.filter(o => o.slug).map(o => [o.id, `obras/${o.slug}`]));
 
 const T = {
   es: { works: 'Las Obras', chars: 'Las Crónicas', by: 'Por', sheet: 'Ficha técnica',

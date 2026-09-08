@@ -31,11 +31,16 @@
           const olvido = document.getElementById('tizno-olvido');
           if (aviso && olvido) {
             olvido.textContent = 'erase what he knows about you';
+            /* El enlace a la política de ElevenLabs también se conserva (es
+               el único <a> además de #tizno-olvido): solo cambia su texto. */
+            const politica = aviso.querySelector('a[href*="elevenlabs.io/privacy"]');
+            if (politica) politica.textContent = 'privacy policy';
             [...aviso.childNodes].forEach((n) => {
               if (n.nodeType === 3) n.textContent = '';
               else if (n.tagName === 'BR') n.remove();   // el <br> del ES: aquí va el nuestro
             });
-            aviso.insertBefore(document.createTextNode('No cookies here: we have no wish to pry into your life, or to take anything from you that could be sold. Tizno remembers things about you — but he keeps them inside your own device; we keep nothing.'), olvido);
+            aviso.insertBefore(document.createTextNode('No cookies here: we have no wish to pry into your life, or to take anything from you that could be sold. Tizno remembers things about you — but he keeps them inside your own device; we keep nothing. His voice comes from ElevenLabs: when you talk to him, your voice and what he remembers about you travel to their servers so he can answer you, under their '), politica || olvido);
+            if (politica) aviso.insertBefore(document.createTextNode('.'), olvido);
             aviso.insertBefore(document.createElement('br'), olvido);
             aviso.insertBefore(document.createTextNode('If it puts you at ease, you can '), olvido);
             aviso.appendChild(document.createTextNode('.'));
@@ -48,6 +53,8 @@
         addEventListener('DOMContentLoaded', () => {
           const activo = document.getElementById(esIngles ? 'idioma-en' : 'idioma-es');
           if (activo) activo.classList.add('activo');
+          const volver = document.getElementById('tizno-volver');
+          if (volver && esIngles) { volver.href = '/en/'; volver.setAttribute('aria-label', 'Back to Soulware'); }
           document.querySelectorAll('#idiomas a').forEach((a) => {
             a.addEventListener('click', () => {
               try { localStorage.setItem('sw_lang', a.id === 'idioma-en' ? 'en' : 'es'); } catch (_) {}
@@ -62,12 +69,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tizno — El Custodio del Umbral · Soulware</title>
     <meta name="description" content="Habla con Tizno, el Custodio del Umbral: una criatura minúscula que vive en la niebla de Soulware. Acércate, acarícialo… y no lo encierres." />
-    <link rel="canonical" href="https://soulware.live/tizno" />
+    <link rel="canonical" href="https://soulware.live/tizno/" />
     <meta property="og:title" content="Tizno — El Custodio del Umbral" />
     <meta property="og:description" content="Una criatura minúscula vive en la niebla de Soulware. Habla con ella. No la encierres." />
     <meta property="og:image" content="https://soulware.live/tizno-og.jpg" />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://soulware.live/tizno" />
+    <meta property="og:url" content="https://soulware.live/tizno/" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="https://soulware.live/tizno-og.jpg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
@@ -81,6 +88,15 @@
         /* Conmutador de idioma: solo vive en la Estancia, esquina superior
            derecha, con la piel del selector del sitio. */
         #idiomas { display: none; }
+        #tizno-volver { display: none; }
+        html.estancia #tizno-volver {
+            display: block; position: fixed; top: 18px; left: 20px; z-index: 40;
+            font-family: 'Times New Roman', serif; font-size: 11px; letter-spacing: 3px;
+            text-decoration: none; color: #6e6252; padding: 7px 16px;
+            border: 1px solid rgba(200, 146, 42, 0.28); border-radius: 999px;
+            backdrop-filter: blur(4px); transition: color 0.3s;
+        }
+        html.estancia #tizno-volver:hover { color: #e8c87a; }
         html.estancia #idiomas {
             display: flex; position: fixed; top: 18px; right: 20px; z-index: 40;
             border: 1px solid rgba(200, 146, 42, 0.28); border-radius: 999px;
@@ -566,8 +582,11 @@
     <!-- Conmutador de idioma — SOLO en la Estancia (html.estancia). Navega
          entre /tizno y /en/tizno y deja la elección en sw_lang para que la
          web principal la recuerde (mismo contrato que el selector del sitio). -->
+    <!-- Vuelta a la web madre — solo en la Estancia (auditoría 8-sep-2026:
+         la página no tenía ninguna salida hacia el catálogo). -->
+    <a id="tizno-volver" href="/" aria-label="Volver a Soulware">← Soulware</a>
     <nav id="idiomas" aria-label="Idioma / Language">
-      <a id="idioma-es" href="/tizno">ES</a><a id="idioma-en" href="/en/tizno">EN</a>
+      <a id="idioma-es" href="/tizno/">ES</a><a id="idioma-en" href="/en/tizno/">EN</a>
     </nav>
     <div id="niebla-grabada" aria-hidden="true"></div>
 
@@ -579,6 +598,8 @@
             En esta web no usamos cookies: no queremos entrometernos en tu vida ni sacar
             de ti nada que se pueda vender. Tizno recuerda cosas sobre ti, pero las guarda
             dentro de tu propio dispositivo — nosotros no nos quedamos con nada.
+            Su voz la pone ElevenLabs: cuando hablas con él, tu voz y lo que recuerda de ti viajan a sus
+            servidores para que pueda responderte, bajo su <a href="https://elevenlabs.io/privacy-policy" target="_blank" rel="noopener">política de privacidad</a>.
             <br>Si te quedas más tranquilo, puedes <a href="#" id="tizno-olvido">borrar lo que sabe de ti</a>.
         </p>
         <!-- El grant (18-ago-2026): condición de 12+ meses con enlace. Solo
@@ -2685,7 +2706,11 @@
         let ConversationClase = null;
         async function cargarSDK() {
             if (!ConversationClase) {
-                ({ Conversation: ConversationClase } = await import('https://esm.sh/@elevenlabs/client'));
+                /* VERSIÓN FIJADA (auditoría 8-sep-2026): sin ella esm.sh sirve
+                   «la última», y una publicación con cambios rompería a
+                   Tizno sin que nadie desplegara nada. Para subir: cambiar
+                   aquí, probar la Estancia, y desplegar. */
+                ({ Conversation: ConversationClase } = await import('https://esm.sh/@elevenlabs/client@1.25.0'));
             }
             return ConversationClase;
         }
@@ -3305,9 +3330,11 @@
             if (document.hidden && conversation) sleep();
         });
 
-        // Herramienta de dev: tecla 0 = reiniciar el contador diario.
+        // Herramienta de dev: tecla 0 = reiniciar el contador diario. SOLO con
+        // ?tune=1 en la URL (auditoría 8-sep-2026: en producción cualquiera
+        // podía reiniciar el tope diario con una tecla).
         window.addEventListener('keydown', (e) => {
-            if (e.key === '0') {
+            if (e.key === '0' && /[?&]tune=1/.test(location.search)) {
                 try { localStorage.removeItem('tizno_daily'); } catch (_) {}
                 setStatus('contador diario reiniciado — Tizno vuelve a tener voz');
             }

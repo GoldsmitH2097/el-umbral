@@ -116,15 +116,24 @@ function _applyMeta(title, desc, url, urlLang = 'es') {
   if (canonical) canonical.href = url;
 }
 
+function _metaObras(urlLang) {
+  return urlLang === 'en'
+    ? { title: 'The Works — Soulware Publishing',
+        desc:  'The Soulware catalogue: novels and experiences in dark fiction. Pulso del Núcleo, Filamentos de Oscuridad, Anatomía del Vacío, El Último Pago. Independent Spanish publisher.' }
+    : { title: 'Las Obras — Soulware Editorial',
+        desc:  'Catálogo de Soulware: novelas y experiencias de ficción oscura. Pulso del Núcleo, Filamentos de Oscuridad, Anatomía del Vacío, El Último Pago. Editorial independiente española.' };
+}
+
 function _setMeta(attr, val, content) {
   const el = document.querySelector(`meta[${attr}="${val}"]`);
   if (el) el.setAttribute('content', content);
 }
 
 export class Router {
-  constructor({ enterArchive, openReading }) {
+  constructor({ enterArchive, openReading, closeReading }) {
     this._enterArchive = enterArchive;
     this._openReading = openReading;
+    this._closeReading = closeReading;   // para Atrás/Adelante: cerrar la lectura sin apilar historial
     /* EN LA PRIMERA RESOLUCIÓN NO SE TOCAN LOS METADATOS. Cada ruta se sirve
        como HTML prerenderizado con su title, canonical, hreflang y OG ya
        perfectos — reescribirlos al arrancar solo podía empeorarlos, y de
@@ -149,7 +158,38 @@ export class Router {
     _updateMeta(char, lang);
   }
 
-  navigateToArchive() {
+  /* LA FICHA ABIERTA VIVE EN LA URL (auditoría 8-sep-2026: «copiar la
+     dirección con un libro abierto compartía el catálogo, no el libro»).
+     pushState al abrir desde una portada; replaceState al cambiar de
+     pestaña dentro de la lectura (no merece una entrada de historial). */
+  navigateToObra(slug, { reemplazar = false } = {}) {
+    const obra = OBRA_META[slug];
+    if (!obra) return;
+    const url = lang === 'en' ? `/en/obras/${slug}/` : `/obras/${slug}/`;
+    const m = obra[lang] || obra.es;
+    window.history[reemplazar ? 'replaceState' : 'pushState']({ obra: slug }, m.title, url);
+    _applyMeta(m.title, m.desc, `https://soulware.live${url}`, lang);
+  }
+
+  navigateToCharacter(index, { reemplazar = false } = {}) {
+    const char = CHARACTERS[index];
+    if (!char) return;
+    const slug = lang === 'en' ? (char.slug_en || char.slug) : char.slug;
+    const url  = lang === 'en' ? `/en/${slug}/` : `/${slug}/`;
+    window.history[reemplazar ? 'replaceState' : 'pushState']({ slug, index }, char.title, url);
+    _updateMeta(char, lang);
+  }
+
+  /* Al cerrar la lectura se vuelve a donde se estaba: al catálogo si se
+     entró por /obras/ (o por un enlace profundo de obra), a la portada si no. */
+  navigateToArchive({ obras = false } = {}) {
+    if (obras) {
+      const url = lang === 'en' ? '/en/obras/' : '/obras/';
+      window.history.pushState({}, 'Las Obras', url);
+      const m = _metaObras(lang);
+      _applyMeta(m.title, m.desc, `https://soulware.live${url}`, lang);
+      return;
+    }
     const url = lang === 'en' ? '/en/' : '/';
     window.history.pushState({}, 'El Umbral', url);
     // Espejo del título de portada del prerender — no otra variante más.
@@ -169,15 +209,17 @@ export class Router {
     // /en/... URLs persist the English preference for next visit too.
     if (urlLang === 'en') setLang('en');
 
+    /* Atrás/Adelante hacia una ruta SIN lectura (portada o catálogo): si la
+       vista de lectura sigue abierta, se cierra sin volver a apilar. */
+    const esLectura = (segments[0] === 'obras' && segments[1] && OBRA_META[segments[1]])
+                   || (segments[0] && SLUG_MAP[segments[0]] !== undefined);
+    if (escribirMeta && !esLectura) this._closeReading?.({ silencioso: true });
+
     // /[en/]obras — generic catalog landing
     if (segments[0] === 'obras' && !segments[1]) {
       if (escribirMeta) {
         const url = urlLang === 'en' ? 'https://soulware.live/en/obras/' : 'https://soulware.live/obras/';
-        const m = urlLang === 'en'
-          ? { title: 'The Works — Soulware Publishing',
-              desc:  'The Soulware catalogue: novels and experiences in dark fiction. Pulso del Núcleo, Filamentos de Oscuridad, Anatomía del Vacío, El Último Pago. Independent Spanish publisher.' }
-          : { title: 'Las Obras — Soulware Editorial',
-              desc:  'Catálogo de Soulware: novelas y experiencias de ficción oscura. Pulso del Núcleo, Filamentos de Oscuridad, Anatomía del Vacío, El Último Pago. Editorial independiente española.' };
+        const m = _metaObras(urlLang);
         _applyMeta(m.title, m.desc, url, urlLang);
       }
       this._enterArchive({ skipIntro: true });
