@@ -125,9 +125,20 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
 .site-hero-sub { color: #9a9a9a; max-width: none; white-space: nowrap; }
 /* Cada frase entra por su cuenta: un velo que se levanta, no un bloque que
    aparece. Los retardos escalonados los pone .archive-visible más abajo. */
+/* EL VELO ES UNA MÁSCARA, NO UNA OPACIDAD (PageSpeed, 8-sep-2026). El
+   auditor de contraste hace su foto en un instante fijo tras la carga, que
+   caía en mitad del fundido: leía el gris al 75 % (#464646, 2,2:1) y daba
+   por malo un texto cuyo color final cumple de sobra. La opacidad se
+   multiplica en el color calculado; una máscara no. Así que el velo se
+   levanta de arriba abajo con un borde difuminado (--velo recorre de -35 %
+   a 100 %), y la frase sigue subiendo y enfocándose igual que antes. */
+@property --velo { syntax: '<percentage>'; inherits: false; initial-value: -35%; }
 .hero-frase {
-  display: block; opacity: 0; transform: translateY(12px);
+  display: block; transform: translateY(12px);
   filter: blur(3px);
+  --velo: -35%;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 var(--velo), transparent calc(var(--velo) + 35%));
+          mask-image: linear-gradient(to bottom, #000 0, #000 var(--velo), transparent calc(var(--velo) + 35%));
 }
 .archive-visible .site-hero-sub .hero-frase { animation: heroFrase 1.4s cubic-bezier(0.2, 0.9, 0.25, 1) forwards; }
 .archive-visible .site-hero-sub .hero-frase:nth-child(1) { animation-delay: 1.15s; }
@@ -137,13 +148,17 @@ html[lang="en"] .lang-toggle button[data-set-lang="en"]:hover { color: #9a9a9a; 
 .hero-frase--inline { display: inline-block; }
 .hero-frase--inline + .hero-frase--inline { margin-left: 0.6em; }
 @keyframes heroFrase {
-  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+  to { --velo: 100%; transform: translateY(0); filter: blur(0); }
 }
 /* Las versalitas VUELVEN (Ruben, 8-ago: «i liked the second sentence in all
    caps») — la unificación del 7-ago se pasó de lista: la línea editorial es
    un sello, no una frase más del susurro. Caja alta, pequeña y espaciada. */
 /* p.—: gana a «.site-hero p» (0,1,1), que si no le impone 15px cursiva. */
-.site-hero p.site-hero-editorial { font-size: 10.5px; color: #5d5d5d; letter-spacing: 3.5px; text-transform: uppercase; margin: 14px auto 0; max-width: 640px; font-style: normal; }
+/* #7a7a7a, no #5d5d5d (PageSpeed 8-sep-2026, único fallo de accesibilidad):
+   a 10,5px la norma pide 4,5:1 sobre el negro y el gris de antes daba 3,2:1.
+   Este da 4,9:1 y sigue por debajo del #9a9a9a del susurro: el sello no
+   compite con las frases, solo se deja leer. */
+.site-hero p.site-hero-editorial { font-size: 10.5px; color: #7a7a7a; letter-spacing: 3.5px; text-transform: uppercase; margin: 14px auto 0; max-width: 640px; font-style: normal; }
 #editorial-watermark {
   position: fixed; bottom: max(16px, env(safe-area-inset-bottom, 16px)); left: 50%; transform: translateX(-50%);
   font-size: 9px; letter-spacing: 4px; text-transform: uppercase;

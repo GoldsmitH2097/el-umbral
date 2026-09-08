@@ -249,6 +249,12 @@ export class ArchiveDOM {
   }
 
   _buildArchiveGrid() {
+    /* La ventana se lee UNA vez, antes de tocar el DOM. Leerla después de
+       insertar columnas y puntos obligaba al navegador a recalcular el layout
+       dos veces a mitad de construcción (PageSpeed 8-sep-2026: «forced
+       reflow» en estas dos líneas). Los manejadores de clic y scroll siguen
+       leyéndola en vivo, que ahí no hay escritura pendiente. */
+    const esMovil = window.innerWidth <= 768;
     const grid = document.getElementById('obras-section');
     if (!grid) return;
     grid.classList.add('archive-grid');
@@ -430,7 +436,7 @@ export class ArchiveDOM {
     // Shown once per visitor, dies on the first horizontal scroll.
     let swipeHint = null;
     try {
-      if (window.innerWidth <= 768 && !localStorage.getItem('sw_swiped')) {
+      if (esMovil && !localStorage.getItem('sw_swiped')) {
         swipeHint = document.createElement('div');
         swipeHint.className = 'swipe-hint';
         swipeHint.textContent = t('archive.swipe-hint');
@@ -440,7 +446,7 @@ export class ArchiveDOM {
 
     // Mobile: update dots on scroll
     // Mobile: mark first column active by default
-    if (window.innerWidth <= 768) {
+    if (esMovil) {
       const firstCol = grid.querySelector('.archive-col');
       firstCol?.classList.add('archive-col--active');
     }

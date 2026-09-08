@@ -100,6 +100,32 @@ sola cuenta, dos carriles** — verificado en las fuentes el 8-sep:
   `frase-sin-micro-{1,2}.mp3` a pelo. Ahora rota por el banco del idioma
   de la web: 2 tomas ES, 4 EN (`frase-sin-micro-en-1..4`).
 
+### PageSpeed de /obras/ (móvil) — 98 · 96 · 100 · 100, y lo que se tocó
+Ruben pasó PSI (https://pagespeed.web.dev/analysis/https-soulware-live-obras/e4z661b1mk?form_factor=mobile):
+FCP 1,1 s · LCP 1,4 s · TBT 0 · CLS 0 · SI 4,3 s (naranja). La API anónima
+de PSI ya no da cuota (429): se audita con `npx lighthouse` en local.
+- **Contraste (único fallo de accesibilidad, 96 → 100)**: el auditor hace su
+  foto en un instante fijo tras la carga que cae EN MITAD del fundido de las
+  frases del hero: leía #464646 (el gris al 75 % de opacidad), no el color
+  del CSS. Arreglo de raíz: el velo de `.hero-frase` es ahora una MÁSCARA
+  (`--velo` registrado con @property, de −35 % a 100 %, borde difuminado)
+  en vez de opacidad — la opacidad se multiplica en el color calculado, una
+  máscara no. Misma coreografía y tiempos. Además la línea editorial pasa de
+  #5d5d5d (3,2:1) a #7a7a7a (4,9:1), aún por debajo del #9a9a9a del susurro.
+- **Imagen**: la portada móvil de Anatomía baja de 29,6 KB a 21,9 KB (q45
+  desde el PNG de Descargas; a 3× no se distingue).
+- **Forced reflow**: `_buildArchiveGrid` leía `innerWidth` dos veces tras
+  insertar DOM; ahora una vez al principio. El resto de lecturas (clic,
+  scroll, luciérnagas) son inocuas.
+- **NO tocado, a propósito**: Speed Index 4,3 s es la coreografía del
+  archivo (frases a 1,15/1,6/2,0/2,45 s + 1,4 s) — decisión artística, no
+  lentitud; caché de 7 días en vídeos/portadas (netlify.toml explica por
+  qué); CSS render-blocking (es la hoja principal, inevitable); «unused JS
+  21 KiB» (partir el bundle no compensa); animaciones no compuestas (cofre).
+- OJO en Lighthouse local: mi Chrome inyecta un script de 98 KB con una URL
+  base64 en soulware.live que NO existe en el sitio (Netlify le da 404):
+  ignorarlo — el informe de Google no lo tiene.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
