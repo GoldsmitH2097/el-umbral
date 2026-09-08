@@ -20,6 +20,12 @@ function retailerLink(r) {
   const inner = meta.logo
     ? `<span class="retailer-mark" aria-hidden="true" style="--logo:url('${meta.logo}');${meta.w ? `--logo-w:${meta.w}px;` : ''}${meta.brand ? `--brand:${meta.brand};` : ''}"></span>`
     : `<span class="retailer-wordmark">${name}</span>`;
+  // Tienda anunciada sin enlace todavía (`soon: true` en CATALOGUE, 8-sep-2026):
+  // la misma marca, apagada, sin ancla y sin chispas. Se anuncia, no se vende.
+  if (!r.url) {
+    return `<span class="retailer-logo retailer-logo--${r.id} retailer-logo--pronto"
+             role="img" aria-label="${name} — ${t('cta.coming-soon')}">${inner}</span>`;
+  }
   // Four spark motes burst outward on hover — see .retailer-logo .spark.
   const sparks = '<s class="spark"></s>'.repeat(4);
   return `<a href="${r.url}" target="_blank" rel="noopener"
@@ -86,6 +92,11 @@ function fichaBlock(item) {
   return `<ul class="obra-ficha">${parts.map(v => `<li>${v}</li>`).join('')}</ul>`;
 }
 
+// ¿Tiene tiendas anunciadas sin enlace? (retailers con soon:true y sin url)
+export function tieneTiendasPronto(item) {
+  return !!item.editions?.some(ed => (ed.retailers || []).some(r => r.soon && !r.url));
+}
+
 // The full CTA area for a catalogue item, whatever shape it is.
 // `detail` = the book's own page, where the ficha técnica already states the
 // format under the cover. There we drop the per-edition labels entirely (they
@@ -96,7 +107,13 @@ export function renderCta(item, { detail = false } = {}) {
   if (item.editions) {
     const linkable = item.editions.filter(
       ed => ed.status === 'available' && (ed.retailers || []).some(r => r.url));
-    if (linkable.length) {
+    // Tiendas anunciadas sin enlace (soon:true): van apagadas en la misma
+    // fila. Un libro sin NINGUNA puerta abierta pero con tiendas anunciadas
+    // recibe el cofre igual — así El Último Pago vive como un igual de Pulso
+    // y Filamentos (Ruben, 8-sep-2026).
+    const pronto = [];
+    item.editions.forEach(ed => (ed.retailers || []).forEach(r => { if (r.soon && !r.url) pronto.push(r); }));
+    if (linkable.length || pronto.length) {
       // The legendary chest (Ruben-approved v5): every layer is decorative,
       // aria-hidden, pointer-events:none, and animated with transform/opacity
       // only. The detail view stays unframed — its column is calm on purpose.
@@ -146,10 +163,16 @@ export function renderCta(item, { detail = false } = {}) {
       });
       return `<div class="obra-editions ${detail ? 'obra-editions--detail' : 'obra-editions--shop'}">
         ${lootDecor}
-        <p class="obra-edition-invite">${t('cta.buy')}</p>
+        <p class="obra-edition-invite">${linkable.length ? t('cta.buy') : t('cta.soon-at')}</p>
         <div class="cofre-strip">
           ${impresas.map(retailerLink).join('')}
           ${digitales.length ? `<span class="cofre-sep" aria-hidden="true"></span><span class="cofre-ebook">${digitales.map(retailerLink).join('')}<i aria-hidden="true">ebook</i></span>` : ''}
+          ${pronto.length ? (linkable.length
+              /* Mezcla (Filamentos): las anunciadas cierran la fila tras un
+                 filete, con su nota minúscula — el mismo lenguaje que el ebook. */
+              ? `<span class="cofre-sep" aria-hidden="true"></span><span class="cofre-pronto">${pronto.map(retailerLink).join('')}<i aria-hidden="true">${t('cta.soon-note')}</i></span>`
+              /* Solo anunciadas (El Último Pago): la invitación ya lo dice. */
+              : pronto.map(retailerLink).join('')) : ''}
         </div>
       </div>`;
     }
@@ -325,7 +348,15 @@ export class ArchiveDOM {
             books.appendChild(card); return;
           }
 
-          card.className = `obra-book obra-book--${item.status}`;
+          /* El cofre (marco dorado + portada a todo el ancho + fila de tiendas)
+             lo reciben los libros a la venta Y los anunciados con tiendas
+             (`soon`): El Último Pago tiene que verse como un igual de Pulso y
+             Filamentos (Ruben, 8-sep-2026). La clase --available es la que
+             viste el cofre en obras.css y mobile.css; --pronto solo matiza. */
+          const esCofre = item.status === 'available' || tieneTiendasPronto(item);
+          card.className = esCofre
+            ? `obra-book obra-book--available${item.status !== 'available' ? ' obra-book--pronto' : ''}`
+            : `obra-book obra-book--${item.status}`;
           const coverHtml = item.img
             ? `<div class="obra-cover obra-cover--clickable" data-id="${item.id}" role="button" tabindex="0" aria-label="${itemTitle}"><img src="${item.img}" srcset="${item.img.replace('/assets/','/assets/mobile/')} 280w, ${item.img} 500w" sizes="(max-width: 768px) 150px, 220px" alt="${itemTitle}" width="600" height="900" loading="lazy" decoding="async" /></div>`
             : `<div class="obra-cover obra-cover--clickable obra-cover--empty" data-id="${item.id}" role="button" tabindex="0" aria-label="${itemTitle}"></div>`;
@@ -339,7 +370,7 @@ export class ArchiveDOM {
              la fila de tiendas ya dice «disponible» — repetirlos era ruido.
              El h3 queda .sr-only: lectores de pantalla y buscadores siguen
              oyendo el nombre del libro aunque la vista sea solo portada. */
-          card.innerHTML = item.status === 'available'
+          card.innerHTML = esCofre
             ? `
             ${coverHtml}
             <h3 class="sr-only">${itemTitle}${itemSubtitle ? ` — ${itemSubtitle}` : ''}</h3>

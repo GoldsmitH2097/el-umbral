@@ -29,6 +29,13 @@
 /es      /  301
 /es/*    /  301
 
+# Totalis Libertas salió del catálogo el 8-sep-2026 (Ruben, «por ahora»). Su
+# página estaba indexada en ES y EN: al catálogo, que es lo más cercano.
+/obras/totalis-libertas       /obras/     301
+/obras/totalis-libertas/      /obras/     301
+/en/obras/totalis-libertas    /en/obras/  301
+/en/obras/totalis-libertas/   /en/obras/  301
+
 # Literal /index.html is a genuine duplicate of "/" (Netlify already serves "/"
 # from that file). The ! forces the rule to win over the static file.
 /index.html     /     301!

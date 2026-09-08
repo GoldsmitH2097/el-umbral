@@ -61,15 +61,17 @@ const OBRA_META = {
       desc:  'You do not enter to read a story. You enter to be dissected by it. An interactive web experience in psychological horror. By Germán Ferri. Soulware Publishing.',
     },
   },
-  'totalis-libertas': {
+  // Totalis Libertas salió del catálogo el 8-sep-2026 (Ruben, «por ahora»);
+  // su URL hace 301 al catálogo desde public/_redirects. Ruta en git: 26bbf11.
+  'el-ultimo-pago': {
     archetype: 'emperatriz',
     es: {
-      title: 'Totalis Libertas — Antología · Soulware',
-      desc:  'Antología de relatos breves e intensos sobre la Historia de España. Varios autores. En preparación. Editorial Soulware.',
+      title: 'El Último Pago — Alicia Sarel · Soulware',
+      desc:  'Tragedia lírica. Por Alicia Sarel. El reino cayó. La voz, no. Próximamente en Casa del Libro, El Corte Inglés, Fnac y Amazon. Editorial Soulware.',
     },
     en: {
-      title: 'Totalis Libertas — Anthology · Soulware',
-      desc:  'An anthology of brief, intense tales drawn from the history of Spain. Various authors. In preparation. Soulware Publishing.',
+      title: 'El Último Pago — Alicia Sarel · Soulware',
+      desc:  'A lyric tragedy. By Alicia Sarel. The kingdom fell. The voice did not. Coming soon at Casa del Libro, El Corte Inglés, Fnac and Amazon. Soulware Publishing.',
     },
   },
 };
@@ -173,9 +175,9 @@ export class Router {
         const url = urlLang === 'en' ? 'https://soulware.live/en/obras/' : 'https://soulware.live/obras/';
         const m = urlLang === 'en'
           ? { title: 'The Works — Soulware Publishing',
-              desc:  'The Soulware catalogue: novels and experiences in dark fiction. Pulso del Núcleo, Filamentos de Oscuridad, Anatomía del Vacío, Totalis Libertas. Independent Spanish publisher.' }
+              desc:  'The Soulware catalogue: novels and experiences in dark fiction. Pulso del Núcleo, Filamentos de Oscuridad, Anatomía del Vacío, El Último Pago. Independent Spanish publisher.' }
           : { title: 'Las Obras — Soulware Editorial',
-              desc:  'Catálogo de Soulware: novelas y experiencias de ficción oscura. Pulso del Núcleo, Filamentos de Oscuridad, Anatomía del Vacío, Totalis Libertas. Editorial independiente española.' };
+              desc:  'Catálogo de Soulware: novelas y experiencias de ficción oscura. Pulso del Núcleo, Filamentos de Oscuridad, Anatomía del Vacío, El Último Pago. Editorial independiente española.' };
         _applyMeta(m.title, m.desc, url, urlLang);
       }
       this._enterArchive({ skipIntro: true });

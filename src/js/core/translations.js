@@ -102,6 +102,8 @@ export const STRINGS = {
     // ── Catalogue (CTAs + badges) ───────────────────────────────────────────
     'cta.buy':                'Reclamar mi Ejemplar',
     'cta.coming-soon':        'Próximamente',
+    'cta.soon-at':            'Próximamente en',
+    'cta.soon-note':          'próximamente',
     'cta.notify':             'Recibir señal',
     'cta.buyAt':              'Comprar en',
     'archive.swipe-hint':     'Desliza para descubrir \u2192',
@@ -239,6 +241,8 @@ export const STRINGS = {
     // ── Catalogue (CTAs + badges) ───────────────────────────────────────────
     'cta.buy':                'Claim Your Copy',
     'cta.coming-soon':        'Coming Soon',
+    'cta.soon-at':            'Coming soon at',
+    'cta.soon-note':          'coming soon',
     'cta.notify':             'Send Me Word',
     'cta.buyAt':              'Buy at',
     'archive.swipe-hint':     'Swipe to discover \u2192',

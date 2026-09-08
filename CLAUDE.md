@@ -103,10 +103,10 @@ La Emperatriz is "en paradero desconocido" — this is narrative, not a bug.
 
 | ID | Title | Archetype | Status | Notes |
 |----|-------|-----------|--------|-------|
-| emperatriz-obra | En preparación | emperatriz | coming-soon | Tragedia lírica, Alicia Sarel. Title TBD. |
-| la-corte | Totalis Libertas | emperatriz | coming-soon | Anthology. "Antología de la Verdad Histórica de España". `relatos[]` array ready to populate. |
+| emperatriz-obra | **El Último Pago** | emperatriz | coming-soon | Tragedia lírica, Alicia Sarel. Real title + cover since 2026-09-08 (`/assets/el-ultimo-pago.webp`, 600×900 from the 1800×3000 PNG with 30 px of mirrored paper per side to reach 2:3). Renders as a **cofre** like Pulso/Filamentos: edition with `retailers[{id, soon:true}]` (no url) → dimmed marks under «Próximamente en» Casa del Libro · El Corte Inglés · Fnac · Amazon. When a real link exists: add `url`, drop `soon`, flip edition + obra to `available`. Route `/obras/el-ultimo-pago/` (ES+EN, sitemap, @graph). |
+| la-corte | Totalis Libertas | emperatriz | **retirada 2026-09-08** | Out of the catalogue «por ahora» (Ruben) so El Último Pago stands as an equal. Full entry in git (`git show 26bbf11:src/js/core/StateManager.js`); `/obras/totalis-libertas/` → 301 `/obras/` (ES+EN) in `_redirects`. To bring back: StateManager + OBRA_RUTA/route + Router OBRA_META + sitemap + index.html @graph/ghost + remove the 301. |
 | pulso | Pulso del Núcleo | caballero | **available** | Nested `editions[]`: **Ebook** (Kindle `B0G6LLMP8G`) + **Edición Tapa Blanda** (4 shops). Each edition has a `retailers[]` array → logo strip. Tapa dura removed 2026-07-27 (no date; in git history). ISBN 978-84-098-1034-5 is the SAME at all 4 print shops — Amazon's is print-on-demand, so it's listed **last** on purpose. Retailer order = display order, editorial not alphabetical. See `src/js/core/retailers.js`. |
-| filamentos | Filamentos de Oscuridad | sortilega | **available** | Released 2026-05-12. Amazon ES: 8409861771 |
+| filamentos | Filamentos de Oscuridad | sortilega | **available** | Released 2026-05-12. Amazon ES: 8409861771 (softcover, live). **No ebook, ever — the author doesn't want one** (Ruben, 2026-09-08): a decision, not a gap. Casa del Libro · El Corte Inglés · Fnac listed as `soon:true` (dimmed, «próximamente») until Lantia's distribution yields real links. |
 | anatomia | Anatomía del Vacío | arlequin | coming-soon | Interactive web experience |
 
 To add a relato to La Corte: add entry to `relatos[]` array in StateManager.js. No code changes needed.
@@ -215,9 +215,9 @@ Accessible from footer. Serve without .html extension via Netlify pretty URLs.
 | Amazon author page + publisher name | Javier | Pending — high SEO impact for EN |
 | Editorial directories submission | Ruben | Pending |
 | @soulware.editorial branded social | Ruben | Pending |
-| La Emperatriz obra title | Ruben | Placeholder "Título Sellado" — pending final |
-| La Corte author names + relatos | Ruben/Javier | TBD |
-| Book cover for La Emperatriz obra | Alicia Sarel | TBD |
+| La Emperatriz obra title | Ruben | ✅ **El Último Pago** (2026-09-08) |
+| La Corte author names + relatos | Ruben/Javier | Parked — Totalis Libertas retired from the catalogue 2026-09-08 «por ahora» |
+| Book cover for La Emperatriz obra | Alicia Sarel | ✅ Done 2026-09-08 (`el-ultimo-pago.webp`) |
 
 ---
 

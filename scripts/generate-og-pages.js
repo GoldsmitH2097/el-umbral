@@ -52,11 +52,11 @@ const ROUTES = [
     enSlug: 'obras', // shared with Spanish — only deep book slugs ever differ
     es: {
       title: 'Las Obras — Soulware Editorial',
-      desc:  'Catálogo de Soulware: novelas y experiencias de ficción oscura. Pulso del Núcleo, Filamentos de Oscuridad, Anatomía del Vacío, Totalis Libertas. Editorial independiente española.',
+      desc:  'Catálogo de Soulware: novelas y experiencias de ficción oscura. Pulso del Núcleo, Filamentos de Oscuridad, Anatomía del Vacío, El Último Pago. Editorial independiente española.',
     },
     en: {
       title: 'The Works — Soulware Publishing',
-      desc:  'The Soulware catalogue: novels and experiences in dark fiction. Pulso del Núcleo, Filamentos de Oscuridad, Anatomía del Vacío, Totalis Libertas. Independent Spanish publisher.',
+      desc:  'The Soulware catalogue: novels and experiences in dark fiction. Pulso del Núcleo, Filamentos de Oscuridad, Anatomía del Vacío, El Último Pago. Independent Spanish publisher.',
     },
     image: OG_DEFAULT,
   },
@@ -133,13 +133,16 @@ const ROUTES = [
           desc:  'You do not enter to read a story. You enter to be dissected by it. An interactive web experience in psychological horror. By Germán Ferri. Soulware Publishing.' },
     image: `${BASE}/assets/anatomia-del-vacio-v2.webp`,
   },
+  // Totalis Libertas (/obras/totalis-libertas/) salió del catálogo el
+  // 8-sep-2026 «por ahora» (Ruben); su URL, indexada en ES y EN, hace 301 al
+  // catálogo desde public/_redirects. Su ruta vive en git (26bbf11).
   {
-    path: 'obras/totalis-libertas', enSlug: 'obras/totalis-libertas',
-    es: { title: 'Totalis Libertas — Antología · Soulware',
-          desc:  'Antología de relatos breves e intensos sobre la Historia de España. Varios autores. En preparación. Editorial Soulware.' },
-    en: { title: 'Totalis Libertas — Anthology · Soulware',
-          desc:  'An anthology of brief, intense tales drawn from the history of Spain. Various authors. In preparation. Soulware Publishing.' },
-    image: OG_DEFAULT,
+    path: 'obras/el-ultimo-pago', enSlug: 'obras/el-ultimo-pago',
+    es: { title: 'El Último Pago — Alicia Sarel · Soulware',
+          desc:  'Tragedia lírica. Por Alicia Sarel. El reino cayó. La voz, no. Próximamente en Casa del Libro, El Corte Inglés, Fnac y Amazon. Editorial Soulware.' },
+    en: { title: 'El Último Pago — Alicia Sarel · Soulware',
+          desc:  'A lyric tragedy. By Alicia Sarel. The kingdom fell. The voice did not. Coming soon at Casa del Libro, El Corte Inglés, Fnac and Amazon. Soulware Publishing.' },
+    image: `${BASE}/assets/el-ultimo-pago.webp`,
   },
 ];
 
@@ -166,20 +169,23 @@ const ROUTES = [
 
 // id de CATALOGUE → ruta pública (las que tienen página propia).
 const OBRA_RUTA = {
+  // Mismo orden que el archivo: la columna de la Emperatriz va primero.
+  'emperatriz-obra': 'obras/el-ultimo-pago',
   pulso:      'obras/pulso-del-nucleo',
   filamentos: 'obras/filamentos-de-oscuridad',
   anatomia:   'obras/anatomia-del-vacio',
-  'la-corte': 'obras/totalis-libertas',
 };
 
 const T = {
   es: { works: 'Las Obras', chars: 'Las Crónicas', by: 'Por', sheet: 'Ficha técnica',
         isbn: 'ISBN', pages: 'Páginas', binding: 'Encuadernación', lang: 'Idioma',
         buy: 'Dónde comprarlo', soon: 'En preparación', avail: 'Disponible',
+        soonAt: 'Próximamente en', soonShop: 'próximamente',
         also: 'Explora el universo Soulware', pub: 'Editorial Soulware' },
   en: { works: 'The Works', chars: 'The Chronicles', by: 'By', sheet: 'Technical details',
         isbn: 'ISBN', pages: 'Pages', binding: 'Binding', lang: 'Language',
         buy: 'Where to buy it', soon: 'In preparation', avail: 'Available',
+        soonAt: 'Coming soon at', soonShop: 'coming soon',
         also: 'Explore the Soulware universe', pub: 'Soulware Publishing' },
 };
 
@@ -251,10 +257,15 @@ function ghostObra(id, lang) {
   }
 
   if (o.editions?.length) {
-    out += `<h2>${t.buy}</h2>`;
+    // Tiendas anunciadas sin enlace (soon:true, 8-sep-2026): nombre a secas,
+    // sin ancla — un href="undefined" sería un enlace roto para Googlebot.
+    // Si ninguna tiene enlace todavía, el epígrafe ya lo dice.
+    const hayEnlace = o.editions.some(ed => (ed.retailers || []).some(r => r.url));
+    out += `<h2>${hayEnlace ? t.buy : t.soonAt}</h2>`;
     for (const ed of o.editions) {
       const shops = (ed.retailers || []).map(r => {
         const name = RETAILERS[r.id]?.name || r.id;
+        if (!r.url) return `<li>${name}${hayEnlace ? ` — ${t.soonShop}` : ''}</li>`;
         return `<li><a href="${r.url}" rel="noopener">${o.title} — ${name}</a></li>`;
       }).join('');
       out += `<h3>${f(ed, 'label', lang)}</h3><ul>${shops}</ul>`;
@@ -370,7 +381,7 @@ function schemasFor(path, lang) {
     });
   }
 
-  // Las obras que no llevaban ficha propia (Anatomía y Totalis Libertas):
+  // Las obras que aún no se venden (Anatomía y El Último Pago):
   // Book sin oferta, porque todavía no se venden. Decirlo así es la verdad.
   if (esObra) {
     const id = Object.keys(OBRA_RUTA).find(k => OBRA_RUTA[k] === path);

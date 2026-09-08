@@ -79,48 +79,52 @@ export const CHARACTERS = [
 export const CATALOGUE = [
   {
     id: 'emperatriz-obra',
-    title: 'Título Sellado',
-    title_en: 'Sealed Title',
-    subtitle: 'Tragedia lírica',
-    subtitle_en: 'Lyric tragedy',
+    // Título y portada reales desde el 8-sep-2026 (Ruben). Hasta entonces era
+    // «Título Sellado» con la portada provisional de Alicia (alicia-cover.webp).
+    title: 'El Último Pago',
+    // Sin subtítulo: no es parte de una serie con nombre propio. El género va
+    // en seriesInfo, que es la línea que el panel y el fantasma SEO enseñan.
+    subtitle: null,
     archetype: 'emperatriz',
     type: 'obra',
     author: 'Alicia Sarel',
-    seriesInfo: 'Obra principal del arquetipo',
-    seriesInfo_en: 'Principal work of the archetype',
+    seriesInfo: 'Tragedia lírica',
+    seriesInfo_en: 'Lyric tragedy',
     format: 'Novela',
     status: 'coming-soon',
-    img: '/assets/alicia-cover.webp',
+    img: '/assets/el-ultimo-pago.webp',
     vision: 'El reino cayó. La voz, no. Una tragedia lírica sobre lo que queda cuando se derrumba lo que creíste que eras — y descubres que algo más duro, más frío, más tuyo, sobrevivía debajo.',
     vision_en: 'The kingdom fell. The voice did not. A lyric tragedy about what remains when what you believed yourself to be collapses — and you discover that something harder, colder, more yours, was surviving beneath.',
     desc: 'El reino cayó. La voz, no. Una tragedia lírica personal.',
     desc_en: 'The kingdom fell. The voice did not. A personal lyric tragedy.',
-    buyUrl: null,
-    buyLabel: 'Próximamente',
-    buyLabel_en: 'Coming Soon',
+    // Vive como un igual de Pulso y Filamentos (Ruben, 8-sep-2026): mismo
+    // cofre, misma fila de tiendas — pero las puertas aún no abren. `soon:
+    // true` sin url pinta la marca apagada y sin enlace bajo «Próximamente
+    // en». El día que haya enlace real: url, fuera el soon, y el status de
+    // la edición y de la obra pasan a 'available'. Nunca un enlace de relleno.
+    editions: [
+      {
+        id: 'ultimo-pago-fisica',
+        label: 'Edición Física',
+        label_en: 'Print Edition',
+        status: 'coming-soon',
+        retailers: [
+          { id: 'casadellibro',  soon: true },
+          { id: 'elcorteingles', soon: true },
+          { id: 'fnac',          soon: true },
+          { id: 'amazon',        soon: true },
+        ],
+      },
+    ],
   },
-  {
-    id: 'la-corte',
-    title: 'Totalis Libertas',
-    subtitle: 'Antología de la Verdad Histórica de España',
-    subtitle_en: 'An Anthology of the Historical Truth of Spain',
-    archetype: 'emperatriz',
-    type: 'anthology',
-    author: 'Varios autores',
-    author_en: 'Various authors',
-    seriesInfo: 'Relatos breves e intensos de la Historia de España',
-    seriesInfo_en: 'Brief, intense tales drawn from the history of Spain',
-    format: 'Antología',
-    status: 'coming-soon',
-    img: '/assets/totalis-libertas.webp',
-    vision: 'La historia oficial es el relato de los que ganaron. Totalis Libertas es el de los que perdieron, dudaron, traicionaron y sobrevivieron. Voces distintas. Un mismo umbral de verdad que nadie quiere cruzar. Salón de los reconocidos — la Emperatriz exige testigos.',
-    vision_en: 'Official history is the story of those who won. Totalis Libertas is the story of those who lost, doubted, betrayed, and survived. Different voices. One single threshold of truth that no one wants to cross. The hall of the acknowledged — the Empress demands witnesses.',
-    desc: 'Ficción histórica oscura. Antología de relatos breves e intensos sobre la Historia de España. Cruza el umbral. Conoce a los nuevos arquitectos de la palabra.',
-    desc_en: 'Dark historical fiction. An anthology of brief, intense tales drawn from the history of Spain. Cross the threshold. Meet the new architects of the word.',
-    buyUrl: null,
-    buyLabel: 'Próximamente',
-    buyLabel_en: 'Coming Soon',
-  },
+  // ── Totalis Libertas (id 'la-corte') RETIRADA del catálogo el 8-sep-2026 ──
+  // Decisión de Ruben: «por ahora», para que El Último Pago viva como un igual
+  // de Pulso y Filamentos. Vuelve cuando haya fecha. Su entrada completa
+  // (visión, sinopsis, EN, portada /assets/totalis-libertas.webp que sigue en
+  // el repo) vive en git: `git show 26bbf11:src/js/core/StateManager.js`.
+  // Al reponerla hay que reponer también su ruta en generate-og-pages.js
+  // (OBRA_RUTA + route), Router.js (OBRA_META), sitemap.xml, index.html
+  // (@graph + artículo fantasma) y quitar su 301 de public/_redirects.
   {
     id: 'pulso',
     title: 'Pulso del Núcleo',
@@ -207,8 +211,11 @@ export const CATALOGUE = [
     desc: 'Primera de dos novelas. Cuando los hilos que no deberían conectarse se tensan, la percepción se convierte en trampa.',
     desc_en: 'First of two novels. When threads that should not connect pull taut, perception itself becomes a trap.',
     // Same shape as Pulso so both books present identically. Filamentos is
-    // print-on-demand through Amazon only — one shop in the strip, no ebook
-    // edition (none exists yet; add one here the day it does).
+    // print-on-demand through Amazon today; the Spanish bookshops arrive with
+    // Lantia's distribution (Ruben, 8-sep-2026) and sit in the strip as
+    // dimmed `soon` marks until each has a real link. NO ebook edition and
+    // there won't be one: the author doesn't want an ebook (Ruben, 8-sep-2026).
+    // That's a decision, not a gap to fill.
     editions: [
       {
         id: 'filamentos-fisica',
@@ -217,6 +224,9 @@ export const CATALOGUE = [
         status: 'available',
         retailers: [
           { id: 'amazon', url: 'https://www.amazon.es/dp/8409861771' },
+          { id: 'casadellibro',  soon: true },
+          { id: 'elcorteingles', soon: true },
+          { id: 'fnac',          soon: true },
         ],
       },
     ],
@@ -225,8 +235,8 @@ export const CATALOGUE = [
     // the edition meta line both skip absent fields, so this renders clean
     // until they arrive.
     // From the Amazon listing: 250 pages, Spanish, 12 May 2026, ISBN-10
-    // 8409861771 (ISBN-13 derived from it). No ebook edition yet — add one
-    // here the day there's a real link; never a placeholder.
+    // 8409861771 (ISBN-13 derived from it). No ebook edition, by the
+    // author's own decision (see the editions comment above).
     ficha: {
       isbn: '978-84-09-86177-4',
       pages: '250',
