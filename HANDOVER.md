@@ -300,6 +300,28 @@ Language = English, idioma = en → la sesión arrancó bien; falló el MODELO.
 - Pendiente: que Ruben/Javier repitan la prueba en /en/ con un silencio
   largo tras el saludo.
 
+### Baby Tizno — el agente ya existe por separado (9-sep, noche)
+Ruben: «duplica la personalidad que tenemos ahora en ElevenLabs (en los dos
+idiomas) para tocar por separado». Hecho desde el panel (Options → Duplicate
+agent):
+- **Baby Tizno** = `agent_3601m23sdxb4fx0adrkse21ynvb9` (rama Main
+  `agtbrch_3701m23sdxb6ezfvvpfgg468qvz3`). Copia exacta de Tizno a día de
+  hoy: mismo system prompt (14,6k caracteres, con los bloques del nombre y
+  del idioma), español + inglés, Gemini 3.6 Flash, `{{saludo}}` como primer
+  mensaje, mismas herramientas y KB. También se copió la rama redundante
+  `gemini-3-flash-preview` (se puede borrar en los dos agentes).
+- El Tizno de producción (`agent_2101kyzjd6e6ehhaaq9m4mhn8dhq`) NO se ha
+  tocado. Nada en el código apunta todavía al agente nuevo.
+- Decisiones de Ruben para Baby Tizno: 5–12 años; el adulto configura y
+  entra como adulto; MISMO Tizno (sin chupete), más grande y protagonista;
+  más cute y nunca enfadado; libro impreso al final («devuélvele la
+  creatividad a tu hijo»); imágenes con ElevenLabs Image & Video más
+  adelante. Marco legal: artefacto «El Mapa Legal de Baby Tizno».
+- Siguiente: biblia narrativa (espina + baldosas + ficha del héroe +
+  movimientos del narrador + oráculos, por franjas 5–7 / 8–10 / 11–12) y
+  reescritura del prompt de Baby Tizno en los dos idiomas (quitar
+  [Angrily], añadir aviso de IA, nunca «te necesito»).
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
