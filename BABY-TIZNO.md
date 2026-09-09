@@ -136,11 +136,20 @@ el de Germán en Anatomía. **No escribir el árbol: no existe árbol.**
 
 ---
 
+## La biblia narrativa
+
+`BABY-TIZNO-BIBLIA.md` (v0.1, 9-sep-2026): ficha de Baby Tizno con veinte
+frases de ejemplo, guía de voz por franjas, lista de «nunca» con «en su
+lugar», dos capítulos modelo (5–7 y 11–12) sobre un mundo provisional, siete
+tablas de oráculo, cuarenta baldosas del capítulo 1 y los textos del adulto.
+Página compartible: https://claude.ai/code/artifact/1518f8b6-4abe-4c9e-8d4c-367065a8633c
+
 ## Pendientes
 
 - Javier: biblia de mundo (encargo arriba).
 - Ruben: personalidad de Baby Tizno (sobre la ficha actual, cute y nunca enfadado).
-- Claude: leer las fuentes del canon antes de escribir reglas; con el mundo en
-  mano, biblia narrativa (espina · baldosas · oráculos · movimientos · franjas)
-  y reescritura del prompt del agente en ES y EN.
+- Ruben: revisar la biblia v0.1 (ficha, frases, «nunca», capítulos modelo).
+- Con el mundo de Javier: sustituir lugares/criaturas provisionales y la
+  explicación de la Caída; luego conectar pieza a pieza al agente (§8 de la
+  biblia) y reescribir el prompt en ES y EN.
 - Antes de nada público: DPIA, piloto con tres familias, revisión legal.
