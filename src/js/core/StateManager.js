@@ -272,6 +272,13 @@ export const CATALOGUE = [
     // acceso de pago — «we play later with the access. just add them for now».
     cofreInvite: 'Experiencia inmersiva',
     cofreInvite_en: 'Immersive experience',
+    // COMPRA (Javier, 9-sep-2026): un único botón, pago único, 2,49 €. El
+    // enlace NO vive aquí: lo inyecta el build desde la variable de entorno
+    // (ver vite.config.js) y solo existe donde Netlify lo define — en
+    // producción no hay botón hasta que se ponga el enlace Live. Este
+    // fichero también lo lee el prerender en Node, así que aquí no se toca
+    // import.meta.env.
+    compra: { label: 'Comprar — 2,49 €', label_en: 'Buy — €2.49' },
     editions: [
       {
         id: 'anatomia-acceso',

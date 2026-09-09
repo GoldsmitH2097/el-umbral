@@ -11,7 +11,7 @@ import { retailer } from '../core/retailers.js';
 // A shop. The logo is painted via CSS mask (see retailers.js) so its colour is
 // pure CSS and the hover is a real colour transition; until the asset exists we
 // render a styled wordmark instead. Never a broken image.
-function retailerLink(r) {
+function retailerLink(r, { adorno = false } = {}) {
   const meta = retailer(r.id);
   // getField, not meta.name — the ebook mark carries name_en, so a raw read
   // announced "Edición Digital" on English pages. Shop names are proper nouns
@@ -26,6 +26,10 @@ function retailerLink(r) {
   // «Próximamente» que abría la captación de correo (auditoría 8-sep-2026).
   // Ahora cualquier marca apagada abre el Aviso — la clase obra-btn--soon es
   // la que escuchan los delegados del grid y de la vista de lectura.
+  // Adorno: la marca sin puerta ni Aviso (cofre con botón de compra).
+  if (!r.url && adorno) {
+    return `<span class="retailer-logo retailer-logo--${r.id} retailer-logo--pronto retailer-logo--adorno" aria-hidden="true">${inner}</span>`;
+  }
   if (!r.url) {
     return `<button type="button" class="retailer-logo retailer-logo--${r.id} retailer-logo--pronto obra-btn--soon"
              title="${t('aviso.body')}" aria-label="${name} — ${t('cta.coming-soon')}. ${t('aviso.body')}">${inner}</button>`;
@@ -94,6 +98,16 @@ function fichaBlock(item) {
   ].filter(Boolean);
   if (!parts.length) return '';
   return `<ul class="obra-ficha">${parts.map(v => `<li>${v}</li>`).join('')}</ul>`;
+}
+
+// Enlaces de compra directa (Stripe Payment Links), uno por obra, inyectados
+// por el build desde variables de entorno — ver vite.config.js. Cadena vacía
+// = sin botón (producción hasta que exista el enlace Live).
+const ENLACES_COMPRA = {
+  anatomia: import.meta.env.STRIPE_PAYMENT_LINK_ANATOMIA || '',
+};
+export function enlaceCompra(item) {
+  return item.compra ? (ENLACES_COMPRA[item.id] || '') : '';
 }
 
 // ¿Tiene marcas anunciadas sin enlace? (retailers con soon:true y sin url —
@@ -168,11 +182,19 @@ export function renderCta(item, { detail = false } = {}) {
       });
       return `<div class="obra-editions ${detail ? 'obra-editions--detail' : 'obra-editions--shop'}">
         ${lootDecor}
-        <p class="obra-edition-invite">${getField(item, 'cofreInvite') || (linkable.length ? t('cta.buy') : t('cta.soon-at'))}</p>
+        ${enlaceCompra(item)
+          /* COMPRA DIRECTA (Javier, 9-sep-2026): un solo botón en el sitio de la
+             invitación; las llaves se quedan de adorno (sin Aviso: ya se puede
+             comprar). El enlace abre el Checkout de Stripe en otra pestaña. */
+          ? `<a class="obra-btn obra-btn--buy obra-compra" href="${enlaceCompra(item)}" target="_blank" rel="noopener">${getField(item.compra, 'label')}</a>`
+          : `<p class="obra-edition-invite">${getField(item, 'cofreInvite') || (linkable.length ? t('cta.buy') : t('cta.soon-at'))}</p>`}
         <div class="cofre-strip">
           ${impresas.map(retailerLink).join('')}
           ${digitales.length ? `<span class="cofre-sep" aria-hidden="true"></span><span class="cofre-ebook">${digitales.map(retailerLink).join('')}<i aria-hidden="true">ebook</i></span>` : ''}
-          ${pronto.length ? (linkable.length
+          ${pronto.length && enlaceCompra(item)
+            ? `<span class="cofre-pronto cofre-pronto--solo cofre-pronto--adorno" aria-hidden="true">${pronto.map(r => retailerLink(r, { adorno: true })).join('')}</span>`
+            : ''}
+          ${pronto.length && !enlaceCompra(item) ? (linkable.length
               /* Mezcla (Filamentos): las anunciadas cierran la fila tras un
                  filete, con su nota minúscula — el mismo lenguaje que el ebook. */
               ? `<span class="cofre-sep" aria-hidden="true"></span><span class="cofre-pronto">${pronto.map(retailerLink).join('')}<i aria-hidden="true">${t('cta.soon-note')}</i></span>`
