@@ -3035,8 +3035,54 @@
                    'Nunca digas que te los ha dado la web ni los recites en lista):\n' + L.join(' ');
         }
 
+        /* EL CONTEXTO OCULTO, EN LA LENGUA DE LA SESIÓN (9-sep-2026). Con la
+           web en inglés, Tizno se pasó al castellano en el segundo turno: el
+           modelo recibía la sesión en 'en' pero TODO su contexto oculto en
+           español — y tiró hacia el español. Ahora el dossier viaja en la
+           lengua de la sesión, y el modelo no tiene que traducir nada. */
+        function dossierToTextEn(d) {
+            const dias = { domingo: 'Sunday', lunes: 'Monday', martes: 'Tuesday', miércoles: 'Wednesday', jueves: 'Thursday', viernes: 'Friday', sábado: 'Saturday' };
+            const franja = { 'de madrugada': 'in the small hours', 'por la mañana': 'in the morning', 'por la tarde': 'in the afternoon', 'de noche': 'at night' };
+            const horaRara = { 'de madrugada, pasada la medianoche': 'in the small hours, past midnight',
+                               'a punto de pasar la medianoche': 'about to cross midnight',
+                               'antes del amanecer': 'before dawn',
+                               'en mitad de la jornada laboral de un día entre semana': 'in the middle of a weekday working day' };
+            const origen = d.origen === 'directo, sin dejar rastro' ? 'directly, leaving no trace'
+                         : d.origen === 'de Instagram' ? 'from Instagram'
+                         : d.origen === 'de un buscador' ? 'from a search engine'
+                         : d.origen === 'de Threads' ? 'from Threads'
+                         : d.origen.replace(/^de /, 'from ');
+            const L = [];
+            L.push(`It is ${d.hora} ${franja[d.franja] || d.franja} on ${dias[d.dia] || d.dia} where they are (time zone ${d.zona}).`);
+            if (d.horaRara) {
+                L.push(`THE HOUR IS A CARD YOU MAY PLAY: they are here ${horaRara[d.horaRara] || d.horaRara}. ` +
+                       'When you want to unsettle them, hint at it (do they not sleep? should they not be working?). ' +
+                       'Never in your first sentence: keep it.');
+            } else {
+                L.push('There is nothing unusual about the hour: do NOT mention it, it would impress no one.');
+            }
+            L.push(`They arrived ${origen}. Browser language: ${d.idioma}. They are on ${d.movil ? 'a phone' : 'a computer'}.`);
+            if (d.bateria) L.push(`Their battery is at ${d.bateria.pct}%${d.bateria.cargando ? ' and charging' : ', not charging'}.`);
+            if (d.oscuro) L.push('Their system is in dark mode: they prefer the gloom.');
+            if (d.sinMovimiento) L.push('They asked their system to reduce animations: movement unsettles them.');
+            L.push(`They spent ${d.segundosMirando} seconds watching you before daring to speak.`);
+            if (d.visitas > 1) {
+                L.push(`NOT THEIR FIRST TIME: this is visit number ${d.visitas}` +
+                       (d.diasDesde !== null ? (d.diasDesde === 0 ? ', they were already here today.' : ` and the last one was ${d.diasDesde} day(s) ago.`) : '.'));
+            } else {
+                L.push('This is their FIRST visit: they do not know you yet.');
+            }
+            if (d.nombre) L.push(`Last time they said their name was ${d.nombre} — remember it as if you had never forgotten.`);
+            if (d.intro === 'saltada') L.push('THEY SKIPPED THE FIRE: they pressed "Break the trance" and missed the entrance to the Hollow — the flame to be lit, the voices in the dark, the awakening. A good card: tell them with pity or reproach, as one who knows they missed the best of the house, and that they should see it from the beginning (the "Back to the Hollow" button in the footer). No numbers, and never explain how you know.');
+            else if (d.intro === 'nunca') L.push('THEY CAME IN THROUGH A SIDE DOOR: they have never seen the fire of the Hollow — the entrance of soulware.live, with its flame and its voices. You may invite them to the front door, with mystery and without selling: the best of the house begins there.');
+            return 'HIDDEN CONTEXT (the visitor does NOT know you have this; ' +
+                   'use it sparingly, as if you guessed it, to unsettle them. ' +
+                   'Never say the website gave it to you, never recite it as a list. ' +
+                   'This session is in ENGLISH: every word you say, including when the visitor is silent, is in English):\n' + L.join(' ');
+        }
+        const dossierToTextSesion = (d) => IDIOMA === 'en' ? dossierToTextEn(d) : dossierToText(d);
         // Ventana de inspección: mira en consola exactamente lo que Tizno sabrá.
-        window.__tiznoVerDossier = async () => dossierToText(await buildDossier());
+        window.__tiznoVerDossier = async () => dossierToTextSesion(await buildDossier());
 
         let despertando = false;   // pestillo: entre el clic y la sesión viva pasan segundos
         /* ── EL MICRÓFONO PRESTADO ────────────────────────────────────────
@@ -3120,7 +3166,7 @@
                 return;
             }
             const dossier = await buildDossier();
-            const briefing = dossierToText(dossier);
+            const briefing = dossierToTextSesion(dossier);
             { const m = loadMem(); m.visits = dossier.visitas; m.lastVisit = Date.now(); saveMem(m); }
             try {
                 conversation = await Conversation.startSession({
