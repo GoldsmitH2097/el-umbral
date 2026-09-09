@@ -255,6 +255,26 @@ llave del lector. Probado en local con firmas válidas/manipuladas/ausentes
 (9 casos). Variables: STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET (las pone
 Javier en Netlify; Claude nunca las ve).
 
+### Compra de Anatomía en rama (PR #64, deploy preview 64) — 9-sep
+Javier (vía su GPT) pidió un único botón «Comprar — 2,49 €» hacia su Payment
+Link Sandbox, sin variantes por palos, probado en deploy preview y SIN
+publicar en producción. Rama `stripe-sandbox`, PR #64:
+https://deploy-preview-64--el-umbral.netlify.app/obras/
+- El enlace lo inyecta el build (vite `define`) desde
+  `STRIPE_PAYMENT_LINK_ANATOMIA` (valor por contexto en Netlify). Sin
+  variable: Sandbox por defecto en previews/ramas/local; en `production`
+  cadena vacía → sin botón. Comprobado: el bundle de producción no contiene
+  buy.stripe.com.
+- En el cofre, el botón ocupa el sitio de la invitación y las cuatro llaves
+  quedan de adorno (`retailerLink(r, {adorno:true})`, sin Aviso).
+- El Checkout Sandbox muestra «Anatomía del Vacío €2.49», con Bizum,
+  tarjeta y Link; el negocio aparece como «Core Soulware».
+- NO fusionar hasta que Ruben lo diga: Anatomía no entrega nada aún tras el
+  pago (falta partir la partitura y la llave). Al pasar a Live: poner el
+  enlace Live en la variable del contexto Production y fusionar.
+- Precio: Javier fijó 2,49 € (la cuenta del 8-sep recomendaba 2,99 €; con
+  0,25 € fijos de Stripe, a 2,49 la comisión pesa ~12 %).
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
