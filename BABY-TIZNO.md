@@ -58,9 +58,9 @@ regla, leer la fuente original, no resumirla de memoria.
 | Referencia | Qué tomamos | Qué NO tomamos |
 |------------|-------------|----------------|
 | **Emily Short** (emshort.blog) y **Failbetter Games** (Fallen London): storylets y narrativa basada en cualidades | La arquitectura entera: **no hay árbol escrito**. Hay baldosas sueltas (storylets) con requisitos de entrada y efectos de salida sobre variables («cualidades»). El árbol solo existe a posteriori, en el libro | El grind, las cualidades numéricas visibles, la economía de acciones |
-| **Kenn Adams**, Story Spine | La **espina de cada capítulo**: érase una vez · cada día · hasta que un día · por eso · por eso · hasta que al final · y desde entonces. Cada latido es un hueco que se rellena con una baldosa. Un niño de cinco años la sigue sin saberlo | Nada: se usa entera |
+| **Kenn Adams**, Story Spine | La **espina de cada capítulo**: érase una vez · todos los días · pero un día · por eso · por eso · hasta que por fin · y desde entonces. Cada latido es un hueco que se rellena con una baldosa. Un niño de cinco años la sigue sin saberlo | El tercer «por eso» de Adams (ocho frases en el original) queda para los 11–12; Pixar usa seis |
 | **Vladimir Propp**, Morfología del cuento | Las **variables predefinidas** y el orden de los latidos: carencia, prohibición, transgresión, donante, objeto mágico, prueba, regreso. Cada función es una baldosa posible | Las 31 funciones al completo (bastan 8–10 para 5–12 años); la boda final |
-| **Martin Lloyd**, Amazing Tales · **Monte Cook**, No Thank You, Evil! | El adulto narra, el niño tiene **pocas habilidades con nombre propio** (cuatro en Amazing Tales) y **el dado falla con gracia**: la Caída es el fallo del dado convertido en cuento. Amazing Tales es el pariente más cercano de lo nuestro | Dados físicos, hojas de personaje, combate, puntos de vida |
+| **Martin Lloyd**, Amazing Tales · **Monte Cook**, No Thank You, Evil! | El adulto narra, el niño tiene **cuatro habilidades** y el dado falla con gracia: «si fallas, las cosas empeoran, pero no terminan; el monstruo puede atraparte, pero no te comerá» (Lloyd). De NTYE: la frase de seguridad «¡no, gracias, Mal!» que hace huir al monstruo al instante, y los tres niveles de ficha por edad (sustantivo / adjetivo sustantivo / que verbo) | Dados físicos, hojas de personaje, combate, puntos de vida |
 | **Dungeon World** (LaTorra y Koebel), movimientos del narrador | La **lista de movimientos de Tizno** para no bloquearse nunca: muestra una señal de peligro que se acerca · ofrece una oportunidad con un precio · presenta a alguien nuevo · devuélvele la pregunta al niño · usa una regla del mundo · separa (con cariño) al héroe de su compañero. «Juega para descubrir qué pasa» | Las mecánicas 2d6, las clases, el daño |
 | **Shawn Tomkin**, Ironsworn | Las **tablas de oráculo**: listas cortas de las que Tizno tira cuando el niño se queda callado o cuando hay que inventar un nombre, un lugar, un giro. Sembradas con las variables del mundo de Javier | El juego en solitario completo, los votos, el progreso por marcas |
 | **Inkle** (Jon Ingold), 80 Days, lenguaje Ink | **Ramificar y reconverger**: las elecciones se abren y vuelven a la espina sin que el guion explote. Cada bifurcación deja un hecho anotado, no una rama nueva que mantener | Escribir en Ink; el motor es prompt + variables + herramientas del agente |
@@ -69,6 +69,10 @@ regla, leer la fuente original, no resumirla de memoria.
 
 Regla derivada de todo lo anterior: **el niño no navega un árbol; el niño
 escribe hechos, y las reglas eligen la siguiente baldosa.**
+
+Fuentes leídas en el original el 9-sep-2026: `BABY-TIZNO-FUENTES.md` (con la
+lista de lo que NO se pudo verificar). La biblia (`BABY-TIZNO-BIBLIA.md` §9)
+dice qué regla sale de qué fuente.
 
 ---
 

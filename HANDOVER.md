@@ -322,6 +322,31 @@ agent):
   reescritura del prompt de Baby Tizno en los dos idiomas (quitar
   [Angrily], añadir aviso de IA, nunca «te necesito»).
 
+### Baby Tizno — la biblia narrativa v0.2 (9-sep, noche)
+Ruben: «empezamos a definir todo lo demás de Tizno» (ficha, voz por franjas,
+«nunca», capítulos modelo, oráculos, baldosas, textos del adulto) «y luego lo
+vamos conectando a nuestro nuevo personaje en ElevenLabs».
+- `BABY-TIZNO-BIBLIA.md` (8,4k palabras) + página compartible
+  https://claude.ai/code/artifact/1518f8b6-4abe-4c9e-8d4c-367065a8633c
+- `BABY-TIZNO-FUENTES.md`: las nueve referencias del canon leídas en el
+  original (agente de búsqueda), con lo que NO se pudo verificar. La biblia
+  §9 dice qué regla sale de qué fuente. Cambios que salieron del contraste:
+  «¡No!» es palabra de seguridad (NTYE: lo que asusta huye al instante);
+  Adams tiene tres «por eso» (el tercero solo a los 11–12); selección de
+  baldosas por saliencia (Short); palabras del niño literales + relectura al
+  cerrar (Paley); movimientos de Tizno y «solo habla en tres momentos»
+  (Dungeon World); oráculo como especia (Ironsworn); aceptar/rechazar/desviar
+  (Ingold); ritual de apertura de dos elecciones por voz (Lunii).
+- Mundo PROVISIONAL (Casa del Árbol, Niebla Olvidona) hasta la biblia de
+  mundo de Javier; Ruben cierra la personalidad sobre la ficha propuesta.
+- Decisiones abiertas para Ruben: lista de acotaciones aprobadas (ocho
+  propuestas, ninguna de miedo/enfado) y si Baby Tizno usa la voz de
+  producción o una toma más lenta para 5–7.
+- Siguiente: con el visto bueno, conectar pieza a pieza al agente
+  `agent_3601…` (§8 de la biblia): prompt ES/EN, `{{saludo}}` por franja,
+  `{{franja}}` como variable, KB con espina/baldosas/oráculos, client tools
+  `anotar`/`rebobinar`, humor «ternura» en MOOD_LEX.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
