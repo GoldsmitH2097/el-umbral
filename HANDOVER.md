@@ -285,7 +285,9 @@ Language = English, idioma = en → la sesión arrancó bien; falló el MODELO.
 - Arreglo 1 (código, desplegado): `dossierToTextEn` — el contexto oculto
   viaja en inglés en sesiones EN, con aviso explícito de que también los
   turnos de silencio van en inglés. Antes TODO el contexto era español.
-- Arreglo 2 (panel): Main → Gemini 3.5 Flash. OJO: Gemini 2.5 ya no aparece
+- Arreglo 2 (panel): Main → Gemini 3.5 Flash y, minutos después, → **Gemini
+  3.6 Flash** (Ruben: mismo precio y más rápido: 0,8–1,6 s frente a
+  0,9–3,9 s). OJO: Gemini 2.5 ya no aparece
   en la lista (una vez abandonado no hay vuelta). Si 3.5 también deriva,
   siguiente candidato Claude Haiku 4.5 (estricto con instrucciones, ~0,7 s).
 - Arreglo 3 (panel): bloque «SI TE PIDEN CAMBIAR DE IDIOMA» en el prompt:
