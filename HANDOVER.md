@@ -288,6 +288,13 @@ Language = English, idioma = en → la sesión arrancó bien; falló el MODELO.
 - Arreglo 2 (panel): Main → Gemini 3.5 Flash. OJO: Gemini 2.5 ya no aparece
   en la lista (una vez abandonado no hay vuelta). Si 3.5 también deriva,
   siguiente candidato Claude Haiku 4.5 (estricto con instrucciones, ~0,7 s).
+- Arreglo 3 (panel): bloque «SI TE PIDEN CAMBIAR DE IDIOMA» en el prompt:
+  Tizno no cambia en conversación; señala el selector ES/EN arriba a la
+  derecha, en su voz, en ambos idiomas.
+- Coste/latencia (lista ElevenLabs 9-sep): 3.5 Flash ~0,017 $/min y
+  0,9–3,8 s; 3 Preview ~0,039 $/min y 1,1–1,9 s; 3.6 Flash ~0,016 $/min y
+  0,85–2,7 s (candidato si el 3.5 hace pausas). Claude Haiku 4.5 ~0,72 s si
+  el 3.5 también rompe el idioma.
 - Pendiente: que Ruben/Javier repitan la prueba en /en/ con un silencio
   largo tras el saludo.
 
