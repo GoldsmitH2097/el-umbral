@@ -275,6 +275,22 @@ https://deploy-preview-64--el-umbral.netlify.app/obras/
 - Precio: Javier fijó 2,49 € (la cuenta del 8-sep recomendaba 2,99 €; con
   0,25 € fijos de Stripe, a 2,49 la comisión pesa ~12 %).
 
+### 9-sep, noche — Tizno se pasó al castellano con la web en inglés
+Conversación «Language Switch» (Main v31, Gemini 3 Flash Preview): saludo
+en inglés, silencio del visitante, y el 2º turno ya en castellano; al
+quejarse, inglés «con voz española» (la sesión seguía en inglés: es el
+texto castellano pasado por TTS inglés, y viceversa). Client data: override
+Language = English, idioma = en → la sesión arrancó bien; falló el MODELO.
+«Detect language» del agente estaba apagado (no fue eso).
+- Arreglo 1 (código, desplegado): `dossierToTextEn` — el contexto oculto
+  viaja en inglés en sesiones EN, con aviso explícito de que también los
+  turnos de silencio van en inglés. Antes TODO el contexto era español.
+- Arreglo 2 (panel): Main → Gemini 3.5 Flash. OJO: Gemini 2.5 ya no aparece
+  en la lista (una vez abandonado no hay vuelta). Si 3.5 también deriva,
+  siguiente candidato Claude Haiku 4.5 (estricto con instrucciones, ~0,7 s).
+- Pendiente: que Ruben/Javier repitan la prueba en /en/ con un silencio
+  largo tras el saludo.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
