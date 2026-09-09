@@ -242,6 +242,19 @@ Prueba del «Avísame» hecha desde producción (editorial@, El Último Pago):
 POST 200 y «Hecho»; falta verla en Netlify → Forms (sesión cerrada en el
 Chrome de Ruben; no entro en cuentas).
 
+### Stripe, primer ladrillo: el webhook (9-sep, encargo de Javier)
+`netlify/functions/stripe-webhook.mjs` (Functions 2.0, esbuild; `[functions]`
+en netlify.toml; `stripe` ^22 en dependencies). POST
+https://soulware.live/.netlify/functions/stripe-webhook. Verifica SIEMPRE la
+firma (constructEvent sobre el cuerpo crudo) con STRIPE_WEBHOOK_SECRET; sin
+STRIPE_SECRET_KEY o sin el secreto → 500 not_configured; firma mala → 400;
+GET → 405; evento ajeno → 200 ignored. Maneja checkout.session.completed
+(solo cumple si payment_status = paid) y los dos async_* (Bizum confirma
+después). Hoy `cumplir()` solo registra (email enmascarado); ahí irá la
+llave del lector. Probado en local con firmas válidas/manipuladas/ausentes
+(9 casos). Variables: STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET (las pone
+Javier en Netlify; Claude nunca las ve).
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.

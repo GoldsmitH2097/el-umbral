@@ -3,3 +3,6 @@ dist/
 .DS_Store
 *.local
 new videos/
+
+# estado local de netlify dev
+.netlify/
