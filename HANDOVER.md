@@ -347,6 +347,36 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   `{{franja}}` como variable, KB con espina/baldosas/oráculos, client tools
   `anotar`/`rebobinar`, humor «ternura» en MOOD_LEX.
 
+### Baby Tizno — 10-sep: el mundo de Javier, decisiones de Ruben y limpieza del agente
+- Javier entregó «El Reino de la Primera Llama» (docx) → `BABY-TIZNO-LORE.md`
+  (canon, copia fiel). Aldea sin nombre, volcán con la Primera Llama, Bruja
+  que gobierna por miedo, Dragón cuya voluntad no es de nadie, ocho umbrales
+  con sonido y olor, siete momentos por capítulo (Entrada · Señal · Elección ·
+  Viaje · Giro amable · Decisión · Cierre), ficha de continuidad de cinco
+  campos. «La Pluma es más poderosa que la Espada».
+- Ruben: **Baby Tizno es un producto aparte**, no promo de Soulware. No sabe
+  nada de libros ni del Umbral; solo que viene de Soulware, que el Tizno
+  original vive allí y que él es la versión infantil que cuenta cuentos.
+  Castellano primero, inglés después. Misma voz para todos (Gork) más suave y
+  cute. Tablet y móvil con la misma página. T&C transparentes. Cajón de
+  «Recuerdos» con borrado por elemento. Libro/imágenes/app: después.
+- **Panel ElevenLabs, agente Baby Tizno (`agent_3601…`), publicado en Main
+  (dos publicaciones: «Update ASR keywords and privacy settings» y «Clear all
+  knowledge base documents»)**: Store Call Audio OFF · retención 30 días con
+  borrado automático de transcripción y audio · Zero Retention no (hace falta
+  la transcripción para depurar la prueba; para lo público, activar) ·
+  Eagerness «patient» · turn timeout 7 → 10 s · keywords: Tizno, Soulware,
+  Primera Llama, Bruja, Dragón, Volcán, Bosque Encantado, Panthera, otra cosa,
+  Reino · **KB vaciada** (los 8 docs de Soulware se DESVINCULARON del agente,
+  no se borraron: el Tizno de producción sigue con sus 8, comprobado). Truco:
+  las filas de la KB tienen menú «···» → «Detach from agent»; con clics por
+  coordenadas, uno a uno, porque el banner de «KB pequeña» desplaza filas.
+- El prompt del agente sigue siendo el de producción (heredado): se
+  sustituye entero cuando Ruben aclare la «entrada del adulto» (§4 de la
+  biblia). Pendiente de Ruben: confirmar el flujo (puerta del adulto: aviso +
+  franja + «dáselo al peque»; el niño construye el héroe por capas con Tizno,
+  como escribió Javier).
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
