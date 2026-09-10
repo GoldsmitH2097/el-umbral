@@ -92,26 +92,45 @@
            derecha, con la piel del selector del sitio. */
         #idiomas { display: none; }
         #tizno-volver { display: none; }
-        html.estancia #tizno-volver {
-            display: block; position: fixed; top: 18px; left: 20px; z-index: 40;
-            font-family: 'Times New Roman', serif; font-size: 11px; letter-spacing: 3px;
-            text-decoration: none; color: #6e6252; padding: 7px 16px;
-            border: 1px solid rgba(200, 146, 42, 0.28); border-radius: 999px;
-            backdrop-filter: blur(4px); transition: color 0.3s;
+        /* SEÑALES (Ruben, 11-sep: «más tipo Tim Burton, natural; texto para
+           poder animarlo y traducirlo»): letras a mano que brillan, sin
+           cajas. Fuente Jolly Lodger (SIL OFL) autoalojada: ni una petición a
+           Google. El brillo respira con text-shadow, que es compositor puro. */
+        @font-face {
+            font-family: 'Tizno Sign';
+            src: url('/fonts/jolly-lodger.woff2') format('woff2');
+            font-weight: 400; font-style: normal; font-display: swap;
         }
-        html.estancia #tizno-volver:hover { color: #e8c87a; }
+        .senal {
+            font-family: 'Tizno Sign', 'Georgia', serif; font-weight: 400;
+            letter-spacing: 2px; text-decoration: none; text-transform: none;
+            color: #fff2cc;
+            text-shadow: 0 0 3px #ffe4a3, 0 0 12px rgba(245, 182, 66, 0.85), 0 0 30px rgba(243, 156, 18, 0.55), 0 0 60px rgba(243, 156, 18, 0.25);
+            animation: resplandor 4.2s ease-in-out infinite;
+        }
+        @keyframes resplandor {
+            0%, 100% { text-shadow: 0 0 3px #ffe4a3, 0 0 12px rgba(245, 182, 66, 0.85), 0 0 30px rgba(243, 156, 18, 0.55), 0 0 60px rgba(243, 156, 18, 0.25); }
+            50%      { text-shadow: 0 0 4px #fff0c8, 0 0 16px rgba(245, 182, 66, 1), 0 0 40px rgba(243, 156, 18, 0.75), 0 0 80px rgba(243, 156, 18, 0.4); }
+        }
+        @media (prefers-reduced-motion: reduce) { .senal { animation: none; } }
+        html.estancia #tizno-volver {
+            display: block; position: fixed; top: 16px; left: 22px; z-index: 40;
+            font-family: 'Tizno Sign', 'Georgia', serif; font-size: 27px; letter-spacing: 1.5px;
+            text-decoration: none; color: #b9a468; padding: 4px 6px;
+            text-shadow: 0 0 10px rgba(243, 156, 18, 0.35);
+            transition: color 0.3s, text-shadow 0.3s;
+        }
+        html.estancia #tizno-volver:hover { color: #fff2cc; text-shadow: 0 0 4px #ffe4a3, 0 0 14px rgba(245, 182, 66, 0.9), 0 0 34px rgba(243, 156, 18, 0.6); }
         html.estancia #idiomas {
-            display: flex; position: fixed; top: 18px; right: 20px; z-index: 40;
-            border: 1px solid rgba(200, 146, 42, 0.28); border-radius: 999px;
-            overflow: hidden; backdrop-filter: blur(4px);
+            display: flex; position: fixed; top: 16px; right: 24px; z-index: 40; gap: 14px;
         }
         #idiomas a {
-            font-family: 'Times New Roman', serif; font-size: 11px;
-            letter-spacing: 3px; text-decoration: none; padding: 7px 14px 7px 17px;
-            color: #6e6252; transition: color 0.3s, background 0.3s;
+            font-family: 'Tizno Sign', 'Georgia', serif; font-size: 27px;
+            letter-spacing: 1.5px; text-decoration: none; padding: 4px 4px;
+            color: #4d4436; transition: color 0.3s, text-shadow 0.3s;
         }
-        #idiomas a.activo { color: #e8c87a; background: rgba(200, 146, 42, 0.12); }
-        #idiomas a:hover:not(.activo) { color: #9a8a6e; }
+        #idiomas a.activo { color: #fff2cc; text-shadow: 0 0 4px #ffe4a3, 0 0 14px rgba(245, 182, 66, 0.9), 0 0 34px rgba(243, 156, 18, 0.6); }
+        #idiomas a:hover:not(.activo) { color: #b9a468; text-shadow: 0 0 10px rgba(243, 156, 18, 0.35); }
         /* La niebla grabada (Ruben, 14-ago): la banda de volutas de la lámina
            oficial, delante del tallo — Tizno asoma por detrás de los grabados
            como en el arte. Una textura compuesta una vez: casi gratis. */
@@ -178,6 +197,12 @@
            30 fps como el resto de la tinta. Sin filtros: geometría y color.
            El nivel medio de la superficie (30vh) vive en el JS (MAR.nivel). */
         #mar { display: none; }
+        #luz-ojos {
+            position: fixed; left: 0; top: 0; width: 640px; height: 640px; z-index: 6;
+            pointer-events: none; opacity: 0; will-change: transform, opacity;
+            background: radial-gradient(circle, rgba(243, 156, 18, 0.34) 0%, rgba(243, 156, 18, 0.16) 18%, rgba(243, 156, 18, 0.06) 36%, transparent 55%);
+        }
+        html.embed #luz-ojos { display: none; }
         html.estancia #mar { display: block; position: fixed; left: 0; right: 0; bottom: 0; height: 46vh; z-index: 5; pointer-events: none; overflow: hidden; contain: strict; }
         html.estancia #niebla-grabada, html.estancia #abyss-foreground, html.estancia #abyss-foreground-2 { display: none; }
         /* ?mar=0: interruptor para comparar con la lámina de antes (A/B a ojo). */
@@ -431,14 +456,13 @@
             gap: 8px; font-family: 'Georgia', serif;
         }
         #tizno-call {
-            position: relative; overflow: hidden; isolation: isolate;
-            background: rgba(0,0,0,0.55); color: rgba(243, 156, 18, 0.92);
-            border: 1px solid rgba(243, 156, 18, 0.4); border-radius: 6px;
-            padding: 10px 20px; font-family: inherit; font-size: 12px;
-            letter-spacing: 4px; text-transform: uppercase; cursor: pointer;
-            transition: color 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
-            /* Brasa: el borde respira como una ascua, sin repintar nada más. */
-            animation: brasa 3.4s ease-in-out infinite;
+            position: relative; isolation: isolate;
+            background: none; border: 0; padding: 6px 18px; cursor: pointer;
+            font-family: 'Tizno Sign', 'Georgia', serif; font-size: 44px; line-height: 1;
+            letter-spacing: 2px; text-transform: none; color: #fff2cc;
+            text-shadow: 0 0 3px #ffe4a3, 0 0 12px rgba(245, 182, 66, 0.85), 0 0 30px rgba(243, 156, 18, 0.55), 0 0 60px rgba(243, 156, 18, 0.25);
+            transition: color 0.3s ease, transform 0.3s ease, text-shadow 0.3s ease;
+            animation: resplandor 4.2s ease-in-out infinite;
         }
         @keyframes brasa {
             0%, 100% { box-shadow: 0 0 12px rgba(243, 156, 18, 0.10), inset 0 0 8px rgba(243, 156, 18, 0.04); border-color: rgba(243, 156, 18, 0.32); }
@@ -450,14 +474,14 @@
             background: radial-gradient(ellipse 120% 90% at 50% 130%, rgba(243, 156, 18, 0.42), rgba(243, 156, 18, 0.06) 55%, transparent 75%);
             transition: opacity 0.45s ease;
         }
-        #tizno-call:hover, #tizno-call:focus-visible { color: #fff8e0; border-color: rgba(243, 156, 18, 0.95); transform: translateY(-1px); outline: none; }
+        #tizno-call:hover, #tizno-call:focus-visible { color: #ffffff; transform: translateY(-2px) scale(1.03); text-shadow: 0 0 4px #fff0c8, 0 0 18px rgba(245, 182, 66, 1), 0 0 44px rgba(243, 156, 18, 0.8), 0 0 90px rgba(243, 156, 18, 0.45); outline: none; }
         #tizno-call:hover::before, #tizno-call:focus-visible::before { opacity: 1; }
         @media (prefers-reduced-motion: reduce) { #tizno-call { animation: none; } }
-        #tizno-call.live { color: #e74c3c; border-color: rgba(231, 76, 60, 0.6); }
+        #tizno-call.live { color: #ffd6c9; text-shadow: 0 0 3px #ffb3a0, 0 0 12px rgba(231, 76, 60, 0.85), 0 0 30px rgba(231, 76, 60, 0.55), 0 0 60px rgba(231, 76, 60, 0.25); animation: none; }
         #tizno-call:disabled { opacity: 0.4; cursor: wait; }
         #tizno-status {
-            color: rgba(255,255,255,0.35); font-style: italic; font-size: 12px;
-            letter-spacing: 1px; text-align: center;
+            color: rgba(255, 236, 190, 0.45); font-style: italic; font-size: 12px;
+            letter-spacing: 1px; text-align: center; margin-top: -4px;
         }
         #tizno-info { position: fixed; right: 18px; bottom: 18px; z-index: 61; font-family: 'Georgia', serif; }
         html.embed #tizno-info { display: none !important; }
@@ -636,6 +660,9 @@
     </nav>
     <div id="niebla-grabada" aria-hidden="true"></div>
     <div id="mar" aria-hidden="true"><canvas id="mar-frente"></canvas></div>
+    <!-- La luz de los ojos, POR ENCIMA del mar y de todo lo que no sean los
+         propios ojos (Ruben, 11-sep): un halo que sigue a la cabeza. -->
+    <div id="luz-ojos" aria-hidden="true"></div>
 
     <!-- ═══ ELEVENLABS 2/4 — call UI ═══ -->
     <div id="tizno-call-ui">
@@ -1050,6 +1077,7 @@
         const eyesBreathEl = document.getElementById('eyes-breathing-layer');
         const goolayers = document.querySelectorAll('.goo-layer');
         const luzSala = document.getElementById('luz-sala');
+        const luzOjos = document.getElementById('luz-ojos');
         let focoX = 0, focoY = 0;   // el halo de fondo va detrás de él, con pereza
 
         /* El pendiente: péndulo amortiguado colgado de la oreja. El navegador
@@ -2219,6 +2247,9 @@
                 focoY += (objY - focoY) * TUNE.focoPereza;
                 luzSala.style.opacity = luz.toFixed(3);
                 luzSala.style.transform = `translate(${focoX.toFixed(1)}px, ${focoY.toFixed(1)}px)`;
+                // El halo de los ojos, clavado a la cabeza, encima del mar.
+                luzOjos.style.opacity = (luz * 0.95).toFixed(3);
+                luzOjos.style.transform = `translate(${(hr.left + hr.width / 2 - 320).toFixed(1)}px, ${(hr.top + hr.height * 0.42 - 320).toFixed(1)}px)`;
             }
 
             // Respiración (antes en CSS): ciclo de 2 s, ahora a 30 fps.
@@ -2595,12 +2626,19 @@
                     const xl = i * paso - rectC.left;
                     if (xl < -paso || xl > lw + paso) continue;
                     const d = Math.min(xl, lw - xl), wv = d >= 150 ? 1 : Math.max(0, d / 150);   // 1 centro · 0 bordes
-                    const yl = yPag0 + marSuperficie(i, ahora) - rectC.top - 7 * wv + (1 - wv) * 90;
+                    const yl = yPag0 + marSuperficie(i, ahora) - rectC.top - 12 * wv + (1 - wv) * 90;
                     if (primero) { c.moveTo(xl, yl); primero = false; } else c.quadraticCurveTo(qx, qy, (qx + xl) / 2, (qy + yl) / 2);
                     qx = xl; qy = yl;
                 }
                 c.lineTo(qx, qy);
                 c.lineTo(lw + 10, lh + 10); c.lineTo(-10, lh + 10); c.closePath(); c.fill();
+                /* COLLAR (Ruben, 11-sep: «la unión entre el blob y el mar más
+                   redondeada»): una elipse de tinta en la línea de agua bajo el
+                   cuello; el goo la funde con el tronco y con la ola y el
+                   encuentro pasa de esquina a hombro redondo. */
+                const ic = Math.min(n - 1, Math.max(0, Math.round((window.innerWidth / 2) / paso)));
+                const yCol = yPag0 + marSuperficie(ic, ahora) - rectC.top - 6;
+                c.beginPath(); c.ellipse(window.innerWidth / 2 - rectC.left, yCol, 118, 34, 0, 0, 6.2832); c.fill();
                 c.setTransform(1, 0, 0, 1, 0, 0);
                 dibujarAtomos(ahora, dt);
             }
@@ -2614,7 +2652,7 @@
             if (!rectC || POOL_C.length > CORONA_MAX) return;
             const cxL = window.innerWidth / 2 - rectC.left;
             const i = Math.round((window.innerWidth / 2) / MAR.paso);
-            const ySup = window.innerHeight - MAR.hh + marSuperficie(i, ahora) - rectC.top - 7;
+            const ySup = window.innerHeight - MAR.hh + marSuperficie(i, ahora) - rectC.top - 12;
             const k = 1 + Math.floor(fuerza * 2);
             for (let j = 0; j < k; j++) {
                 const lado = Math.random() < 0.5 ? -1 : 1;

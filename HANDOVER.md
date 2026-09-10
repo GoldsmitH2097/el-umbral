@@ -1148,6 +1148,28 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
 - Orejas: la probabilidad de que un grumo de la corona nazca en una oreja
   baja de 0,5 a 0,35 (-30 %); total por pulso sin tocar (8).
 
+### 11-sep, madrugada (18) — luz de los ojos sobre el mar, hombro redondo, señales Tim Burton
+- Ruben: «el glow de los ojos debería estar sobre todas las capas, incluido
+  el mar»; «la unión entre el blob de Tizno y el mar más redondeada»; «las
+  señales (ir al Umbral, ES/EN, Hablar con Tizno) más tipo Tim Burton,
+  natural; mejor texto que imagen para animarlo y traducirlo».
+- `#luz-ojos`: div fijo de 640×640 con degradado radial ámbar, z 6 (encima
+  del mar z 5, debajo de los ojos z 10), clavado al centro de la cabeza a
+  cada tick de 30 fps (reusa el rect que ya leía el foco perezoso),
+  opacidad = luz del pop × 0,95. Oculto en embed. Solo transform+opacity.
+- Unión: la orilla interior sube de 7 a 12 px sobre la exterior y se añade
+  un COLLAR: elipse de tinta (118×34) en la línea de agua bajo el cuello,
+  dentro del goo → el encuentro cuello-agua pasa de esquina a hombro.
+- Señales: fuente **Jolly Lodger** (SIL OFL) autoalojada en
+  `public/fonts/jolly-lodger.woff2` (17 KB, subset latin, bajada del CSS de
+  Google Fonts con UA de Chrome; ni una petición a Google en producción).
+  `#tizno-call` sin caja: 44 px, color #fff2cc y text-shadow ámbar en cuatro
+  capas que respira (`resplandor`, 4,2 s); hover más blanco y +3 %; `.live`
+  en rojo sin animación. `#tizno-volver` y `#idiomas a` a 27 px sin píldora
+  ni backdrop: el activo brilla, el inactivo en #4d4436. Textos intactos
+  (siguen traduciéndose por JS). Verificado en headless.
+- Tope diario reseteado otra vez desde su Chrome (1894 s).
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
