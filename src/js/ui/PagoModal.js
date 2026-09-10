@@ -301,7 +301,11 @@ async function elegirMetodo(metodo) {
     const contacto = s.checkout.createContactDetailsElement();
     /* Un único método en la sesión: sin pestañas ni acordeón, solo sus
        campos. (Con Bizum, Stripe pide el teléfono.) */
-    const pago = s.checkout.createPaymentElement({ layout: { type: 'accordion', defaultCollapsed: false, radios: 'never' } });
+    const pago = s.checkout.createPaymentElement({
+      layout: { type: 'accordion', defaultCollapsed: false, radios: 'never' },
+      // Las carteras ya tienen su puerta en el paso 1: aquí ni Google ni Apple.
+      wallets: { applePay: 'never', googlePay: 'never' },
+    });
     pago.on('ready', () => { if (vivo?.metodo === metodo) $('pago-paso2-cargando').hidden = true; });
     s.elementos = [contacto, pago];
     contacto.mount('#pago-contacto');
