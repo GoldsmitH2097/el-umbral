@@ -1036,6 +1036,49 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   los comentarios del HTML → grep por atributos (`numOctaves="3"`), nunca
   por texto de comentario (por eso «fuera el vaho» nunca «llegaba»).
 
+### 10-sep, madrugada (14) — MAR DE TINTA, volutas procedurales, corona por las orejas, «ouch» en llamada
+- Ruben: «reemplazar las volutas por una animación de líquido negro, un mar
+  que reacciona como un líquido a Tizno sin gastar demasiados recursos… y
+  partículas hacia arriba lo más parecido a las volutas, procedurales».
+- **Mar** (`#mar`, solo en estancia; la lámina `#niebla-grabada` y las dos
+  nieblas `#abyss-foreground*` quedan ocultas, no borradas): tres bandas.
+  Fondo y medio = divs con una tira de olas SVG (data-URI, 480×40, tile sin
+  costura) + degradado sólido, derivando con transform (puro compositor) y
+  un vaivén vertical. Frente = `<canvas id="mar-frente">` con simulación de
+  muelles 1-D (h[i], v[i]; k 0,028, amortiguación 0,05, contagio 0,22;
+  columna cada 12 px) + oleaje ambiente de dos senos; pintado a 30 fps con
+  el resto de la tinta, y a 15 fps con Tizno dormido. Empujones: el pop
+  (sube o se hunde → salpica alrededor y se hunde bajo él), la voz
+  (aiVolFast) y el ratón al rozar la superficie. Brillo de cresta de 1,5 px.
+  Nivel medio 27,5vh (MAR.nivel, CSS de bandas y `#mar-menisco`: un bloque
+  de tinta DENTRO de la capa goo del cuerpo, 24 px bajo el nivel, para que el
+  filtro funda el cuello con el líquido).
+- **Volutas procedurales**: 4 sprites (96 px) dibujados una vez: espiral que
+  se cierra (gruesa en la cola, fina en el ojo) deformada por dos senos
+  inconmensurables + rizo hijo en sentido contrario. Viven en POOL_P con
+  `vol` (1–4), suben 150–240 px girando (twist), crecen y se disuelven; el
+  goo de la capa de partículas las funde (blob). Nacen en la superficie a
+  ±150 px de Tizno cada 1,3–2,2 s con él fuera (medio: la mitad; bajo: no) y
+  al salpicar. OJO: el reloj de las partículas es Date.now (una voluta con
+  performance.now moría al nacer).
+- **Corona por las orejas** (Ruben: «mucha tinta del medio de las orejas y
+  poca de las puntas»): la coronilla emite solo entre -150° y -30°; la
+  mitad de los grumos nace en la arista superior de una oreja (Bézier del
+  propio SVG llevada a pantalla con getScreenCTM, peso hacia la punta).
+- **«Ouch» en llamada** (Ruben): `sfxPlay` deja pasar toque/quejido/
+  enfado/susto/risa en llamada si el agente NO está hablando; además el
+  toque se le cuenta al agente (`window.__tiznoSusurra`: sendUserMessage si
+  le toca hablar → reacciona al momento; sendContextualUpdate si ya habla),
+  máx. uno cada 6 s. Sin probar en llamada real todavía.
+- **Coste medido** (scripts/tizno-bench, dpr 1, máquina tranquila): 13 fps
+  con mar vs 12 sin él → paridad. Después el banco dio 1 fps para TODO,
+  incluida la versión anterior: la máquina estaba a carga 12–16 (Chrome de
+  Ruben al 57 %, coreaudiod). Regla: el banco solo vale con la máquina
+  quieta; comparar siempre contra una referencia medida en la misma tanda.
+- Verificado en Chrome (servidor local): mar negro en tres tonos con olas,
+  Tizno metido en el líquido, rizos subiendo, corona en las puntas.
+  Pendiente de Ruben: nivel del mar, tono de las bandas, forma de los rizos.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.

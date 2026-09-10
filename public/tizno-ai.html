@@ -167,6 +167,35 @@
         @media (prefers-reduced-motion: reduce) {
             html.estancia #niebla-grabada { animation: none; }
         }
+        /* ══ MAR DE TINTA (Ruben, 10-sep: «reemplazar las volutas por una
+           animación de líquido negro, un mar que reacciona como un líquido a
+           Tizno sin gastar demasiados recursos»). Sustituye a la lámina.
+           Tres bandas: las dos de fondo son puro compositor (una tira de olas
+           SVG que deriva con transform: cero repintado) y la del frente es un
+           lienzo con la simulación de muelles 1-D del agua de los videojuegos
+           (cada columna es un muelle que contagia a sus vecinas), pintada a
+           30 fps como el resto de la tinta. Sin filtros: geometría y color.
+           El nivel medio de la superficie (27,5vh) se repite en el JS (MAR.nivel)
+           y en #mar-menisco. */
+        #mar { display: none; }
+        html.estancia #mar { display: block; position: fixed; left: 0; right: 0; bottom: 0; height: 42vh; z-index: 5; pointer-events: none; overflow: hidden; contain: strict; }
+        html.estancia #niebla-grabada, html.estancia #abyss-foreground, html.estancia #abyss-foreground-2 { display: none; }
+        .mar-banda { position: absolute; left: 0; right: 0; bottom: 0; overflow: hidden; }
+        #mar-fondo { height: 31.5vh; animation: mar-vaiven 9s ease-in-out infinite alternate; }
+        #mar-medio { height: 29.5vh; animation: mar-vaiven 7s ease-in-out -3s infinite alternate-reverse; }
+        .mar-olas { position: absolute; left: 0; top: 0; bottom: 0; width: calc(100% + 480px); background-repeat: repeat-x, no-repeat; background-position: 0 0; background-size: 480px 40px, 100% 100%; animation: mar-deriva linear infinite; will-change: transform; }
+        #mar-fondo .mar-olas { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='40'%3E%3Cpath fill='%230d0c0a' d='M0 24C50 10 100 36 160 22S260 8 330 24 430 34 480 24V40H0Z'/%3E%3C/svg%3E"), linear-gradient(to bottom, transparent 40px, #0d0c0a 40px); animation-duration: 26s; }
+        #mar-medio .mar-olas { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='40'%3E%3Cpath fill='%23090807' d='M0 20C40 30 90 8 150 20S250 34 320 18 420 6 480 20V40H0Z'/%3E%3C/svg%3E"), linear-gradient(to bottom, transparent 40px, #090807 40px); animation-duration: 19s; animation-direction: reverse; }
+        #mar-frente { position: absolute; left: 0; bottom: 0; width: 100%; height: 32vh; display: block; }
+        @keyframes mar-deriva { to { transform: translateX(-480px); } }
+        @keyframes mar-vaiven { from { transform: translateY(0); } to { transform: translateY(6px); } }
+        @media (prefers-reduced-motion: reduce) { .mar-olas, .mar-banda { animation: none; } }
+        /* Menisco: un bloque de tinta DENTRO de la capa goo del cuerpo, con el
+           borde 24 px por debajo del nivel medio (oculto tras el lienzo del
+           frente). Su única misión es que el filtro funda el cuello con él:
+           donde Tizno entra en el líquido aparece el redondeo de un menisco. */
+        #mar-menisco { display: none; }
+        html.estancia #mar-menisco { display: block; position: absolute; left: 0; right: 0; bottom: 0; height: calc(27.5vh - 24px); background: var(--ink); }
         /* SIN zoom interno: mezclaba px escalados con % del viewport y las
            capas fijas (cuerpo vs ojos) se desalineaban según el ancho de la
            ventana. La madre escala el iframe entero con transform. */
@@ -564,6 +593,7 @@
              mismo filtro que el cuerpo y se funde con él: el contorno superior
              deja de ser una línea limpia y se convierte en mar de tinta. -->
         <canvas id="corona" style="position:absolute;inset:0;pointer-events:none"></canvas>
+        <div id="mar-menisco"></div>
         <div class="master-rig">
             <div id="body-tracking-container"><div id="body-shape"></div></div>
             <div class="head-tracker">
@@ -614,6 +644,11 @@
       <a id="idioma-es" href="/tizno/">ES</a><a id="idioma-en" href="/en/tizno/">EN</a>
     </nav>
     <div id="niebla-grabada" aria-hidden="true"></div>
+    <div id="mar" aria-hidden="true">
+        <div class="mar-banda" id="mar-fondo"><div class="mar-olas"></div></div>
+        <div class="mar-banda" id="mar-medio"><div class="mar-olas"></div></div>
+        <canvas id="mar-frente"></canvas>
+    </div>
 
     <!-- ═══ ELEVENLABS 2/4 — call UI ═══ -->
     <div id="tizno-call-ui">
@@ -1137,11 +1172,17 @@
            mientras suene, nada normal entra — y las prioritarias cortan a las
            normales pero NUNCA se pisan entre sí. */
         let sfxSonandoHasta = 0, sfxActual = null, sfxActualPrioritario = false;
+        const SFX_EN_LLAMADA = new Set(['toque', 'quejido', 'enfado', 'susto', 'risa']);
         function sfxPlay(nombre) {
             const def = SFX[nombre];
             if (!def) return false;
             const ahora = Date.now();
-            if (typeof aiState !== 'undefined' && aiState !== 'idle' && nombre !== 'sinMicro') return false;
+            if (typeof aiState !== 'undefined' && aiState !== 'idle' && nombre !== 'sinMicro') {
+                /* Ruben (10-sep): que reaccione a los toques también en plena
+                   charla. Las reacciones cortas pasan; las súplicas largas no.
+                   Y nunca pisando su propia voz en directo. */
+                if (!SFX_EN_LLAMADA.has(nombre) || aiState === 'speaking') return false;
+            }
             const prioridad = nombre === 'risa' || nombre === 'quejido' || nombre === 'sinMicro' || nombre === 'pop' || nombre === 'noEncierres';
             const sonando = sfxActual && !sfxActual.paused && !sfxActual.ended;
             if (!prioridad && (sonando || ahora < sfxSonandoHasta)) return false;
@@ -1435,6 +1476,8 @@
                     ultimoDibujo = time;
                     fireflyEl.style.transform = `translate(${ffX}px, ${ffY}px)`;
                     fireflyEl.style.opacity = (0.55 + Math.sin(time * 0.006) * 0.35).toFixed(2);
+                    // El mar sigue meciéndose con Tizno dormido, a 15 fps.
+                    if ((marTick++ & 1) === 0) marPaso(time, true);
                 }
                 requestAnimationFrame(updateRig);
                 return;
@@ -2091,6 +2134,7 @@
                instante en que popIn() mueve el objetivo. */
             if (popTarget === 0 && popPos < 0.02
                 && !POOL_P.length && !POOL_C.length && !POOL_S.length) {
+                if ((marTick++ & 1) === 0) marPaso(time, true);
                 requestAnimationFrame(updateRig);
                 return;
             }
@@ -2193,6 +2237,7 @@
             headBreathEl.style.transform = breathT;
             eyesBreathEl.style.transform = breathT;
             dibujarTinta(time);
+            marPaso(time, false);
             } // fin de la puerta de 30 fps
 
             requestAnimationFrame(updateRig);
@@ -2321,6 +2366,37 @@
             g.fillStyle = rg; g.fillRect(0, 0, 48, 48);
             return c;
         })();
+        /* VOLUTAS PROCEDURALES (Ruben, 10-sep: «partículas hacia arriba, lo
+           más parecido a las volutas posible pero procedural: noise, fractal
+           noise, twist, animaciones simples y blob»). Cuatro rizos dibujados
+           UNA vez: una espiral que se cierra, gruesa en la cola y fina en el
+           ojo, con un ruido barato (dos senos inconmensurables) que la
+           deforma, y un rizo hijo que sale de la cola en sentido contrario.
+           El «twist» es la rotación durante la vida; el «blob» lo pone el
+           filtro goo de la capa de partículas al fundirlas. */
+        const SPR_VOLUTAS = [0, 1, 2, 3].map((k) => {
+            const c = document.createElement('canvas'); c.width = c.height = 96;
+            const g = c.getContext('2d');
+            g.strokeStyle = INK; g.lineCap = 'round'; g.lineJoin = 'round';
+            const espiral = (cx, cy, R, vueltas, dir, fase, grosor, N) => {
+                let px = 0, py = 0;
+                for (let i = 0; i <= N; i++) {
+                    const t = i / N;                                   // 0 = cola · 1 = ojo
+                    const ang = dir * t * vueltas * 6.2832 + fase;
+                    const ruido = 1 + 0.10 * Math.sin(t * 23.7 + k * 5.1) + 0.05 * Math.sin(t * 61.3 + k * 2.3);
+                    const rad = (R * Math.pow(1 - t, 1.15) + 2.5) * ruido;
+                    const x = cx + Math.cos(ang) * rad, y = cy + Math.sin(ang) * rad;
+                    if (i) { g.lineWidth = 1.4 + (1 - t) * grosor; g.beginPath(); g.moveTo(px, py); g.lineTo(x, y); g.stroke(); }
+                    px = x; py = y;
+                }
+            };
+            const dir = k % 2 ? 1 : -1;
+            espiral(48, 50, 40, 2.3 + (k * 0.37) % 0.7, dir, k * 1.7, 12, 70);
+            // rizo hijo: nace en la cola y gira al revés
+            const a0 = k * 1.7, r0 = 42.5;
+            espiral(48 + Math.cos(a0) * r0 * 0.55, 50 + Math.sin(a0) * r0 * 0.55, 15, 1.6, -dir, a0 + 2.6, 6, 40);
+            return c;
+        });
 
         const POOL_P = [], POOL_C = [], POOL_S = [];
         let contGotas = 0, contLetras = 0;
@@ -2380,6 +2456,11 @@
                        que se calculan arriba siguen siendo las de siempre. */
                     ctx.setTransform(cos * sx * RESOL, sin * sx * RESOL, -sin * sy * RESOL, cos * sy * RESOL, xx * RESOL, yy * RESOL);
                     ctx.drawImage(spr, -spr.width / 2, -spr.height / 2);
+                } else if (p.vol) {
+                    const spr = SPR_VOLUTAS[p.vol - 1];
+                    const rad = r * DEG, cos = Math.cos(rad), sin = Math.sin(rad);
+                    ctx.setTransform(cos * sc * RESOL, sin * sc * RESOL, -sin * sc * RESOL, cos * sc * RESOL, x * RESOL, y * RESOL);
+                    ctx.drawImage(spr, -48, -48);
                 } else if (p.chispa) {
                     const d = p.tam * 5.2 * sc;
                     ctx.setTransform(RESOL, 0, 0, RESOL, 0, 0);
@@ -2394,6 +2475,107 @@
             ctx.setTransform(1, 0, 0, 1, 0, 0);
             ctx.globalAlpha = 1;
             if (esP) { contGotas = g; contLetras = l; }
+        }
+
+        /* ══ MAR DE TINTA — la simulación (ver CSS de #mar) ══
+           h[i] = altura de cada columna (px, + = hundida), v[i] su velocidad.
+           Cada tick: muelle hacia el reposo, amortiguación, contagio a las
+           vecinas. Encima, un oleaje ambiente de dos senos que no cuesta
+           nada. Empujones: el pop de Tizno (sube o se hunde → salpica
+           alrededor), su voz (rizos bajo el cuerpo) y el ratón al tocar la
+           superficie. Todo en píxeles de página. */
+        const marEl = document.getElementById('mar');
+        const lienzoM = document.getElementById('mar-frente');
+        const ctxM = lienzoM ? lienzoM.getContext('2d') : null;
+        const MAR = { nivel: 0.275, paso: 12, k: 0.028, amort: 0.05, contagio: 0.22, n: 0, h: null, v: null, w: 0, hh: 0, base: 0, activo: false, col: INK };
+        let marX = -1, marY = -1, marPopPrev = 0, marTick = 0, marUltimaVoluta = 0;
+        function marAjustar() {
+            MAR.activo = !!ctxM && document.documentElement.classList.contains('estancia');
+            if (!MAR.activo) return;
+            MAR.w = window.innerWidth; MAR.hh = Math.round(window.innerHeight * 0.32);
+            MAR.base = MAR.hh - window.innerHeight * MAR.nivel;   // nivel medio en coords del lienzo
+            lienzoM.width = MAR.w; lienzoM.height = MAR.hh;
+            MAR.n = Math.ceil(MAR.w / MAR.paso) + 2;
+            MAR.h = new Float32Array(MAR.n); MAR.v = new Float32Array(MAR.n);
+        }
+        marAjustar();
+        window.addEventListener('resize', marAjustar);
+        window.addEventListener('mousemove', (e) => { marX = e.clientX; marY = e.clientY; }, { passive: true });
+        function marEmpujar(xPag, fuerza, radio) {   // fuerza < 0 = hacia arriba
+            if (!MAR.activo) return;
+            const c = xPag / MAR.paso, r = Math.max(1, radio / MAR.paso);
+            const i0 = Math.max(0, Math.floor(c - r)), i1 = Math.min(MAR.n - 1, Math.ceil(c + r));
+            for (let i = i0; i <= i1; i++) { const d = (i - c) / r; MAR.v[i] += fuerza * Math.max(0, 1 - d * d); }
+        }
+        function marSuperficie(i, t) {   // altura de la columna i con el oleaje ambiente
+            return MAR.base + MAR.h[i] + 4 * Math.sin(i * 0.09 + t * 0.0011) + 2.5 * Math.sin(i * 0.23 - t * 0.0017);
+        }
+        function emitirVoluta(xPag, yPag, fuerza) {
+            if (NIVEL === 'bajo' || !rectP) return;
+            let vivas = 0; for (const q of POOL_P) if (q.vol) vivas++;
+            if (vivas >= (NIVEL === 'alto' ? 10 : 5)) return;
+            const ahora = Date.now();   // el reloj de las partículas es Date.now (como spawnCorona)
+            const x = xPag - rectP.left, y = yPag - rectP.top;
+            const lado = Math.random() < 0.5 ? -1 : 1;
+            const r0 = Math.random() * 40 - 20;
+            POOL_P.push({ t0: ahora, dur: 4200 + Math.random() * 2400, off: 0.32, e: 'io', vol: 1 + Math.floor(Math.random() * 4), tam: 0,
+                x0: x, y0: y + 8, x1: x + (Math.random() - 0.5) * 40, y1: y - 55 - Math.random() * 45 * fuerza,
+                x2: x + (Math.random() - 0.5) * 90, y2: y - 150 - Math.random() * 90 * fuerza,
+                s0: 0.35, s1: 1.0 * fuerza, s2: 1.5 * fuerza, o0: 0, o1: 0.95, o2: 0,
+                r0, r1: r0 + lado * 35, r2: r0 + lado * 85 });
+        }
+        function marPaso(ahora, dormido) {
+            if (!MAR.activo) return;
+            const h = MAR.h, v = MAR.v, n = MAR.n, cx = window.innerWidth / 2;
+            // ── empujones ──
+            const dPop = popPos - marPopPrev; marPopPrev = popPos;
+            const salto = Math.abs(dPop);
+            if (salto > 0.004) {
+                marEmpujar(cx, -salto * 48, 170);          // el líquido desplazado sube alrededor
+                marEmpujar(cx, salto * 26, 60);            // y se hunde justo bajo él
+                if (salto > 0.03 && ahora - marUltimaVoluta > 350) {
+                    marUltimaVoluta = ahora;
+                    emitirVoluta(cx + (Math.random() - 0.5) * 220, window.innerHeight * (1 - MAR.nivel), 1.2);
+                }
+            }
+            if (aiState === 'speaking' && aiVolFast > 0.05) marEmpujar(cx + (Math.random() - 0.5) * 90, -aiVolFast * 0.7, 40);
+            if (marX >= 0) {
+                const i = Math.round(marX / MAR.paso);
+                if (i >= 0 && i < n) {
+                    const ySup = window.innerHeight - MAR.hh + marSuperficie(i, ahora);
+                    if (Math.abs(marY - ySup) < 22 && Math.abs(v[i]) < 1.6) marEmpujar(marX, -0.55, 34);
+                }
+            }
+            // ── muelles ──
+            const K = MAR.k, A = MAR.amort, C = MAR.contagio;
+            let energia = 0;
+            for (let i = 0; i < n; i++) {
+                const izq = h[i > 0 ? i - 1 : i], der = h[i < n - 1 ? i + 1 : i];
+                v[i] += -K * h[i] - A * v[i] + C * (izq + der - 2 * h[i]);
+            }
+            for (let i = 0; i < n; i++) { h[i] += v[i]; const a = Math.abs(v[i]); if (a > energia) energia = a; }
+            // ── volutas de crucero: cuando Tizno está fuera, un rizo de vez en cuando ──
+            if (!dormido && popPos > 0.6 && ahora - marUltimaVoluta > (NIVEL === 'alto' ? 1300 : 2600) + Math.random() * 900) {
+                marUltimaVoluta = ahora;
+                emitirVoluta(cx + (Math.random() - 0.5) * 300, window.innerHeight * (1 - MAR.nivel), 0.75 + Math.random() * 0.4);
+            }
+            // ── pintar ──
+            const ctx = ctxM, w = MAR.w, hh = MAR.hh, paso = MAR.paso;
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.clearRect(0, 0, w, hh);
+            ctx.beginPath();
+            let px = 0, py = marSuperficie(0, ahora);
+            ctx.moveTo(px, py);
+            for (let i = 1; i < n; i++) {
+                const x = i * paso, y = marSuperficie(i, ahora);
+                ctx.quadraticCurveTo(px, py, (px + x) / 2, (py + y) / 2);
+                px = x; py = y;
+            }
+            ctx.lineTo(px, py);
+            // brillo de cresta: la luz de la sala rozando el líquido
+            ctx.strokeStyle = 'rgba(232, 200, 122, 0.075)'; ctx.lineWidth = 1.5; ctx.stroke();
+            ctx.lineTo(w + 10, hh + 10); ctx.lineTo(-10, hh + 10); ctx.closePath();
+            ctx.fillStyle = MAR.col; ctx.fill();
         }
 
         function dibujarTinta(ahora) {
@@ -2525,6 +2707,11 @@
            lienzo que vive dentro del filtro del cuerpo: se funden con la
            silueta y el borde de arriba hierve en vez de ser una curva limpia. */
         const CORONA_MAX = 46;
+        // Arista superior de cada oreja en coordenadas de su SVG (viewBox 150×100).
+        const OREJAS_ARISTA = [
+            { svg: earLeft.querySelector('svg'),  x0: 150, y0: 50, cx: 70, cy: 20, x1: 0,   y1: 40 },
+            { svg: earRight.querySelector('svg'), x0: 0,   y0: 50, cx: 80, cy: 20, x1: 150, y1: 40 },
+        ];
         function spawnCorona() {
             if (NIVEL === 'bajo') return;
             if (POOL_C.length > CORONA_MAX) return;
@@ -2536,13 +2723,31 @@
             const r = h.width * 0.5;
             const ahora = Date.now();
             const n = NIVEL === 'alto' ? TUNE.coronaPorTick : Math.round(TUNE.coronaPorTick * 0.5);
+            /* OREJAS (Ruben, 10-sep: «sale mucha tinta del medio de las orejas
+               y muy poca de las puntas»): antes el arco de la coronilla llegaba
+               a ±170° y caía justo en la raíz de las orejas. Ahora la coronilla
+               se queda en -150°…-30° y las orejas emiten por TODA su arista
+               superior: la Bézier cuadrática del propio SVG (M x0 y0 Q cx cy
+               x1 y1), llevada a pantalla con getScreenCTM (incluye giro y
+               pliegue de la oreja), con el peso cargado hacia la punta. */
+            const orejas = OREJAS_ARISTA.map((o) => { const m = o.svg.getScreenCTM(); return m ? { ...o, m } : null; });
             for (let i = 0; i < n; i++) {
                 const letra = Math.random() < 0.45;
-                // Arco superior: de -170° a -10°, toda la coronilla.
-                const ang = (-170 + Math.random() * 160) * DEG;
-                const rr = r * (0.82 + Math.random() * 0.22);
-                const x0 = cx + Math.cos(ang) * rr;
-                const y0 = cy + Math.sin(ang) * rr * 0.92;
+                let ang, x0, y0;
+                const o = Math.random() < 0.5 ? orejas[Math.random() < 0.5 ? 0 : 1] : null;
+                if (o) {
+                    const t = 0.3 + 0.7 * (1 - Math.random() * Math.random());   // 1 = punta; poco en la raíz
+                    const u = 1 - t;
+                    const pt = new DOMPoint(u * u * o.x0 + 2 * u * t * o.cx + t * t * o.x1,
+                                            u * u * o.y0 + 2 * u * t * o.cy + t * t * o.y1).matrixTransform(o.m);
+                    x0 = pt.x - rC.left; y0 = pt.y - rC.top;
+                    ang = Math.atan2(y0 - cy, x0 - cx);                          // hacia fuera
+                } else {
+                    ang = (-150 + Math.random() * 120) * DEG;                     // coronilla
+                    const rr = r * (0.82 + Math.random() * 0.22);
+                    x0 = cx + Math.cos(ang) * rr;
+                    y0 = cy + Math.sin(ang) * rr * 0.92;
+                }
                 const dx = Math.cos(ang) * TUNE.coronaAlcance * (0.4 + Math.random() * 0.8);
                 const dyy = Math.sin(ang) * TUNE.coronaAlcance * (0.6 + Math.random() * 0.9) - 8;
                 const base = { t0: ahora, dur: TUNE.coronaVida * (0.7 + Math.random() * 0.6), off: 0.35, e: 'out',
@@ -2647,7 +2852,23 @@
             shockUntil = ahora + 260;
             burstInk(0.55);
             sfxPlay('toque');
+            avisarToqueAlAgente();
         };
+        /* En llamada, el toque también se lo cuenta al agente para que
+           reaccione con su voz en directo: como mensaje si le toca hablar
+           (responde al momento), como contexto si ya está hablando. Como
+           mucho uno cada 6 s. */
+        let ultimoAvisoToque = 0;
+        function avisarToqueAlAgente() {
+            if (aiState === 'idle' || !window.__tiznoSusurra) return;
+            const ahora = Date.now();
+            if (ahora - ultimoAvisoToque < 6000) return;
+            ultimoAvisoToque = ahora;
+            const texto = IDIOMA === 'en'
+                ? '[The visitor just poked you on the screen. React in one short line, in character (a yelp, a complaint or a nervous laugh), then carry on.]'
+                : '[El visitante acaba de pincharte con el dedo en la pantalla. Reacciona en una frase corta, en personaje (un quejido, una protesta o una risita nerviosa), y sigue con lo tuyo.]';
+            window.__tiznoSusurra(texto, aiState !== 'speaking');
+        }
         /* Un toque, una intención: si el clic cayó en un control (Hablar,
            el conmutador de idioma, el enlace del olvido), no es para él. */
         window.addEventListener('click', (e) => {
@@ -3563,6 +3784,15 @@
         /* Puente embed: la madre (o un toque sobre Tizno) alterna la llamada. */
         window.__tiznoLlamar = () => { conversation ? sleep() : wake(); };
         window.__tiznoColgar = () => { if (conversation) sleep(); };
+        // Puente para el rig: susurrar (contexto) o decir (mensaje de usuario) algo al agente.
+        window.__tiznoSusurra = (texto, hablar) => {
+            if (!conversation) return false;
+            try {
+                if (hablar && typeof conversation.sendUserMessage === 'function') conversation.sendUserMessage(texto);
+                else conversation.sendContextualUpdate(texto);
+                return true;
+            } catch (_) { return false; }
+        };
 
         // El botón «i» de la esquina abre y cierra el aviso; Escape lo cierra.
         (() => {
