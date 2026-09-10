@@ -180,7 +180,7 @@
         #mar { display: none; }
         html.estancia #mar { display: block; position: fixed; left: 0; right: 0; bottom: 0; height: 42vh; z-index: 5; pointer-events: none; overflow: hidden; contain: strict; }
         html.estancia #niebla-grabada, html.estancia #abyss-foreground, html.estancia #abyss-foreground-2 { display: none; }
-        .mar-banda { position: absolute; left: 0; right: 0; bottom: 0; overflow: hidden; }
+        .mar-banda { position: absolute; left: 0; right: 0; bottom: 0; will-change: transform; }
         #mar-fondo { height: 31.5vh; animation: mar-vaiven 9s ease-in-out infinite alternate; }
         #mar-medio { height: 29.5vh; animation: mar-vaiven 7s ease-in-out -3s infinite alternate-reverse; }
         .mar-olas { position: absolute; left: 0; top: 0; bottom: 0; width: calc(100% + 480px); background-repeat: repeat-x, no-repeat; background-position: 0 0; background-size: 480px 40px, 100% 100%; animation: mar-deriva linear infinite; will-change: transform; }
@@ -1476,9 +1476,8 @@
                     ultimoDibujo = time;
                     fireflyEl.style.transform = `translate(${ffX}px, ${ffY}px)`;
                     fireflyEl.style.opacity = (0.55 + Math.sin(time * 0.006) * 0.35).toFixed(2);
-                    // El mar sigue meciéndose con Tizno dormido, a 15 fps.
-                    if ((marTick++ & 1) === 0) marPaso(time, true);
                 }
+                marPaso(time, true);   // el mar sigue meciéndose con Tizno dormido
                 requestAnimationFrame(updateRig);
                 return;
             }
@@ -2123,6 +2122,10 @@
             vEyeL = (vEyeL + (t_EyeL - c_EyeL) * 0.16) * 0.74; c_EyeL += vEyeL;
             vEyeR = (vEyeR + (t_EyeR - c_EyeR) * 0.16) * 0.74; c_EyeR += vEyeR;
 
+            /* El mar va a CADA fotograma (Ruben, 10-sep: «súper laggy»): un
+               lienzo a 30 fps junto a capas de compositor a 120 Hz se ve a
+               tirones aunque cueste poco. La física se integra por tiempo. */
+            marPaso(time, false);
             if (time - ultimoDibujo >= 31) {
             ultimoDibujo = time;
             // La luciérnaga vive siempre, esté Tizno o no.
@@ -2134,7 +2137,7 @@
                instante en que popIn() mueve el objetivo. */
             if (popTarget === 0 && popPos < 0.02
                 && !POOL_P.length && !POOL_C.length && !POOL_S.length) {
-                if ((marTick++ & 1) === 0) marPaso(time, true);
+                marPaso(time, true);   // el mar sigue meciéndose con Tizno dormido
                 requestAnimationFrame(updateRig);
                 return;
             }
@@ -2237,7 +2240,6 @@
             headBreathEl.style.transform = breathT;
             eyesBreathEl.style.transform = breathT;
             dibujarTinta(time);
-            marPaso(time, false);
             } // fin de la puerta de 30 fps
 
             requestAnimationFrame(updateRig);
@@ -2488,7 +2490,7 @@
         const lienzoM = document.getElementById('mar-frente');
         const ctxM = lienzoM ? lienzoM.getContext('2d') : null;
         const MAR = { nivel: 0.275, paso: 12, k: 0.028, amort: 0.05, contagio: 0.22, n: 0, h: null, v: null, w: 0, hh: 0, base: 0, activo: false, col: INK };
-        let marX = -1, marY = -1, marPopPrev = 0, marTick = 0, marUltimaVoluta = 0;
+        let marX = -1, marY = -1, marPopPrev = 0, marUltimaVoluta = 0;
         function marAjustar() {
             MAR.activo = !!ctxM && document.documentElement.classList.contains('estancia');
             if (!MAR.activo) return;
@@ -2524,36 +2526,41 @@
                 s0: 0.35, s1: 1.0 * fuerza, s2: 1.5 * fuerza, o0: 0, o1: 0.95, o2: 0,
                 r0, r1: r0 + lado * 35, r2: r0 + lado * 85 });
         }
+        let marAnterior = 0;
         function marPaso(ahora, dormido) {
             if (!MAR.activo) return;
             const h = MAR.h, v = MAR.v, n = MAR.n, cx = window.innerWidth / 2;
+            // Integración por tiempo: tantos sub-pasos de 16,7 ms como hayan pasado (máx. 4).
+            const dt = marAnterior ? Math.min(70, ahora - marAnterior) : 16.7; marAnterior = ahora;
+            const pasosMar = Math.max(1, Math.min(4, Math.round(dt / 16.7)));
             // ── empujones ──
             const dPop = popPos - marPopPrev; marPopPrev = popPos;
             const salto = Math.abs(dPop);
             if (salto > 0.004) {
-                marEmpujar(cx, -salto * 48, 170);          // el líquido desplazado sube alrededor
+                marEmpujar(cx, -salto * 48, 170);          // el líquido desplazado sube alrededor (dPop ya es por fotograma)
                 marEmpujar(cx, salto * 26, 60);            // y se hunde justo bajo él
                 if (salto > 0.03 && ahora - marUltimaVoluta > 350) {
                     marUltimaVoluta = ahora;
                     emitirVoluta(cx + (Math.random() - 0.5) * 220, window.innerHeight * (1 - MAR.nivel), 1.2);
                 }
             }
-            if (aiState === 'speaking' && aiVolFast > 0.05) marEmpujar(cx + (Math.random() - 0.5) * 90, -aiVolFast * 0.7, 40);
+            if (aiState === 'speaking' && aiVolFast > 0.05) marEmpujar(cx + (Math.random() - 0.5) * 90, -aiVolFast * 0.35 * pasosMar, 40);
             if (marX >= 0) {
                 const i = Math.round(marX / MAR.paso);
                 if (i >= 0 && i < n) {
                     const ySup = window.innerHeight - MAR.hh + marSuperficie(i, ahora);
-                    if (Math.abs(marY - ySup) < 22 && Math.abs(v[i]) < 1.6) marEmpujar(marX, -0.55, 34);
+                    if (Math.abs(marY - ySup) < 22 && Math.abs(v[i]) < 1.6) marEmpujar(marX, -0.28 * pasosMar, 34);
                 }
             }
-            // ── muelles ──
-            const K = MAR.k, A = MAR.amort, C = MAR.contagio;
-            let energia = 0;
-            for (let i = 0; i < n; i++) {
-                const izq = h[i > 0 ? i - 1 : i], der = h[i < n - 1 ? i + 1 : i];
-                v[i] += -K * h[i] - A * v[i] + C * (izq + der - 2 * h[i]);
+            // ── muelles (constantes calibradas a 60 Hz; a 30 fps se dan dos pasos) ──
+            const K = MAR.k * 0.5, A = MAR.amort * 0.5, C = MAR.contagio * 0.5;
+            for (let s = 0; s < pasosMar; s++) {
+                for (let i = 0; i < n; i++) {
+                    const izq = h[i > 0 ? i - 1 : i], der = h[i < n - 1 ? i + 1 : i];
+                    v[i] += -K * h[i] - A * v[i] + C * (izq + der - 2 * h[i]);
+                }
+                for (let i = 0; i < n; i++) h[i] += v[i];
             }
-            for (let i = 0; i < n; i++) { h[i] += v[i]; const a = Math.abs(v[i]); if (a > energia) energia = a; }
             // ── volutas de crucero: cuando Tizno está fuera, un rizo de vez en cuando ──
             if (!dormido && popPos > 0.6 && ahora - marUltimaVoluta > (NIVEL === 'alto' ? 1300 : 2600) + Math.random() * 900) {
                 marUltimaVoluta = ahora;
@@ -2730,7 +2737,8 @@
                superior: la Bézier cuadrática del propio SVG (M x0 y0 Q cx cy
                x1 y1), llevada a pantalla con getScreenCTM (incluye giro y
                pliegue de la oreja), con el peso cargado hacia la punta. */
-            const orejas = OREJAS_ARISTA.map((o) => { const m = o.svg.getScreenCTM(); return m ? { ...o, m } : null; });
+            if (!spawnCorona._t || ahora - spawnCorona._t > 100) { spawnCorona._t = ahora; spawnCorona._orejas = OREJAS_ARISTA.map((o) => { const m = o.svg.getScreenCTM(); return m ? { ...o, m } : null; }); }
+            const orejas = spawnCorona._orejas;
             for (let i = 0; i < n; i++) {
                 const letra = Math.random() < 0.45;
                 let ang, x0, y0;
