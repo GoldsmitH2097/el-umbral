@@ -2,6 +2,9 @@ import { CHARACTERS, CATALOGUE, state, Events } from '../core/StateManager.js';
 import { pickVideoSrc, pickPillarSrc } from '../core/videoVariant.js';
 import { t, getField, lang } from '../core/i18n.js';
 import { retailer } from '../core/retailers.js';
+// El cofre de pago propio: escucha los clics en .obra-compra y abre el modal
+// (el enlace de Stripe queda de red de seguridad sin JS). Ver PagoModal.js.
+import '../ui/PagoModal.js';
 
 // ── Buy CTAs ────────────────────────────────────────────────────────────────
 // One implementation, used by BOTH the Las Obras grid card and the reading-view
@@ -186,7 +189,7 @@ export function renderCta(item, { detail = false } = {}) {
           /* COMPRA DIRECTA (Javier, 9-sep-2026): un solo botón en el sitio de la
              invitación; las llaves se quedan de adorno (sin Aviso: ya se puede
              comprar). El enlace abre el Checkout de Stripe en otra pestaña. */
-          ? `<a class="obra-btn obra-btn--buy obra-compra" href="${enlaceCompra(item)}" target="_blank" rel="noopener">${getField(item.compra, 'label')}</a>`
+          ? `<a class="obra-btn obra-btn--buy obra-compra" data-obra="${item.id}" href="${enlaceCompra(item)}" target="_blank" rel="noopener">${getField(item.compra, 'label')}</a>`
           : `<p class="obra-edition-invite">${getField(item, 'cofreInvite') || (linkable.length ? t('cta.buy') : t('cta.soon-at'))}</p>`}
         <div class="cofre-strip">
           ${impresas.map(retailerLink).join('')}

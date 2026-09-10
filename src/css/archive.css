@@ -1098,3 +1098,33 @@ html { -webkit-tap-highlight-color: transparent; }
 #tizno-grant-sello p { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #59493a; margin: 0 0 12px; }
 #tizno-grant-sello img { width: 150px; opacity: 0.45; transition: opacity 0.3s; }
 #tizno-grant-sello a:hover img { opacity: 0.9; }
+
+/* ── PAGO MODAL (cofre de compra propio, 10-sep-2026) ── mismo lenguaje que el
+   Aviso: fondo casi negro, filete oro, Times. Las piezas de Stripe llevan su
+   apariencia por la Appearance API (PagoModal.js); aquí solo el marco. */
+#pago-modal { position: fixed; inset: 0; background: rgba(3,3,3,0.6); z-index: 56; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; padding: 4vw; overflow-y: auto; }
+#pago-modal.open { opacity: 1; pointer-events: auto; -webkit-backdrop-filter: blur(9px); backdrop-filter: blur(9px); }
+#pago-inner { position: relative; max-width: 460px; width: 100%; margin: auto; background: rgba(6,5,4,0.985); border: 1px solid rgba(200,146,42,0.45); border-radius: 4px; padding: 32px 34px 26px; box-shadow: 0 24px 80px rgba(0,0,0,0.75); text-align: center; }
+#pago-eyebrow { font-size: 10px; letter-spacing: 5px; text-transform: uppercase; color: #8c8c8c; margin: 0 0 10px; }
+#pago-eyebrow:empty { display: none; }
+#pago-modal h2 { font-size: 15px; letter-spacing: 6px; text-transform: uppercase; color: #c8922a; font-weight: normal; margin: 0 0 8px; }
+#pago-precio { font-size: 26px; color: #e8c87a; letter-spacing: 2px; margin: 0 0 18px; padding-bottom: 16px; border-bottom: 1px solid rgba(200,146,42,0.18); }
+#pago-precio:empty { display: none; padding: 0; border: 0; }
+#pago-cargando { font-size: 13px; color: #888; letter-spacing: 1px; margin: 26px 0; }
+#pago-express { margin: 0 0 14px; }
+#pago-express[hidden], #pago-o[hidden] { display: none; }
+#pago-o { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: #6b6b6b; margin: 0 0 14px; display: flex; align-items: center; gap: 12px; }
+#pago-o::before, #pago-o::after { content: ''; flex: 1; height: 1px; background: rgba(200,146,42,0.18); }
+#pago-contacto { margin: 0 0 10px; text-align: left; }
+#pago-elemento { margin: 0 0 14px; text-align: left; }
+#pago-errores { color: #e0704f; font-size: 12.5px; line-height: 1.6; min-height: 0; margin: 0 0 10px; }
+#pago-errores:empty { display: none; }
+#pago-confirmar { width: 100%; background: transparent; border: 1px solid rgba(200,146,42,0.55); color: #e8c87a; padding: 13px 24px; font-size: 12px; letter-spacing: 4px; text-transform: uppercase; cursor: pointer; transition: color 0.3s, border-color 0.3s, background 0.3s; font-family: 'Times New Roman', serif; }
+#pago-confirmar:hover, #pago-confirmar:focus-visible { border-color: #e8c87a; color: #fff; background: rgba(200,146,42,0.12); outline: none; }
+#pago-confirmar:disabled { opacity: 0.4; cursor: default; background: transparent; color: #e8c87a; border-color: rgba(200,146,42,0.55); }
+#pago-nota { font-size: 11px; color: #6b6b6b; line-height: 1.7; margin: 16px 0 0; }
+#pago-estado h3 { font-size: 13px; letter-spacing: 5px; text-transform: uppercase; color: #e8c87a; font-weight: normal; margin: 22px 0 14px; }
+#pago-estado p { font-size: 13px; color: #999; line-height: 1.9; margin: 0 0 8px; }
+#pago-cerrar { position: absolute; top: 10px; right: 14px; background: transparent; border: none; color: #555; font-size: 24px; line-height: 1; padding: 5px 10px; cursor: pointer; transition: color 0.3s; }
+#pago-cerrar:hover, #pago-cerrar:focus-visible { color: #c8922a; outline: none; }
+@media (max-width: 520px) { #pago-inner { padding: 26px 18px 22px; } #pago-modal { padding: 12px; align-items: flex-start; } }
