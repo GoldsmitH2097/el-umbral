@@ -118,18 +118,21 @@
             letter-spacing: 2px; text-decoration: none; text-transform: none;
             color: #ffd58e; white-space: nowrap;
         }
+        /* Rendimiento (11-sep): animar text-shadow en ~40 letras repintaba
+           desenfoques cada fotograma. Ahora la sombra es fija (se rasteriza
+           una vez) y lo que respira es la OPACIDAD de la letra: compositor. */
         .senal .letra {
             display: inline-block;
             transform: rotate(var(--rot, 0deg)) translateY(var(--dy, 0px)) scale(var(--esc, 1));
-            text-shadow: 0 0 2px var(--g0), 0 0 8px var(--g1), 0 0 20px var(--g2), 0 0 42px var(--g3);
+            text-shadow: 0 0 2px var(--g0), 0 0 10px var(--g1), 0 0 24px var(--g2), 0 0 48px var(--g3);
             animation: titila var(--dur, 4s) ease-in-out var(--ret, 0s) infinite;
         }
         .senal .letra-flecha { transform: none; }
         @keyframes titila {
-            0%, 100% { text-shadow: 0 0 2px var(--g0), 0 0 8px var(--g1), 0 0 20px var(--g2), 0 0 42px var(--g3); }
-            26%      { text-shadow: 0 0 3px var(--g0), 0 0 12px var(--g1), 0 0 30px var(--g2), 0 0 60px var(--g3); }
-            43%      { text-shadow: 0 0 1px var(--g0), 0 0 6px var(--g1), 0 0 14px var(--g2), 0 0 28px var(--g3); }
-            71%      { text-shadow: 0 0 3px var(--g0), 0 0 11px var(--g1), 0 0 26px var(--g2), 0 0 54px var(--g3); }
+            0%, 100% { opacity: 0.86; }
+            26%      { opacity: 1; }
+            43%      { opacity: 0.74; }
+            71%      { opacity: 0.97; }
         }
         @media (prefers-reduced-motion: reduce) { .senal .letra { animation: none; } }
         html.estancia #tizno-volver {
@@ -2659,6 +2662,7 @@
         const marEl = document.getElementById('mar');
         const lienzoM = document.getElementById('mar-frente');
         const ctxM = lienzoM ? lienzoM.getContext('2d') : null;
+        const MAR_RESOL = 0.5;
         const MAR = { nivel: 0.36, paso: 10, k: 0.028, amort: 0.05, contagio: 0.22, n: 0, h: null, v: null, w: 0, hh: 0, base: 0, activo: false, col: '#000' };
         let marX = -1, marY = -1, marPopPrev = 0;
         function marAjustar() {
@@ -2667,7 +2671,9 @@
             if (!MAR.activo) return;
             MAR.w = window.innerWidth; MAR.hh = Math.round(window.innerHeight * 0.46);
             MAR.base = MAR.hh - window.innerHeight * MAR.nivel;   // nivel medio en coords del lienzo
-            lienzoM.width = MAR.w; lienzoM.height = MAR.hh;
+            /* Rendimiento (11-sep): el búfer va a MEDIA resolución (las olas son
+               formas grandes y suaves: no se nota) y el navegador lo estira. */
+            lienzoM.width = Math.round(MAR.w * MAR_RESOL); lienzoM.height = Math.round(MAR.hh * MAR_RESOL);
             MAR.n = Math.ceil(MAR.w / MAR.paso) + 2;
             MAR.h = new Float32Array(MAR.n); MAR.v = new Float32Array(MAR.n);
         }
@@ -2779,6 +2785,8 @@
         let marAnterior = 0;
         function marPaso(ahora, dormido) {
             if (!MAR.activo) return;
+            // Rendimiento (11-sep): 60 Hz como máximo; en pantallas de 120 Hz se salta un fotograma de cada dos.
+            if (marAnterior && ahora - marAnterior < 14) return;
             const h = MAR.h, v = MAR.v, n = MAR.n, cx = window.innerWidth / 2;
             // Integración por tiempo: tantos sub-pasos de 16,7 ms como hayan pasado (máx. 4).
             const dt = marAnterior ? Math.min(70, ahora - marAnterior) : 16.7; marAnterior = ahora;
@@ -2812,7 +2820,8 @@
             // ── pintar: tres capas negras sobre el horizonte curvo, la lava entre medias ──
             const ctx = ctxM, w = MAR.w, hh = MAR.hh, paso = MAR.paso;
             ctx.setTransform(1, 0, 0, 1, 0, 0);
-            ctx.clearRect(0, 0, w, hh);
+            ctx.clearRect(0, 0, lienzoM.width, lienzoM.height);
+            ctx.setTransform(MAR_RESOL, 0, 0, MAR_RESOL, 0, 0);   // se dibuja en coords de página; el búfer es la mitad
             ctx.fillStyle = MAR.col;
             marCapa(ctx, ahora, n, paso, w, hh, marFondo);
             marCapa(ctx, ahora, n, paso, w, hh, marMedio);
