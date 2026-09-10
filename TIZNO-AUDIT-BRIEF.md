@@ -1,7 +1,11 @@
 # Tizno — brief de auditoría externa (para Claude, GPT y Gemini)
 
-Copia todo lo que hay bajo la línea en cada modelo. Adjunta el archivo
-`public/tizno-ai.html` (el repo es privado: los modelos no pueden leerlo por URL).
+Copia todo lo que hay bajo la línea en cada modelo. El código está en el repo
+público: https://github.com/GoldsmitH2097/el-umbral (archivo
+`public/tizno-ai.html`, ~270 KB; en crudo:
+https://raw.githubusercontent.com/GoldsmitH2097/el-umbral/main/public/tizno-ai.html).
+Los modelos truncan archivos largos por URL: mejor **adjunta el archivo** además
+de dar el enlace.
 
 ---
 

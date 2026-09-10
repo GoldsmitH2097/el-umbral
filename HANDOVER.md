@@ -1368,7 +1368,7 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   fotograma (orilla + átomos) → volver a 30 fps; la capa C; el hervor.
 - `TIZNO-AUDIT-BRIEF.md`: brief listo para pegar en Claude/GPT/Gemini
   (qué es, qué pedimos, restricciones, interruptores para probar, formato).
-  El repo es privado: hay que adjuntar `public/tizno-ai.html`.
+  El repo es público (enlace raw en el brief); aun así, adjuntar el archivo.
 
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
