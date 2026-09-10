@@ -318,8 +318,9 @@
             transform: translate(var(--eye-x), var(--eye-y)) scale(var(--eye-sx), var(--eye-sy));
         }
 
-        #eye-left-wrapper { left: 140px; }
-        #eye-right-wrapper { right: 140px; }
+        /* 143 y no 140: Ruben (10-sep) los quiere «unos px más juntos, nunca más separados». */
+        #eye-left-wrapper { left: 143px; }
+        #eye-right-wrapper { right: 143px; }
 
         /* OJOS PARAMÉTRICOS (10-sep-2026; hoja /tizno-ojos.html aprobada por Ruben):
            el mismo disco blanco con resplandor, SIN pupila ni brillo. La forma la
@@ -340,8 +341,8 @@
             border-radius: 50% 50% 35% 35% / 100% 100% 40% 40%; opacity: 0;
             transform-origin: 50% 100%; pointer-events: none;
         }
-        #ceja-left { left: 136px; }
-        #ceja-right { right: 136px; }
+        #ceja-left { left: 139px; }
+        #ceja-right { right: 139px; }
 
         /* --- KEYFRAMES --- */
         @keyframes breathe-body { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.03, 1.02); } }
@@ -808,6 +809,19 @@
         for (const k in OJOS_BASE) { ojosEstado.L.v[k] = 0; ojosEstado.R.v[k] = 0; }
         let ojosMood = null;          // humor del tramo que suena (solo al hablar)
         let ojosPoseForzada = null;   // __tiznoOjos.pose('furia') para pruebas; null = libre
+        /* Gestos: secuencias de poses con tiempos (ms). La doble ceja de
+           orgullo absurdo (Ace Ventura) salta al ENTRAR en un tramo de energía. */
+        const OJOS_GESTOS = { orgullo: [['orgullo', 0], ['neutro', 170], ['orgullo', 340], ['neutro', 510], ['orgullo', 680], [null, 1300]] };
+        let ojosGestoSec = null, ojosGestoT0 = 0;
+        function ojosGesto(nombre) { if (!OJOS_GESTOS[nombre]) return false; ojosGestoSec = OJOS_GESTOS[nombre]; ojosGestoT0 = performance.now(); return true; }
+        function ojosPoseGesto() {
+            if (!ojosGestoSec) return null;
+            const t = performance.now() - ojosGestoT0;
+            if (t >= ojosGestoSec[ojosGestoSec.length - 1][1]) { ojosGestoSec = null; return null; }
+            let pose = null;
+            for (const [p, at] of ojosGestoSec) if (t >= at) pose = p;
+            return pose;
+        }
         const cejaLeft = document.getElementById('ceja-left'), cejaRight = document.getElementById('ceja-right');
         function ojosRecorte(lado, p) {
             const yIn = 30 + p.tIn, yOut = 30 + p.tOut;
@@ -817,6 +831,7 @@
         }
         function ojosPoseDe(el) {
             if (ojosPoseForzada) return ojosPoseForzada;
+            const g = ojosPoseGesto(); if (g) return g;
             if (ojosMood && OJOS_MOOD[ojosMood]) return OJOS_MOOD[ojosMood];
             const cls = el.className.split(' ').find(c => OJOS_CLASE[c]);
             if (cls) return OJOS_CLASE[cls];
@@ -839,7 +854,7 @@
                 ceja.style.transform = `translate(${offX.toFixed(1)}px, ${(offY + p.bY).toFixed(1)}px) rotate(${(lado === 'L' ? p.bR : -p.bR).toFixed(1)}deg)`;
             }
         }
-        window.__tiznoOjos = { pose: (n) => { ojosPoseForzada = (n && OJOS_POSES[n]) ? n : null; return ojosPoseForzada || 'libre'; }, poses: Object.keys(OJOS_POSES) };
+        window.__tiznoOjos = { pose: (n) => { ojosPoseForzada = (n && OJOS_POSES[n]) ? n : null; return ojosPoseForzada || 'libre'; }, gesto: ojosGesto, poses: Object.keys(OJOS_POSES) };
 
         const boxA = document.getElementById('box-a');
         const boxB = document.getElementById('box-b');
@@ -1710,6 +1725,7 @@
                 // Matiz emocional sobre la postura base.
                 // Al ENTRAR en rabia, revienta tinta una vez.
                 if (mood === 'enfado' && prevMoodHablando !== 'enfado') burstInk(1.15);
+                if (mood === 'energia' && prevMoodHablando !== 'energia') ojosGesto('orgullo');   // doble ceja al arrancarse
                 prevMoodHablando = mood;
 
                 if (mood === 'miedo') {
