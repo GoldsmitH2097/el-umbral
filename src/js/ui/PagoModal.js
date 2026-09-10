@@ -120,7 +120,8 @@ function mostrarModal() {
 function desmontarTodo() {
   if (!vivo) return;
   const todos = [vivo.express, ...Object.values(vivo.sesiones).flatMap((s) => s.elementos || [])];
-  todos.forEach((el) => { try { el?.unmount(); } catch (_) {} });
+  todos.forEach((el) => { try { el?.destroy(); } catch (_) {} });
+  try { vivo.vigia?.disconnect(); } catch (_) {}
   vivo = null;
 }
 
@@ -235,13 +236,15 @@ export async function abrirPago(obraId) {
     /* `ready` llega un instante antes de que los botones se vean: 400 ms de
        cortesía para no destapar un lecho vacío. */
     const destapar = () => { if (!destapado && vivo?.express === express) { destapado = true; setTimeout(() => { if (vivo?.express === express) modo('formulario'); }, 400); } };
-    const pintarExpress = (metodos) => {
-      const hay = !!metodos && Object.values(metodos).some(Boolean);
-      $('pago-express').classList.toggle('hay', hay);
-      destapar();
-    };
-    express.on('ready', ({ availablePaymentMethods }) => pintarExpress(availablePaymentMethods));
-    express.on('availablepaymentmethodschange', ({ paymentMethods }) => pintarExpress(paymentMethods));
+    /* El lecho de los botones (fondo y marco) solo cuando los botones ya
+       ocupan sitio: `ready` llega segundos antes de que Stripe los pinte, y
+       un lecho vacío parecía un error. Lo vigila un ResizeObserver. */
+    const hueco = $('pago-express');
+    hueco.classList.remove('hay');
+    vivo.vigia = new ResizeObserver(() => hueco.classList.toggle('hay', hueco.getBoundingClientRect().height > 20));
+    vivo.vigia.observe(hueco);
+    express.on('ready', destapar);
+    express.on('availablepaymentmethodschange', destapar);
     express.on('loaderror', () => destapar());
     setTimeout(destapar, 2500);
     express.on('confirm', (event) => {
@@ -262,9 +265,12 @@ async function elegirMetodo(metodo) {
   if (!vivo || !vivo.stripe) return;
   document.querySelectorAll('.pago-metodo').forEach((b) => b.classList.toggle('elegido', b.dataset.metodo === metodo));
   if (vivo.metodo === metodo) return;
-  // Se retira el método anterior (sus piezas siguen vivas por si vuelve).
+  /* Se retira el método anterior. Sus piezas se DESTRUYEN, no se desmontan:
+     un iframe de Stripe vuelto a montar se queda en blanco (visto con el
+     correo al pasar de Bizum a Tarjeta). La sesión y sus actions se guardan
+     y las piezas se crean de nuevo si vuelve. */
   const anterior = vivo.metodo && vivo.sesiones[vivo.metodo];
-  if (anterior) anterior.elementos.forEach((el) => { try { el.unmount(); } catch (_) {} });
+  if (anterior) { anterior.elementos.forEach((el) => { try { el.destroy(); } catch (_) {} }); anterior.elementos = []; }
   vivo.metodo = metodo;
   $('pago-errores').textContent = '';
   $('pago-confirmar').disabled = true;
@@ -290,16 +296,16 @@ async function elegirMetodo(metodo) {
       const cargado = await checkout.loadActions();
       if (cargado.type !== 'success') throw new Error(cargado.error?.message || 'loadActions');
       s.actions = cargado.actions;
-      s.contacto = checkout.createContactDetailsElement();
-      /* Un único método en la sesión: sin pestañas ni acordeón, solo sus
-         campos. (Con Bizum, Stripe pide lo que Bizum necesite.) */
-      s.pago = checkout.createPaymentElement({ layout: { type: 'accordion', defaultCollapsed: false, radios: 'never' } });
-      s.pago.on('ready', () => { if (vivo?.metodo === metodo) $('pago-paso2-cargando').hidden = true; });
-      s.elementos = [s.contacto, s.pago];
     }
     if (!vivo || vivo.metodo !== metodo) return;
-    s.contacto.mount('#pago-contacto');
-    s.pago.mount('#pago-elemento');
+    const contacto = s.checkout.createContactDetailsElement();
+    /* Un único método en la sesión: sin pestañas ni acordeón, solo sus
+       campos. (Con Bizum, Stripe pide el teléfono.) */
+    const pago = s.checkout.createPaymentElement({ layout: { type: 'accordion', defaultCollapsed: false, radios: 'never' } });
+    pago.on('ready', () => { if (vivo?.metodo === metodo) $('pago-paso2-cargando').hidden = true; });
+    s.elementos = [contacto, pago];
+    contacto.mount('#pago-contacto');
+    pago.mount('#pago-elemento');
     pintarConfirmar(s);
   } catch (err) {
     console.error('[pago]', err);
