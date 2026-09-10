@@ -2383,12 +2383,13 @@
                     const cabX = hr.left + hr.width / 2 - window.innerWidth / 2;
                     const cabY = hr.top + hr.height / 2 - window.innerHeight * 0.62;
                     const ratX = mouseNormX * window.innerWidth * 0.5, ratY = mouseNormY * window.innerHeight * 0.5;
-                    const tA_x = ratX * 0.05 + cabX * 0.35 + Math.sin(time * 0.00021) * 30;
-                    const tA_y = ratY * 0.04 + cabY * 0.25 + Math.cos(time * 0.00017) * 22;
-                    const tB_x = -ratX * 0.035 - cabX * 0.20 + Math.sin(time * 0.00013 + 2) * 40;
-                    const tB_y = -ratY * 0.03 - cabY * 0.15 + Math.cos(time * 0.00019 + 1) * 26;
-                    giroA.x += (tA_x - giroA.x) * 0.018; giroA.y += (tA_y - giroA.y) * 0.018;
-                    giroB.x += (tB_x - giroB.x) * 0.011; giroB.y += (tB_y - giroB.y) * 0.011;
+                    // Ruben (11-sep): «un poco más de movimiento/reacción» → ganancias ×1,8, deriva ×1,6, algo menos de retardo.
+                    const tA_x = ratX * 0.09 + cabX * 0.6 + Math.sin(time * 0.00021) * 48;
+                    const tA_y = ratY * 0.07 + cabY * 0.45 + Math.cos(time * 0.00017) * 36;
+                    const tB_x = -ratX * 0.065 - cabX * 0.35 + Math.sin(time * 0.00013 + 2) * 64;
+                    const tB_y = -ratY * 0.055 - cabY * 0.28 + Math.cos(time * 0.00019 + 1) * 42;
+                    giroA.x += (tA_x - giroA.x) * 0.026; giroA.y += (tA_y - giroA.y) * 0.026;
+                    giroB.x += (tB_x - giroB.x) * 0.016; giroB.y += (tB_y - giroB.y) * 0.016;
                     luzGiroA.style.translate = `${giroA.x.toFixed(1)}px ${giroA.y.toFixed(1)}px`;
                     luzGiroB.style.translate = `${giroB.x.toFixed(1)}px ${giroB.y.toFixed(1)}px`;
                 }
