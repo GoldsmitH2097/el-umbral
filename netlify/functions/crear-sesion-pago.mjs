@@ -58,6 +58,8 @@ export default async (req) => {
          su bloque «guardar mi información» con teléfono y nombre sobra en
          un pago de 2,49 € (Ruben, 10-sep). */
       payment_method_types: ['card', 'bizum', 'paypal'],
+      // Y Link tampoco se ofrece dentro del formulario de tarjeta.
+      wallet_options: { link: { display: 'never' } },
       line_items: [{
         quantity: 1,
         price_data: {
