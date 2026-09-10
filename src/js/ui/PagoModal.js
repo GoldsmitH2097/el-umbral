@@ -177,9 +177,12 @@ export async function abrirPago(obraId) {
       paymentMethodOrder: ['applePay', 'googlePay', 'paypal'],
       layout: { maxColumns: 1, maxRows: 3, overflow: 'never' },
     });
+    // Sin cartera disponible en este navegador, ni hueco ni «o paga con».
+    $('pago-express').hidden = true; $('pago-o').hidden = true;
     express.on('availablepaymentmethodschange', ({ paymentMethods }) => {
-      $('pago-express').hidden = !paymentMethods;
-      $('pago-o').hidden = !paymentMethods;
+      const hay = !!paymentMethods && Object.values(paymentMethods).some(Boolean);
+      $('pago-express').hidden = !hay;
+      $('pago-o').hidden = !hay;
     });
     express.on('confirm', (event) => actions.confirm({ expressCheckoutConfirmEvent: event, redirect: 'if_required' }).then(resultado));
     express.mount('#pago-express');
@@ -187,7 +190,11 @@ export async function abrirPago(obraId) {
     const contacto = checkout.createContactDetailsElement();
     contacto.mount('#pago-contacto');
 
-    const pago = checkout.createPaymentElement({ layout: 'accordion' });
+    /* Acordeón con la tarjeta ya abierta: para 2,49 € nadie quiere un clic
+       más. Radios visibles y separación entre métodos. */
+    const pago = checkout.createPaymentElement({
+      layout: { type: 'accordion', defaultCollapsed: false, radios: true, spacedAccordionItems: true },
+    });
     pago.mount('#pago-elemento');
 
     vivo = { checkout, actions, elementos: [express, contacto, pago] };
