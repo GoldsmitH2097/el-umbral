@@ -951,6 +951,39 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
 - Sin verificar a ojo (pestaña de Chrome oculta): orejas, cejas en el goo,
   tween de párpados.
 
+### 10-sep, noche (10) — Tizno más inky: pelaje, humo y vaho en el filtro del cuerpo
+- Ruben (con tres referencias de icono: silueta de hollín con borde peludo y
+  la cabeza deshaciéndose en humo y letras): «¿podemos hacer la superficie
+  más inky, irregular, peluda, smokey?».
+- `#ink-goo-body` (nivel alto) pasa de «fusión + humo suave (9)» a tres
+  capas sobre la fusión goo: PELAJE (feTurbulence 0.09/0.12, 2 octavas,
+  desplazamiento 12: eriza el contorno en pelusa), HUMO (las volutas de
+  siempre 0.014/0.042 con recorrido 18: la silueta se retuerce) y VAHO
+  (copia del cuerpo desenfocada 12, subida 28 px, retorcida por un ruido
+  grave 0.006/0.02 ×46, alfa 0,55, fusionada DEBAJO del cuerpo: halo de
+  humo que sube de la cabeza). Nuevo `#ink-goo-body-medio` = pelaje + humo
+  sin vaho; nivel bajo sigue con `#ink-goo-movil` (sin turbulencia).
+- Panel ?tune=1: cuatro deslizadores nuevos (Cuerpo: pelaje / humo / vaho
+  opacidad / vaho cuánto sube) que tocan los primitivos por `data-p`.
+- `?nivel=alto|medio|bajo` fuerza el nivel y desactiva el vigilante de FPS
+  (para comparar a ojo o en capturas).
+- Verificado en el Chrome de Ruben contra un servidor local (`srv-tizno.py`
+  en el scratchpad: sirve public/ y mapea /tizno/ → tizno-ai.html): borde
+  peludo claro en orejas y cabeza, humo subiendo de la coronilla, ojos y
+  pendiente intactos (los ojos van en otra capa, fuera del filtro).
+  Probados 8/14 (sutil), 18/26 (orejas rasgadas, demasiado) y vaho 0,9
+  (la cabeza se disuelve del todo); elegido 12/18 + vaho 0,55/28.
+- Coste: nivel alto suma 2 turbulencias + 2 desplazamientos + 1 desenfoque
+  por fotograma sobre 660×700; medio suma 1 turbulencia + 1 desplazamiento.
+  Safari nunca arranca en alto; el vigilante baja el nivel si no da la
+  talla. Sin medir FPS en móvil todavía.
+- Capturas headless (`Chrome --headless=new --screenshot
+  --virtual-time-budget=12000`) sirven para el estado de entrada pero no
+  mostraron el filtro con claridad: el zoom del Chrome real fue lo que valió.
+- Tope diario: Ruben lo agotó (2298 s de 1800). Se borra `tizno_daily` del
+  localStorage de soulware.live (o tecla 0 con ?tune=1). Hecho desde su
+  Chrome; el botón volvió a «Hablar con Tizno».
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
