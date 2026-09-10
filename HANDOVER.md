@@ -255,6 +255,234 @@ llave del lector. Probado en local con firmas válidas/manipuladas/ausentes
 (9 casos). Variables: STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET (las pone
 Javier en Netlify; Claude nunca las ve).
 
+### Compra de Anatomía en rama (PR #64, deploy preview 64) — 9-sep
+Javier (vía su GPT) pidió un único botón «Comprar — 2,49 €» hacia su Payment
+Link Sandbox, sin variantes por palos, probado en deploy preview y SIN
+publicar en producción. Rama `stripe-sandbox`, PR #64:
+https://deploy-preview-64--el-umbral.netlify.app/obras/
+- El enlace lo inyecta el build (vite `define`) desde
+  `STRIPE_PAYMENT_LINK_ANATOMIA` (valor por contexto en Netlify). Sin
+  variable: Sandbox por defecto en previews/ramas/local; en `production`
+  cadena vacía → sin botón. Comprobado: el bundle de producción no contiene
+  buy.stripe.com.
+- En el cofre, el botón ocupa el sitio de la invitación y las cuatro llaves
+  quedan de adorno (`retailerLink(r, {adorno:true})`, sin Aviso).
+- El Checkout Sandbox muestra «Anatomía del Vacío €2.49», con Bizum,
+  tarjeta y Link; el negocio aparece como «Core Soulware».
+- NO fusionar hasta que Ruben lo diga: Anatomía no entrega nada aún tras el
+  pago (falta partir la partitura y la llave). Al pasar a Live: poner el
+  enlace Live en la variable del contexto Production y fusionar.
+- Precio: Javier fijó 2,49 € (la cuenta del 8-sep recomendaba 2,99 €; con
+  0,25 € fijos de Stripe, a 2,49 la comisión pesa ~12 %).
+
+### 9-sep, noche — Tizno se pasó al castellano con la web en inglés
+Conversación «Language Switch» (Main v31, Gemini 3 Flash Preview): saludo
+en inglés, silencio del visitante, y el 2º turno ya en castellano; al
+quejarse, inglés «con voz española» (la sesión seguía en inglés: es el
+texto castellano pasado por TTS inglés, y viceversa). Client data: override
+Language = English, idioma = en → la sesión arrancó bien; falló el MODELO.
+«Detect language» del agente estaba apagado (no fue eso).
+- Arreglo 1 (código, desplegado): `dossierToTextEn` — el contexto oculto
+  viaja en inglés en sesiones EN, con aviso explícito de que también los
+  turnos de silencio van en inglés. Antes TODO el contexto era español.
+- Arreglo 2 (panel): Main → Gemini 3.5 Flash y, minutos después, → **Gemini
+  3.6 Flash** (Ruben: mismo precio y más rápido: 0,8–1,6 s frente a
+  0,9–3,9 s). OJO: Gemini 2.5 ya no aparece
+  en la lista (una vez abandonado no hay vuelta). Si 3.5 también deriva,
+  siguiente candidato Claude Haiku 4.5 (estricto con instrucciones, ~0,7 s).
+- Arreglo 3 (panel): bloque «SI TE PIDEN CAMBIAR DE IDIOMA» en el prompt:
+  Tizno no cambia en conversación; señala el selector ES/EN arriba a la
+  derecha, en su voz, en ambos idiomas.
+- Coste/latencia (lista ElevenLabs 9-sep): 3.5 Flash ~0,017 $/min y
+  0,9–3,8 s; 3 Preview ~0,039 $/min y 1,1–1,9 s; 3.6 Flash ~0,016 $/min y
+  0,85–2,7 s (candidato si el 3.5 hace pausas). Claude Haiku 4.5 ~0,72 s si
+  el 3.5 también rompe el idioma.
+- Pendiente: que Ruben/Javier repitan la prueba en /en/ con un silencio
+  largo tras el saludo.
+
+### Baby Tizno — el agente ya existe por separado (9-sep, noche)
+Ruben: «duplica la personalidad que tenemos ahora en ElevenLabs (en los dos
+idiomas) para tocar por separado». Hecho desde el panel (Options → Duplicate
+agent):
+- **Baby Tizno** = `agent_3601m23sdxb4fx0adrkse21ynvb9` (rama Main
+  `agtbrch_3701m23sdxb6ezfvvpfgg468qvz3`). Copia exacta de Tizno a día de
+  hoy: mismo system prompt (14,6k caracteres, con los bloques del nombre y
+  del idioma), español + inglés, Gemini 3.6 Flash, `{{saludo}}` como primer
+  mensaje, mismas herramientas y KB. También se copió la rama redundante
+  `gemini-3-flash-preview` (se puede borrar en los dos agentes).
+- El Tizno de producción (`agent_2101kyzjd6e6ehhaaq9m4mhn8dhq`) NO se ha
+  tocado. Nada en el código apunta todavía al agente nuevo.
+- Decisiones de Ruben para Baby Tizno: 5–12 años; el adulto configura y
+  entra como adulto; MISMO Tizno (sin chupete), más grande y protagonista;
+  más cute y nunca enfadado; libro impreso al final («devuélvele la
+  creatividad a tu hijo»); imágenes con ElevenLabs Image & Video más
+  adelante. Marco legal: artefacto «El Mapa Legal de Baby Tizno».
+- Siguiente: biblia narrativa (espina + baldosas + ficha del héroe +
+  movimientos del narrador + oráculos, por franjas 5–7 / 8–10 / 11–12) y
+  reescritura del prompt de Baby Tizno en los dos idiomas (quitar
+  [Angrily], añadir aviso de IA, nunca «te necesito»).
+
+### Baby Tizno — la biblia narrativa v0.2 (9-sep, noche)
+Ruben: «empezamos a definir todo lo demás de Tizno» (ficha, voz por franjas,
+«nunca», capítulos modelo, oráculos, baldosas, textos del adulto) «y luego lo
+vamos conectando a nuestro nuevo personaje en ElevenLabs».
+- `BABY-TIZNO-BIBLIA.md` (8,4k palabras) + página compartible
+  https://claude.ai/code/artifact/1518f8b6-4abe-4c9e-8d4c-367065a8633c
+- `BABY-TIZNO-FUENTES.md`: las nueve referencias del canon leídas en el
+  original (agente de búsqueda), con lo que NO se pudo verificar. La biblia
+  §9 dice qué regla sale de qué fuente. Cambios que salieron del contraste:
+  «¡No!» es palabra de seguridad (NTYE: lo que asusta huye al instante);
+  Adams tiene tres «por eso» (el tercero solo a los 11–12); selección de
+  baldosas por saliencia (Short); palabras del niño literales + relectura al
+  cerrar (Paley); movimientos de Tizno y «solo habla en tres momentos»
+  (Dungeon World); oráculo como especia (Ironsworn); aceptar/rechazar/desviar
+  (Ingold); ritual de apertura de dos elecciones por voz (Lunii).
+- Mundo PROVISIONAL (Casa del Árbol, Niebla Olvidona) hasta la biblia de
+  mundo de Javier; Ruben cierra la personalidad sobre la ficha propuesta.
+- Decisiones abiertas para Ruben: lista de acotaciones aprobadas (ocho
+  propuestas, ninguna de miedo/enfado) y si Baby Tizno usa la voz de
+  producción o una toma más lenta para 5–7.
+- Siguiente: con el visto bueno, conectar pieza a pieza al agente
+  `agent_3601…` (§8 de la biblia): prompt ES/EN, `{{saludo}}` por franja,
+  `{{franja}}` como variable, KB con espina/baldosas/oráculos, client tools
+  `anotar`/`rebobinar`, humor «ternura» en MOOD_LEX.
+
+### Baby Tizno — 10-sep: el mundo de Javier, decisiones de Ruben y limpieza del agente
+- Javier entregó «El Reino de la Primera Llama» (docx) → `BABY-TIZNO-LORE.md`
+  (canon, copia fiel). Aldea sin nombre, volcán con la Primera Llama, Bruja
+  que gobierna por miedo, Dragón cuya voluntad no es de nadie, ocho umbrales
+  con sonido y olor, siete momentos por capítulo (Entrada · Señal · Elección ·
+  Viaje · Giro amable · Decisión · Cierre), ficha de continuidad de cinco
+  campos. «La Pluma es más poderosa que la Espada».
+- Ruben: **Baby Tizno es un producto aparte**, no promo de Soulware. No sabe
+  nada de libros ni del Umbral; solo que viene de Soulware, que el Tizno
+  original vive allí y que él es la versión infantil que cuenta cuentos.
+  Castellano primero, inglés después. Misma voz para todos (Gork) más suave y
+  cute. Tablet y móvil con la misma página. T&C transparentes. Cajón de
+  «Recuerdos» con borrado por elemento. Libro/imágenes/app: después.
+- **Panel ElevenLabs, agente Baby Tizno (`agent_3601…`), publicado en Main
+  (dos publicaciones: «Update ASR keywords and privacy settings» y «Clear all
+  knowledge base documents»)**: Store Call Audio OFF · retención 30 días con
+  borrado automático de transcripción y audio · Zero Retention no (hace falta
+  la transcripción para depurar la prueba; para lo público, activar) ·
+  Eagerness «patient» · turn timeout 7 → 10 s · keywords: Tizno, Soulware,
+  Primera Llama, Bruja, Dragón, Volcán, Bosque Encantado, Panthera, otra cosa,
+  Reino · **KB vaciada** (los 8 docs de Soulware se DESVINCULARON del agente,
+  no se borraron: el Tizno de producción sigue con sus 8, comprobado). Truco:
+  las filas de la KB tienen menú «···» → «Detach from agent»; con clics por
+  coordenadas, uno a uno, porque el banner de «KB pequeña» desplaza filas.
+- El prompt del agente sigue siendo el de producción (heredado): se
+  sustituye entero cuando Ruben aclare la «entrada del adulto» (§4 de la
+  biblia). Pendiente de Ruben: confirmar el flujo (puerta del adulto: aviso +
+  franja + «dáselo al peque»; el niño construye el héroe por capas con Tizno,
+  como escribió Javier).
+
+### Baby Tizno — 10-sep, noche: términos de ElevenLabs y opt-out de entrenamiento
+- Leídos los términos oficiales (`BABY-TIZNO-ELEVENLABS-POLITICAS.md`, con
+  citas y fechas). **Bloqueo**: la Prohibited Use Policy (17-ago-2026) prohíbe
+  «bundled solutions that target anyone under the age of 13» y la Privacy
+  Policy prohíbe transmitirles voz de menores de 18 → Baby Tizno necesita
+  autorización escrita de ElevenLabs; mientras tanto se prueba SOLO con
+  adultos. Ruben escribe a ElevenLabs cuando le conteste el director de
+  Grants. Los ElevenAgents Terms §3.B obligan a avisar al usuario final de que
+  habla con una IA y de que se graba/comparte → la frase de IA vuelve al
+  primer saludo (Ruben ok).
+- **Opt-out de entrenamiento ACTIVADO** en la cuenta de Ruben (avatar → Terms
+  and privacy → Data use → «Improve the models for everyone» OFF; toast de
+  confirmación). Por defecto ElevenLabs entrena con el contenido de los planes
+  self-serve, incluidas conversaciones de agentes; el opt-out no es
+  retroactivo. Zero Retention y residencia EU: solo Enterprise.
+- Voz «Gork»: clon profesional de otro usuario en la Voice Library, licencia
+  comercial de plan de pago, preaviso de retirada de 2 años. Vale para prueba
+  y piloto; para lo público, voz propia.
+- Documento Maestro de Javier: guardado (`BABY-TIZNO-MAESTRO-JAVIER.md`);
+  decisiones D1–D18 en BABY-TIZNO.md, ya respondidas por Ruben: claim «Dale
+  voz a su imaginación», login serio + PIN más adelante, memoria preguntada al
+  configurar, SÍ historial borrable, web → web instalable → wrapper, aviso de
+  IA al adulto Y en el saludo, Core Soulware, Ruben es el jefe de proyecto de
+  todo lo de Tizno.
+- Siguiente: prompt en castellano (tres registros, palabras de parada, frase
+  de IA) y página standalone (puerta del adulto con multiplicación, ajustes,
+  Recuerdos e historial en el aparato, filtro de datos sensibles). Pruebas con
+  adultos.
+
+### Baby Tizno — 10-sep, noche: prompt v0.1 en el agente
+- `BABY-TIZNO-PROMPT.md` (17.601 caracteres) pegado ENTERO en el system
+  prompt de `agent_3601…` (Main) y publicado («Rewrite Tizno character prompt
+  and logic», toast «Main updated»). Verificación: hash djb2 del texto
+  normalizado igual en el editor y en el archivo (len 17584, hash 531855973).
+- Cómo se pegó (la extensión no puede pegar el portapapeles del sistema con
+  cmd+v, y `navigator.clipboard.readText()` cuelga la pestaña esperando un
+  permiso): JS en la página → `DataTransfer` + `ClipboardEvent('paste')`
+  sobre `.ProseMirror`. OJO: `document.execCommand('selectAll')` NO selecciona
+  para ProseMirror (el primer pegado se AÑADIÓ encima del prompt viejo);
+  seleccionar con `Range.selectNodeContents(pm)` + `getSelection().addRange`
+  y volver a pegar sí reemplaza todo.
+- CORRECCIÓN: la voz del agente (y de producción) es «Parasyte - Dweller in
+  the Deep-Dark» (English · British · +13 · Characters · preaviso 2 años ·
+  recargo 0,20 $/1.000 créditos), no «Gork». La conclusión de licencia no
+  cambia (voz de biblioteca de otro usuario, comercial en plan de pago,
+  preaviso máximo), pero la memoria estaba desactualizada.
+- Faltan en el agente: tools de cliente `anotar(hecho)`, `rebobinar()`,
+  `cerrar_capitulo(resumen)`; KB con el lore de Javier, oráculos y baldosas
+  del Reino; saludos por franja los compone la página (`{{saludo}}`).
+- Siguiente: la página standalone.
+
+### Baby Tizno — 10-sep, mediodía: LA PRUEBA LIVE (Ruben: «sigue hasta que tengamos una prueba live»)
+- **URL de prueba: https://soulware.live/baby-tizno/** (sin enlazar, con
+  `noindex`, fuera del sitemap). Tablet, móvil y escritorio con la misma
+  página. Solo con ADULTOS hasta el permiso escrito de ElevenLabs.
+- **Cómo está hecha**: `scripts/generate-baby-tizno.js` (postbuild) genera
+  `dist/baby-tizno/index.html` A PARTIR de `public/tizno-ai.html` (misma
+  criatura, una sola fuente): cambia la puerta del head (solo /baby-tizno y
+  ?demo=1), inyecta `src/baby-tizno/baby.css` (piel de día: negro acogedor,
+  luz de vela cálida, botón grande) y `src/baby-tizno/baby-ui.html` (capas de
+  la zona de mayores), parchea el rig (sin sustos: `scareSfx` y `sfxPlay`
+  solo pop/ronroneo) y sustituye el módulo del SDK por
+  `src/baby-tizno/baby.js`. Cada ancla del rig se comprueba: si el rig
+  cambia, el build falla en voz alta. El resultado se minifica como el rig.
+- **Flujo**: puerta del adulto (la primera vez, texto de transparencia +
+  casilla; siempre, una multiplicación 3–9 × 3–9) → Inicio (resumen del
+  último capítulo, estado, «Dáselo al peque» / «Ajustes») → Ajustes (franja
+  5-7/8-10/11-12, nombre del héroe opcional, memoria on/off, «cosas que no
+  entran en el cuento», Recuerdos con borrado por elemento, Historial por
+  capítulo con resumen y transcripción y borrado, «Empezar historia nueva»
+  = el Reino pasa al archivo, «Borrar todo») → pantalla del niño (Tizno +
+  botón grande «Hablar con Tizno»/«Parar», rincón «Mayores» arriba a la
+  derecha) → fin de capítulo («Fin del capítulo» si el agente llamó a
+  cerrar_capitulo; «Paramos aquí» si se interrumpió) → «Soy mayor» → puerta.
+- **Estado en el aparato** (`localStorage.bt_v1`): puerta, ajustes, reino
+  {recuerdos[], capitulos[{n, inicio, fin, lineas[], resumen, cerrado,
+  conversationId}]}, archivo[]. Tope diario `bt_daily` 40 min. Sesión 11 min
+  (el agente corta a 10). A los 75 s del final se le susurra al agente que
+  cierre con calma (sendContextualUpdate).
+- **Filtro de datos sensibles** (`limpiar`): correos, teléfonos, «Colegio X»,
+  direcciones con número (y piso), «mi apellido/dirección/teléfono…». Se
+  aplica a lo que dice el niño y a lo que anota el agente; nunca a los
+  textos del cuento de Tizno. Probado: «la calle de la aldea» y «la escuela
+  de la aldea» NO se tocan.
+- **Agente `agent_3601…` (Main, publicado 3 veces hoy)**: prompt v0.1 ·
+  tools de cliente `anotar(hecho)`, `rebobinar()`, `cerrar_capitulo(resumen)`
+  (todas sin esperar respuesta) · KB con dos textos («El Reino de la Primera
+  Llama», canon de Javier tal cual; «Oráculos») con **RAG desactivado** (la
+  KB es pequeña y va entera al prompt) · first message `{{saludo}}` que
+  compone la página por franja y modo (con la frase de IA) · variables
+  dinámicas heroe, franja, modo, capitulo, recuerdos, vetados, saludo.
+- **Función `netlify/functions/baby-borrar.mjs`**: borra la conversación en
+  ElevenLabs cuando el adulto borra un capítulo. Necesita
+  `ELEVENLABS_API_KEY` en Netlify (Javier); sin ella responde
+  `not_configured` y el borrado local ya está hecho.
+- **Trucos del panel aprendidos hoy**: los menús de «Add tool» y «Add
+  document» son Radix (abrir con clic por coordenadas, no con JS); las
+  herramientas se pegan en «Edit as JSON» (CodeMirror: seleccionar con
+  Range + ClipboardEvent('paste')); los parámetros necesitan
+  `dynamic_variable: ''` y `constant_value: ''`; el texto de la KB se mete
+  con `execCommand('insertText')` en el textarea del diálogo «Create Text».
+- **Probado**: puerta, inicio, ajustes, Recuerdos e historial (con datos
+  sembrados), pantalla del niño, error de micrófono, rincón de mayores. NO
+  probado: la conversación de voz de principio a fin (la vista previa no
+  tiene micrófono). Es la prueba que hace Ruben.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.

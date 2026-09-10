@@ -1,0 +1,86 @@
+    <!-- ══════ BABY TIZNO — la zona de mayores (Umbral de Día) ══════ -->
+    <button id="bt-mayores" type="button" hidden>Mayores</button>
+
+    <div id="bt-puerta" class="bt-capa" role="dialog" aria-labelledby="bt-puerta-t">
+      <div class="bt-tarjeta">
+        <p class="bt-eyebrow">Baby Tizno · zona de mayores</p>
+        <h1 id="bt-puerta-t">Antes de empezar</h1>
+        <div id="bt-puerta-primera">
+          <p>Tizno es una <strong>inteligencia artificial</strong>: una voz generada por ordenador que improvisa cuentos con tu peque. No es una persona, y también se lo dice al niño. Puede equivocarse.</p>
+          <p>Cuando el niño habla, su voz viaja a ElevenLabs para convertirse en texto y para que Tizno responda. ElevenLabs no guarda el audio. Guarda la transcripción treinta días y luego la borra.</p>
+          <p>En este aparato se guardan solo <strong>los Recuerdos del cuento</strong> (nombres, lugares, lo que pasa) y el historial de cada capítulo. Tú los ves y los borras uno a uno en Ajustes. No hay cuentas, ni cookies, ni anuncios.</p>
+          <label class="bt-puerta-check"><input type="checkbox" id="bt-acepto"> <span>Soy mayor de edad, soy responsable del niño y he leído esto.</span></label>
+        </div>
+        <p>Para entrar en la zona de mayores, resuelve:</p>
+        <div class="bt-mult" id="bt-mult">7 × 8</div>
+        <input class="bt-campo" id="bt-resp" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="Escribe el resultado" aria-label="Resultado de la multiplicación">
+        <div class="bt-error" id="bt-puerta-err" aria-live="polite"></div>
+        <div class="bt-fila"><button class="bt-btn" id="bt-entrar" type="button">Entrar</button></div>
+      </div>
+    </div>
+
+    <div id="bt-inicio" class="bt-capa" hidden>
+      <div class="bt-tarjeta">
+        <p class="bt-eyebrow">Baby Tizno · Umbral de Día</p>
+        <h1>Hola, mayor</h1>
+        <div id="bt-ultimo" class="bt-ultimo" hidden></div>
+        <p id="bt-inicio-estado"></p>
+        <div class="bt-fila">
+          <button class="bt-btn" id="bt-dar" type="button">Dáselo al peque</button>
+          <button class="bt-btn sec" id="bt-ir-ajustes" type="button">Ajustes</button>
+        </div>
+        <p class="bt-nota" style="margin-top:14px">Un capítulo dura unos diez minutos. Al terminar, Tizno le pedirá al niño que te lo devuelva y aquí verás lo que ha pasado.</p>
+      </div>
+    </div>
+
+    <div id="bt-ajustes" class="bt-capa" hidden>
+      <div class="bt-tarjeta">
+        <p class="bt-eyebrow">Baby Tizno · Ajustes</p>
+        <h1>Ajustes</h1>
+
+        <label class="bt-etiqueta">Edad del niño</label>
+        <div class="bt-segmento" id="bt-franja" role="group" aria-label="Franja de edad">
+          <button type="button" data-v="5-7">5 a 7<small>frases cortas, dos puertas</small></button>
+          <button type="button" data-v="8-10">8 a 10<small>misterio suave</small></button>
+          <button type="button" data-v="11-12">11 a 12<small>dilemas con precio</small></button>
+        </div>
+
+        <label class="bt-etiqueta" for="bt-heroe">Nombre del héroe (opcional)</label>
+        <input class="bt-campo" id="bt-heroe" type="text" maxlength="20" autocomplete="off" placeholder="Nombre de pila o apodo">
+        <p class="bt-nota">Tizno lo usará tal cual, aunque el micrófono entienda otra cosa. Si lo dejas vacío, se lo pregunta al niño.</p>
+
+        <div class="bt-interruptor">
+          <span>Recordar el Reino entre sesiones<small>Si está apagado, cada sesión empieza de cero y no se guarda nada al cerrar.</small></span>
+          <button type="button" id="bt-memoria" role="switch" aria-checked="true" aria-label="Recordar entre sesiones"></button>
+        </div>
+
+        <label class="bt-etiqueta" for="bt-vetados">Cosas que no entran en el cuento</label>
+        <textarea class="bt-campo" id="bt-vetados" placeholder="Por ejemplo: perros, tormentas, hospitales"></textarea>
+        <p class="bt-nota">Temas o palabras que tu familia no quiere en el cuento. Tizno los desvía sin explicar por qué.</p>
+
+        <h2>Recuerdos</h2>
+        <p class="bt-nota">Todo lo que Tizno sabe del cuento. Cada frase con las palabras del niño. Borra la que quieras.</p>
+        <ul class="bt-lista" id="bt-recuerdos"></ul>
+
+        <h2>Historial</h2>
+        <p class="bt-nota">Los capítulos, con su resumen y lo que se dijo. Borrar un capítulo lo borra también de los servidores de ElevenLabs cuando la conexión lo permita.</p>
+        <div id="bt-historial"></div>
+
+        <div class="bt-fila" style="margin-top:18px">
+          <button class="bt-btn sec" id="bt-nueva" type="button">Empezar una historia nueva</button>
+          <button class="bt-btn peligro" id="bt-borrar-todo" type="button">Borrar todo</button>
+        </div>
+        <div class="bt-fila" style="margin-top:10px">
+          <button class="bt-btn" id="bt-volver" type="button">Volver</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="bt-fin" class="bt-capa" hidden>
+      <div class="bt-tarjeta">
+        <p class="bt-eyebrow">Baby Tizno</p>
+        <h1 id="bt-fin-t">Fin del capítulo</h1>
+        <p id="bt-fin-p">El cuento se ha guardado con un lazo. Ahora dáselo a tu mayor.</p>
+        <div class="bt-fila"><button class="bt-btn" id="bt-fin-mayor" type="button">Soy mayor</button></div>
+      </div>
+    </div>
