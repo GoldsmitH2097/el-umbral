@@ -698,6 +698,54 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   cortometrajes y juegos, El Umbral como web no gana por «tecnología»; gana
   o no por narrativa, sonido y originalidad, que es justo lo que juzgan.
 
+### 10-sep, noche — Tizno vende la casa; Pulso en inglés; tiendas por ubicación; Astra fuera
+- **Prompt de Tizno v2 publicado (Main)**: bloque «LA CASA Y SUS OBRAS —
+  CUANDO TE PREGUNTAN QUÉ ES ESTO» en PIEZAS (¿quién eres? / ¿qué es
+  Soulware? / ¿qué haces aquí? / ¿qué obras hay y dónde? / ¿qué viene? /
+  despídete), dos a cuatro frases cada una, para que en el vídeo del Demo
+  Day se le pueda preguntar por partes (Ruben: «no un bloque de 60 s»).
+  Tono: artesanos de experiencias, dos amigos (novelista y diseñador), «se
+  cuentan historias y se venden experiencias»; sin precios ni proveedores.
+  La regla «No vendes libros» pasa a «No eres un vendedor… respondes con las
+  piezas». Regla de idioma sin Astra (El Último Pago en su lugar).
+  Copia local: scratchpad tizno-prompt-v2.txt (18,5k). Pendiente: quitar
+  «Totalis Libertas: antología en preparación» de la PIEZA 4 (Ruben la
+  retiró del catálogo el 8-sep).
+- **Trucos del editor ProseMirror del panel**: la pega con ClipboardEvent
+  AÑADE (no sustituye) aunque haya selección; para vaciar hay que
+  `Range.selectNodeContents` + `document.execCommand('delete')` (cmd+a de
+  la extensión no selecciona) y luego pegar. Publish → «Review Changes»
+  (diff) → Publish; toast «Main updated».
+- **KB de Tizno**: «Astra — Deuda del Pacto» ya no existe (Ruben:
+  «eliminate it completely»). Editados en el panel (Options → View details
+  → Edit → textarea → Save): «Prompt 4» (ahora El Último Pago, tragedia
+  lírica, en preparación; «si preguntan por Astra, no existe») y «Las Obras
+  del Umbral» (sección El Último Pago; Anatomía ya no es «gratuita»; la
+  sección «dónde conseguirlas» con idiomas y tiendas). El nombre del doc
+  Prompt 4 sigue diciendo «Astra» (el panel no renombra; habría que crear
+  uno nuevo y desvincular el viejo). Glosario: pendiente subir la versión
+  nueva (sin Astra, con El Último Pago) — ver siguiente punto si quedó hecho.
+- **GLOSARIO.md**: sin Astra; El Último Pago añadido a la tabla de obras.
+- **Pulso en inglés («Pulse of the Core — Eternal Core», Kindle B0G6Y3PH6R)**:
+  opción PROPIA del cofre, visible igual en la web ES y EN (Ruben: cambiar
+  el enlace por idioma es «bad practice»). Tercera fila del cofre («Edición
+  en inglés · [ebook] Amazon US/UK»), reservada en todos los cofres para
+  que los marcos sigan iguales.
+- **Tiendas por UBICACIÓN, no por idioma** (`regionDelVisitante()` por zona
+  horaria; `?region=mx|uk|us|es…` fuerza una región): España → Casa del
+  Libro, El Corte Inglés, Fnac, Amazon.es; fuera → el Amazon del país (uk,
+  us, de, fr, it, ca, mx; resto → amazon.com) para papel y Kindle; LatAm →
+  además Buscalibre (mx, co, cl, ar, pe, ec; resto → buscalibre.com, que
+  redirige por geolocalización) con el ISBN 979-13-99282-70-2 (otra tirada);
+  edición inglesa solo Amazon US/UK. Las librerías españolas anunciadas de
+  Filamentos y El Último Pago solo en España. Verificado en producción con
+  ?region=mx y ?region=es. Buscalibre va como wordmark (falta SVG) y sus
+  fichas de LatAm tienen la portada rota (placeholder «no_image»; en .es
+  sale bien) — avisar a Buscalibre/Javier. Amazon MX/CA/DE/FR/IT: las
+  fichas existen (200) pero no se ha comprobado stock.
+- Prerender: cada tienda regional listada una vez con su dominio.
+- Bug corregido de paso: `.map(retailerLink)` pasaba el índice como nombre.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
