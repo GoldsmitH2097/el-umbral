@@ -1277,6 +1277,18 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   acaba el tiempo; los otros avisos entre corchetes (toques) no son para
   irse; y «si te despides, te vas: después no dices nada más».
 
+### 11-sep, madrugada (27) — fondo vivo: dos capas de manchas girando
+- Ruben: «¿rotar dos imágenes borrosas en direcciones opuestas con
+  multiply/transparencia para un fondo procedural barato? el glow más
+  estilizado». Hecho con degradados radiales, no imágenes: `.luz-giro` ×2
+  dentro de `#luz-sala` (heredan el foco perezoso y la opacidad del pop),
+  110vh cuadradas centradas en el glow, 5 y 4 manchas ámbar, `mix-blend-
+  mode: screen` (sobre negro, multiply no haría nada), giro 150 s y 210 s
+  en sentidos opuestos. La primera capa del fondo es una caída a negro que
+  bajo screen hace de máscara gratis (sin mask-image, que costaba en capas
+  animadas). Texturas de capa: 110vh y no 150vmax por memoria GPU a retina.
+  Apagado en nivel bajo, embed y reduced-motion.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
