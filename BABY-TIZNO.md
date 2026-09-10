@@ -45,6 +45,9 @@ una herramienta para que el adulto se lleve un objeto (el libro).
 | Voz | La misma para todo el mundo y la misma que ahora (Gork), con entonación más suave, más afable, más cute. No hay voz aparte para 5–7 |
 | Aparatos | Tablet y móvil con la misma página (el rig actual ya es responsive) |
 | Transparencia | Términos y condiciones totalmente transparentes: la voz y los datos se guardan solo para crear historias, y se dice así. **Cajón de «Recuerdos»**: el padre ve todo lo que Tizno sabe del niño y puede borrar cada elemento por separado (además de borrar todo) |
+| **Memoria entre sesiones (10-sep)** | SÍ. Tizno recuerda el Reino del niño (nombre del héroe, amigos, criaturas, lugares, hechos) entre sesiones. Al empezar: seguir en el mismo Reino o empezar una historia nueva. Todo vive en el cajón de Recuerdos, borrable por elemento |
+| **Umbral de Día (10-sep)** | Es el entorno entero de Baby Tizno, no una pantalla. La app arranca con una aprobación del adulto (puerta simple tipo YouTube Kids: una multiplicación; la primera vez, además, el texto de transparencia); después, dos caminos: Ajustes o «dáselo al peque». Ajustes = modo adulto: edad del niño (franja), nombre opcional (para que Tizno no coja el nombre que no es, aunque se lo pregunte al niño), privacidad (ver y borrar Recuerdos, borrar todo), «cosas que no entran en el cuento» (palabras o temas vetados por la familia) |
+| Latidos | Nombres de Javier (Entrada · Señal · Elección · Viaje · Giro amable · Decisión · Cierre), con la espina de Adams por debajo. Ruben: «los que creas mejores» |
 | Libro impreso, imágenes, app, pagos | Después de la prueba |
 | Legal | Artefacto «El Mapa Legal de Baby Tizno»: LOPDGDD (14 → 16 años en trámite), GDPR art. 8 y 35 (DPIA antes de abrir al público), AI Act art. 5 y 50, Apple Kids / Google Families, COPPA si hay EE. UU. Piloto con tres familias antes de nada público |
 
