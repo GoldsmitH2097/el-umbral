@@ -74,6 +74,8 @@ function textos() {
   $('pago-eyebrow').textContent = t('pago.eyebrow');
   $('pago-o').textContent = t('pago.o-con');
   $('pago-nota').textContent = t('pago.nota');
+  $('pago-correo-nota').textContent = t('pago.correo-nota');
+  $('pago-marcas').setAttribute('aria-label', t('pago.marcas-aria'));
   $('pago-cerrar').setAttribute('aria-label', t('aviso.close-aria'));
   $('pago-confirmar').textContent = t('pago.pagar');
 }
@@ -193,7 +195,7 @@ export async function abrirPago(obraId) {
     /* Acordeón con la tarjeta ya abierta: para 2,49 € nadie quiere un clic
        más. Radios visibles y separación entre métodos. */
     const pago = checkout.createPaymentElement({
-      layout: { type: 'accordion', defaultCollapsed: false, radios: true, spacedAccordionItems: true },
+      layout: { type: 'accordion', defaultCollapsed: false, radios: 'always', spacedAccordionItems: true },
     });
     pago.mount('#pago-elemento');
 
