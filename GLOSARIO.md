@@ -77,6 +77,9 @@ Propuesta
 el Farero del Vacío (Anatomía)
 the Lighthouse Keeper of the Void
 Propuesta
+el Testigo de la Caída (El Último Pago)
+the Witness of the Fall
+Propuesta (10-sep-2026; sustituye al Escriba del Pacto de la obra retirada)
 el Archivista de la Memoria (Totalis Libertas)
 the Archivist of Memory
 Propuesta
