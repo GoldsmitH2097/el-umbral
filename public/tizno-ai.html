@@ -794,25 +794,30 @@
    muelle (miedo salta; tristeza se desliza). El tamaño del ojo (platos, furia
    entornada) sigue mandándolo t_EyeL/t_EyeR, como siempre. */
         const OJOS_BASE = { top: 1, bot: 1, tIn: 0, tOut: 0, bY: 0, bR: 0, bO: 0 };
+        /* `dur` = milisegundos del TWEEN hasta la pose (Ruben, 10-sep: «tween,
+           ease in/out y un poco de bounce»). El tween usa easeInOutBack suave:
+           arranca despacio, acelera, se pasa un pelín y asienta. */
         const OJOS_POSES = {
-            neutro:   { k: 0.14, p: {} },
-            miedo:    { k: 0.35, p: { top: 1.05, bot: 1.05, bY: -9, bO: 0.9 } },
-            susurro:  { k: 0.10, p: { top: 0, bot: 1, tIn: -5, tOut: -5 } },              // párpado de arriba PLANO, abajo redondo (Ruben)
-            tristeza: { k: 0.07, p: { top: 0.72, bot: 0.95, tIn: -3, tOut: 7, bY: -3, bR: -14, bO: 0.85 } },
-            risa:     { k: 0.30, p: { top: 1, bot: -0.55 } },                             // media luna de dos circunferencias (Ruben)
-            energia:  { k: 0.30, p: { top: 1.05, bot: 1.05 } },
-            duda:     { k: 0.18, p: {}, L: { top: 1.05, bot: 1.05, bY: -9, bO: 1 }, R: { top: 0.42, bot: 0.74, tIn: 4, tOut: -2, bY: 3, bR: 8, bO: 1 } },
-            furia:    { k: 0.28, p: { top: 0, bot: 1, tIn: 10, tOut: -7, bY: 1, bR: 22, bO: 1 } },   // arriba RECTO en ángulo, abajo redondo (Ruben)
-            squint:   { k: 0.20, p: { top: 0.38, bot: 0.62, tIn: 3, tOut: -1 } },
-            wince:    { k: 0.35, p: { top: 0.2, bot: -0.15, tIn: 2, tOut: 2, bY: 2, bR: 14, bO: 0.8 } },
-            escucha:  { k: 0.22, p: {}, L: { top: 1.05, bot: 1.02, bY: -9, bR: -6, bO: 1 }, R: { top: 0.7, bot: 0.9, tIn: 2, bY: 4, bR: 10, bO: 1 } },
-            orgullo:  { k: 0.40, p: { top: 0.78, bot: 0.9, bY: -8, bO: 1 } },
+            neutro:   { dur: 380, p: {} },
+            miedo:    { dur: 220, p: { top: 1.05, bot: 1.05, bY: -9, bO: 0.9 } },
+            susurro:  { dur: 520, p: { top: 0, bot: 1, tIn: -5, tOut: -5 } },              // párpado de arriba PLANO, abajo redondo (Ruben)
+            tristeza: { dur: 640, p: { top: 0.72, bot: 0.95, tIn: -3, tOut: 7, bY: -3, bR: -14, bO: 0.85 } },
+            risa:     { dur: 260, p: { top: 1, bot: -0.55 } },                             // media luna de dos circunferencias (Ruben)
+            energia:  { dur: 240, p: { top: 1.05, bot: 1.05 } },
+            duda:     { dur: 360, p: {}, L: { top: 1.05, bot: 1.05, bY: -9, bO: 1 }, R: { top: 0.42, bot: 0.74, tIn: 4, tOut: -2, bY: 3, bR: 8, bO: 1 } },
+            furia:    { dur: 260, p: { top: 0, bot: 1, tIn: 10, tOut: -7, bY: 1, bR: 22, bO: 1 } },   // arriba RECTO en ángulo, abajo redondo (Ruben)
+            squint:   { dur: 340, p: { top: 0.38, bot: 0.62, tIn: 3, tOut: -1 } },
+            wince:    { dur: 200, p: { top: 0.2, bot: -0.15, tIn: 2, tOut: 2, bY: 2, bR: 14, bO: 0.8 } },
+            escucha:  { dur: 380, p: {}, L: { top: 1.05, bot: 1.02, bY: -9, bR: -6, bO: 1 }, R: { top: 0.7, bot: 0.9, tIn: 2, bY: 4, bR: 10, bO: 1 } },
+            orgullo:  { dur: 200, p: { top: 0.78, bot: 0.9, bY: -8, bO: 1 } },
         };
+        // easeInOutBack con rebote contenido (c1 0,9 en vez del 1,7 clásico).
+        function easeBack(x) { const c1 = 0.9, c2 = c1 * 1.525; return x < 0.5 ? (Math.pow(2 * x, 2) * ((c2 + 1) * 2 * x - c2)) / 2 : (Math.pow(2 * x - 2, 2) * ((c2 + 1) * (x * 2 - 2) + c2) + 2) / 2; }
         // La intención del rig (clases) y el humor del parlamento (MOOD_LEX) → pose.
         const OJOS_CLASE = { angry: 'furia', sad: 'tristeza', happy: 'risa', squint: 'squint', wince: 'wince', shock: 'miedo' };
         const OJOS_MOOD  = { miedo: 'miedo', enfado: 'furia', tristeza: 'tristeza', energia: 'energia', duda: 'duda', susurro: 'susurro' };
-        const ojosEstado = { L: { c: { ...OJOS_BASE }, v: {} }, R: { c: { ...OJOS_BASE }, v: {} } };
-        for (const k in OJOS_BASE) { ojosEstado.L.v[k] = 0; ojosEstado.R.v[k] = 0; }
+        // Por ojo: valor actual (c), y el tween en curso (de dónde, adónde, cuándo, cuánto, qué pose).
+        const ojosEstado = { L: { c: { ...OJOS_BASE }, from: null, to: null, t0: 0, dur: 1, pose: null }, R: { c: { ...OJOS_BASE }, from: null, to: null, t0: 0, dur: 1, pose: null } };
         let ojosMood = null;          // humor del tramo que suena (solo al hablar)
         let ojosPoseForzada = null;   // __tiznoOjos.pose('furia') para pruebas; null = libre
         /* Gestos: secuencias de poses con tiempos (ms). La doble ceja de
@@ -848,11 +853,19 @@
         function ojosPaso(offX, offY) {
             for (const lado of ['L', 'R']) {
                 const el = lado === 'L' ? eyeLeft : eyeRight;
-                const P = OJOS_POSES[ojosPoseDe(el)] || OJOS_POSES.neutro;
-                const obj = { ...OJOS_BASE, ...(P.p || {}), ...(P[lado] || {}) };
+                const nombre = ojosPoseDe(el);
+                const P = OJOS_POSES[nombre] || OJOS_POSES.neutro;
                 const o = ojosEstado[lado];
-                // Rigidez rebajada y más amortiguación: siempre un morph continuo (Ruben, 10-sep).
-                for (const k in OJOS_BASE) { const a = (obj[k] - o.c[k]) * P.k * 0.55; o.v[k] = (o.v[k] + a) * 0.7; o.c[k] += o.v[k]; }
+                const ahora = performance.now();
+                if (o.pose !== nombre) {           // nueva pose: tween desde donde esté
+                    o.pose = nombre; o.from = { ...o.c }; o.to = { ...OJOS_BASE, ...(P.p || {}), ...(P[lado] || {}) };
+                    o.t0 = ahora; o.dur = P.dur || 360;
+                }
+                if (o.from) {
+                    const u = Math.min(1, (ahora - o.t0) / o.dur), e = easeBack(u);
+                    for (const k in OJOS_BASE) o.c[k] = o.from[k] + (o.to[k] - o.from[k]) * e;
+                    if (u >= 1) o.from = null;
+                }
                 const p = o.c;
                 el.style.clipPath = ojosRecorte(lado, p);
                 // La ceja vive en la capa de la cabeza: bO ya no es opacidad sino
@@ -872,7 +885,7 @@
         let c_NeckScaleX = 1, c_NeckScaleY = 1;
         let c_EarL = 0, c_EarR = 0;
         let c_RigRot = 0;
-        let c_EyeL = 1, c_EyeR = 1;
+        let c_EyeL = 1, c_EyeR = 1, vEyeL = 0, vEyeR = 0;
 
         let mouseDistance = 1000, mouseNormX = 0, mouseNormY = 0;
         let distA = 1000, distB = 1000;
@@ -2043,8 +2056,10 @@
             c_EarL += (t_EarL - c_EarL) * ease;
             c_EarR += (t_EarR - c_EarR) * ease;
             c_RigRot += (t_RigRot - c_RigRot) * ease;
-            c_EyeL += (t_EyeL - c_EyeL) * ease;
-            c_EyeR += (t_EyeR - c_EyeR) * ease;
+            // Tamaño del ojo con un poco de rebote (Ruben, 10-sep): muelle
+            // infraamortiguado en vez del ease exponencial.
+            vEyeL = (vEyeL + (t_EyeL - c_EyeL) * 0.16) * 0.74; c_EyeL += vEyeL;
+            vEyeR = (vEyeR + (t_EyeR - c_EyeR) * 0.16) * 0.74; c_EyeR += vEyeR;
 
             if (time - ultimoDibujo >= 31) {
             ultimoDibujo = time;
@@ -2103,7 +2118,7 @@
             eyeLeftWrapper.style.setProperty('--eye-x', `${pupilMoveX}px`);
             eyeLeftWrapper.style.setProperty('--eye-y', `${pupilMoveY}px`);
             eyeLeftWrapper.style.setProperty('--eye-sx', c_EyeL + add_EyeL);
-            for (const l of ['L', 'R']) parpadeoNivel[l] += (parpadeoObj[l] - parpadeoNivel[l]) * (parpadeoObj[l] ? 0.5 : 0.38);
+            { const ahora = performance.now(); parpadeoNivel.L = parpadeoNivelDe('L', ahora); parpadeoNivel.R = parpadeoNivelDe('R', ahora); }
             const parpL = 1 - parpadeoNivel.L * 0.98, parpR = 1 - parpadeoNivel.R * 0.98;
             eyeLeftWrapper.style.setProperty('--eye-sy', (c_EyeL + add_EyeL) * parpL);
 
@@ -2165,21 +2180,35 @@
         }
         // el bucle arranca al final del script, cuando el motor de tinta ya existe
 
-        /* Parpadeo SUAVE (Ruben, 10-sep: «un morph suave, no un salto»): ya no
-           es una clase que cierra el ojo de golpe, sino un objetivo que el
-           fotograma persigue (parpadeoNivel) — cierra en ~4 fotogramas y
-           abre en otros ~5. */
-        const parpadeoObj = { L: 0, R: 0 }, parpadeoNivel = { L: 0, R: 0 };
-        function blinkEye(wrapperElement) {
-            const lado = wrapperElement === eyeLeftWrapper ? 'L' : 'R';
-            parpadeoObj[lado] = 1;
-            setTimeout(() => {
-                parpadeoObj[lado] = 0;
-                setTimeout(() => blinkEye(wrapperElement), Math.random() * 4000 + 1000);
-            }, 110);
+        /* PARPADEO COREOGRAFIADO (Ruben, 10-sep): los dos ojos parpadean casi a
+           la vez pero desincronizados (el segundo llega 40–110 ms tarde); a
+           veces doble parpadeo; de vez en cuando un ojo solo. Cada parpadeo es
+           un tween: cierra con ease-in (~70 ms) y abre con un rebote mínimo
+           (~130 ms) — el ojo se abre un pelín de más y asienta. */
+        const parpadeoNivel = { L: 0, R: 0 }, parpadeoT0 = { L: -1, R: -1 };
+        const PARP_CIERRA = 70, PARP_ABRE = 130;
+        function parpadeo(lado, retraso) { setTimeout(() => { parpadeoT0[lado] = performance.now(); }, retraso); }
+        function parpadeoNivelDe(lado, ahora) {
+            const t = ahora - parpadeoT0[lado];
+            if (t < 0 || t > PARP_CIERRA + PARP_ABRE) return 0;
+            if (t < PARP_CIERRA) { const u = t / PARP_CIERRA; return u * u; }                 // ease-in al cerrar
+            const u = (t - PARP_CIERRA) / PARP_ABRE;                                         // ease-out con rebote al abrir
+            const c1 = 1.2, c3 = c1 + 1; const e = 1 + c3 * Math.pow(u - 1, 3) + c1 * Math.pow(u - 1, 2);
+            return 1 - e;                                                                    // e pasa de 1 un poco → nivel negativo = ojo un pelín más abierto
         }
-        setTimeout(() => blinkEye(eyeLeftWrapper), 800);
-        setTimeout(() => blinkEye(eyeRightWrapper), 1500);
+        function programarParpadeo() {
+            const r = Math.random();
+            if (r < 0.18) {                                   // un ojo solo
+                parpadeo(Math.random() < 0.5 ? 'L' : 'R', 0);
+            } else {                                          // pareja desincronizada
+                const primero = Math.random() < 0.5 ? 'L' : 'R', segundo = primero === 'L' ? 'R' : 'L';
+                const desfase = 40 + Math.random() * 70;
+                parpadeo(primero, 0); parpadeo(segundo, desfase);
+                if (r > 0.72) { parpadeo(primero, 260); parpadeo(segundo, 260 + desfase); }   // doble
+            }
+            setTimeout(programarParpadeo, 1600 + Math.random() * 3600);
+        }
+        setTimeout(programarParpadeo, 900);
 
         /* ══════════════ MOTOR DE TINTA EN CANVAS ══════════════
            Antes cada gota, letra y grumo era un DIV con su propia animación
