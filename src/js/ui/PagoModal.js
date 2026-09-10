@@ -232,7 +232,9 @@ export async function abrirPago(obraId) {
     pasos(1);
     modo('pintando');
     let destapado = false;
-    const destapar = () => { if (!destapado && vivo?.express === express) { destapado = true; modo('formulario'); } };
+    /* `ready` llega un instante antes de que los botones se vean: 400 ms de
+       cortesía para no destapar un lecho vacío. */
+    const destapar = () => { if (!destapado && vivo?.express === express) { destapado = true; setTimeout(() => { if (vivo?.express === express) modo('formulario'); }, 400); } };
     const pintarExpress = (metodos) => {
       const hay = !!metodos && Object.values(metodos).some(Boolean);
       $('pago-express').classList.toggle('hay', hay);
