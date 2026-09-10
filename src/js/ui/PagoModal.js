@@ -178,7 +178,11 @@ export async function abrirPago(obraId) {
     const express = checkout.createExpressCheckoutElement({
       buttonHeight: 44,
       buttonTheme: { applePay: 'white-outline', googlePay: 'white', paypal: 'black' },
-      paymentMethods: { link: 'never' },
+      /* Apple Pay fuera de Safari (Chrome, Edge, Firefox de escritorio) y
+         Google Pay fuera de Chrome solo salen con 'always': Stripe muestra el
+         botón y Apple/Google resuelven el pago (Apple, con un código que se
+         escanea con el iPhone). */
+      paymentMethods: { applePay: 'always', googlePay: 'always', link: 'never' },
       paymentMethodOrder: ['applePay', 'googlePay', 'paypal'],
       layout: { maxColumns: 1, maxRows: 3, overflow: 'never' },
     });
@@ -186,11 +190,13 @@ export async function abrirPago(obraId) {
        Stripe anuncia qué botones hay en el evento `ready`
        (availablePaymentMethods); Apple Pay solo en Safari con Wallet. */
     $('pago-express').hidden = true; $('pago-o').hidden = true;
-    express.on('ready', ({ availablePaymentMethods }) => {
-      const hay = !!availablePaymentMethods && Object.values(availablePaymentMethods).some(Boolean);
+    const pintarExpress = (metodos) => {
+      const hay = !!metodos && Object.values(metodos).some(Boolean);
       $('pago-express').hidden = !hay;
       $('pago-o').hidden = !hay;
-    });
+    };
+    express.on('ready', ({ availablePaymentMethods }) => pintarExpress(availablePaymentMethods));
+    express.on('availablepaymentmethodschange', ({ paymentMethods }) => pintarExpress(paymentMethods));
     express.on('confirm', (event) => actions.confirm({ expressCheckoutConfirmEvent: event, redirect: 'if_required' }).then(resultado));
     express.mount('#pago-express');
 
