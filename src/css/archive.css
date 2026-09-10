@@ -1116,8 +1116,9 @@ html { -webkit-tap-highlight-color: transparent; }
 .pago-marca-texto { font-family: 'Times New Roman', serif; font-size: 17px; font-weight: bold; letter-spacing: 0.5px; color: #c8922a; opacity: 0.55; line-height: 26px; transition: opacity 0.3s; }
 #pago-cargando { font-size: 13px; color: #888; letter-spacing: 1px; margin: 26px 0; }
 #pago-correo-nota { font-size: 11.5px; color: #8c8c8c; line-height: 1.6; margin: 0 0 8px; text-align: left; }
-#pago-express { margin: 0 0 14px; }
-#pago-express[hidden], #pago-o[hidden] { display: none; }
+#pago-express { margin: 0; }
+#pago-express.hay { margin: 0 0 14px; }
+#pago-o[hidden] { display: none; }
 #pago-o { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: #6b6b6b; margin: 0 0 14px; display: flex; align-items: center; gap: 12px; }
 #pago-o::before, #pago-o::after { content: ''; flex: 1; height: 1px; background: rgba(200,146,42,0.18); }
 .pago-paso { text-align: left; margin: 0 0 6px; padding: 16px 0 12px; border-top: 1px solid rgba(200,146,42,0.18); }

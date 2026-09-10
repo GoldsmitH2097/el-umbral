@@ -189,10 +189,14 @@ export async function abrirPago(obraId) {
     /* Sin cartera disponible en este navegador, ni hueco ni «o paso a paso».
        Stripe anuncia qué botones hay en el evento `ready`
        (availablePaymentMethods); Apple Pay solo en Safari con Wallet. */
-    $('pago-express').hidden = true; $('pago-o').hidden = true;
+    /* El hueco de los botones se monta VISIBLE: dentro de un display:none
+       Stripe mide 0 px y nunca llega a pintar los botones (por eso Google Pay
+       y PayPal no salían en Chrome). Sin cartera, el hueco queda vacío y sin
+       margen; el «o paso a paso» solo aparece con botones encima. */
+    $('pago-express').classList.remove('hay'); $('pago-o').hidden = true;
     const pintarExpress = (metodos) => {
       const hay = !!metodos && Object.values(metodos).some(Boolean);
-      $('pago-express').hidden = !hay;
+      $('pago-express').classList.toggle('hay', hay);
       $('pago-o').hidden = !hay;
     };
     express.on('ready', ({ availablePaymentMethods }) => pintarExpress(availablePaymentMethods));
