@@ -908,6 +908,49 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
 - No verificado visualmente: la pestaña de Chrome estaba oculta (rAF
   congelado, capturas negras). Ruben lo mira él o deja Chrome delante.
 
+### 10-sep, noche (9) — la voz no se aplana; silencios distintos; memoria anti-repetición; orejas con tween
+- Ruben: «a veces pierde la personalidad: menos Gollum y más aristócrata
+  británico»; «cuando me quedo callado cuenta siempre la misma historia»;
+  «repite su propia descripción con el mismo guion exacto».
+- **Panel de voz del agente**: v3 Conversational, modo expresivo ON;
+  estabilidad/velocidad/similitud NO son ajustables en v3. Añadidas 7
+  etiquetas sugeridas (scared, Whispers, Curious, Angrily, nervously,
+  stammering, gasps → 10/20): guían al LLM, no al TTS.
+- **Prompt Main publicado** («Enforce character consistency and prevent
+  repetitive responses», +11 −3):
+  · «EL PERSONAJE NUNCA SE APLANA» dentro de EXPRESIÓN DE LA VOZ: cada
+    respuesta ≥1 acotación + 1 tic, ráfagas de 2–3 frases, romper la
+    serenidad; en LA CASA, «claro no significa normal».
+  · Bloque nuevo «MEMORIA — NUNCA TE REPITAS»: se presenta UNA vez y solo si
+    se lo piden; las PIEZAS son contenido, no guion (hechos fijos, palabras
+    nuevas cada vez); segunda pregunta igual → respuesta distinta, más corta
+    y con queja.
+  · SILENCIOS reescrito: FUERA los dos ejemplos literales (Gemini los
+    recitaba tal cual en cada silencio: «¿sabías que en Tierra Médula las
+    fechas no son casualidad?»); menú de 5 familias (rumor de la casa /
+    «¿Sabías que…?» de UNA obra / detalle de una Voz / confesión suya /
+    pregunta rara al visitante), familia distinta a la del silencio anterior,
+    repasar lo ya dicho antes de hablar.
+  Lección: un ejemplo literal en el prompt para algo que debe VARIAR se
+  convierte en el guion único. Describir familias, no dar la frase.
+- Diagnóstico del silencio: el rig NO manda nada cuando el visitante calla
+  (solo el briefing al conectar y el aviso de despedida). El turno lo abre
+  ElevenLabs por timeout y el LLM copiaba el ejemplo. El panel no expone la
+  temperatura del LLM.
+- **Orejas con tween** (Ruben: «muy jerky»): c_EarL/R pasan de ease
+  exponencial a muelle infraamortiguado (0,14 / 0,76) y el canal aditivo
+  (tics de agudos ×34 + transient ×10) se filtra (addEarLs, 0,3) antes de
+  pintar. Desplegado en b6ce092 (Netlify «Published 22:28»). OJO al
+  verificar con curl: /tizno redirige a /tizno/ → usar `curl -sL`, sin -L el
+  grep de marcadores da 0 y parece que no se ha desplegado.
+- **Voz que se apaga en parrafadas largas: SIN DIAGNOSTICAR.** El rig no
+  toca el volumen del agente (solo lee outVol para el cuerpo). Sospechas:
+  interrupción por eco del micro (VAD) o el propio TTS v3 bajando en frases
+  largas. Hace falta la hora/ID de una conversación con el fallo para mirar
+  Conversations → historial y audio.
+- Sin verificar a ojo (pestaña de Chrome oculta): orejas, cejas en el goo,
+  tween de párpados.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
