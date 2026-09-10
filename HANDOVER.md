@@ -1326,6 +1326,25 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   la propiedad `translate` (convive con el `transform: rotate` de la
   animación CSS). El foco perezoso de `#luz-sala` (22 %) sigue como estaba.
 
+### 11-sep, madrugada (31) — capa negativa, nubes al 10–20 %, puerta de equipo, tipos de visitante
+- Ruben: «más movimiento/reacción» (×1,8), luego «desviación con el ratón
+  de 10–20 % al menos» → A ratón ×0,20/0,16, B ×−0,15/−0,12, C ×0,10/−0,10.
+- Capa C del fondo: blobs NEGATIVOS (negro con alfa 0,45–0,55 que resta luz)
+  y dos anillos finos; seguidor propio muy lento (lerp 0,009), giro 260 s.
+  Sin blend modes (no se aplicaban ahí; fue el «aura»).
+- **Puerta de equipo**: `/tizno/?equipo=1` deja `tizno_equipo=1` en ese
+  navegador y el tope diario no aplica ahí (`?equipo=0` lo quita). Puesta
+  ya en el Chrome de Ruben (y contador reseteado por tercera vez).
+- Prompt Main: «TIPOS DE VISITANTE — A OJO» (juguetón / callado / curioso
+  / escéptico / maleducado / otro idioma; detección por velocidad,
+  longitud, preguntas, risa, insultos; nunca diagnostica en voz alta) y
+  «PREGUNTAS, ACERTIJOS Y JUEGOS» (una pregunta por respuesta con gancho;
+  acertijos de la casa, verdad o tinta, tres pistas, apuestas de mentira;
+  sube la apuesta si el visitante entra, lo deja si no).
+- Idea pendiente (ofrecida): el rig puede susurrar el tempo real del
+  visitante (latencia de respuesta, longitud de turno, interrupciones) cada
+  45–60 s como contexto, sin contadores visibles.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.

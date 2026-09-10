@@ -2399,12 +2399,13 @@
                     const cabY = hr.top + hr.height / 2 - window.innerHeight * 0.62;
                     const ratX = mouseNormX * window.innerWidth * 0.5, ratY = mouseNormY * window.innerHeight * 0.5;
                     // Ruben (11-sep): «un poco más de movimiento/reacción» → ganancias ×1,8, deriva ×1,6, algo menos de retardo.
-                    const tA_x = ratX * 0.09 + cabX * 0.6 + Math.sin(time * 0.00021) * 48;
-                    const tA_y = ratY * 0.07 + cabY * 0.45 + Math.cos(time * 0.00017) * 36;
-                    const tB_x = -ratX * 0.065 - cabX * 0.35 + Math.sin(time * 0.00013 + 2) * 64;
-                    const tB_y = -ratY * 0.055 - cabY * 0.28 + Math.cos(time * 0.00019 + 1) * 42;
-                    const tC_x = ratX * 0.04 - cabX * 0.12 + Math.sin(time * 0.00009 + 4) * 70;
-                    const tC_y = -ratY * 0.045 + cabY * 0.10 + Math.cos(time * 0.00011 + 3) * 50;
+                    // Ruben (11-sep): «desviación con el ratón de 10–20 % al menos, en cada dirección».
+                    const tA_x = ratX * 0.20 + cabX * 0.6 + Math.sin(time * 0.00021) * 48;
+                    const tA_y = ratY * 0.16 + cabY * 0.45 + Math.cos(time * 0.00017) * 36;
+                    const tB_x = -ratX * 0.15 - cabX * 0.35 + Math.sin(time * 0.00013 + 2) * 64;
+                    const tB_y = -ratY * 0.12 - cabY * 0.28 + Math.cos(time * 0.00019 + 1) * 42;
+                    const tC_x = ratX * 0.10 - cabX * 0.12 + Math.sin(time * 0.00009 + 4) * 70;
+                    const tC_y = -ratY * 0.10 + cabY * 0.10 + Math.cos(time * 0.00011 + 3) * 50;
                     giroA.x += (tA_x - giroA.x) * 0.026; giroA.y += (tA_y - giroA.y) * 0.026;
                     giroB.x += (tB_x - giroB.x) * 0.016; giroB.y += (tB_y - giroB.y) * 0.016;
                     giroC.x += (tC_x - giroC.x) * 0.009; giroC.y += (tC_y - giroC.y) * 0.009;
@@ -3622,6 +3623,17 @@
            ~670 créditos/min, un solo entusiasta podía quemarse el mes en seis
            días. Diez minutos siguen siendo mucho goblin diario. */
         const DAILY_MAX_S = GRANT_ACTIVO ? 1800 : 600;   // 30 min · 10 min al día
+        /* PUERTA DE EQUIPO (Ruben, 11-sep, tras resetear el contador tres veces
+           en una noche): /tizno/?equipo=1 deja en este navegador la marca
+           tizno_equipo=1 y el tope diario deja de aplicarse aquí. Solo en el
+           navegador donde se abra; ?equipo=0 la quita. */
+        function equipoSinTope() {
+            try {
+                const q = location.search.match(/[?&]equipo=([01])/);
+                if (q) localStorage.setItem('tizno_equipo', q[1]);
+                return localStorage.getItem('tizno_equipo') === '1';
+            } catch (_) { return false; }
+        }
         let callStartedAt = 0, yawnWarned = false;
         let despedidaAt = 0, habloTrasAviso = false;   // la despedida con excusa antes del tope (Ruben, 10-sep)
         /* ¿Es un parlamento de despedida? Se mira el final del texto (sin las
@@ -3888,7 +3900,7 @@
                hace que solo la primera invocación entre; las demás rebotan. */
             if (despertando || conversation) return;
             despertando = true;
-            if (dailyUsed() >= DAILY_MAX_S) {
+            if (dailyUsed() >= DAILY_MAX_S && !equipoSinTope()) {
                 setStatus('Tizno ya ha hablado mucho hoy… vuelve mañana');
                 despertando = false;
                 return;
