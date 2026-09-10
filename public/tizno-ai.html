@@ -23,7 +23,7 @@
           if (a) a.textContent = 'BUY PULSE OF THE CORE';
           if (b) b.textContent = 'LOCK TIZNO AWAY';
           const c = document.getElementById('tizno-call');
-          if (c) c.textContent = 'Speak to Tizno';
+          if (c) { if (window.__letrear) window.__letrear(c, 'Speak to Tizno'); else c.textContent = 'Speak to Tizno'; }
           const st = document.getElementById('tizno-status');
           if (st) st.textContent = 'press to speak with him';
           const ib = document.getElementById('tizno-info-btn');
@@ -57,7 +57,10 @@
           const activo = document.getElementById(esIngles ? 'idioma-en' : 'idioma-es');
           if (activo) activo.classList.add('activo');
           const volver = document.getElementById('tizno-volver');
-          if (volver && esIngles) { volver.href = '/en/'; volver.setAttribute('aria-label', 'Back to Soulware'); }
+          if (volver && esIngles) {
+            volver.href = '/en/';
+            if (window.__letrear) window.__letrear(volver, '← Back to The Threshold'); else volver.textContent = '← Back to The Threshold';
+          }
           document.querySelectorAll('#idiomas a').forEach((a) => {
             a.addEventListener('click', () => {
               try { localStorage.setItem('sw_lang', a.id === 'idioma-en' ? 'en' : 'es'); } catch (_) {}
@@ -93,44 +96,53 @@
         #idiomas { display: none; }
         #tizno-volver { display: none; }
         /* SEÑALES (Ruben, 11-sep: «más tipo Tim Burton, natural; texto para
-           poder animarlo y traducirlo»): letras a mano que brillan, sin
-           cajas. Fuente Jolly Lodger (SIL OFL) autoalojada: ni una petición a
-           Google. El brillo respira con text-shadow, que es compositor puro. */
+           poder animarlo y traducirlo»; después: «letras más irregulares, color
+           igual al glow de los ojos, todas con un glow titilante lento»).
+           Fuente Jolly Lodger (SIL OFL) autoalojada: ni una petición a Google.
+           El JS trocea cada señal en letras (spans) con giro, altura y tamaño
+           ligeramente distintos —deterministas, no bailan— y cada letra titila
+           con su propio periodo y desfase: el conjunto respira como brasas.
+           Solo transform y text-shadow por letra: barato. */
         @font-face {
             font-family: 'Tizno Sign';
             src: url('/fonts/jolly-lodger.woff2') format('woff2');
             font-weight: 400; font-style: normal; font-display: swap;
         }
         .senal {
+            --g0: #ffe9c2;                            /* núcleo */
+            --g1: rgba(243, 156, 18, 0.95);           /* = --eye-glow */
+            --g2: rgba(243, 156, 18, 0.62);
+            --g3: rgba(243, 156, 18, 0.30);
             font-family: 'Tizno Sign', 'Georgia', serif; font-weight: 400;
             letter-spacing: 2px; text-decoration: none; text-transform: none;
-            color: #fff2cc;
-            text-shadow: 0 0 3px #ffe4a3, 0 0 12px rgba(245, 182, 66, 0.85), 0 0 30px rgba(243, 156, 18, 0.55), 0 0 60px rgba(243, 156, 18, 0.25);
-            animation: resplandor 4.2s ease-in-out infinite;
+            color: #ffd58e; white-space: nowrap;
         }
-        @keyframes resplandor {
-            0%, 100% { text-shadow: 0 0 3px #ffe4a3, 0 0 12px rgba(245, 182, 66, 0.85), 0 0 30px rgba(243, 156, 18, 0.55), 0 0 60px rgba(243, 156, 18, 0.25); }
-            50%      { text-shadow: 0 0 4px #fff0c8, 0 0 16px rgba(245, 182, 66, 1), 0 0 40px rgba(243, 156, 18, 0.75), 0 0 80px rgba(243, 156, 18, 0.4); }
+        .senal .letra {
+            display: inline-block;
+            transform: rotate(var(--rot, 0deg)) translateY(var(--dy, 0px)) scale(var(--esc, 1));
+            text-shadow: 0 0 2px var(--g0), 0 0 8px var(--g1), 0 0 20px var(--g2), 0 0 42px var(--g3);
+            animation: titila var(--dur, 4s) ease-in-out var(--ret, 0s) infinite;
         }
-        @media (prefers-reduced-motion: reduce) { .senal { animation: none; } }
+        .senal .letra-flecha { transform: none; }
+        @keyframes titila {
+            0%, 100% { text-shadow: 0 0 2px var(--g0), 0 0 8px var(--g1), 0 0 20px var(--g2), 0 0 42px var(--g3); }
+            26%      { text-shadow: 0 0 3px var(--g0), 0 0 12px var(--g1), 0 0 30px var(--g2), 0 0 60px var(--g3); }
+            43%      { text-shadow: 0 0 1px var(--g0), 0 0 6px var(--g1), 0 0 14px var(--g2), 0 0 28px var(--g3); }
+            71%      { text-shadow: 0 0 3px var(--g0), 0 0 11px var(--g1), 0 0 26px var(--g2), 0 0 54px var(--g3); }
+        }
+        @media (prefers-reduced-motion: reduce) { .senal .letra { animation: none; } }
         html.estancia #tizno-volver {
             display: block; position: fixed; top: 16px; left: 22px; z-index: 40;
-            font-family: 'Tizno Sign', 'Georgia', serif; font-size: 27px; letter-spacing: 1.5px;
-            text-decoration: none; color: #b9a468; padding: 4px 6px;
-            text-shadow: 0 0 10px rgba(243, 156, 18, 0.35);
-            transition: color 0.3s, text-shadow 0.3s;
+            font-size: 27px; padding: 4px 6px; transition: color 0.3s;
         }
-        html.estancia #tizno-volver:hover { color: #fff2cc; text-shadow: 0 0 4px #ffe4a3, 0 0 14px rgba(245, 182, 66, 0.9), 0 0 34px rgba(243, 156, 18, 0.6); }
+        html.estancia #tizno-volver:hover { color: #fff4dc; }
         html.estancia #idiomas {
             display: flex; position: fixed; top: 16px; right: 24px; z-index: 40; gap: 14px;
         }
-        #idiomas a {
-            font-family: 'Tizno Sign', 'Georgia', serif; font-size: 27px;
-            letter-spacing: 1.5px; text-decoration: none; padding: 4px 4px;
-            color: #4d4436; transition: color 0.3s, text-shadow 0.3s;
-        }
-        #idiomas a.activo { color: #fff2cc; text-shadow: 0 0 4px #ffe4a3, 0 0 14px rgba(245, 182, 66, 0.9), 0 0 34px rgba(243, 156, 18, 0.6); }
-        #idiomas a:hover:not(.activo) { color: #b9a468; text-shadow: 0 0 10px rgba(243, 156, 18, 0.35); }
+        #idiomas a { font-size: 27px; padding: 4px 4px; color: #ffd58e; transition: color 0.3s; }
+        #idiomas a:not(.activo) { color: #4d4436; }
+        #idiomas a:not(.activo) .letra { animation: none; text-shadow: none; }
+        #idiomas a:hover:not(.activo) { color: #b9a468; }
         /* La niebla grabada (Ruben, 14-ago): la banda de volutas de la lámina
            oficial, delante del tallo — Tizno asoma por detrás de los grabados
            como en el arte. Una textura compuesta una vez: casi gratis. */
@@ -198,23 +210,18 @@
            El nivel medio de la superficie (30vh) vive en el JS (MAR.nivel). */
         #mar { display: none; }
         #luz-ojos {
-            position: fixed; left: 0; top: 0; width: 640px; height: 640px; z-index: 6;
+            position: fixed; left: 0; top: 0; width: 260px; height: 260px; z-index: 6;
             pointer-events: none; opacity: 0; will-change: transform, opacity;
-            /* Sutil a propósito (Ruben, 11-sep): no es más luz, es que el brillo
-               caiga también sobre el mar para que el horizonte no corte en seco. */
-            background: radial-gradient(circle, rgba(243, 156, 18, 0.13) 0%, rgba(243, 156, 18, 0.06) 20%, rgba(243, 156, 18, 0.02) 38%, transparent 55%);
+            /* Ruben (11-sep): «un pelín, como un 10 %, justo sobre los ojos». */
+            background: radial-gradient(circle, rgba(243, 156, 18, 0.10) 0%, rgba(243, 156, 18, 0.04) 30%, transparent 58%);
         }
         html.embed #luz-ojos { display: none; }
-        #lente { position: fixed; left: 0; top: 0; z-index: 11; pointer-events: none; opacity: 0; will-change: opacity; }
-        #lente i { position: absolute; left: 0; top: 0; display: block; border-radius: 50%; will-change: transform; mix-blend-mode: screen; }
-        .lente-raya { width: 560px; height: 3px; margin: -1.5px 0 0 -280px; border-radius: 2px;
-            background: linear-gradient(90deg, transparent, rgba(255, 214, 150, 0.18) 30%, rgba(255, 238, 205, 0.45) 50%, rgba(255, 214, 150, 0.18) 70%, transparent); }
-        .lente-anillo { width: 210px; height: 210px; margin: -105px 0 0 -105px;
-            background: radial-gradient(circle, transparent 60%, rgba(243, 156, 18, 0.07) 67%, rgba(243, 156, 18, 0.12) 72%, transparent 80%); }
-        .lente-g { background: radial-gradient(circle, rgba(255, 214, 150, 0.14) 0%, rgba(255, 214, 150, 0.09) 55%, rgba(255, 214, 150, 0.025) 76%, transparent 79%); }
-        .lente-g.g1 { width: 44px; height: 44px; margin: -22px 0 0 -22px; }
-        .lente-g.g2 { width: 26px; height: 26px; margin: -13px 0 0 -13px; }
-        .lente-g.g3 { width: 76px; height: 76px; margin: -38px 0 0 -38px; }
+        #lente { position: fixed; left: 0; top: 0; z-index: 11; pointer-events: none; opacity: 0; will-change: transform, opacity; }
+        #lente i { position: absolute; left: 0; top: 0; display: block; mix-blend-mode: screen; }
+        .lente-raya { width: 230px; height: 2px; margin: -1px 0 0 -115px; border-radius: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 214, 150, 0.22) 22%, rgba(255, 242, 214, 0.75) 50%, rgba(255, 214, 150, 0.22) 78%, transparent); }
+        .lente-halo { width: 64px; height: 64px; margin: -32px 0 0 -32px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 238, 205, 0.32) 0%, rgba(243, 156, 18, 0.16) 40%, transparent 70%); }
         html.embed #lente { display: none; }
         html.estancia #mar { display: block; position: fixed; left: 0; right: 0; bottom: 0; height: 46vh; z-index: 5; pointer-events: none; overflow: hidden; contain: strict; }
         html.estancia #niebla-grabada, html.estancia #abyss-foreground, html.estancia #abyss-foreground-2 { display: none; }
@@ -471,11 +478,8 @@
         #tizno-call {
             position: relative; isolation: isolate;
             background: none; border: 0; padding: 6px 18px; cursor: pointer;
-            font-family: 'Tizno Sign', 'Georgia', serif; font-size: 44px; line-height: 1;
-            letter-spacing: 2px; text-transform: none; color: #fff2cc;
-            text-shadow: 0 0 3px #ffe4a3, 0 0 12px rgba(245, 182, 66, 0.85), 0 0 30px rgba(243, 156, 18, 0.55), 0 0 60px rgba(243, 156, 18, 0.25);
-            transition: color 0.3s ease, transform 0.3s ease, text-shadow 0.3s ease;
-            animation: resplandor 4.2s ease-in-out infinite;
+            font-size: 44px; line-height: 1;
+            transition: color 0.3s ease, transform 0.3s ease;
         }
         @keyframes brasa {
             0%, 100% { box-shadow: 0 0 12px rgba(243, 156, 18, 0.10), inset 0 0 8px rgba(243, 156, 18, 0.04); border-color: rgba(243, 156, 18, 0.32); }
@@ -487,10 +491,10 @@
             background: radial-gradient(ellipse 120% 90% at 50% 130%, rgba(243, 156, 18, 0.42), rgba(243, 156, 18, 0.06) 55%, transparent 75%);
             transition: opacity 0.45s ease;
         }
-        #tizno-call:hover, #tizno-call:focus-visible { color: #ffffff; transform: translateY(-2px) scale(1.03); text-shadow: 0 0 4px #fff0c8, 0 0 18px rgba(245, 182, 66, 1), 0 0 44px rgba(243, 156, 18, 0.8), 0 0 90px rgba(243, 156, 18, 0.45); outline: none; }
+        #tizno-call:hover, #tizno-call:focus-visible { color: #fff4dc; transform: translateY(-2px) scale(1.03); outline: none; }
         #tizno-call:hover::before, #tizno-call:focus-visible::before { opacity: 1; }
         @media (prefers-reduced-motion: reduce) { #tizno-call { animation: none; } }
-        #tizno-call.live { color: #ffd6c9; text-shadow: 0 0 3px #ffb3a0, 0 0 12px rgba(231, 76, 60, 0.85), 0 0 30px rgba(231, 76, 60, 0.55), 0 0 60px rgba(231, 76, 60, 0.25); animation: none; }
+        #tizno-call.live { color: #ffd6c9; --g0: #ffc9b8; --g1: rgba(231, 76, 60, 0.95); --g2: rgba(231, 76, 60, 0.6); --g3: rgba(231, 76, 60, 0.3); }
         #tizno-call:disabled { opacity: 0.4; cursor: wait; }
         #tizno-status {
             color: rgba(255, 236, 190, 0.45); font-style: italic; font-size: 12px;
@@ -667,23 +671,23 @@
          web principal la recuerde (mismo contrato que el selector del sitio). -->
     <!-- Vuelta a la web madre — solo en la Estancia (auditoría 8-sep-2026:
          la página no tenía ninguna salida hacia el catálogo). -->
-    <a id="tizno-volver" href="/" aria-label="Volver a Soulware">← Soulware</a>
+    <a id="tizno-volver" class="senal" href="/" aria-label="Volver al Umbral">← Volver al Umbral</a>
     <nav id="idiomas" aria-label="Idioma / Language">
-      <a id="idioma-es" href="/tizno/">ES</a><a id="idioma-en" href="/en/tizno/">EN</a>
+      <a id="idioma-es" class="senal" href="/tizno/">ES</a><a id="idioma-en" class="senal" href="/en/tizno/">EN</a>
     </nav>
     <div id="niebla-grabada" aria-hidden="true"></div>
     <div id="mar" aria-hidden="true"><canvas id="mar-frente"></canvas></div>
     <!-- La luz de los ojos, POR ENCIMA del mar y de todo lo que no sean los
          propios ojos (Ruben, 11-sep): un halo que sigue a la cabeza. -->
     <div id="luz-ojos" aria-hidden="true"></div>
-    <!-- LENTE (Ruben, 11-sep): un lens flare desenfocado nacido en los ojos:
-         una raya anamórfica, un anillo y tres fantasmas en el eje ojos→centro
-         de pantalla. Discos de compositor: transform y opacidad, cero filtros. -->
-    <div id="lente" aria-hidden="true"><i class="lente-raya"></i><i class="lente-anillo"></i><i class="lente-g g1"></i><i class="lente-g g2"></i><i class="lente-g g3"></i></div>
+    <!-- LENTE v2 (Ruben, 11-sep): un destello pequeño, alineado con el ojo
+         GRANDE y solo cuando un ojo se agranda y el otro se achica; como una
+         continuación del ojo. Raya anamórfica + halo. Transform y opacidad. -->
+    <div id="lente" aria-hidden="true"><i class="lente-raya"></i><i class="lente-halo"></i></div>
 
     <!-- ═══ ELEVENLABS 2/4 — call UI ═══ -->
     <div id="tizno-call-ui">
-        <button id="tizno-call">Hablar con Tizno</button>
+        <button id="tizno-call" class="senal">Hablar con Tizno</button>
         <div id="tizno-status">pulsa para hablar con él</div>
         <!-- El grant (18-ago-2026): condición de 12+ meses con enlace. Solo
              en la Estancia — el embed esconde el call-ui entero y la demo es
@@ -1094,11 +1098,38 @@
         const eyesBreathEl = document.getElementById('eyes-breathing-layer');
         const goolayers = document.querySelectorAll('.goo-layer');
         const luzSala = document.getElementById('luz-sala');
+        /* LETREAR (Ruben, 11-sep): trocea una señal en letras con giro, altura
+           y tamaño ligeramente distintos y un titileo propio. Determinista por
+           posición (hash de senos): la misma palabra sale siempre igual, no
+           baila al re-renderizar. El aria-label conserva el texto entero. */
+        function letrear(el, texto) {
+            if (texto == null) texto = el.dataset.texto || el.textContent;
+            el.dataset.texto = texto;
+            el.setAttribute('aria-label', texto.replace(/^←\s*/, ''));
+            el.textContent = '';
+            const az = (i, k) => { const x = Math.sin(i * 12.9898 + k * 78.233 + texto.length * 3.7) * 43758.5453; return x - Math.floor(x); };
+            let i = 0;
+            for (const ch of texto) {
+                if (ch === ' ') { el.appendChild(document.createTextNode(' ')); continue; }
+                const sp = document.createElement('span');
+                sp.textContent = ch;
+                if (ch === '←') { sp.className = 'letra letra-flecha'; }
+                else {
+                    sp.className = 'letra';
+                    sp.style.setProperty('--rot', ((az(i, 0) - 0.5) * 9).toFixed(2) + 'deg');
+                    sp.style.setProperty('--dy', ((az(i, 1) - 0.5) * 3).toFixed(2) + 'px');
+                    sp.style.setProperty('--esc', (0.94 + az(i, 2) * 0.12).toFixed(3));
+                }
+                sp.style.setProperty('--dur', (3.2 + az(i, 3) * 3.4).toFixed(2) + 's');
+                sp.style.setProperty('--ret', (-az(i, 4) * 5).toFixed(2) + 's');
+                el.appendChild(sp); i++;
+            }
+        }
+        window.__letrear = letrear;
+        document.querySelectorAll('.senal').forEach((el) => letrear(el));
         const luzOjos = document.getElementById('luz-ojos');
         const lente = document.getElementById('lente');
-        const lenteRaya = lente.querySelector('.lente-raya'), lenteAnillo = lente.querySelector('.lente-anillo');
-        const lenteG = [lente.querySelector('.g1'), lente.querySelector('.g2'), lente.querySelector('.g3')];
-        const LENTE_K = [0.5, 0.95, 1.55];   // posición de cada fantasma en el eje ojos → centro de pantalla
+        let lenteVis = 0;
         let focoX = 0, focoY = 0;   // el halo de fondo va detrás de él, con pereza
 
         /* El pendiente: péndulo amortiguado colgado de la oreja. El navegador
@@ -2270,14 +2301,19 @@
                 luzSala.style.transform = `translate(${focoX.toFixed(1)}px, ${focoY.toFixed(1)}px)`;
                 // El halo de los ojos, clavado a la cabeza, encima del mar.
                 luzOjos.style.opacity = (luz * 0.9).toFixed(3);
-                luzOjos.style.transform = `translate(${(hr.left + hr.width / 2 - 320).toFixed(1)}px, ${(hr.top + hr.height * 0.42 - 320).toFixed(1)}px)`;
-                // La lente: flare en el eje ojos → centro, que se apaga al parpadear.
-                const ex = hr.left + hr.width / 2, ey = hr.top + hr.height * 0.42;
-                const vx = window.innerWidth / 2 - ex, vy = window.innerHeight / 2 - ey;
-                lente.style.opacity = (luz * Math.max(0, Math.min(parpL, parpR)) * 0.85).toFixed(3);
-                lenteRaya.style.transform = `translate(${ex.toFixed(1)}px, ${ey.toFixed(1)}px) rotate(${(c_RigRot * 0.4).toFixed(2)}deg)`;
-                lenteAnillo.style.transform = `translate(${ex.toFixed(1)}px, ${ey.toFixed(1)}px)`;
-                for (let g = 0; g < 3; g++) lenteG[g].style.transform = `translate(${(ex + vx * LENTE_K[g]).toFixed(1)}px, ${(ey + vy * LENTE_K[g]).toFixed(1)}px)`;
+                luzOjos.style.transform = `translate(${(hr.left + hr.width / 2 - 130).toFixed(1)}px, ${(hr.top + hr.height * 0.42 - 130).toFixed(1)}px)`;
+                /* La lente: solo cuando un ojo se hace grande y el otro pequeño
+                   (duda, susto asimétrico), clavada al centro del grande y con
+                   el giro del rig. Entra y sale suave. */
+                const asim = Math.abs(c_EyeL - c_EyeR);
+                const lenteObj = Math.max(0, Math.min(1, (asim - 0.22) / 0.4)) * luz * Math.max(0, Math.min(parpL, parpR));
+                lenteVis += (lenteObj - lenteVis) * 0.25;
+                if (lenteVis > 0.01) {
+                    const er = (c_EyeL >= c_EyeR ? eyeLeftWrapper : eyeRightWrapper).getBoundingClientRect();
+                    lente.style.transform = `translate(${(er.left + er.width / 2).toFixed(1)}px, ${(er.top + er.height / 2).toFixed(1)}px) rotate(${c_RigRot.toFixed(2)}deg)`;
+                }
+                lente.style.opacity = lenteVis.toFixed(3);
+
             }
 
             // Respiración (antes en CSS): ciclo de 2 s, ahora a 30 fps.
@@ -2532,11 +2568,19 @@
             const i0 = Math.max(0, Math.floor(c - r)), i1 = Math.min(MAR.n - 1, Math.ceil(c + r));
             for (let i = i0; i <= i1; i++) { const d = (i - c) / r; MAR.v[i] += fuerza * Math.max(0, 1 - d * d); }
         }
-        /* HORIZONTE CURVO (Ruben, 11-sep): convexo, 5vh más alto en el centro
-           que en los bordes. Lo comparten las tres capas y la orilla. */
+        /* HORIZONTE CURVO (Ruben, 11-sep): convexo, más alto en el centro que
+           en los bordes. Lo comparten las tres capas y la orilla. */
+        /* Curvatura: 6vh (Ruben, 11-sep: «un 20 % más curvo, más timburtoniano»).
+           ?horizonte=concavo invierte el sentido (valle en vez de montículo);
+           ?curvatura=8 cambia los vh, para probar sin desplegar. */
+        const MAR_CURVA = (() => {
+            const q = location.search;
+            const vh = parseFloat((q.match(/[?&]curvatura=([0-9.]+)/) || [])[1]);
+            return { vh: isFinite(vh) ? vh / 100 : 0.06, signo: /[?&]horizonte=concavo/.test(q) ? 1 : -1 };
+        })();
         function marCurva(i) {
             const u = (i * MAR.paso - MAR.w / 2) / (MAR.w / 2);
-            return -window.innerHeight * 0.05 * Math.max(0, 1 - u * u);
+            return MAR_CURVA.signo * window.innerHeight * MAR_CURVA.vh * Math.max(0, 1 - u * u);
         }
         function marSuperficie(i, t) {   // frente: columna i con muelles + oleaje ambiente + curva
             return MAR.base + marCurva(i) + MAR.h[i] + 12 * Math.sin(i * 0.05 + t * 0.0009) + 7 * Math.sin(i * 0.13 - t * 0.0015) + 4 * Math.sin(i * 0.31 + t * 0.002);
@@ -3801,7 +3845,7 @@
                                 : pick(IDIOMA === 'en' ? SALUDOS_GENERAL_EN : SALUDOS_GENERAL),
                     },
                     onConnect: () => {
-                        btn.textContent = IDIOMA === 'en' ? 'Leave him be' : 'Dejarle en paz';
+                        window.__letrear(btn, IDIOMA === 'en' ? 'Leave him be' : 'Dejarle en paz');
                         btn.classList.add('live');
                         btn.disabled = false;
                         setState('listening');
@@ -3846,7 +3890,7 @@
                         }, 1000);
                     },
                     onDisconnect: () => {
-                        btn.textContent = IDIOMA === 'en' ? 'Speak to Tizno' : 'Hablar con Tizno';
+                        window.__letrear(btn, IDIOMA === 'en' ? 'Speak to Tizno' : 'Hablar con Tizno');
                         btn.classList.remove('live');
                         btn.disabled = false;
                         setState('idle');

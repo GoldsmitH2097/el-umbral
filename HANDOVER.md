@@ -1194,6 +1194,35 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   retorcido («a quien madruga, Tizno le asusta»); pulla cada 2–3 respuestas;
   burla de amigo; en inglés con sus propios proverbios.
 
+### 11-sep, madrugada (20) — fuera la lente; halo al 10 %; señales letra a letra
+- Ruben: «el lens flare terrible, quítalo; del glow deja un pelín, un 10 %,
+  justo sobre los ojos»; «pon Volver al Umbral / Back to The Threshold, no
+  Soulware; texto más irregular, con glow animado, color igual al glow de
+  los ojos, todos con un glow titilante lento».
+- `#lente` eliminado (HTML, CSS, JS). `#luz-ojos` a 260×260 y 0,10 de pico,
+  centrado en los ojos.
+- Señales: `letrear(el, texto)` (expuesta como `window.__letrear`) trocea el
+  texto en spans `.letra` con --rot (±4,5°), --dy (±1,5 px), --esc
+  (0,94–1,06) deterministas (hash de senos por posición) y titileo propio
+  (`titila`, 3,2–6,6 s con desfase negativo): el conjunto respira como
+  brasas. Color #ffd58e con sombras en --eye-glow (#f39c12) vía --g0..3;
+  `.live` cambia las variables a rojo. Inactivo de idioma sin glow ni
+  animación. Los cambios de texto del botón (Hablar/Dejarle en paz, EN) y
+  los textos EN del head pasan por `__letrear`. «← Volver al Umbral» /
+  «← Back to The Threshold» (aria-label sin la flecha).
+
+### 11-sep, madrugada (21) — lente v2 sobre el ojo grande; horizonte +20 % y conmutable
+- Ruben: «el lens flare podría estar sobre el ojo grande cuando un ojo se
+  hace grande y otro pequeño, solo en ese momento, alineado con el ojo,
+  como continuación, y más pequeño»; «horizonte un 20 % más curvo; si no,
+  al revés; ¿probamos los dos?».
+- `#lente` v2: raya anamórfica de 230×2 + halo de 64 px, `screen`, clavada
+  al centro del ojo GRANDE (rect del wrapper, solo mientras se ve) con el
+  giro del rig; opacidad = f(|c_EyeL − c_EyeR|) (arranca a 0,22 de
+  diferencia, plena a 0,62) × luz × ojos abiertos, con lerp 0,25.
+- Horizonte: 6vh (antes 5). `?horizonte=concavo` invierte el sentido;
+  `?curvatura=8` cambia los vh. Ruben compara ambos en producción.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
