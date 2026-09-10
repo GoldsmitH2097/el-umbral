@@ -1301,6 +1301,15 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   (+4 por cada bajada previa, freno anti-oscilación), nunca por encima de
   `NIVEL_INICIAL` (la estimación por hardware/Safari) ni con `?nivel=`.
 
+### 11-sep, madrugada (29) — fondo sin aura y con nubes grandes; Tizno con colmillo
+- Ruben: «un aura negra, un semicírculo que se mueve con Tizno» = la
+  máscara negra de `.luz-giro` (confiaba en `screen`; se pintaba como negro
+  real). Fuera la máscara y fuera el blend: las elipses se desvanecen solas.
+  «Las nubes mucho más grandes, más de fondo»: capa 140vh, elipses de 26–45 %
+  de la capa, alfas 0,09–0,22, giros 190/270 s. Solo en nivel alto (memoria
+  de textura a retina).
+- Prompt: bloque «COLMILLO — SI TE FALTAN AL RESPETO» (ver abajo).
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
