@@ -432,6 +432,14 @@ async function dormir(motivo) {
 btn.addEventListener('click', () => (conversation ? dormir('boton') : despertar()));
 document.addEventListener('visibilitychange', () => { if (document.hidden && conversation) dormir('oculto'); });
 
+/* La escala del rig (ver baby.css): número sin unidad, por ancho de pantalla. */
+function ajustarEscala() {
+    const s = Math.min(1.45, Math.max(1, innerWidth / 900));
+    document.documentElement.style.setProperty('--bt-escala', s.toFixed(3));
+}
+ajustarEscala();
+window.addEventListener('resize', ajustarEscala);
+
 /* Arranque: siempre por la puerta del adulto. */
 prepararPuerta();
 setTimeout(() => { if (window.__tiznoPop) window.__tiznoPop(true); }, 900);

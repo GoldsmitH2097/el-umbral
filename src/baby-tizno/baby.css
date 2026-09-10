@@ -20,7 +20,11 @@ html.baby #tizno-aviso, html.baby #tizno-grant { display: none !important; }
    se divide por la escala para que, ya escalado, la base siga a 21vh y
    bajo la niebla. En móvil (≤ 900 px) la escala es 1: el rig ya llena el
    ancho de la pantalla. */
-html.baby { --bt-escala: clamp(1, calc(100vw / 900), 1.45); }
+/* La escala es un NÚMERO sin unidad (CSS no puede dividir vw entre px y
+   sacar un número: la primera versión dejaba scale() y bottom inválidos y
+   Tizno se hundía bajo la niebla). La calcula el módulo en JS al cargar y al
+   redimensionar: min(1,45, max(1, ancho / 900)). */
+html.baby { --bt-escala: 1; }
 html.baby .goo-layer, html.baby #eyes-layer-container {
   transform: scale(var(--bt-escala)); transform-origin: 50% 100%;
 }
