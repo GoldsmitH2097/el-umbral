@@ -434,7 +434,7 @@ document.addEventListener('visibilitychange', () => { if (document.hidden && con
 
 /* La escala del rig (ver baby.css): número sin unidad, por ancho de pantalla. */
 function ajustarEscala() {
-    const s = Math.min(1.45, Math.max(1, innerWidth / 900));
+    const s = Math.min(1.2, Math.max(1, innerWidth / 1100));   // Ruben, 10-sep: 1,45 era «un poco demasiado grande»
     document.documentElement.style.setProperty('--bt-escala', s.toFixed(3));
 }
 ajustarEscala();
