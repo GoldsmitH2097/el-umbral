@@ -1289,6 +1289,18 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   animadas). Texturas de capa: 110vh y no 150vmax por memoria GPU a retina.
   Apagado en nivel bajo, embed y reduced-motion.
 
+### 11-sep, madrugada (28) — el vigilante de FPS ya no deja a Tizno en «bajo» para siempre
+- Ruben: «a veces, al abrir otras apps, los efectos desaparecen y no vuelven
+  hasta recargar» (capturas: silueta nítida sin pelusa ni humo = nivel bajo).
+  Causa: con otra app delante el navegador estrangula los fotogramas sin
+  que `document.hidden` se active; el vigilante juzgaba esa ventana (sin
+  hueco >400 ms pero a 5–20 fps), bajaba dos niveles y, por diseño, nunca
+  subía.
+- Arreglo: (1) una ventana solo se juzga con `document.hasFocus()`;
+  (2) `subirNivel()` recupera un nivel tras 3 ventanas seguidas ≥56 fps
+  (+4 por cada bajada previa, freno anti-oscilación), nunca por encima de
+  `NIVEL_INICIAL` (la estimación por hardware/Safari) ni con `?nivel=`.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.

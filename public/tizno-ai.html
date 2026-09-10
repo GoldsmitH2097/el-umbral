@@ -840,6 +840,7 @@
             if ((window.devicePixelRatio || 1) >= 2.5 && esMovil) NIVEL = 'bajo';
             if (NIVEL_FORZADO) NIVEL = NIVEL_FORZADO;
         }
+        const NIVEL_INICIAL = NIVEL;   // el techo al que se puede volver a subir
         const FACTOR = { alto: 1, medio: 0.55, bajo: 0.3 };
         function aplicarNivel() {
             const cap = document.getElementById('goo-particles');
@@ -864,6 +865,20 @@
             aplicarNivel();
             return true;
         }
+        /* SUBIR (Ruben, 11-sep: «al abrir otras apps los efectos desaparecen y
+           no vuelven hasta recargar»): al pasar a otra app el navegador
+           estrangula los fotogramas, el vigilante lo leía como máquina lenta
+           y bajaba a «bajo» para siempre. Ahora (1) no se mide sin foco y
+           (2) con varias ventanas seguidas de FPS sobrados se vuelve a subir,
+           nunca por encima del nivel inicial y con freno anti-oscilación. */
+        function subirNivel() {
+            if (NIVEL_FORZADO || NIVEL === NIVEL_INICIAL) return false;
+            if (NIVEL === 'bajo') NIVEL = 'medio';
+            else if (NIVEL === 'medio' && NIVEL_INICIAL === 'alto') NIVEL = 'alto';
+            else return false;
+            aplicarNivel();
+            return true;
+        }
         /* VIGILANTE PERMANENTE DE FPS.
            No basta con medir al arrancar: una máquina puede ir bien vacía y
            ahogarse cuando se llena de partículas, o cuando el usuario abre otra
@@ -872,7 +887,7 @@
            nunca sube: subir y bajar en bucle se vería peor que ir en bajo. */
         function medirFps() {
             let n = 0, t0 = performance.now(), ventanas = 0;
-            let prev = t0, huecoMax = 0;
+            let prev = t0, huecoMax = 0, buenas = 0, bajadas = 0;
             const tick = () => {
                 n++;
                 const ahora = performance.now();
@@ -886,15 +901,23 @@
                        navegador estrangulando el rAF porque la pestaña estaba
                        tapada u oculta. Juzgar esa ventana degradaría la calidad
                        para siempre por culpa de un alt-tab. Se descarta. */
-                    const valida = !document.hidden && huecoMax < 400;
+                    /* Sin foco (otra app delante, aunque la pestaña siga
+                       visible) el navegador también estrangula: esa ventana
+                       tampoco se juzga. */
+                    const valida = !document.hidden && document.hasFocus() && huecoMax < 400;
                     if (valida) {
                         // La 1ª ventana incluye el arranque: es más tolerante.
                         const umbralBajo = ventanas === 0 ? 30 : 34;
                         const umbralMedio = ventanas === 0 ? 46 : 50;
-                        if (fps < umbralBajo) { bajarNivel(); bajarNivel(); }
-                        else if (fps < umbralMedio) bajarNivel();
+                        if (fps < umbralBajo) { bajarNivel(); bajarNivel(); buenas = 0; bajadas++; }
+                        else if (fps < umbralMedio) { bajarNivel(); buenas = 0; bajadas++; }
+                        else if (fps >= 56 && NIVEL !== NIVEL_INICIAL) {
+                            // Recuperación: 3 ventanas buenas seguidas (7,5 s); tras
+                            // cada bajada, más paciencia (freno anti-oscilación).
+                            if (++buenas >= 3 + bajadas * 4) { subirNivel(); buenas = 0; }
+                        }
                         ventanas++;
-                    }
+                    } else { buenas = 0; }
                     n = 0; t0 = performance.now(); prev = t0; huecoMax = 0;
                 }
                 requestAnimationFrame(tick);
