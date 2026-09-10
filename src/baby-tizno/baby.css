@@ -7,7 +7,25 @@ html.baby { --bg-color: #0d0b0f; --eye-glow: #ffb648; --bt-sol: #f2b84b; --bt-so
 html.baby #ambient-light { background: radial-gradient(circle at 50% 68%, #3a2814 0%, #1a1310 38%, transparent 66%); }
 html.baby #candle-flicker { opacity: .85; }
 html.baby #box-a, html.baby #box-b, html.baby #idiomas, html.baby #tizno-volver,
-html.baby #niebla-grabada, html.baby #tizno-aviso, html.baby #tizno-grant { display: none !important; }
+html.baby #tizno-aviso, html.baby #tizno-grant { display: none !important; }
+
+/* ══════ TIZNO GRANDE Y PLANTADO EN EL SUELO (Ruben, 10-sep) ══════
+   En la Estancia el rig vive a 21vh del borde y las volutas grabadas
+   (#niebla-grabada, 44vh) le tapan la base: parece plantado. Aquí se
+   conservan esas volutas como suelo y se ESCALA todo el rig desde el
+   centro-abajo del viewport: las dos capas goo (cuerpo y partículas), la
+   capa de ojos y el lienzo de chispas. El JS del rig mide rects
+   (getBoundingClientRect incluye transforms), así que ojos, pendiente,
+   caricias y toques siguen cayendo donde toca. El desplazamiento de 21vh
+   se divide por la escala para que, ya escalado, la base siga a 21vh y
+   bajo la niebla. En móvil (≤ 900 px) la escala es 1: el rig ya llena el
+   ancho de la pantalla. */
+html.baby { --bt-escala: clamp(1, calc(100vw / 900), 1.45); }
+html.baby .goo-layer, html.baby #eyes-layer-container {
+  transform: scale(var(--bt-escala)); transform-origin: 50% 100%;
+}
+html.baby #lienzo-chispas { transform: scale(var(--bt-escala)); transform-origin: 50% calc(100% + 140px); }
+html.baby .master-rig { bottom: calc(21vh / var(--bt-escala)); }
 html.baby body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
 
 /* El botón grande del niño: una sola cosa que tocar. */
