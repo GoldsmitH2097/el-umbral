@@ -837,6 +837,26 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   Kodama (Mononoke), WALL-E y EVE (Pixar), el niño de LIMBO (Playdead),
   hojas de expresión de Preston Blair y Richard Williams.
 
+### 10-sep, noche (6) — Tizno se despide con excusa y llena los silencios
+- **Despedida con excusa** (Ruben): 35 s antes del tope de sesión el rig
+  manda al agente un aviso entre corchetes como si lo dijera el visitante
+  (`conversation.sendUserMessage`, con caída a sendContextualUpdate si el
+  SDK 1.25 no lo tuviera) y el bloque del prompt «CUANDO TE TIENES QUE IR»
+  lo convierte en una despedida de una o dos frases con una excusa distinta
+  cada vez (le llaman del otro lado de la niebla, se le seca la tinta…).
+  Cuando termina de decirla, el rig cuelga (`onModeChange` speaking →
+  listening tras el aviso); el tope duro sigue de red de seguridad.
+  Estado en pantalla: «a Tizno le llaman…» / «se ha ido». SIN PROBAR en
+  conversación real (hay que aguantar 9,5 min): pedir a Ruben que lo pruebe
+  o bajar SESSION_MAX_S en local para verlo.
+- **Silencios** (Ruben): bloque «SILENCIOS — CUANDO EL VISITANTE CALLA» en el
+  prompt: nada de «¿sigues ahí?»; en cada silencio una pieza distinta
+  («¿Sabías que…?», rumores de la casa, detalles de las obras sacados de la
+  KB, sin spoilers), tres o cuatro frases; al tercer silencio seguido, se
+  calla él también. Depende del turn timeout del agente (panel), que ya
+  provocaba turnos de silencio.
+- Filamentos sin ebook: corregido y publicado (prompt) y en la KB.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
