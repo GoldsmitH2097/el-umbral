@@ -200,9 +200,22 @@
         #luz-ojos {
             position: fixed; left: 0; top: 0; width: 640px; height: 640px; z-index: 6;
             pointer-events: none; opacity: 0; will-change: transform, opacity;
-            background: radial-gradient(circle, rgba(243, 156, 18, 0.34) 0%, rgba(243, 156, 18, 0.16) 18%, rgba(243, 156, 18, 0.06) 36%, transparent 55%);
+            /* Sutil a propósito (Ruben, 11-sep): no es más luz, es que el brillo
+               caiga también sobre el mar para que el horizonte no corte en seco. */
+            background: radial-gradient(circle, rgba(243, 156, 18, 0.13) 0%, rgba(243, 156, 18, 0.06) 20%, rgba(243, 156, 18, 0.02) 38%, transparent 55%);
         }
         html.embed #luz-ojos { display: none; }
+        #lente { position: fixed; left: 0; top: 0; z-index: 11; pointer-events: none; opacity: 0; will-change: opacity; }
+        #lente i { position: absolute; left: 0; top: 0; display: block; border-radius: 50%; will-change: transform; mix-blend-mode: screen; }
+        .lente-raya { width: 560px; height: 3px; margin: -1.5px 0 0 -280px; border-radius: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255, 214, 150, 0.18) 30%, rgba(255, 238, 205, 0.45) 50%, rgba(255, 214, 150, 0.18) 70%, transparent); }
+        .lente-anillo { width: 210px; height: 210px; margin: -105px 0 0 -105px;
+            background: radial-gradient(circle, transparent 60%, rgba(243, 156, 18, 0.07) 67%, rgba(243, 156, 18, 0.12) 72%, transparent 80%); }
+        .lente-g { background: radial-gradient(circle, rgba(255, 214, 150, 0.14) 0%, rgba(255, 214, 150, 0.09) 55%, rgba(255, 214, 150, 0.025) 76%, transparent 79%); }
+        .lente-g.g1 { width: 44px; height: 44px; margin: -22px 0 0 -22px; }
+        .lente-g.g2 { width: 26px; height: 26px; margin: -13px 0 0 -13px; }
+        .lente-g.g3 { width: 76px; height: 76px; margin: -38px 0 0 -38px; }
+        html.embed #lente { display: none; }
         html.estancia #mar { display: block; position: fixed; left: 0; right: 0; bottom: 0; height: 46vh; z-index: 5; pointer-events: none; overflow: hidden; contain: strict; }
         html.estancia #niebla-grabada, html.estancia #abyss-foreground, html.estancia #abyss-foreground-2 { display: none; }
         /* ?mar=0: interruptor para comparar con la lámina de antes (A/B a ojo). */
@@ -663,6 +676,10 @@
     <!-- La luz de los ojos, POR ENCIMA del mar y de todo lo que no sean los
          propios ojos (Ruben, 11-sep): un halo que sigue a la cabeza. -->
     <div id="luz-ojos" aria-hidden="true"></div>
+    <!-- LENTE (Ruben, 11-sep): un lens flare desenfocado nacido en los ojos:
+         una raya anamórfica, un anillo y tres fantasmas en el eje ojos→centro
+         de pantalla. Discos de compositor: transform y opacidad, cero filtros. -->
+    <div id="lente" aria-hidden="true"><i class="lente-raya"></i><i class="lente-anillo"></i><i class="lente-g g1"></i><i class="lente-g g2"></i><i class="lente-g g3"></i></div>
 
     <!-- ═══ ELEVENLABS 2/4 — call UI ═══ -->
     <div id="tizno-call-ui">
@@ -1078,6 +1095,10 @@
         const goolayers = document.querySelectorAll('.goo-layer');
         const luzSala = document.getElementById('luz-sala');
         const luzOjos = document.getElementById('luz-ojos');
+        const lente = document.getElementById('lente');
+        const lenteRaya = lente.querySelector('.lente-raya'), lenteAnillo = lente.querySelector('.lente-anillo');
+        const lenteG = [lente.querySelector('.g1'), lente.querySelector('.g2'), lente.querySelector('.g3')];
+        const LENTE_K = [0.5, 0.95, 1.55];   // posición de cada fantasma en el eje ojos → centro de pantalla
         let focoX = 0, focoY = 0;   // el halo de fondo va detrás de él, con pereza
 
         /* El pendiente: péndulo amortiguado colgado de la oreja. El navegador
@@ -2248,8 +2269,15 @@
                 luzSala.style.opacity = luz.toFixed(3);
                 luzSala.style.transform = `translate(${focoX.toFixed(1)}px, ${focoY.toFixed(1)}px)`;
                 // El halo de los ojos, clavado a la cabeza, encima del mar.
-                luzOjos.style.opacity = (luz * 0.95).toFixed(3);
+                luzOjos.style.opacity = (luz * 0.9).toFixed(3);
                 luzOjos.style.transform = `translate(${(hr.left + hr.width / 2 - 320).toFixed(1)}px, ${(hr.top + hr.height * 0.42 - 320).toFixed(1)}px)`;
+                // La lente: flare en el eje ojos → centro, que se apaga al parpadear.
+                const ex = hr.left + hr.width / 2, ey = hr.top + hr.height * 0.42;
+                const vx = window.innerWidth / 2 - ex, vy = window.innerHeight / 2 - ey;
+                lente.style.opacity = (luz * Math.max(0, Math.min(parpL, parpR)) * 0.85).toFixed(3);
+                lenteRaya.style.transform = `translate(${ex.toFixed(1)}px, ${ey.toFixed(1)}px) rotate(${(c_RigRot * 0.4).toFixed(2)}deg)`;
+                lenteAnillo.style.transform = `translate(${ex.toFixed(1)}px, ${ey.toFixed(1)}px)`;
+                for (let g = 0; g < 3; g++) lenteG[g].style.transform = `translate(${(ex + vx * LENTE_K[g]).toFixed(1)}px, ${(ey + vy * LENTE_K[g]).toFixed(1)}px)`;
             }
 
             // Respiración (antes en CSS): ciclo de 2 s, ahora a 30 fps.
@@ -2635,7 +2663,8 @@
                     const xl = i * paso - rectC.left;
                     if (xl < -paso || xl > lw + paso) continue;
                     const d = Math.min(xl, lw - xl), wv = d >= 150 ? 1 : Math.max(0, d / 150);   // 1 centro · 0 bordes
-                    const yl = yPag0 + marSuperficie(i, ahora) - rectC.top - 12 * wv + (1 - wv) * 90;
+                    // 4 px por DEBAJO de la superficie exterior: solo asoma el collar (el doble borde marcaba una línea).
+                    const yl = yPag0 + marSuperficie(i, ahora) - rectC.top + 4 * wv + (1 - wv) * 90;
                     if (primero) { c.moveTo(xl, yl); primero = false; } else c.quadraticCurveTo(qx, qy, (qx + xl) / 2, (qy + yl) / 2);
                     qx = xl; qy = yl;
                 }
@@ -2646,7 +2675,7 @@
                    cuello; el goo la funde con el tronco y con la ola y el
                    encuentro pasa de esquina a hombro redondo. */
                 const ic = Math.min(n - 1, Math.max(0, Math.round((window.innerWidth / 2) / paso)));
-                const yCol = yPag0 + marSuperficie(ic, ahora) - rectC.top - 6;
+                const yCol = yPag0 + marSuperficie(ic, ahora) - rectC.top - 2;
                 c.beginPath(); c.ellipse(window.innerWidth / 2 - rectC.left, yCol, 118, 34, 0, 0, 6.2832); c.fill();
                 c.setTransform(1, 0, 0, 1, 0, 0);
                 dibujarAtomos(ahora, dt);
@@ -2661,7 +2690,7 @@
             if (!rectC || POOL_C.length > CORONA_MAX) return;
             const cxL = window.innerWidth / 2 - rectC.left;
             const i = Math.round((window.innerWidth / 2) / MAR.paso);
-            const ySup = window.innerHeight - MAR.hh + marSuperficie(i, ahora) - rectC.top - 12;
+            const ySup = window.innerHeight - MAR.hh + marSuperficie(i, ahora) - rectC.top - 2;
             const k = 1 + Math.floor(fuerza * 2);
             for (let j = 0; j < k; j++) {
                 const lado = Math.random() < 0.5 ? -1 : 1;

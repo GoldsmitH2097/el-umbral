@@ -1170,6 +1170,30 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   (siguen traduciéndose por JS). Verificado en headless.
 - Tope diario reseteado otra vez desde su Chrome (1894 s).
 
+### 11-sep, madrugada (19) — halo sutil, sin doble borde, lente; lava blobby; prompt burlón
+- Ruben: «has hecho lo contrario: tan brillante que se nota la línea; lo que
+  quería es que el brillo vaya encima para que no se note el corte entre
+  capas»; «¿un lens flare desenfocado en los ojos? podría molar»; «los blobs
+  muy grandes: más pequeños, menos duraderos, más blobby»; «Tizno más burlón
+  y juguetón: chistes, dichos y refranes con lo que dice el usuario; un
+  pequeño sabio resabiado».
+- `#luz-ojos` a un tercio (0,13 pico): no ilumina, solo funde el horizonte
+  bajo los ojos. La orilla interior pasa a 4 px POR DEBAJO de la superficie
+  exterior (antes 12 por encima: su borde blando sobre el borde nítido del
+  lienzo era la línea que se veía al iluminarse); queda solo el collar.
+- `#lente` (z 11, oculto en embed): raya anamórfica (560×3), anillo (210)
+  y tres fantasmas (44/26/76 px) en el eje ojos→centro de pantalla
+  (k 0,5/0,95/1,55), `mix-blend-mode: screen`, opacidad = luz × ojos
+  abiertos (min(parpL, parpR)) × 0,85: se apaga al parpadear. Solo
+  transform+opacity en el tick de 30 fps.
+- Lava v3: masa de 3–5 gotas medianas (tam 70–110 × 0,55–1,05) con t0
+  desfasados, 3,5–5,5 s, subida 180–280; rastro 6–9 gotas de 16–40 px.
+- Prompt Main: bloque «BURLÓN, SABIO RESABIADO» tras el pícaro (publicado,
+  «Add mocking and wise-cracking personality traits»): coge palabras del
+  visitante y las devuelve en chiste, juego de palabras, dicho o refrán
+  retorcido («a quien madruga, Tizno le asusta»); pulla cada 2–3 respuestas;
+  burla de amigo; en inglés con sus propios proverbios.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
