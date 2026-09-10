@@ -110,9 +110,9 @@ export const CATALOGUE = [
         label_en: 'Print Edition',
         status: 'coming-soon',
         retailers: [
-          { id: 'casadellibro',  soon: true },
-          { id: 'elcorteingles', soon: true },
-          { id: 'fnac',          soon: true },
+          { id: 'casadellibro',  soon: true , solo: 'es' },
+          { id: 'elcorteingles', soon: true , solo: 'es' },
+          { id: 'fnac',          soon: true , solo: 'es' },
           { id: 'amazon',        soon: true },
         ],
       },
@@ -159,11 +159,34 @@ export const CATALOGUE = [
         label_en: 'Print Edition',
         status: 'available',
         img: '/assets/pulso-soft-cover-es.webp',
+        /* TIENDAS POR UBICACIÓN (Ruben, 10-sep-2026): las librerías españolas
+           solo se enseñan en España; fuera solo hay Amazon (el de cada país,
+           vía `tiendas`) y, en Latinoamérica, Buscalibre. La región sale de
+           la zona horaria del navegador (ArchiveDOM.regionDelVisitante):
+           sin red, sin cookies, sin rastreo. `solo` = dónde se ve;
+           `tiendas` = URL por región (clave de región, 'latam' o 'fuera'). */
         retailers: [
-          { id: 'casadellibro',  url: 'https://www.casadellibro.com/libro-pulso-del-nucleo/9788409810345/18324058' },
-          { id: 'elcorteingles', url: 'https://www.elcorteingles.es/libros/A201079459-pulso-del-nucleo-tapa-blanda-con-solapas/' },
-          { id: 'fnac',          url: 'https://www.fnac.es/a13262523/Ww-etAmp-Pulso-Del-Nucleo' },
-          { id: 'amazon',        url: 'https://www.amazon.es/Pulso-del-N%C3%BAcleo-Parte-Eterno/dp/8409810344/' },
+          { id: 'casadellibro',  url: 'https://www.casadellibro.com/libro-pulso-del-nucleo/9788409810345/18324058', solo: 'es' },
+          { id: 'elcorteingles', url: 'https://www.elcorteingles.es/libros/A201079459-pulso-del-nucleo-tapa-blanda-con-solapas/', solo: 'es' },
+          { id: 'fnac',          url: 'https://www.fnac.es/a13262523/Ww-etAmp-Pulso-Del-Nucleo', solo: 'es' },
+          { id: 'amazon',        url: 'https://www.amazon.es/Pulso-del-N%C3%BAcleo-Parte-Eterno/dp/8409810344/',
+            tiendas: {
+              uk: 'https://www.amazon.co.uk/dp/8409810344', us: 'https://www.amazon.com/dp/8409810344',
+              de: 'https://www.amazon.de/dp/8409810344',    fr: 'https://www.amazon.fr/dp/8409810344',
+              it: 'https://www.amazon.it/dp/8409810344',    ca: 'https://www.amazon.ca/dp/8409810344',
+              mx: 'https://www.amazon.com.mx/dp/8409810344', fuera: 'https://www.amazon.com/dp/8409810344',
+            } },
+          // Buscalibre: misma ficha en cada país; buscalibre.com redirige por
+          // geolocalización a quien no tenga dominio propio en la lista.
+          { id: 'buscalibre', solo: 'latam', url: 'https://www.buscalibre.com/libro-pulso-del-nucleo-nucleo-eterno/9791399282702/p/68644555',
+            tiendas: {
+              mx: 'https://www.buscalibre.com.mx/libro-pulso-del-nucleo-nucleo-eterno/9791399282702/p/68644555',
+              co: 'https://www.buscalibre.com.co/libro-pulso-del-nucleo-nucleo-eterno/9791399282702/p/68644555',
+              cl: 'https://www.buscalibre.cl/libro-pulso-del-nucleo-nucleo-eterno/9791399282702/p/68644555',
+              ar: 'https://www.buscalibre.com.ar/libro-pulso-del-nucleo-nucleo-eterno/9791399282702/p/68644555',
+              pe: 'https://www.buscalibre.pe/libro-pulso-del-nucleo-nucleo-eterno/9791399282702/p/68644555',
+              ec: 'https://www.buscalibre.ec/libro-pulso-del-nucleo-nucleo-eterno/9791399282702/p/68644555',
+            } },
         ],
       },
       {
@@ -174,8 +197,15 @@ export const CATALOGUE = [
         // Kindle ASIN B0G6LLMP8G. Resolved from the amzn.eu share link and
         // stored canonical + bare: the short form can rot, and the long form
         // carried a personal share token in its query string.
+        // La tienda Kindle de cada país; fuera de la lista, la de EE. UU.
         retailers: [
-          { id: 'ebook', url: 'https://www.amazon.es/dp/B0G6LLMP8G' },
+          { id: 'ebook', url: 'https://www.amazon.es/dp/B0G6LLMP8G',
+            tiendas: {
+              uk: 'https://www.amazon.co.uk/dp/B0G6LLMP8G', us: 'https://www.amazon.com/dp/B0G6LLMP8G',
+              de: 'https://www.amazon.de/dp/B0G6LLMP8G',    fr: 'https://www.amazon.fr/dp/B0G6LLMP8G',
+              it: 'https://www.amazon.it/dp/B0G6LLMP8G',    ca: 'https://www.amazon.ca/dp/B0G6LLMP8G',
+              mx: 'https://www.amazon.com.mx/dp/B0G6LLMP8G', fuera: 'https://www.amazon.com/dp/B0G6LLMP8G',
+            } },
         ],
       },
       {
@@ -198,7 +228,7 @@ export const CATALOGUE = [
            web (Ruben, 10-sep-2026). Ver porUbicacion() en ArchiveDOM. */
         retailers: [
           { id: 'ebook', url: 'https://www.amazon.com/dp/B0G6Y3PH6R', nota: 'Amazon US',
-            url_uk: 'https://www.amazon.co.uk/dp/B0G6Y3PH6R', nota_uk: 'Amazon UK' },
+            tiendas: { uk: { url: 'https://www.amazon.co.uk/dp/B0G6Y3PH6R', nota: 'Amazon UK' } } },
         ],
       },
     ],
@@ -250,9 +280,9 @@ export const CATALOGUE = [
         status: 'available',
         retailers: [
           { id: 'amazon', url: 'https://www.amazon.es/dp/8409861771' },
-          { id: 'casadellibro',  soon: true },
-          { id: 'elcorteingles', soon: true },
-          { id: 'fnac',          soon: true },
+          { id: 'casadellibro',  soon: true , solo: 'es' },
+          { id: 'elcorteingles', soon: true , solo: 'es' },
+          { id: 'fnac',          soon: true , solo: 'es' },
         ],
       },
     ],

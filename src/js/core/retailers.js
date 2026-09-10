@@ -50,6 +50,11 @@ export const RETAILERS = {
                    logo: '/assets/retailers/fnac.svg' },
   amazon:        { name: 'Amazon',          brand: '#ff9900',
                    logo: '/assets/retailers/amazon.svg' },
+  // Latinoamérica (Ruben, 10-sep-2026): Buscalibre lleva Pulso en México,
+  // Colombia, Chile, Argentina, Perú y Ecuador con el ISBN 979-13-99282-70-2
+  // (otra tirada). Sin logo aún → wordmark. OJO: en sus fichas de LatAm la
+  // portada sale rota (placeholder «no_image»); en buscalibre.es sale bien.
+  buscalibre:    { name: 'Buscalibre',      brand: '#1a73e8' },
 
   // ── LAS LLAVES DE ANATOMÍA (Ruben, 8-sep-2026) ─────────────────────────
   // Anatomía del Vacío no se compra en una tienda: se entra. Para que su

@@ -268,7 +268,15 @@ function ghostObra(id, lang) {
       // Una puerta con variante por país (url_uk) se lista dos veces para
       // los buscadores: la tienda real se elige en el navegador por ubicación.
       const shops = (ed.retailers || []).filter(r => !esLlave(r))
-        .flatMap(r => r.url_uk ? [r, { ...r, url: r.url_uk, nota: r.nota_uk }] : [r]).map(r => {
+        .flatMap(r => {
+          // Variantes por región (`tiendas`): cada tienda real, una vez.
+          // Cada variante se etiqueta con su dominio (amazon.co.uk, buscalibre.cl…)
+          // para que la lista no repita ocho «Amazon» iguales.
+          const dominio = (u) => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (_) { return ''; } };
+          const extra = Object.entries(r.tiendas || {}).filter(([k]) => k !== 'fuera' && k !== 'latam')
+            .map(([, v]) => (typeof v === 'string' ? { ...r, url: v, nota: dominio(v) } : { ...r, ...v }));
+          return [{ ...r, nota: r.nota || (r.tiendas ? dominio(r.url) : '') }, ...extra];
+        }).map(r => {
         const name = RETAILERS[r.id]?.name || r.id;
         if (!r.url) return `<li>${name}${hayEnlace ? ` — ${t.soonShop}` : ''}</li>`;
         return `<li><a href="${r.url}" rel="noopener">${ed.titulo || o.title} — ${name}${r.nota ? ` (${r.nota})` : ''}</a></li>`;

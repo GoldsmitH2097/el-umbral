@@ -11,15 +11,50 @@ import { retailer } from '../core/retailers.js';
 // A shop. The logo is painted via CSS mask (see retailers.js) so its colour is
 // pure CSS and the hover is a real colour transition; until the asset exists we
 // render a styled wordmark instead. Never a broken image.
-/* Tienda por UBICACIÓN del visitante, no por idioma: la edición inglesa de
-   Pulso solo se vende en las tiendas Kindle de EE. UU. y Reino Unido, y un
-   británico no puede comprar en amazon.com. La zona horaria del navegador
-   basta para distinguirlos — sin red, sin cookies, sin rastreo. */
-const EN_REINO_UNIDO = (() => {
-  try { return /^Europe\/(London|Belfast)$/.test(Intl.DateTimeFormat().resolvedOptions().timeZone); }
-  catch (_) { return false; }
-})();
-const porUbicacion = (r) => (EN_REINO_UNIDO && r.url_uk) ? { ...r, url: r.url_uk, nota: r.nota_uk || r.nota } : r;
+/* ── TIENDAS POR UBICACIÓN, NO POR IDIOMA (Ruben, 10-sep-2026) ──────────────
+   Las librerías españolas solo se enseñan en España; fuera, el Amazon de cada
+   país; en Latinoamérica, además, Buscalibre; la edición inglesa de Pulso,
+   solo en las tiendas Kindle de EE. UU. y Reino Unido. La región sale de la
+   zona horaria del navegador: sin red, sin cookies, sin rastreo. `?region=mx`
+   en la URL fuerza una región para previsualizar. */
+export function regionDelVisitante() {
+  try {
+    const forzada = new URLSearchParams(location.search).get('region');
+    if (forzada) return forzada;
+  } catch (_) {}
+  let tz = '';
+  try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (_) {}
+  if (/^(Europe\/Madrid|Atlantic\/Canary|Africa\/Ceuta)$/.test(tz)) return 'es';
+  if (/^Europe\/(London|Belfast|Guernsey|Jersey|Isle_of_Man)$/.test(tz)) return 'uk';
+  if (/^Europe\/(Berlin|Busingen)$/.test(tz)) return 'de';
+  if (/^Europe\/Paris$/.test(tz)) return 'fr';
+  if (/^Europe\/(Rome|Vatican|San_Marino)$/.test(tz)) return 'it';
+  if (/^America\/(Mexico_City|Cancun|Merida|Monterrey|Chihuahua|Hermosillo|Tijuana|Mazatlan|Bahia_Banderas|Matamoros|Ojinaga|Ciudad_Juarez)$/.test(tz)) return 'mx';
+  if (/^America\/Bogota$/.test(tz)) return 'co';
+  if (/^America\/(Santiago|Punta_Arenas)$|^Pacific\/Easter$/.test(tz)) return 'cl';
+  if (/^America\/(Argentina\/|Buenos_Aires|Cordoba|Mendoza|Jujuy|Catamarca)/.test(tz)) return 'ar';
+  if (/^America\/Lima$/.test(tz)) return 'pe';
+  if (/^America\/Guayaquil$|^Pacific\/Galapagos$/.test(tz)) return 'ec';
+  if (/^America\/Montevideo$/.test(tz)) return 'uy';
+  if (/^America\/(Toronto|Vancouver|Edmonton|Winnipeg|Halifax|St_Johns|Regina|Montreal|Moncton|Whitehorse|Yellowknife|Iqaluit|Dawson|Glace_Bay|Goose_Bay|Thunder_Bay|Nipigon|Rainy_River|Atikokan|Swift_Current|Cambridge_Bay|Inuvik|Creston|Dawson_Creek|Fort_Nelson)$/.test(tz)) return 'ca';
+  if (/^America\/(New_York|Chicago|Denver|Los_Angeles|Phoenix|Anchorage|Detroit|Boise|Juneau|Sitka|Nome|Adak|Metlakatla|Menominee|Indiana\/|Kentucky\/|North_Dakota\/)|^Pacific\/Honolulu$|^US\//.test(tz)) return 'us';
+  if (/^America\//.test(tz)) return 'latam';
+  return 'row';
+}
+const REGION = regionDelVisitante();
+const LATAM = ['mx', 'co', 'cl', 'ar', 'pe', 'ec', 'uy', 'latam'];
+const enGrupo = (g) => g === 'fuera' ? REGION !== 'es' : g === 'latam' ? LATAM.includes(REGION) : g === REGION;
+// ¿Se enseña esta tienda aquí? `solo` = región, 'latam' o 'fuera' (o lista).
+const tiendaVisible = (r) => !r.solo || [].concat(r.solo).some(enGrupo);
+// La URL (y nota) de esta tienda para la región: clave exacta → 'latam' → 'fuera'.
+export const porUbicacion = (r) => {
+  const t = r.tiendas || {};
+  const v = t[REGION] ?? (LATAM.includes(REGION) ? t.latam : undefined) ?? (REGION !== 'es' ? t.fuera : undefined);
+  if (!v) return r;
+  return typeof v === 'string' ? { ...r, url: v } : { ...r, ...v };
+};
+// Las tiendas de una edición tal como las ve ESTE visitante.
+const tiendasDe = (ed) => (ed.retailers || []).filter(tiendaVisible).map(porUbicacion);
 
 function retailerLink(r, nombre) {
   const meta = retailer(r.id);
@@ -50,7 +85,7 @@ function retailerLink(r, nombre) {
 // An edition = a label, an invitation, and the shops that carry it.
 function editionBlock(ed) {
   const label   = getField(ed, 'label');
-  const shops   = (ed.retailers || []).filter(r => r.url); // no link, no logo
+  const shops   = tiendasDe(ed).filter(r => r.url); // no link, no logo
   const soonLbl = getField(ed, 'buyLabel') || t('cta.coming-soon');
 
   // Available but nothing linkable yet (e.g. a URL we're still waiting on)
@@ -80,7 +115,7 @@ function editionBlock(ed) {
   return `<div class="obra-edition-block">
     <p class="obra-edition-head">${label}</p>
     ${meta ? `<p class="obra-edition-meta">${meta}</p>` : ''}
-    <div class="retailer-strip">${shops.map(retailerLink).join('')}</div>
+    <div class="retailer-strip">${shops.map(r => retailerLink(r)).join('')}</div>
   </div>`;
 }
 
@@ -121,13 +156,13 @@ export function tieneTiendasPronto(item) {
 export function renderCta(item, { detail = false } = {}) {
   if (item.editions) {
     const linkable = item.editions.filter(
-      ed => ed.status === 'available' && (ed.retailers || []).some(r => r.url));
+      ed => ed.status === 'available' && tiendasDe(ed).some(r => r.url));
     // Tiendas anunciadas sin enlace (soon:true): van apagadas en la misma
     // fila. Un libro sin NINGUNA puerta abierta pero con tiendas anunciadas
     // recibe el cofre igual — así El Último Pago vive como un igual de Pulso
     // y Filamentos (Ruben, 8-sep-2026).
     const pronto = [];
-    item.editions.forEach(ed => (ed.retailers || []).forEach(r => { if (r.soon && !r.url) pronto.push(r); }));
+    item.editions.forEach(ed => tiendasDe(ed).forEach(r => { if (r.soon && !r.url) pronto.push(r); }));
     if (linkable.length || pronto.length) {
       // The legendary chest (Ruben-approved v5): every layer is decorative,
       // aria-hidden, pointer-events:none, and animated with transform/opacity
@@ -174,7 +209,7 @@ export function renderCta(item, { detail = false } = {}) {
       const impresas = [], digitales = [], lenguas = [];
       linkable.forEach(ed => {
         const esDigital = /ebook|digital|kindle/i.test(`${ed.label || ''} ${ed.id || ''}`);
-        (ed.retailers || []).filter(r => r.url).forEach(r => {
+        tiendasDe(ed).filter(r => r.url).forEach(r => {
           /* Ediciones en otra lengua (`idioma` en CATALOGUE): opción propia,
              visible en ES y en EN por igual, en su propia fila bajo las
              tiendas (Ruben, 10-sep-2026). */
@@ -186,23 +221,23 @@ export function renderCta(item, { detail = false } = {}) {
         ${lootDecor}
         <p class="obra-edition-invite">${getField(item, 'cofreInvite') || (linkable.length ? t('cta.buy') : t('cta.soon-at'))}</p>
         <div class="cofre-strip">
-          ${impresas.map(retailerLink).join('')}
-          ${digitales.length ? `<span class="cofre-sep" aria-hidden="true"></span><span class="cofre-ebook">${digitales.map(retailerLink).join('')}<i aria-hidden="true">ebook</i></span>` : ''}
+          ${impresas.map(r => retailerLink(r)).join('')}
+          ${digitales.length ? `<span class="cofre-sep" aria-hidden="true"></span><span class="cofre-ebook">${digitales.map(r => retailerLink(r)).join('')}<i aria-hidden="true">ebook</i></span>` : ''}
           ${pronto.length ? (linkable.length
               /* Mezcla (Filamentos): las anunciadas cierran la fila tras un
                  filete, con su nota minúscula — el mismo lenguaje que el ebook. */
-              ? `<span class="cofre-sep" aria-hidden="true"></span><span class="cofre-pronto">${pronto.map(retailerLink).join('')}<i aria-hidden="true">${t('cta.soon-note')}</i></span>`
+              ? `<span class="cofre-sep" aria-hidden="true"></span><span class="cofre-pronto">${pronto.map(r => retailerLink(r)).join('')}<i aria-hidden="true">${t('cta.soon-note')}</i></span>`
               /* Solo anunciadas. Si la invitación es propia (Anatomía:
                  «Experiencia inmersiva») no dice «próximamente», así que la
                  nota va bajo las marcas, repartidas a lo ancho como en los
                  demás cofres. Si la invitación ya es «Próximamente en»
                  (El Último Pago), marcas a secas. */
               : (item.cofreInvite
-                  ? `<span class="cofre-pronto cofre-pronto--solo">${pronto.map(retailerLink).join('')}<i aria-hidden="true">${t('cta.soon-note')}</i></span>`
-                  : pronto.map(retailerLink).join(''))) : ''}
+                  ? `<span class="cofre-pronto cofre-pronto--solo">${pronto.map(r => retailerLink(r)).join('')}<i aria-hidden="true">${t('cta.soon-note')}</i></span>`
+                  : pronto.map(r => retailerLink(r)).join(''))) : ''}
         </div>
         ${lenguas.length ? `<div class="cofre-lenguas">${[...new Set(lenguas.map(l => l.ed))].map(ed =>
-            `<span class="cofre-lengua"><i aria-hidden="true">${getField(ed, 'label')}</i>${lenguas.filter(l => l.ed === ed).map(({ r }) => porUbicacion(r)).map((r) =>
+            `<span class="cofre-lengua"><i aria-hidden="true">${getField(ed, 'label')}</i>${lenguas.filter(l => l.ed === ed).map(({ r }) => r).map((r) =>
               `<span class="cofre-lengua-tienda">${retailerLink(r, `${getField(ed, 'label')} — ${r.nota || ''}`)}<i aria-hidden="true">${r.nota || ''}</i></span>`).join('')}</span>`).join('')}</div>` : ''}
       </div>`;
     }
