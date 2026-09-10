@@ -428,6 +428,61 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   del Reino; saludos por franja los compone la página (`{{saludo}}`).
 - Siguiente: la página standalone.
 
+### Baby Tizno — 10-sep, mediodía: LA PRUEBA LIVE (Ruben: «sigue hasta que tengamos una prueba live»)
+- **URL de prueba: https://soulware.live/baby-tizno/** (sin enlazar, con
+  `noindex`, fuera del sitemap). Tablet, móvil y escritorio con la misma
+  página. Solo con ADULTOS hasta el permiso escrito de ElevenLabs.
+- **Cómo está hecha**: `scripts/generate-baby-tizno.js` (postbuild) genera
+  `dist/baby-tizno/index.html` A PARTIR de `public/tizno-ai.html` (misma
+  criatura, una sola fuente): cambia la puerta del head (solo /baby-tizno y
+  ?demo=1), inyecta `src/baby-tizno/baby.css` (piel de día: negro acogedor,
+  luz de vela cálida, botón grande) y `src/baby-tizno/baby-ui.html` (capas de
+  la zona de mayores), parchea el rig (sin sustos: `scareSfx` y `sfxPlay`
+  solo pop/ronroneo) y sustituye el módulo del SDK por
+  `src/baby-tizno/baby.js`. Cada ancla del rig se comprueba: si el rig
+  cambia, el build falla en voz alta. El resultado se minifica como el rig.
+- **Flujo**: puerta del adulto (la primera vez, texto de transparencia +
+  casilla; siempre, una multiplicación 3–9 × 3–9) → Inicio (resumen del
+  último capítulo, estado, «Dáselo al peque» / «Ajustes») → Ajustes (franja
+  5-7/8-10/11-12, nombre del héroe opcional, memoria on/off, «cosas que no
+  entran en el cuento», Recuerdos con borrado por elemento, Historial por
+  capítulo con resumen y transcripción y borrado, «Empezar historia nueva»
+  = el Reino pasa al archivo, «Borrar todo») → pantalla del niño (Tizno +
+  botón grande «Hablar con Tizno»/«Parar», rincón «Mayores» arriba a la
+  derecha) → fin de capítulo («Fin del capítulo» si el agente llamó a
+  cerrar_capitulo; «Paramos aquí» si se interrumpió) → «Soy mayor» → puerta.
+- **Estado en el aparato** (`localStorage.bt_v1`): puerta, ajustes, reino
+  {recuerdos[], capitulos[{n, inicio, fin, lineas[], resumen, cerrado,
+  conversationId}]}, archivo[]. Tope diario `bt_daily` 40 min. Sesión 11 min
+  (el agente corta a 10). A los 75 s del final se le susurra al agente que
+  cierre con calma (sendContextualUpdate).
+- **Filtro de datos sensibles** (`limpiar`): correos, teléfonos, «Colegio X»,
+  direcciones con número (y piso), «mi apellido/dirección/teléfono…». Se
+  aplica a lo que dice el niño y a lo que anota el agente; nunca a los
+  textos del cuento de Tizno. Probado: «la calle de la aldea» y «la escuela
+  de la aldea» NO se tocan.
+- **Agente `agent_3601…` (Main, publicado 3 veces hoy)**: prompt v0.1 ·
+  tools de cliente `anotar(hecho)`, `rebobinar()`, `cerrar_capitulo(resumen)`
+  (todas sin esperar respuesta) · KB con dos textos («El Reino de la Primera
+  Llama», canon de Javier tal cual; «Oráculos») con **RAG desactivado** (la
+  KB es pequeña y va entera al prompt) · first message `{{saludo}}` que
+  compone la página por franja y modo (con la frase de IA) · variables
+  dinámicas heroe, franja, modo, capitulo, recuerdos, vetados, saludo.
+- **Función `netlify/functions/baby-borrar.mjs`**: borra la conversación en
+  ElevenLabs cuando el adulto borra un capítulo. Necesita
+  `ELEVENLABS_API_KEY` en Netlify (Javier); sin ella responde
+  `not_configured` y el borrado local ya está hecho.
+- **Trucos del panel aprendidos hoy**: los menús de «Add tool» y «Add
+  document» son Radix (abrir con clic por coordenadas, no con JS); las
+  herramientas se pegan en «Edit as JSON» (CodeMirror: seleccionar con
+  Range + ClipboardEvent('paste')); los parámetros necesitan
+  `dynamic_variable: ''` y `constant_value: ''`; el texto de la KB se mete
+  con `execCommand('insertText')` en el textarea del diálogo «Create Text».
+- **Probado**: puerta, inicio, ajustes, Recuerdos e historial (con datos
+  sembrados), pantalla del niño, error de micrófono, rincón de mayores. NO
+  probado: la conversación de voz de principio a fin (la vista previa no
+  tiene micrófono). Es la prueba que hace Ruben.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
