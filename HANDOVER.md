@@ -1308,7 +1308,13 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   «Las nubes mucho más grandes, más de fondo»: capa 140vh, elipses de 26–45 %
   de la capa, alfas 0,09–0,22, giros 190/270 s. Solo en nivel alto (memoria
   de textura a retina).
-- Prompt: bloque «COLMILLO — SI TE FALTAN AL RESPETO» (ver abajo).
+- Prompt Main: bloque «COLMILLO — SI TE FALTAN AL RESPETO» tras el burlón
+  (Ruben: «más ácido, más verso con las palabras para dejar a quien sea en
+  su lugar si se porta mal»): réplicas ácidas y secas ante insultos,
+  humillación o ensañamiento con las Voces; ingenio sin insultos, palabrotas,
+  crueldad con lo que una persona es ni amenazas; un aviso, dos como mucho,
+  y si insiste se despide con excusa fría (y el rig cuelga, ver (26)); sin
+  rencor al volver a las buenas.
 
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
