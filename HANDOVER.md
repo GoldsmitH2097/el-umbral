@@ -984,6 +984,21 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   localStorage de soulware.live (o tecla 0 con ?tune=1). Hecho desde su
   Chrome; el botón volvió a «Hablar con Tizno».
 
+### 10-sep, noche (11) — menos distorsión y filtro más barato
+- Ruben: «me gusta mucho; un poco demasiada distorsión; no veo diferencia
+  entre los sliders, prefiero ir describiendo; no matar la GPU».
+- El cuerpo pasa a UN solo ruido (fractalNoise 0.02/0.05, 3 octavas: la
+  grave retuerce, la aguda eriza) y UN desplazamiento (12) en vez de dos
+  turbulencias y dos desplazamientos (12 + 18). El vaho reutiliza ese mismo
+  ruido (desenfoque 8, subida 24, alfa 0,5). Coste sobre el filtro original
+  del cuerpo: un desenfoque y un desplazamiento más, cero turbulencias
+  extra. Medio = el original con una octava más. Bajo intacto.
+- Panel ?tune=1: fuera el slider de pelaje; queda «Cuerpo: distorsión
+  (pelusa+humo)» + vaho opacidad/subida. Ruben prefiere describir: no
+  apoyarse en los sliders.
+- Verificado en su Chrome contra el servidor local: contorno con pelusa
+  fina, orejas ya no rasgadas, halo de humo discreto.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
