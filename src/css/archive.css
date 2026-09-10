@@ -1120,14 +1120,17 @@ html { -webkit-tap-highlight-color: transparent; }
 #pago-express[hidden], #pago-o[hidden] { display: none; }
 #pago-o { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: #6b6b6b; margin: 0 0 14px; display: flex; align-items: center; gap: 12px; }
 #pago-o::before, #pago-o::after { content: ''; flex: 1; height: 1px; background: rgba(200,146,42,0.18); }
-#pago-contacto { margin: 0 0 10px; text-align: left; }
-#pago-elemento { margin: 0 0 14px; text-align: left; }
+.pago-paso { text-align: left; margin: 0 0 6px; padding: 16px 0 12px; border-top: 1px solid rgba(200,146,42,0.18); }
+.pago-paso-titulo { display: flex; align-items: center; gap: 12px; font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: #c8922a; font-weight: normal; margin: 0 0 12px; }
+.pago-num { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; flex: 0 0 24px; border: 1px solid rgba(200,146,42,0.6); border-radius: 50%; font-size: 12px; letter-spacing: 0; color: #e8c87a; }
+#pago-contacto { margin: 0 0 4px; text-align: left; }
+#pago-elemento { margin: 0; text-align: left; }
 #pago-errores { color: #e0704f; font-size: 12.5px; line-height: 1.6; min-height: 0; margin: 0 0 10px; }
 #pago-errores:empty { display: none; }
 #pago-confirmar { width: 100%; background: transparent; border: 1px solid rgba(200,146,42,0.55); color: #e8c87a; padding: 13px 24px; font-size: 12px; letter-spacing: 4px; text-transform: uppercase; cursor: pointer; transition: color 0.3s, border-color 0.3s, background 0.3s; font-family: 'Times New Roman', serif; }
 #pago-confirmar:hover, #pago-confirmar:focus-visible { border-color: #e8c87a; color: #fff; background: rgba(200,146,42,0.12); outline: none; }
 #pago-confirmar:disabled { opacity: 0.4; cursor: default; background: transparent; color: #e8c87a; border-color: rgba(200,146,42,0.55); }
-#pago-nota { font-size: 11px; color: #6b6b6b; line-height: 1.7; margin: 16px 0 0; }
+#pago-nota { font-size: 11px; color: #6b6b6b; line-height: 1.7; margin: 10px 0 0; }
 #pago-estado h3 { font-size: 13px; letter-spacing: 5px; text-transform: uppercase; color: #e8c87a; font-weight: normal; margin: 22px 0 14px; }
 #pago-estado p { font-size: 13px; color: #999; line-height: 1.9; margin: 0 0 8px; }
 #pago-cerrar { position: absolute; top: 10px; right: 14px; background: transparent; border: none; color: #555; font-size: 24px; line-height: 1; padding: 5px 10px; cursor: pointer; transition: color 0.3s; }

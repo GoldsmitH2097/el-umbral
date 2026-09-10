@@ -75,6 +75,9 @@ function textos() {
   $('pago-o').textContent = t('pago.o-con');
   $('pago-nota').textContent = t('pago.nota');
   $('pago-correo-nota').textContent = t('pago.correo-nota');
+  $('pago-paso1-t').textContent = t('pago.paso1');
+  $('pago-paso2-t').textContent = t('pago.paso2');
+  $('pago-paso3-t').textContent = t('pago.paso3');
   $('pago-marcas').setAttribute('aria-label', t('pago.marcas-aria'));
   $('pago-cerrar').setAttribute('aria-label', t('aviso.close-aria'));
   $('pago-confirmar').textContent = t('pago.pagar');
@@ -179,10 +182,12 @@ export async function abrirPago(obraId) {
       paymentMethodOrder: ['applePay', 'googlePay', 'paypal'],
       layout: { maxColumns: 1, maxRows: 3, overflow: 'never' },
     });
-    // Sin cartera disponible en este navegador, ni hueco ni «o paga con».
+    /* Sin cartera disponible en este navegador, ni hueco ni «o paso a paso».
+       Stripe anuncia qué botones hay en el evento `ready`
+       (availablePaymentMethods); Apple Pay solo en Safari con Wallet. */
     $('pago-express').hidden = true; $('pago-o').hidden = true;
-    express.on('availablepaymentmethodschange', ({ paymentMethods }) => {
-      const hay = !!paymentMethods && Object.values(paymentMethods).some(Boolean);
+    express.on('ready', ({ availablePaymentMethods }) => {
+      const hay = !!availablePaymentMethods && Object.values(availablePaymentMethods).some(Boolean);
       $('pago-express').hidden = !hay;
       $('pago-o').hidden = !hay;
     });

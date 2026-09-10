@@ -494,11 +494,20 @@
     <div id="pago-cuerpo" hidden>
       <div id="pago-express"></div>
       <p id="pago-o"></p>
-      <p id="pago-correo-nota"></p>
-      <div id="pago-contacto"></div>
-      <div id="pago-elemento"></div>
-      <p id="pago-errores" role="alert"></p>
-      <button id="pago-confirmar" type="button" disabled></button>
+      <section class="pago-paso" aria-labelledby="pago-paso1-t">
+        <h3 class="pago-paso-titulo"><span class="pago-num" aria-hidden="true">1</span><span id="pago-paso1-t"></span></h3>
+        <p id="pago-correo-nota"></p>
+        <div id="pago-contacto"></div>
+      </section>
+      <section class="pago-paso" aria-labelledby="pago-paso2-t">
+        <h3 class="pago-paso-titulo"><span class="pago-num" aria-hidden="true">2</span><span id="pago-paso2-t"></span></h3>
+        <div id="pago-elemento"></div>
+      </section>
+      <section class="pago-paso" aria-labelledby="pago-paso3-t">
+        <h3 class="pago-paso-titulo"><span class="pago-num" aria-hidden="true">3</span><span id="pago-paso3-t"></span></h3>
+        <p id="pago-errores" role="alert"></p>
+        <button id="pago-confirmar" type="button" disabled></button>
+      </section>
       <p id="pago-nota"></p>
     </div>
     <div id="pago-estado" hidden>

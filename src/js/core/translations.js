@@ -53,10 +53,13 @@ export const STRINGS = {
 
     // ── Pago (cofre de compra propio, 10-sep-2026) ──────────────────────────
     'pago.eyebrow':           'Acceso a la experiencia',
-    'pago.o-con':             'o paga con',
+    'pago.o-con':             'o paso a paso',
+    'pago.paso1':             'Tu correo',
+    'pago.paso2':             'Cómo pagar',
+    'pago.paso3':             'Confirmar',
     'pago.pagar':             'Pagar',
     'pago.cargando':          'Cargando pasarela de pago segura…',
-    'pago.correo-nota':       'Tu correo: ahí te enviaremos la llave de acceso.',
+    'pago.correo-nota':       'Ahí te enviaremos la llave de acceso.',
     'pago.marcas-aria':       'Métodos de pago aceptados: Visa, Mastercard, Apple Pay, Google Pay, Bizum y PayPal',
     'pago.comprobando':       'Comprobando el pago…',
     'pago.nota':              'Pago seguro procesado por Stripe. IVA incluido. Tras el pago recibirás la llave en tu correo.',
@@ -213,10 +216,13 @@ export const STRINGS = {
 
     // ── Payment (own checkout modal, 10-sep-2026) ───────────────────────────
     'pago.eyebrow':           'Access to the experience',
-    'pago.o-con':             'or pay with',
+    'pago.o-con':             'or step by step',
+    'pago.paso1':             'Your email',
+    'pago.paso2':             'How to pay',
+    'pago.paso3':             'Confirm',
     'pago.pagar':             'Pay',
     'pago.cargando':          'Loading the secure payment gateway…',
-    'pago.correo-nota':       'Your email: that is where we will send the access key.',
+    'pago.correo-nota':       'That is where we will send the access key.',
     'pago.marcas-aria':       'Accepted payment methods: Visa, Mastercard, Apple Pay, Google Pay, Bizum and PayPal',
     'pago.comprobando':       'Checking the payment…',
     'pago.nota':              'Secure payment processed by Stripe. VAT included. After paying you will receive the key by email.',
