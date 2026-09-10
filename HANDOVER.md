@@ -1236,6 +1236,21 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   siguen valiendo.
 - «Dejarle en paz» (`.live`): 30 px y mismo amarillo, sin rojo.
 
+### 11-sep, madrugada (24) — Tizno sabe las tiendas; ebook en dos idiomas; «no lo sé»
+- Ruben: «Tizno debería saber los nombres de las tiendas (El Corte Inglés,
+  Fnac…); el ebook también está en español (el original) y en inglés
+  (traducido por el autor); si no tiene información, que diga que no sabe».
+- Prompt Main, PIEZA 4 (sacado de StateManager): Pulso en papel en España
+  en Casa del Libro, El Corte Inglés, Fnac y Amazon; ebook Kindle en
+  español (original) e inglés («Pulse of the Core — Eternal Core»,
+  traducido por el propio autor); fuera de España el Amazon de cada país y
+  Buscalibre en Latinoamérica. Filamentos: Amazon España ya, «muy pronto»
+  Casa del Libro, El Corte Inglés y Fnac; nunca ebook. Ejemplo EN
+  reescrito igual. Bloque nuevo «SI NO LO SABES, LO DICES» tras la PIEZA 6:
+  sin precios, fechas ni stock inventados; remite al cofre de la obra.
+- Lente sobre el ojo grande más evidente (raya 320, cruz, halo 96, escala
+  con el ojo, fade ~100 ms). Horizonte planeta (14vh, base 22vh).
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
