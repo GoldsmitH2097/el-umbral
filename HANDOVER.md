@@ -785,6 +785,35 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   detalles → input → Enter): ahora «…Alicia Sarel y El Último Pago (Prompt 4)».
   Ya no queda «Astra» en ningún nombre ni texto de la KB.
 
+### 10-sep, noche (4) — OJOS VIVOS: hoja de expresiones y mandíbula
+- Idea de Ruben: los ojos deberían cambiar de forma y tamaño según la
+  entonación (los audio tags) cuando Tizno habla; «caras muy claras, tipo
+  anime o Pixar, solo con los ojos»; **sin pupila** («dejamos los ojos como
+  están, me encantan»). Diagnóstico: la línea de tiempo emocional ya existe
+  (tags → humor por tramo, sincronizado por caracteres/seg) y las señales
+  de audio también; lo pobre era el vocabulario de los ojos (círculo blanco
+  + seis recortes poligonales).
+- **Hoja de expresiones**: `public/tizno-ojos.html` → soulware.live/tizno-ojos.html
+  (noindex, sin enlazar). Rig paramétrico: mismo disco blanco con brillo y
+  resplandor; dos párpados como cúbicas (top/bot = altura de cada párpado,
+  tIn/tOut = esquinas interior/exterior, sx/sy, hl = brillo como falsa
+  pupila, hlx/hly = mirada, glow = color del resplandor, trem). Muelle por
+  parámetro con rigidez por pose. Ocho poses ↔ tags: neutro, miedo
+  [scared], susurro [Whispers], tristeza [Sighs], risa [Chuckles] (media
+  luna ^ ^), emoción [Excitedly], curiosidad [Curious] (asimétrica), furia
+  [Angrily]. Teclas 1–8, «hablar» simula sílabas, «auto», «susto».
+  PENDIENTE: que Ruben apruebe/corrija la hoja; después se conecta al rig
+  (sustituir las clases angry/sad/happy por el motor de poses, mapear los
+  humores miedo/enfado/tristeza/energia/duda de MOOD_LEX + Whispers →
+  susurro, y el pulso de voz encima). Referencia visual propuesta: los
+  Susuwatari de Ghibli (hollín con ojos) y WALL-E/EVE (solo párpados).
+- **Mandíbula** (desplegado en tizno-ai.html, también en /baby-tizno vía
+  postbuild): al hablar la cabeza BAJA con cada golpe de voz (aiVolFast×26
+  px + transient×10) y vuelve al callar; fuera el cabeceo muppet hacia
+  arriba (W_TELENECO → W_MANDIBULA). Sigue el audio real (ataque 0.8 por
+  fotograma). Sin verificar en conversación real: pedir a Ruben que hable
+  con él y ajustar la amplitud (26) si se pasa o se queda corto.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
