@@ -3518,6 +3518,15 @@
         const DAILY_MAX_S = GRANT_ACTIVO ? 1800 : 600;   // 30 min · 10 min al día
         let callStartedAt = 0, yawnWarned = false;
         let despedidaAt = 0, habloTrasAviso = false;   // la despedida con excusa antes del tope (Ruben, 10-sep)
+        /* ¿Es un parlamento de despedida? Se mira el final del texto (sin las
+           acotaciones), en corto y sin pregunta al cierre: así una «hasta luego»
+           en mitad de una historia no cuelga la llamada. */
+        function esDespedida(texto) {
+            const limpio = String(texto).replace(/\[[^\]]*\]/g, ' ').replace(/\s+/g, ' ').trim();
+            if (!limpio || limpio.length > 320 || /[?¿]\s*$/.test(limpio)) return false;
+            const cola = limpio.slice(-110);
+            return /(me (tengo|toca) (que )?(ir|marchar)|me voy|me marcho|me largo|tengo que irme|debo irme|hasta (luego|pronto|la vista|otra|mañana)|adi[óo]s|nos vemos|te dejo|ya vuelvo|yo estar[ée]( aqu[ií])?\.?$|i (have|need|got|gotta) to go|i must (go|leave)|gotta go|goodbye|\bbye\b|see you|farewell|i'?m off|i'?ll be here)/i.test(cola);
+        }
         const todayKey = () => new Date().toISOString().slice(0, 10);
         const dailyUsed = () => {
             try {
@@ -3949,6 +3958,15 @@
                         // El texto del agente llega al empezar a hablar: línea de
                         // tiempo emocional tramo a tramo (acotaciones + frases).
                         if (source === 'ai' && typeof message === 'string') {
+                            /* DESPEDIDA DICHA = DESPEDIDA HECHA (Ruben, 11-sep: «se despide
+                               pero no se va»). Si Tizno se despide por su cuenta —sin
+                               nuestro aviso—, armamos el mismo cierre: al terminar de
+                               hablar, colgamos; y si el turno no se cierra, a los 15 s. */
+                            if (!despedidaAt && callStartedAt && Date.now() - callStartedAt > 25000 && esDespedida(message)) {
+                                despedidaAt = Date.now(); habloTrasAviso = true;
+                                setStatus(IDIOMA === 'en' ? 'Tizno is being called away…' : 'a Tizno le llaman…');
+                                setTimeout(() => { if (despedidaAt && conversation) { despedidaAt = 0; sleep(); } }, 15000);
+                            }
                             const tl = buildTimeline(message);
                             if (tl) {
                                 window.__tiznoTimeline = tl;

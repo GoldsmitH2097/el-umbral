@@ -1261,6 +1261,22 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   (espacio), no mar. Si molesta, limitar la caída.
 - Lente del ojo grande: sin rotación, raya 240, opacidad ×0,7.
 
+### 11-sep, madrugada (26) — si se despide, se va
+- Ruben: «Tizno se despide pero no se va; es la primera vez, otras veces se
+  iba sin despedirse». El cierre solo estaba armado tras NUESTRO aviso de
+  tiempo (despedidaAt); si Tizno se despedía por su cuenta (p. ej. tras un
+  aviso de toque entre corchetes, o porque el visitante dijo adiós), nada
+  colgaba.
+- Rig: `esDespedida(texto)` mira la cola del parlamento del agente (sin
+  acotaciones, ≤320 caracteres, sin pregunta final) con un patrón ES/EN
+  (me voy, me tengo que ir, hasta luego, adiós, nos vemos, I have to go,
+  goodbye, bye…). Si casa y la llamada lleva >25 s, arma el mismo cierre
+  (habloTrasAviso = true → cuelga al pasar a listening) y un seguro a los
+  15 s por si el turno no se cierra.
+- Prompt: «CUANDO TE TIENES QUE IR» solo con el aviso que dice que se
+  acaba el tiempo; los otros avisos entre corchetes (toques) no son para
+  irse; y «si te despides, te vas: después no dices nada más».
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
