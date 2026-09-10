@@ -1079,6 +1079,35 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   Tizno metido en el líquido, rizos subiendo, corona en las puntas.
   Pendiente de Ruben: nivel del mar, tono de las bandas, forma de los rizos.
 
+### 11-sep, madrugada (15) — mar negro puro, orilla en el goo, sin volutas; prompt pícaro
+- Ruben: «olas 100 % negras, opacas, sin contorno, que se solapen; formas
+  grandes»; «las volutas son horribles, solo olas por ahora»; «dos o tres
+  capas negras que se fundan con el blob de Tizno y alguna partícula en la
+  unión para que no quede una esquina».
+- Mar: las tres bandas a #000 sin brillo de cresta. Tiles de olas grandes
+  (720×120 y 640×110), bandas a 30vh/29vh, frente con oleaje de tres senos
+  (12+7+4 px) y lienzo de 46vh (aire arriba: el pico salía plano por el
+  recorte). Ratón: empuja solo al MOVERSE (proporcional a la velocidad,
+  tope 1,4), no por fotograma (quieto junto a la superficie levantaba
+  montañas). Tope de altura ±70 px. Pop: empujón ×0,25 (entra 60 veces/s).
+- **La orilla dentro del goo**: el mismo mar (misma simulación) se dibuja
+  en el lienzo de la corona, que vive DENTRO de la capa goo del cuerpo: 7 px
+  por encima del de fuera y hundido 90 px hacia los bordes de la capa (no se
+  ve dónde acaba). El filtro funde el cuello con la ola: menisco vivo. La
+  corona y las salpicaduras se pintan ahora a cada fotograma desde marPaso
+  (dibujarTinta solo las pinta cuando no hay mar, p. ej. en embed).
+- **Salpicaduras** (`spawnOrilla`): gotas de tinta en POOL_C nacidas en la
+  línea de agua a ±60 px del cuello, suben 12–38 px y caen; cadencia 420 ms
+  en alto (800 medio, nada en bajo), más con la voz y el pop.
+- Fuera: sprites de volutas, `emitirVoluta`, rama `p.vol`, `#mar-menisco`.
+- Sin ver a ojo esta última vuelta: la pestaña de la extensión quedó oculta
+  (rAF congelado) y el headless no hace emerger a Tizno. Ruben lo mira.
+- **Prompt (Main)**: bloque «PÍCARO Y JUGUETÓN» dentro de IDENTIDAD
+  (Ruben: «no parece un tío muy feliz; más pícaro, que se ría más del
+  usuario, más juguetón»): se ríe mucho y del visitante (burla cariñosa,
+  gato que tira cosas de la mesa), retos, adivinanzas, apuestas absurdas,
+  al menos una risita por respuesta, susto y risa se turnan.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
