@@ -47,7 +47,7 @@ function limpiar(t) {
     return String(t || '')
         .replace(/[\w.+-]+@[\w-]+\.[\w.]+/g, PRIVADO)
         .replace(/(\+?\d[\d .-]{7,}\d)/g, PRIVADO)
-        .replace(/\b(colegio|cole|escuela|instituto|guarder[ií]a)\s+(de\s+|del\s+|la\s+|el\s+)?[A-ZÁÉÍÓÚÑ][^\n,.;]{2,30}/g, PRIVADO)
+        .replace(/\b([Cc]olegio|[Cc]ole|[Ee]scuela|[Ii]nstituto|[Gg]uarder[ií]a)\s+(de\s+|del\s+|la\s+|el\s+)?[A-ZÁÉÍÓÚÑ][^\n,.;]{2,30}/g, PRIVADO)
         .replace(/\b(calle|avenida|avda\.?|plaza|paseo|camino|carrer|c\/|portal|piso)\s+[^\n,.;]{2,40}?\s+\d{1,4}\b(\s*,?\s*\d{1,2}\s*[ºª°])?/gi, PRIVADO)
         .replace(/\b(mi|el|la)\s+(apellido|direcci[oó]n|n[uú]mero de tel[eé]fono|tel[eé]fono|contrase[ñn]a)\b[^.\n]*/gi, PRIVADO);
 }
