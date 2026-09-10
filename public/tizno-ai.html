@@ -13,6 +13,7 @@
       /* La Estancia pública va limpia: sin cajas de juego (Ruben, 14-ago) —
          solo Tizno, la niebla y el botón. ?demo=1 conserva el patio entero. */
       if (esEstancia) document.documentElement.classList.add('estancia');
+      if (/[?&]mar=0/.test(location.search)) document.documentElement.classList.add('sinmar');
       const esIngles = /[?&]lang=en/.test(location.search) || /^\/en\//.test(location.pathname);
       /* En la Estancia inglesa, los rótulos estáticos hablan inglés (el resto
          del rig ya se traduce solo). */
@@ -180,6 +181,9 @@
         #mar { display: none; }
         html.estancia #mar { display: block; position: fixed; left: 0; right: 0; bottom: 0; height: 42vh; z-index: 5; pointer-events: none; overflow: hidden; contain: strict; }
         html.estancia #niebla-grabada, html.estancia #abyss-foreground, html.estancia #abyss-foreground-2 { display: none; }
+        /* ?mar=0: interruptor para comparar con la lámina de antes (A/B a ojo). */
+        html.estancia.sinmar #mar, html.estancia.sinmar #mar-menisco { display: none; }
+        html.estancia.sinmar #niebla-grabada, html.estancia.sinmar #abyss-foreground, html.estancia.sinmar #abyss-foreground-2 { display: block; }
         .mar-banda { position: absolute; left: 0; right: 0; bottom: 0; will-change: transform; }
         #mar-fondo { height: 31.5vh; animation: mar-vaiven 9s ease-in-out infinite alternate; }
         #mar-medio { height: 29.5vh; animation: mar-vaiven 7s ease-in-out -3s infinite alternate-reverse; }
@@ -2492,7 +2496,8 @@
         const MAR = { nivel: 0.275, paso: 12, k: 0.028, amort: 0.05, contagio: 0.22, n: 0, h: null, v: null, w: 0, hh: 0, base: 0, activo: false, col: INK };
         let marX = -1, marY = -1, marPopPrev = 0, marUltimaVoluta = 0;
         function marAjustar() {
-            MAR.activo = !!ctxM && document.documentElement.classList.contains('estancia');
+            MAR.activo = !!ctxM && document.documentElement.classList.contains('estancia')
+                         && !document.documentElement.classList.contains('sinmar');
             if (!MAR.activo) return;
             MAR.w = window.innerWidth; MAR.hh = Math.round(window.innerHeight * 0.32);
             MAR.base = MAR.hh - window.innerHeight * MAR.nivel;   // nivel medio en coords del lienzo
