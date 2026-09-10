@@ -42,7 +42,7 @@ una herramienta para que el adulto se lleve un objeto (el libro).
 | **Producto aparte (10-sep)** | Baby Tizno NO es una herramienta de promoción de Soulware ni del Umbral. No sabe nada de los libros, de las Voces ni del archivo. Solo sabe que viene de Soulware, que el Tizno original vive allí, y que él es la versión para niños que cuenta cuentos (que luego pueden imprimirse). **No mezclar el lore del Tizno actual con Baby Tizno.** Su trabajo no es vender libros: es contar historias |
 | Mundo | «El Reino de la Primera Llama», biblia de mundo de Javier (`BABY-TIZNO-LORE.md`, canon) |
 | Idiomas | Castellano primero; inglés después de la prueba |
-| Voz | La misma para todo el mundo y la misma que ahora (Gork), con entonación más suave, más afable, más cute. No hay voz aparte para 5–7 |
+| Voz | La misma para todo el mundo y la misma que ahora («Parasyte - Dweller in the Deep-Dark», voz de biblioteca; NO «Gork»), con entonación más suave, más afable, más cute. No hay voz aparte para 5–7 |
 | Aparatos | Tablet y móvil con la misma página (el rig actual ya es responsive) |
 | Transparencia | Términos y condiciones totalmente transparentes: la voz y los datos se guardan solo para crear historias, y se dice así. **Cajón de «Recuerdos»**: el padre ve todo lo que Tizno sabe del niño y puede borrar cada elemento por separado (además de borrar todo) |
 | **Memoria entre sesiones (10-sep)** | SÍ. Tizno recuerda el Reino del niño (nombre del héroe, amigos, criaturas, lugares, hechos) entre sesiones. Al empezar: seguir en el mismo Reino o empezar una historia nueva. Todo vive en el cajón de Recuerdos, borrable por elemento |
@@ -52,10 +52,15 @@ una herramienta para que el adulto se lleve un objeto (el libro).
 | Legal | Artefacto «El Mapa Legal de Baby Tizno»: LOPDGDD (14 → 16 años en trámite), GDPR art. 8 y 35 (DPIA antes de abrir al público), AI Act art. 5 y 50, Apple Kids / Google Families, COPPA si hay EE. UU. Piloto con tres familias antes de nada público |
 
 **Agente ElevenLabs:** `agent_3601m23sdxb4fx0adrkse21ynvb9` (rama Main
-`agtbrch_3701m23sdxb6ezfvvpfgg468qvz3`). Duplicado exacto del Tizno de
-producción el 9-sep-2026: mismo prompt, ES + EN, Gemini 3.6 Flash, misma KB y
-herramientas. Producción (`agent_2101kyzjd6e6ehhaaq9m4mhn8dhq`) intacta.
-Ningún código apunta todavía al agente nuevo.
+`agtbrch_3701m23sdxb6ezfvvpfgg468qvz3`). Duplicado del Tizno de producción el
+9-sep-2026 y LIMPIADO el 10-sep: **prompt v0.1 de Baby Tizno publicado**
+(`BABY-TIZNO-PROMPT.md`, 17,6k caracteres, verificado por hash), KB vacía,
+keywords del Reino, audio OFF, retención 30 d, paciente, turn timeout 10 s.
+Sigue en ES + EN (idioma EN sin prompt propio aún), Gemini 3.6 Flash, voz
+«Parasyte - Dweller in the Deep-Dark». First message = `{{saludo}}`. Faltan:
+herramientas de cliente (anotar, rebobinar, cerrar_capitulo), los tres
+documentos de KB y la página. Producción (`agent_2101kyzjd6e6ehhaaq9m4mhn8dhq`)
+intacta. Ningún código apunta todavía al agente nuevo.
 
 ---
 
@@ -211,7 +216,7 @@ tiene la última palabra: Tizno es su creación.
 | D15 | **ElevenLabs y menores (BLOQUEO, 10-sep)** | — | Prohibited Use Policy §9(r) prohíbe «bundled solutions that target anyone under the age of 13» y la Privacy Policy §11 prohíbe transmitirles voz de menores de 18. Un producto para 5–12 sobre ElevenLabs necesita autorización escrita (acuerdo/Enterprise). Detalle: `BABY-TIZNO-ELEVENLABS-POLITICAS.md`. Recomiendo: pedirla ya por el contacto de Grants; probar solo con adultos mientras tanto; plan B otra pila de voz | Pedir permiso a ElevenLabs o cambiar de pila; si los niños de casa prueban antes del permiso |
 | D16 | Aviso de IA (revisión de D6) | Javier: decirlo | ElevenAgents Terms §3.B obliga por contrato a informar al usuario final de que habla con una IA y de que la conversación se graba y se comparte con ElevenLabs y el LLM. Recomiendo una frase en el primer saludo, en la voz de Tizno, con las palabras «inteligencia artificial», además del aviso al adulto | Mantener D6 o volver a decirlo |
 | D17 | Entrenamiento con nuestros datos | — | Por defecto ElevenLabs entrena con el contenido de los planes self-serve. Hay opt-out en la cuenta («Terms and Privacy → Data use»), no retroactivo. Requiere tu OK porque es un ajuste de tu cuenta | Activar el opt-out |
-| D18 | Voz para lo público | — | «Gork» es un clon profesional de otro usuario con preaviso de 2 años: vale para la prueba. Para lo público recomiendo voz propia (PVC bajo contrato o la de Ruben) | Después |
+| D18 | Voz para lo público | — | La voz del agente es «Parasyte - Dweller in the Deep-Dark» (no «Gork»: corrección del 10-sep): clon profesional de otro usuario, biblioteca, preaviso de 2 años, con recargo de 0,20 $/1.000 créditos. Vale para la prueba. Para lo público recomiendo voz propia (PVC bajo contrato o la de Ruben) | Después |
 
 **Decisiones de Ruben (10-sep, noche):** D15 → Ruben escribe a ElevenLabs
 cuando le conteste el director del programa de Grants; hasta entonces, Baby

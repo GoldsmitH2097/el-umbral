@@ -406,6 +406,28 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   Recuerdos e historial en el aparato, filtro de datos sensibles). Pruebas con
   adultos.
 
+### Baby Tizno — 10-sep, noche: prompt v0.1 en el agente
+- `BABY-TIZNO-PROMPT.md` (17.601 caracteres) pegado ENTERO en el system
+  prompt de `agent_3601…` (Main) y publicado («Rewrite Tizno character prompt
+  and logic», toast «Main updated»). Verificación: hash djb2 del texto
+  normalizado igual en el editor y en el archivo (len 17584, hash 531855973).
+- Cómo se pegó (la extensión no puede pegar el portapapeles del sistema con
+  cmd+v, y `navigator.clipboard.readText()` cuelga la pestaña esperando un
+  permiso): JS en la página → `DataTransfer` + `ClipboardEvent('paste')`
+  sobre `.ProseMirror`. OJO: `document.execCommand('selectAll')` NO selecciona
+  para ProseMirror (el primer pegado se AÑADIÓ encima del prompt viejo);
+  seleccionar con `Range.selectNodeContents(pm)` + `getSelection().addRange`
+  y volver a pegar sí reemplaza todo.
+- CORRECCIÓN: la voz del agente (y de producción) es «Parasyte - Dweller in
+  the Deep-Dark» (English · British · +13 · Characters · preaviso 2 años ·
+  recargo 0,20 $/1.000 créditos), no «Gork». La conclusión de licencia no
+  cambia (voz de biblioteca de otro usuario, comercial en plan de pago,
+  preaviso máximo), pero la memoria estaba desactualizada.
+- Faltan en el agente: tools de cliente `anotar(hecho)`, `rebobinar()`,
+  `cerrar_capitulo(resumen)`; KB con el lore de Javier, oráculos y baldosas
+  del Reino; saludos por franja los compone la página (`{{saludo}}`).
+- Siguiente: la página standalone.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.

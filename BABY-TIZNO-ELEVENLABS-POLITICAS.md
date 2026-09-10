@@ -81,22 +81,24 @@ escrita de ElevenLabs (acuerdo específico o Enterprise). Esto incluye la
 prueba interna con niños reales: sus voces viajan a ElevenLabs. Probar con
 adultos (nosotros haciendo de niño) sí está permitido.
 
-## 5 · La voz «Gork»
+## 5 · La voz del agente: «Parasyte - Dweller in the Deep-Dark» (no «Gork»)
 
-- Es un Professional Voice Clone de OTRO usuario, compartido en la Voice
-  Library: «Gork - Terrifying & Dark Creature» · Spanish · Peninsular ·
-  Characters · **notice period 2 years** · 4,2K usuarios · 2,8M créditos. La
-  UI no muestra el propietario.
-- Licencia: todos los planes de pago incluyen licencia comercial; «All voices
-  in the Voice Library come with a free commercial use license». Las
-  etiquetas «Commercial use / Not for commercial use» ya no existen.
-- Revocación (VLA §4): el dueño puede retirarla, pero «the User Voice Model
-  will remain accessible for the duration of the Notice Period to users that
-  added that User Voice Model to their account prior to removal» (mínimo 30
-  días, máximo 2 años → Gork: 2 años). ElevenLabs «reserve[s] the right to
-  review and remove any User Voice Model… with or without notice».
-- El dueño puede activar «Live Moderation» (filtro de categorías prohibidas,
-  latencia extra); no puede vetar categorías concretas.
+- CORRECCIÓN (10-sep, noche): al abrir el agente, la voz configurada es
+  **«Parasyte - Dweller in the Deep-Dark»**, no «Gork» (Gork fue una voz
+  anterior que quedó en la memoria de sesiones pasadas). Verificado en la
+  Voice Library con la sesión de Ruben: English · British · +13 idiomas ·
+  Characters · **notice period 2 years** · 3,7K usuarios · 4,9M créditos ·
+  **«$0.20 surcharge / 1,000 credits»** (voz con recargo). Descripción:
+  «Voice from deep-place, all wet-ragged and broken-wrong. Sometimes
+  whisper-thin like spider silk, sometimes SHREK-loud like rusted metal…».
+- El régimen de licencia es el mismo que el descrito para cualquier voz de
+  la Voice Library: Professional Voice Clone de OTRO usuario, licencia
+  comercial incluida en planes de pago, retirada posible con preaviso (aquí
+  2 años, el máximo), ElevenLabs puede retirarla «with or without notice»,
+  Live Moderation opcional del dueño.
+- «Gork - Terrifying & Dark Creature» (Spanish · Peninsular · Characters ·
+  2 years notice · 4,2K usuarios) existe en la biblioteca y también tiene
+  preaviso de 2 años; no es la voz activa.
 - Voces «Default» de ElevenLabs (Rachel, Adam…): caducan el 31-12-2026. No
   las usamos.
 
@@ -122,4 +124,5 @@ adultos (nosotros haciendo de niño) sí está permitido.
    IA y de que la conversación se graba y comparte con ElevenLabs y el LLM.
 4. Antes de lo público: mecanismo de transferencia a EE. UU. (revisión
    legal), retención 0 cuando la app guarde el historial en el aparato, voz
-   propia (PVC bajo contrato) en vez de una de biblioteca.
+   propia (PVC bajo contrato) en vez de una de biblioteca (Parasyte lleva
+   además recargo de 0,20 $ por cada 1.000 créditos).
