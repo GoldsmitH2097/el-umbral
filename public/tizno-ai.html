@@ -298,24 +298,28 @@
            elementos de fondo»: elipses de un tercio de la capa. La textura de
            la capa va en píxeles de dispositivo: 140vh a retina son ~30 MB por
            capa; por eso solo en nivel alto. */
+        /* Ruben (11-sep, 3.ª vuelta): «poco transparentes y demasiado grandes,
+           casi un escenario; eso pero más sutil en todos los sentidos». Capa
+           120vh, elipses de un cuarto de la capa y alfas a la mitad: se
+           intuye, no se ve. */
         .luz-giro {
-            position: absolute; left: 50%; top: 66%; width: 140vh; height: 140vh; margin: -70vh 0 0 -70vh;
+            position: absolute; left: 50%; top: 66%; width: 120vh; height: 120vh; margin: -60vh 0 0 -60vh;
             will-change: transform; pointer-events: none;
             background:
-                radial-gradient(ellipse 34% 26% at 40% 42%, rgba(243, 156, 18, 0.22), transparent 70%),
-                radial-gradient(ellipse 28% 40% at 60% 54%, rgba(255, 179, 71, 0.16), transparent 70%),
-                radial-gradient(ellipse 45% 24% at 50% 64%, rgba(200, 98, 28, 0.20), transparent 70%),
-                radial-gradient(ellipse 26% 32% at 36% 60%, rgba(243, 156, 18, 0.14), transparent 70%),
-                radial-gradient(ellipse 36% 36% at 63% 38%, rgba(255, 200, 120, 0.10), transparent 70%);
-            animation: luz-girar 190s linear infinite;
+                radial-gradient(ellipse 24% 18% at 40% 42%, rgba(243, 156, 18, 0.10), transparent 70%),
+                radial-gradient(ellipse 19% 28% at 60% 54%, rgba(255, 179, 71, 0.07), transparent 70%),
+                radial-gradient(ellipse 30% 16% at 50% 64%, rgba(200, 98, 28, 0.09), transparent 70%),
+                radial-gradient(ellipse 18% 22% at 36% 60%, rgba(243, 156, 18, 0.06), transparent 70%),
+                radial-gradient(ellipse 25% 25% at 63% 38%, rgba(255, 200, 120, 0.045), transparent 70%);
+            animation: luz-girar 220s linear infinite;
         }
         #luz-giro-b {
-            opacity: 0.9; animation-duration: 270s; animation-direction: reverse;
+            opacity: 0.9; animation-duration: 300s; animation-direction: reverse;
             background:
-                radial-gradient(ellipse 30% 38% at 44% 58%, rgba(243, 156, 18, 0.18), transparent 70%),
-                radial-gradient(ellipse 42% 26% at 58% 42%, rgba(255, 190, 90, 0.14), transparent 70%),
-                radial-gradient(ellipse 28% 34% at 38% 40%, rgba(210, 110, 30, 0.18), transparent 70%),
-                radial-gradient(ellipse 38% 30% at 62% 62%, rgba(255, 210, 140, 0.09), transparent 70%);
+                radial-gradient(ellipse 21% 26% at 44% 58%, rgba(243, 156, 18, 0.08), transparent 70%),
+                radial-gradient(ellipse 29% 18% at 58% 42%, rgba(255, 190, 90, 0.06), transparent 70%),
+                radial-gradient(ellipse 20% 24% at 38% 40%, rgba(210, 110, 30, 0.08), transparent 70%),
+                radial-gradient(ellipse 26% 21% at 62% 62%, rgba(255, 210, 140, 0.04), transparent 70%);
         }
         @keyframes luz-girar { to { transform: rotate(360deg); } }
         html[data-nivel="bajo"] .luz-giro, html[data-nivel="medio"] .luz-giro, html.embed .luz-giro { display: none; }
