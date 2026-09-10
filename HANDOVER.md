@@ -1134,6 +1134,20 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   frente. La primera, a los 7 s.
 - Sin ver a ojo (pestaña oculta / headless sin emerger): lo valida Ruben.
 
+### 11-sep, madrugada (17) — lava v2 (tinta que sube y se evapora); menos humo de orejas
+- Ruben: «los blobs de lava tienen que ir hacia arriba, convertirse en tinta
+  y desaparecer, como el cuerpo de Tizno; ahora son un huevo que flota, muy
+  cutres»; «demasiado humo de las orejas, rebajarlo un 20 % o más».
+- Lava v2: fuera la elipse del lienzo del mar. `spawnLava` mete en POOL_P
+  (capa de partículas, bajo `#ink-goo`) una gota grande (130–190 px) que
+  nace bajo la superficie a 140–290 px del centro, sale, sube 260–420 px
+  encogiéndose y se apaga (6–9 s), más 10–15 gotas de rastro (24–64 px) con
+  t0 en el futuro que se desprenden por el camino y se evaporan más arriba.
+  Empuja los muelles al salir. Cadencia 9–21 s (alto), 16–28 (medio), nunca
+  en bajo; solo con Tizno fuera. Lienzo del mar vuelve a 46vh.
+- Orejas: la probabilidad de que un grumo de la corona nazca en una oreja
+  baja de 0,5 a 0,35 (-30 %); total por pulso sin tocar (8).
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.

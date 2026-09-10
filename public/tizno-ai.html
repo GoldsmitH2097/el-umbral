@@ -178,7 +178,7 @@
            30 fps como el resto de la tinta. Sin filtros: geometría y color.
            El nivel medio de la superficie (30vh) vive en el JS (MAR.nivel). */
         #mar { display: none; }
-        html.estancia #mar { display: block; position: fixed; left: 0; right: 0; bottom: 0; height: 62vh; z-index: 5; pointer-events: none; overflow: hidden; contain: strict; }
+        html.estancia #mar { display: block; position: fixed; left: 0; right: 0; bottom: 0; height: 46vh; z-index: 5; pointer-events: none; overflow: hidden; contain: strict; }
         html.estancia #niebla-grabada, html.estancia #abyss-foreground, html.estancia #abyss-foreground-2 { display: none; }
         /* ?mar=0: interruptor para comparar con la lámina de antes (A/B a ojo). */
         html.estancia.sinmar #mar { display: none; }
@@ -187,7 +187,7 @@
            grandes que se solapen» y «horizonte curvo». Las tres capas se
            pintan en el mismo lienzo (tres rellenos por fotograma) sobre un
            horizonte convexo: Tizno en lo alto de un montículo de tinta. */
-        #mar-frente { position: absolute; left: 0; bottom: 0; width: 100%; height: 62vh; display: block; }
+        #mar-frente { position: absolute; left: 0; bottom: 0; width: 100%; height: 46vh; display: block; }
         /* SIN zoom interno: mezclaba px escalados con % del viewport y las
            capas fijas (cuerpo vs ojos) se desalineaban según el ancho de la
            ventana. La madre escala el iframe entero con transform. */
@@ -2446,7 +2446,7 @@
             MAR.activo = !!ctxM && document.documentElement.classList.contains('estancia')
                          && !document.documentElement.classList.contains('sinmar');
             if (!MAR.activo) return;
-            MAR.w = window.innerWidth; MAR.hh = Math.round(window.innerHeight * 0.62);
+            MAR.w = window.innerWidth; MAR.hh = Math.round(window.innerHeight * 0.46);
             MAR.base = MAR.hh - window.innerHeight * MAR.nivel;   // nivel medio en coords del lienzo
             lienzoM.width = MAR.w; lienzoM.height = MAR.hh;
             MAR.n = Math.ceil(MAR.w / MAR.paso) + 2;
@@ -2498,43 +2498,42 @@
             ctx.lineTo(w + 10, hh + 10); ctx.lineTo(-10, hh + 10); ctx.closePath();
             ctx.fill();
         }
-        /* LÁMPARA DE LAVA (Ruben, 11-sep: «blobs grandes que salen del mar de
-           vez en cuando, como medio Tizno»): de tarde en tarde, una burbuja
-           de tinta emerge lejos de Tizno, se mece fuera unos segundos y se
-           vuelve a hundir. Va entre las capas de atrás y el frente, con una
-           falda que la une a la superficie. Al salir empuja los muelles. */
-        const LAVA = []; let lavaProxima = Date.now() + 7000;
-        const easeOutQ = (u) => 1 - (1 - u) * (1 - u), easeInQ = (u) => u * u;
-        function marLava(ctx, ahora) {
-            if (NIVEL !== 'bajo' && ahora > lavaProxima && popPos > 0.2) {
-                lavaProxima = ahora + (NIVEL === 'alto' ? 9000 : 16000) + Math.random() * 12000;
-                const cx = window.innerWidth / 2, lado = Math.random() < 0.5 ? -1 : 1;
-                const margen = Math.max(80, window.innerWidth / 2 - 330);
-                const x = cx + lado * (280 + Math.random() * margen);
-                const rx = 55 + Math.random() * 30, ry = rx * (1.3 + Math.random() * 0.3);
-                LAVA.push({ x, rx, ry, t0: ahora, dur: 7000 + Math.random() * 5000, fase: Math.random() * 10 });
-                marEmpujar(x, -0.9, rx * 1.6);
+        /* LÁMPARA DE LAVA v2 (Ruben, 11-sep: «hacia arriba, convertirse en
+           tinta y desaparecer, como el cuerpo de Tizno; los huevos flotando
+           eran cutres»): una masa grande de tinta emerge del mar cerca de
+           Tizno, sube, se va deshaciendo en gotas y se evapora. Vive en la
+           capa de partículas, bajo el filtro goo: el mismo material que su
+           cuerpo. Todo son keyframes en POOL_P (el rastro nace con t0 en el
+           futuro), así que no hay nada que llevar por fotograma. */
+        let lavaProxima = Date.now() + 7000;
+        function spawnLava(ahora) {
+            if (NIVEL === 'bajo' || !rectP || popPos < 0.2 || ahora < lavaProxima || POOL_P.length > 170) return;
+            lavaProxima = ahora + (NIVEL === 'alto' ? 9000 : 16000) + Math.random() * 12000;
+            const cxPag = window.innerWidth / 2, lado = Math.random() < 0.5 ? -1 : 1;
+            const xPag = cxPag + lado * (140 + Math.random() * 150);
+            const i = Math.min(MAR.n - 1, Math.max(0, Math.round(xPag / MAR.paso)));
+            const ySupPag = window.innerHeight - MAR.hh + marSuperficie(i, ahora);
+            const x = xPag - rectP.left, y = ySupPag - rectP.top;
+            const tam = 130 + Math.random() * 60, dur = 6000 + Math.random() * 3000;
+            const subida = 260 + Math.random() * 160;
+            POOL_P.push({ t0: ahora, dur, off: 0.3, e: 'io', tam,
+                x0: x, y0: y + tam * 0.35, s0: 0.9, o0: 1, r0: 0,
+                x1: x + lado * 20, y1: y - tam * 0.55, s1: 1, o1: 1, r1: 0,
+                x2: x + lado * 60 + (Math.random() - 0.5) * 60, y2: y - subida, s2: 0.12, o2: 0, r2: 0 });
+            // rastro: gotas que se desprenden mientras sube y se evaporan más arriba
+            const nGotas = 10 + Math.floor(Math.random() * 6);
+            for (let k = 0; k < nGotas; k++) {
+                const u = 0.25 + (k / nGotas) * 0.6;                    // momento del desprendimiento
+                const f = Math.max(0, (u - 0.3) / 0.7);
+                const yk = y - tam * 0.55 - f * (subida - tam * 0.55);
+                const xk = x + lado * 20 + f * lado * 60 + (Math.random() - 0.5) * tam * 0.8;
+                const g = 24 + Math.random() * 40;
+                POOL_P.push({ t0: ahora + u * dur, dur: 1800 + Math.random() * 1600, off: 0.4, e: 'out', tam: g,
+                    x0: xk, y0: yk, s0: 1, o0: 1, r0: 0,
+                    x1: xk + (Math.random() - 0.5) * 40, y1: yk - 50 - Math.random() * 40, s1: 0.8, o1: 1, r1: 0,
+                    x2: xk + (Math.random() - 0.5) * 80, y2: yk - 120 - Math.random() * 90, s2: 0.1, o2: 0, r2: 0 });
             }
-            for (let k = LAVA.length - 1; k >= 0; k--) {
-                const b = LAVA[k], u = (ahora - b.t0) / b.dur;
-                if (u >= 1) { LAVA.splice(k, 1); continue; }
-                const alt = u < 0.4 ? easeOutQ(u / 0.4) : u < 0.65 ? 1 : 1 - easeInQ((u - 0.65) / 0.35);
-                const i = Math.min(MAR.n - 1, Math.max(0, Math.round(b.x / MAR.paso)));
-                const ys = marSuperficie(i, ahora);
-                const rx = b.rx * (1 + 0.07 * Math.sin(ahora * 0.0021 + b.fase));
-                const ry = b.ry * (1 + 0.09 * Math.cos(ahora * 0.0017 + b.fase));
-                const yc = ys + ry * 0.9 - alt * ry * 1.45;
-                ctx.beginPath();
-                ctx.ellipse(b.x, yc, rx, ry, Math.sin(ahora * 0.0006 + b.fase) * 0.12, 0, 6.2832);
-                ctx.fill();
-                const yf = yc + ry * 0.35;   // falda: el cuello que lo une a la superficie
-                ctx.beginPath();
-                ctx.moveTo(b.x - rx * 1.9, ys + 30);
-                ctx.quadraticCurveTo(b.x - rx * 1.0, ys - 2, b.x - rx * 0.95, yf);
-                ctx.lineTo(b.x + rx * 0.95, yf);
-                ctx.quadraticCurveTo(b.x + rx * 1.0, ys - 2, b.x + rx * 1.9, ys + 30);
-                ctx.closePath(); ctx.fill();
-            }
+            marEmpujar(xPag, -1.0, tam * 0.9);
         }
         let marAnterior = 0;
         function marPaso(ahora, dormido) {
@@ -2576,8 +2575,8 @@
             ctx.fillStyle = MAR.col;
             marCapa(ctx, ahora, n, paso, w, hh, marFondo);
             marCapa(ctx, ahora, n, paso, w, hh, marMedio);
-            marLava(ctx, ahora);
             marCapa(ctx, ahora, n, paso, w, hh, marSuperficie);
+            if (!dormido) spawnLava(ahora);
             /* ── LA ORILLA: el mismo mar, dibujado DENTRO de la capa goo del
                cuerpo (lienzo de la corona), 7 px por encima del de fuera y
                hundido hacia los bordes de la capa (para que no se vea dónde
@@ -2858,7 +2857,7 @@
             for (let i = 0; i < n; i++) {
                 const letra = Math.random() < 0.45;
                 let ang, x0, y0;
-                const o = Math.random() < 0.5 ? orejas[Math.random() < 0.5 ? 0 : 1] : null;
+                const o = Math.random() < 0.35 ? orejas[Math.random() < 0.5 ? 0 : 1] : null;   // Ruben, 11-sep: menos humo de orejas (-30 %)
                 if (o) {
                     const t = 0.3 + 0.7 * (1 - Math.random() * Math.random());   // 1 = punta; poco en la raíz
                     const u = 1 - t;
