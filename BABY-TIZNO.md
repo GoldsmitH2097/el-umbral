@@ -39,6 +39,13 @@ una herramienta para que el adulto se lleve un objeto (el libro).
 | Imágenes | Más adelante, con ElevenLabs Image & Video (API en plan Pro, créditos). Marcado legible por máquina obligatorio (AI Act art. 50) |
 | Plataforma | Web primero, app después |
 | Aviso de IA | Tizno dice con su voz, sin romper la magia, que es una máquina (obligatorio desde 2 ago 2026) |
+| **Producto aparte (10-sep)** | Baby Tizno NO es una herramienta de promoción de Soulware ni del Umbral. No sabe nada de los libros, de las Voces ni del archivo. Solo sabe que viene de Soulware, que el Tizno original vive allí, y que él es la versión para niños que cuenta cuentos (que luego pueden imprimirse). **No mezclar el lore del Tizno actual con Baby Tizno.** Su trabajo no es vender libros: es contar historias |
+| Mundo | «El Reino de la Primera Llama», biblia de mundo de Javier (`BABY-TIZNO-LORE.md`, canon) |
+| Idiomas | Castellano primero; inglés después de la prueba |
+| Voz | La misma para todo el mundo y la misma que ahora (Gork), con entonación más suave, más afable, más cute. No hay voz aparte para 5–7 |
+| Aparatos | Tablet y móvil con la misma página (el rig actual ya es responsive) |
+| Transparencia | Términos y condiciones totalmente transparentes: la voz y los datos se guardan solo para crear historias, y se dice así. **Cajón de «Recuerdos»**: el padre ve todo lo que Tizno sabe del niño y puede borrar cada elemento por separado (además de borrar todo) |
+| Libro impreso, imágenes, app, pagos | Después de la prueba |
 | Legal | Artefacto «El Mapa Legal de Baby Tizno»: LOPDGDD (14 → 16 años en trámite), GDPR art. 8 y 35 (DPIA antes de abrir al público), AI Act art. 5 y 50, Apple Kids / Google Families, COPPA si hay EE. UU. Piloto con tres familias antes de nada público |
 
 **Agente ElevenLabs:** `agent_3601m23sdxb4fx0adrkse21ynvb9` (rama Main
