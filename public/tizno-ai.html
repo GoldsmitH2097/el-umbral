@@ -2507,7 +2507,8 @@
            futuro), así que no hay nada que llevar por fotograma. */
         let lavaProxima = Date.now() + 7000;
         function spawnLava(ahora) {
-            if (NIVEL === 'bajo' || !rectP || popPos < 0.2 || ahora < lavaProxima || POOL_P.length > 170) return;
+            // OJO: las micro-letras viven en POOL_P y llegan a 190: el tope va por gotas de lava vivas, no por el pool entero.
+            if (NIVEL === 'bajo' || !rectP || popPos < 0.2 || ahora < lavaProxima || POOL_P.length > 480) return;
             lavaProxima = ahora + (NIVEL === 'alto' ? 9000 : 16000) + Math.random() * 12000;
             const cxPag = window.innerWidth / 2, lado = Math.random() < 0.5 ? -1 : 1;
             const xPag = cxPag + lado * (140 + Math.random() * 150);
