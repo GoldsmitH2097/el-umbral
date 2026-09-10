@@ -886,6 +886,28 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
 - SIN VERIFICAR en conversación real: mandíbula, pulso, humor por tramo,
   despedida y silencios. Las poses forzadas sí se revisaron en producción.
 
+### 10-sep, noche (8) — cejas en la tinta de la cabeza; tween, rebote y parpadeo coreografiado
+- **Cejas → capa de la cabeza** (Ruben: «misma capa que las formas negras,
+  efecto líquido»): ahora son divs de tinta dentro de #head-breathing-layer,
+  bajo #ink-goo-body. Duermen en top 60 (dentro del círculo de 150 px de la
+  cabeza, invisibles); al subir (bY × 2,4 × bO) asoman por el contorno como
+  bultos líquidos; en furia, giradas, sacan un cuerno por lado. Sin
+  opacidad (el umbral alfa del goo las haría aparecer de golpe). Las poses
+  «ceja abajo» no se ven, por geometría. PENDIENTE VER: cuánto asoman
+  (subida ×2,4, reposo 60 px) puede necesitar ajuste a ojo.
+- **Tween con ease in/out y rebote** (Ruben): cada cambio de pose lanza un
+  tween por ojo (dur por pose 200–640 ms) con easeInOutBack suave (c1 0,9),
+  interrumpible desde donde esté. Tamaño del ojo con muelle infraamortiguado
+  (0,16 / 0,74) → un poco de bounce.
+- **Parpadeo coreografiado** (Ruben: «juntos pero desincronizados, a menudo
+  en parejas, a veces uno solo»): 18 % un ojo solo; el resto parejas con
+  40–110 ms de desfase; 28 % de las parejas, doble. Cierra ease-in 70 ms,
+  abre 130 ms con rebote (el nivel se vuelve negativo un instante: ojo un
+  pelín más abierto).
+- La hoja /tizno-ojos.html sigue con muelles (no se toca: Ruben la descartó).
+- No verificado visualmente: la pestaña de Chrome estaba oculta (rAF
+  congelado, capturas negras). Ruben lo mira él o deja Chrome delante.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
