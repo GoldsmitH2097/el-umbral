@@ -857,6 +857,35 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   provocaba turnos de silencio.
 - Filamentos sin ebook: corregido y publicado (prompt) y en la KB.
 
+### 10-sep, noche (7) — LOS OJOS NUEVOS YA VIVEN EN EL RIG
+- Ruben aprobó la forma de la hoja («buena pinta»), NO el brillo («el punto
+  extraño») → fuera brillo y pupila en hoja y rig. Las cejas «quedan fatal
+  por sí solas» pero quería verlas fundidas con la silueta → montadas en el
+  rig como hollín plano (fuera del wrapper del ojo, que lleva el filtro del
+  resplandor); solo existen cuando la pose las usa. Veredicto pendiente.
+- **Motor OJOS en tizno-ai.html** (también en /baby-tizno vía postbuild):
+  párpados como cúbicas + muelle por parámetro; las clases angry/sad/happy/
+  squint/wince/shock del rig son la intención y se traducen a poses; al
+  hablar manda el humor del tramo (MOOD_LEX) — miedo, furia, tristeza,
+  energía, duda y el NUEVO «susurro» ([Whispers] ya no es miedo). Escuchando
+  → «escucha» (una ceja arriba, otra abajo); pensando → «duda». Gesto «doble
+  ceja» (orgullo absurdo) al entrar en un tramo de energía.
+  `window.__tiznoOjos.pose('furia')` fuerza una pose; `.pose(null)` libera;
+  `.gesto('orgullo')` dispara el gesto. El tamaño del ojo sigue en t_EyeL/R.
+- Ajustes de Ruben ya aplicados: susurro con párpado superior PLANO (top 0,
+  esquinas −5) y abajo redondo; furia recto en ángulo (top 0, tIn +10,
+  tOut −7) y abajo redondo; risa como media luna de dos circunferencias
+  (top 1, bot −0,55). Ojos 3 px más juntos por lado (143 px; «nunca más
+  separados»). TODO el movimiento es morph continuo: parpadeo por nivel
+  suavizado (ya no la clase .blinking), pulso de sílaba filtrado, sin ruido
+  aleatorio por fotograma, muelles ×0,55 con más amortiguación. Mandíbula
+  suave: envolvente filtrada, 16 px.
+- La hoja /tizno-ojos.html queda como banco de pruebas (Ruben: «sáltate el
+  dashboard»); allí los ojos se ven lejos y pequeños por el zoom — no
+  importa.
+- SIN VERIFICAR en conversación real: mandíbula, pulso, humor por tramo,
+  despedida y silencios. Las poses forzadas sí se revisaron en producción.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
