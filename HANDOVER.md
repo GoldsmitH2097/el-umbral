@@ -596,6 +596,40 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   escribir en trozos de 4 caracteres con 1 s de espera, y pasar de campo
   en campo con Tab (los clics dentro del iframe no mueven el foco).
 
+### Stripe — 10-sep, 19:30: tres pasos, botones rápidos y Apple Pay en Chrome (vista previa 64)
+- **Tres pasos numerados** en una sola vista (Ruben: «no está claro que son 3
+  pasos»): ① Tu correo, ② Cómo pagar (acordeón), ③ Confirmar (botón). Los
+  botones rápidos quedan arriba como atajo, seguidos de «o paso a paso».
+  Descartado el asistente de 3 paneles: más clics y los botones rápidos se
+  saltan los pasos 1 y 3 por naturaleza.
+- **Los botones rápidos no salían por dos fallos**, bisecados con sondas en
+  la propia vista previa: (1) el hueco se montaba con `hidden` → Stripe medía
+  0 px y nunca disparaba `ready`; ahora el hueco está siempre en el flujo y
+  solo se activa el margen (clase `hay`); (2) `layout.overflow: 'never'`
+  junto a maxColumns/maxRows deja al Express Checkout Element sin `ready`
+  (cualquier otra combinación funciona). Quitado.
+- **Apple Pay en Chrome/Edge/Firefox de escritorio** solo sale con
+  `paymentMethods.applePay: 'always'` (docs: ECE → navegadores compatibles,
+  nota 3); el clic abre el código de Apple para escanear con el iPhone.
+  Google Pay en Safari/Firefox, igual con `googlePay: 'always'`. Verificado
+  en el Chrome de Ruben: Apple Pay, Google Pay (con sus tarjetas) y PayPal.
+- **El botón flotante «stripe ›»** abajo a la derecha es el asistente de
+  pruebas de Stripe: solo en sandbox, nunca en modo real ni al cliente. Se
+  deja mientras probamos (autorrelleno de tarjetas de prueba, inspector de
+  métodos); se quita con `Stripe(pk, {developerTools:{assistant:{enabled:false}}})`.
+- Dominios de método de pago en test: `deploy-preview-64--el-umbral.netlify.app`
+  y `soulware.live`, ambos Enabled (hay que registrarlos también en live).
+
+### Obras — 10-sep: cofres gemelos de altura (main + PR 64)
+- Ruben: «quiero que todos los recuadros estén perfectamente alineados abajo
+  y arriba; el próximamente y los iconos de las cartas rompen la simetría».
+  Medido a 1800 px: marcos de 706/706/713/738 px. La mini-tienda del cofre
+  es ahora una rejilla de dos filas fijas (35 px invitación/botón + slot+22 px
+  de tiendas con nota) y las marcas se alinean arriba (`align-items`), así el
+  icono del ebook y el grupo de anunciadas, más altos por sus notas, no
+  bajan a sus vecinas. Resultado: 732/732/732/732 y las marcas a 780 px.
+  En main como `fix(obras)` 2a5e3b0; main fusionado en stripe-sandbox.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
