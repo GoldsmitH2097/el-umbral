@@ -495,13 +495,13 @@
                 <!-- El contraste de alfa decide el carácter: alto (22) da pegotes
                      duros de goma; bajo (13) da vapor que se funde. Cuesta lo
                      mismo, cambia todo. -->
-                <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 14 -5.6" result="ink-goo" />
+                <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 8.5 -3.4" result="ink-goo" />
                 <feBlend in="SourceGraphic" in2="ink-goo" result="merged" />
                 <!-- Ruido más ancho y grave (0.008/0.028): volutas grandes de humo
                      en vez de pelusa fina. Y más desplazamiento: más líquido.
                      Ninguno de los dos cambios cuesta un solo ciclo extra. -->
                 <feTurbulence type="fractalNoise" baseFrequency="0.008 0.028" numOctaves="2" seed="7" result="smoke" />
-                <feDisplacementMap in="merged" in2="smoke" scale="30" xChannelSelector="R" yChannelSelector="G" />
+                <feDisplacementMap in="merged" in2="smoke" scale="36" xChannelSelector="R" yChannelSelector="G" />
             </filter>
             <!-- Nivel MEDIO: solo fusión, sin turbulencia ni desplazamiento. -->
             <filter id="ink-goo-lite">
@@ -534,7 +534,7 @@
                 <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7.5" result="ink-goo" />
                 <feBlend in="SourceGraphic" in2="ink-goo" result="merged" />
                 <feTurbulence type="fractalNoise" baseFrequency="0.02 0.05" numOctaves="3" seed="7" result="smoke" />
-                <feDisplacementMap data-p="humo" in="merged" in2="smoke" scale="12" xChannelSelector="R" yChannelSelector="G" />
+                <feDisplacementMap data-p="humo" in="merged" in2="smoke" scale="17" xChannelSelector="R" yChannelSelector="G" />
             </filter>
         </defs>
     </svg>
@@ -676,13 +676,13 @@
             microDispersion: 60,  // cuánto se abren en horizontal (menos = más humo)
             focoSeguimiento: 0.22,// cuánto sigue el halo de fondo a Tizno (0 = fijo)
             focoPereza: 0.025,    // más bajo = más perezoso, llega más tarde
-            coronaPorTick: 11,     // grumos de tinta en la coronilla por pulso
+            coronaPorTick: 8,      // grumos de tinta en la coronilla por pulso (Ruben)
             coronaTam: 25,        // tamaño de los grumos de la corona
             coronaAlcance: 58,    // cuánto salen antes de disolverse
             coronaVida: 2050,     // vida de la corona en ms
-            gooContraste: 14,     // alto = pegotes duros · bajo = vapor
-            gooDistorsion: 30,    // cuánto se retuerce el humo (líquido)
-            humoEscala: 12,       // cuerpo: retorcimiento y pelusa de la silueta (0 = liso)
+            gooContraste: 8.5,    // alto = pegotes duros · bajo = vapor (Ruben: vapor)
+            gooDistorsion: 36,    // cuánto se retuerce el humo (líquido) (Ruben)
+            humoEscala: 17,       // cuerpo: retorcimiento y pelusa de la silueta (0 = liso) (Ruben)
             gotasPorTick: 9,      // gotas de tinta por pulso
             desenfoque: 10,        // desenfoque del filtro de partículas
             popRigidez: 0.0092,   // muelle del salto: más alto = más rápido

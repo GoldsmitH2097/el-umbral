@@ -1008,6 +1008,34 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
 - Lo que sí le gusta y se queda: la pelusa del contorno y el retorcimiento
   suave. El humo de la coronilla lo siguen dando la corona y las letras.
 
+### 10-sep, noche (13) — el ajuste de Ruben, medido: cuesta lo mismo que antes
+- Ruben (con captura del panel): «me gusta así, pero creo que consume
+  MUCHÍSIMOS más recursos; no subir más de un 20 %». Sus valores, ahora por
+  defecto: corona 8 grumos/pulso (antes 11), goo contraste 8,5 (antes 14:
+  vapor), goo distorsión 36 (antes 30), cuerpo distorsión 17 (antes 12),
+  vaho 0.
+- **Banco de medida nuevo**: `scripts/tizno-bench/` (srv.py + bench.mjs).
+  Chrome headless con render por software y CDP; lee el `data-fps` que
+  escribe el propio `medirFps`. Variantes = copias del rig con otro filtro
+  y un ratón sintético (hundido no cuesta nada). Resultado (dpr 1, 16 s):
+
+  | cuerpo | fps |
+  |---|---|
+  | sin filtro | 20 |
+  | filtro original (2 octavas, desplaz. 9) | 12 |
+  | pelusa+humo (3 octavas, desplaz. 17) — LO ACTUAL | 12 |
+  | 2 octavas 0.04/0.10 | 12 |
+  | con vaho a opacidad 0 (lo que Ruben tenía en pantalla) | 6 |
+
+  Lectura: el look actual cuesta lo mismo que el filtro de siempre (la
+  resolución del medidor es ±1 fps ≈ 8 %); lo que Ruben notó era el VAHO,
+  que doblaba el coste del fotograma aunque estuviera a 0 (el desenfoque y
+  el desplazamiento se calculan igual). Ya no existe. En GPU (Chrome real)
+  la parte del filtro es aún menor que en software.
+- Marcadores para verificar producción: `scripts/minify-tizno.cjs` quita
+  los comentarios del HTML → grep por atributos (`numOctaves="3"`), nunca
+  por texto de comentario (por eso «fuera el vaho» nunca «llegaba»).
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
