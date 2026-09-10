@@ -1028,7 +1028,7 @@ button.retailer-logo { appearance: none; background: none; border: 0; padding: 0
    rejilla estiraba la invitación a todo el ancho, con el texto a la
    izquierda (Ruben, 10-sep: «próximamente y reclamar mi ejemplar están
    descentrados»). */
-.obra-editions--shop { display: grid; grid-template-rows: 35px auto; row-gap: 10px; align-items: center; justify-items: center; }
+.obra-editions--shop { display: grid; grid-template-rows: 35px auto 34px; row-gap: 10px; align-items: center; justify-items: center; }
 .obra-editions--shop .obra-edition-invite { grid-row: 1; align-self: center; margin: 0; text-align: center; }
 .obra-editions--shop .obra-compra { grid-row: 1; align-self: center; margin: 0 auto; }
 /* align-items al principio: el icono del ebook (con su nota debajo) y el
@@ -1040,3 +1040,18 @@ button.retailer-logo { appearance: none; background: none; border: 0; padding: 0
 @container (max-width: 240px) {
   .obra-editions--shop .cofre-strip { min-height: calc(var(--slot) * 2 + 26px); align-content: center; }
 }
+
+/* ── Ediciones en otra lengua (Ruben, 10-sep-2026) ─────────────────────────
+   La edición inglesa de Pulso se vende como OPCIÓN PROPIA, visible igual en
+   la web en castellano y en inglés: no depende del idioma del sitio. Va en la
+   tercera fila del cofre, bajo las tiendas: la marca del ebook, más pequeña,
+   con el nombre de la edición al lado. La fila (34px) se reserva en TODOS los
+   cofres vía grid-template-rows, así los cuatro marcos siguen midiendo lo
+   mismo aunque solo Pulso la use hoy. */
+.cofre-lenguas { grid-row: 3; align-self: center; display: flex; align-items: center; justify-content: center; gap: 22px; width: 100%; position: relative; z-index: 3; --slot: 30px; }
+.cofre-lengua { display: inline-flex; align-items: center; gap: 14px; }
+.cofre-lengua > i { font-style: normal; font-size: 8px; letter-spacing: 2.5px; text-transform: uppercase; color: #c8922a; white-space: nowrap; }
+/* Cada tienda: la marca del ebook con su país al lado (US · UK). */
+.cofre-lengua-tienda { display: inline-flex; align-items: center; gap: 6px; }
+.cofre-lengua-tienda i { font-style: normal; font-size: 8px; letter-spacing: 2px; text-transform: uppercase; color: #8a7458; white-space: nowrap; }
+.cofre-lengua .retailer-logo { min-width: 0; min-height: 0; }

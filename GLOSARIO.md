@@ -77,9 +77,6 @@ Propuesta
 el Farero del Vacío (Anatomía)
 the Lighthouse Keeper of the Void
 Propuesta
-el Escriba del Pacto (Astra)
-the Scribe of the Pact
-Propuesta
 el Archivista de la Memoria (Totalis Libertas)
 the Archivist of Memory
 Propuesta
@@ -104,9 +101,6 @@ Sin traducción oficial. Glosa permitida: "Filaments of Darkness — Resonance o
 Anatomía del Vacío
 se cita en castellano
 Sin traducción oficial. Glosa: "Anatomy of the Void"
-Astra — Deuda del Pacto
-se cita en castellano
-Sin traducción oficial. Glosa: "Astra — Debt of the Pact"
 Totalis Libertas
 Totalis Libertas
 Latín — invariable en ambos idiomas
@@ -197,5 +191,5 @@ Nombres propios
 
 Notas para Javier
 · Las filas en cursiva son PROPUESTAS mías: tacha, corrige o bendice. Lo marcado «Canon web» ya está publicado en la versión inglesa del sitio desde mayo y no conviene cambiarlo sin tocar también la web.
-· Cuando salgan las traducciones oficiales de Filamentos, Anatomía y Astra, sus títulos EN sustituyen a la regla de «citar en castellano» — y este glosario se actualiza.
+· Cuando salgan las traducciones oficiales de Filamentos y Anatomía, sus títulos EN sustituyen a la regla de «citar en castellano» — y este glosario se actualiza.
 · Este glosario alimentará el prompt del agente de Tizno (regla: «cuando hables inglés, usa exactamente estos nombres») y servirá de referencia para cualquier texto EN de la web o de marketing.

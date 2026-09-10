@@ -11,12 +11,22 @@ import { retailer } from '../core/retailers.js';
 // A shop. The logo is painted via CSS mask (see retailers.js) so its colour is
 // pure CSS and the hover is a real colour transition; until the asset exists we
 // render a styled wordmark instead. Never a broken image.
-function retailerLink(r) {
+/* Tienda por UBICACIÓN del visitante, no por idioma: la edición inglesa de
+   Pulso solo se vende en las tiendas Kindle de EE. UU. y Reino Unido, y un
+   británico no puede comprar en amazon.com. La zona horaria del navegador
+   basta para distinguirlos — sin red, sin cookies, sin rastreo. */
+const EN_REINO_UNIDO = (() => {
+  try { return /^Europe\/(London|Belfast)$/.test(Intl.DateTimeFormat().resolvedOptions().timeZone); }
+  catch (_) { return false; }
+})();
+const porUbicacion = (r) => (EN_REINO_UNIDO && r.url_uk) ? { ...r, url: r.url_uk, nota: r.nota_uk || r.nota } : r;
+
+function retailerLink(r, nombre) {
   const meta = retailer(r.id);
   // getField, not meta.name — the ebook mark carries name_en, so a raw read
   // announced "Edición Digital" on English pages. Shop names are proper nouns
   // with no _en variant, so getField returns them unchanged.
-  const name = getField(meta, 'name');
+  const name = nombre || getField(meta, 'name');
   const inner = meta.logo
     ? `<span class="retailer-mark" aria-hidden="true" style="--logo:url('${meta.logo}');${meta.w ? `--logo-w:${meta.w}px;` : ''}${meta.brand ? `--brand:${meta.brand};` : ''}"></span>`
     : `<span class="retailer-wordmark">${name}</span>`;
@@ -161,10 +171,16 @@ export function renderCta(item, { detail = false } = {}) {
          una fila de lado a lado; el ebook cierra la fila tras un filete
          vertical y con su propia nota minúscula debajo — separación y
          etiqueta, no otro epígrafe. */
-      const impresas = [], digitales = [];
+      const impresas = [], digitales = [], lenguas = [];
       linkable.forEach(ed => {
         const esDigital = /ebook|digital|kindle/i.test(`${ed.label || ''} ${ed.id || ''}`);
-        (ed.retailers || []).filter(r => r.url).forEach(r => (esDigital ? digitales : impresas).push(r));
+        (ed.retailers || []).filter(r => r.url).forEach(r => {
+          /* Ediciones en otra lengua (`idioma` en CATALOGUE): opción propia,
+             visible en ES y en EN por igual, en su propia fila bajo las
+             tiendas (Ruben, 10-sep-2026). */
+          if (ed.idioma) lenguas.push({ ed, r });
+          else (esDigital ? digitales : impresas).push(r);
+        });
       });
       return `<div class="obra-editions ${detail ? 'obra-editions--detail' : 'obra-editions--shop'}">
         ${lootDecor}
@@ -185,6 +201,9 @@ export function renderCta(item, { detail = false } = {}) {
                   ? `<span class="cofre-pronto cofre-pronto--solo">${pronto.map(retailerLink).join('')}<i aria-hidden="true">${t('cta.soon-note')}</i></span>`
                   : pronto.map(retailerLink).join(''))) : ''}
         </div>
+        ${lenguas.length ? `<div class="cofre-lenguas">${[...new Set(lenguas.map(l => l.ed))].map(ed =>
+            `<span class="cofre-lengua"><i aria-hidden="true">${getField(ed, 'label')}</i>${lenguas.filter(l => l.ed === ed).map(({ r }) => porUbicacion(r)).map((r) =>
+              `<span class="cofre-lengua-tienda">${retailerLink(r, `${getField(ed, 'label')} — ${r.nota || ''}`)}<i aria-hidden="true">${r.nota || ''}</i></span>`).join('')}</span>`).join('')}</div>` : ''}
       </div>`;
     }
     // Nothing linkable yet — fall back to the per-edition coming-soon rows.

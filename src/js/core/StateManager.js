@@ -178,6 +178,29 @@ export const CATALOGUE = [
           { id: 'ebook', url: 'https://www.amazon.es/dp/B0G6LLMP8G' },
         ],
       },
+      {
+        id: 'pulso-ebook-en',
+        /* La edición inglesa («Pulse of the Core — Part I: Eternal Core»,
+           Kindle B0G6Y3PH6R en amazon.com) se vende como OPCIÓN PROPIA,
+           visible igual en la web en castellano y en inglés: no depende del
+           idioma del sitio (Ruben, 10-sep-2026: cambiar el enlace según el
+           idioma era «bad practice»). `idioma` la manda a la fila de
+           «otras lenguas» del cofre (ArchiveDOM.renderCta). */
+        label: 'Edición en inglés',
+        label_en: 'English edition',
+        idioma: 'en',
+        titulo: 'Pulse of the Core — Eternal Core',
+        status: 'available',
+        /* Solo en las tiendas Kindle de EE. UU. y Reino Unido, mismo ASIN
+           en las dos. UNA sola puerta: la tienda se elige por la UBICACIÓN
+           del visitante (zona horaria del navegador: Reino Unido →
+           amazon.co.uk; el resto → amazon.com), nunca por el idioma de la
+           web (Ruben, 10-sep-2026). Ver porUbicacion() en ArchiveDOM. */
+        retailers: [
+          { id: 'ebook', url: 'https://www.amazon.com/dp/B0G6Y3PH6R', nota: 'Amazon US',
+            url_uk: 'https://www.amazon.co.uk/dp/B0G6Y3PH6R', nota_uk: 'Amazon UK' },
+        ],
+      },
     ],
     // Ficha técnica — shown in the obra modal's "La Ficha" tab. Sourced from
     // the Casa del Libro listing for ISBN 9788409810345 (their own published

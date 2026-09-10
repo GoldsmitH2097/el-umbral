@@ -265,10 +265,13 @@ function ghostObra(id, lang) {
     const hayTienda = o.editions.some(ed => (ed.retailers || []).some(r => r.url || !esLlave(r)));
     out += `<h2>${hayEnlace ? t.buy : hayTienda ? t.soonAt : t.soon}</h2>`;
     for (const ed of o.editions) {
-      const shops = (ed.retailers || []).filter(r => !esLlave(r)).map(r => {
+      // Una puerta con variante por país (url_uk) se lista dos veces para
+      // los buscadores: la tienda real se elige en el navegador por ubicación.
+      const shops = (ed.retailers || []).filter(r => !esLlave(r))
+        .flatMap(r => r.url_uk ? [r, { ...r, url: r.url_uk, nota: r.nota_uk }] : [r]).map(r => {
         const name = RETAILERS[r.id]?.name || r.id;
         if (!r.url) return `<li>${name}${hayEnlace ? ` — ${t.soonShop}` : ''}</li>`;
-        return `<li><a href="${r.url}" rel="noopener">${o.title} — ${name}</a></li>`;
+        return `<li><a href="${r.url}" rel="noopener">${ed.titulo || o.title} — ${name}${r.nota ? ` (${r.nota})` : ''}</a></li>`;
       }).join('');
       out += `<h3>${f(ed, 'label', lang)}</h3>${shops ? `<ul>${shops}</ul>` : ''}`;
     }
