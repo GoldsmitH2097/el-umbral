@@ -53,6 +53,11 @@ export default async (req) => {
       ui_mode: 'elements',
       mode: 'payment',
       locale: idioma,
+      /* Métodos fijados aquí y no por la configuración dinámica del panel:
+         tarjeta (trae Apple Pay y Google Pay), Bizum y PayPal. Sin Link:
+         su bloque «guardar mi información» con teléfono y nombre sobra en
+         un pago de 2,49 € (Ruben, 10-sep). */
+      payment_method_types: ['card', 'bizum', 'paypal'],
       line_items: [{
         quantity: 1,
         price_data: {
