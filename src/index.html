@@ -472,6 +472,61 @@
   </div>
 </div>
 
+<!-- PAGO MODAL — el cofre de compra propio (Ruben, 10-sep-2026): negro y oro
+     como el Aviso, con las piezas de Stripe dentro (Elements con Checkout
+     Sessions). Lo gobierna src/js/ui/PagoModal.js; Stripe.js se carga solo
+     al abrirlo. -->
+<div id="pago-modal" role="dialog" aria-modal="true" aria-labelledby="pago-titulo" inert aria-hidden="true" style="display:none">
+  <div id="pago-inner">
+    <button id="pago-cerrar" aria-label="Cerrar">&times;</button>
+    <p id="pago-eyebrow"></p>
+    <h2 id="pago-titulo"></h2>
+    <p id="pago-precio"></p>
+    <div id="pago-marcas" role="img" aria-label="Métodos de pago aceptados">
+      <span class="pago-marca" style="--logo:url('/assets/pago/visa.svg')" title="Visa"></span>
+      <span class="pago-marca" style="--logo:url('/assets/pago/mastercard.svg')" title="Mastercard"></span>
+      <span class="pago-marca" style="--logo:url('/assets/pago/applepay.svg')" title="Apple Pay"></span>
+      <span class="pago-marca" style="--logo:url('/assets/pago/googlepay.svg')" title="Google Pay"></span>
+      <span class="pago-marca-texto" title="Bizum">Bizum</span>
+      <span class="pago-marca" style="--logo:url('/assets/pago/paypal.svg')" title="PayPal"></span>
+    </div>
+    <p id="pago-cargando" hidden></p>
+    <div id="pago-cuerpo" hidden>
+      <section class="pago-paso" id="pago-paso-1" aria-labelledby="pago-paso1-t">
+        <h3 class="pago-paso-titulo"><span class="pago-num" aria-hidden="true">1</span><span id="pago-paso1-t"></span></h3>
+        <div id="pago-express"></div>
+        <div id="pago-metodos">
+          <button type="button" class="pago-metodo" id="pago-metodo-tarjeta" data-metodo="tarjeta">
+            <span class="pago-marca" style="--logo:url('/assets/pago/visa.svg')" aria-hidden="true"></span>
+            <span class="pago-marca" style="--logo:url('/assets/pago/mastercard.svg')" aria-hidden="true"></span>
+            <span class="pago-metodo-txt" id="pago-metodo-tarjeta-txt"></span>
+          </button>
+          <button type="button" class="pago-metodo" id="pago-metodo-bizum" data-metodo="bizum">
+            <span class="pago-marca-texto" aria-hidden="true">Bizum</span>
+          </button>
+        </div>
+      </section>
+      <section class="pago-paso" id="pago-paso-2" aria-labelledby="pago-paso2-t" hidden>
+        <h3 class="pago-paso-titulo"><span class="pago-num" aria-hidden="true">2</span><span id="pago-paso2-t"></span></h3>
+        <p id="pago-paso2-cargando" hidden></p>
+        <p id="pago-correo-nota"></p>
+        <div id="pago-contacto"></div>
+        <div id="pago-elemento"></div>
+      </section>
+      <section class="pago-paso" id="pago-paso-3" aria-labelledby="pago-paso3-t" hidden>
+        <h3 class="pago-paso-titulo"><span class="pago-num" aria-hidden="true">3</span><span id="pago-paso3-t"></span></h3>
+        <button id="pago-confirmar" type="button" disabled></button>
+      </section>
+      <p id="pago-errores" role="alert"></p>
+      <p id="pago-nota"></p>
+    </div>
+    <div id="pago-estado" hidden>
+      <h3 id="pago-estado-titulo"></h3>
+      <p id="pago-estado-cuerpo"></p>
+    </div>
+  </div>
+</div>
+
 <!-- LEGAL MODAL — content fetched on demand, never navigate away -->
 <div id="legal-modal" role="dialog" aria-modal="true" aria-labelledby="legal-modal-title" inert aria-hidden="true">
   <div id="legal-modal-inner">

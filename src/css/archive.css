@@ -1098,3 +1098,58 @@ html { -webkit-tap-highlight-color: transparent; }
 #tizno-grant-sello p { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #59493a; margin: 0 0 12px; }
 #tizno-grant-sello img { width: 150px; opacity: 0.45; transition: opacity 0.3s; }
 #tizno-grant-sello a:hover img { opacity: 0.9; }
+
+/* ── PAGO MODAL (cofre de compra propio, 10-sep-2026) ── mismo lenguaje que el
+   Aviso: fondo casi negro, filete oro, Times. Las piezas de Stripe llevan su
+   apariencia por la Appearance API (PagoModal.js); aquí solo el marco. */
+#pago-modal { position: fixed; inset: 0; background: rgba(3,3,3,0.6); z-index: 56; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; padding: 4vw; overflow-y: auto; }
+#pago-modal.open { opacity: 1; pointer-events: auto; -webkit-backdrop-filter: blur(9px); backdrop-filter: blur(9px); }
+#pago-inner { position: relative; max-width: 460px; width: 100%; margin: auto; background: rgba(6,5,4,0.985); border: 1px solid rgba(200,146,42,0.45); border-radius: 4px; padding: 32px 34px 26px; box-shadow: 0 24px 80px rgba(0,0,0,0.75); text-align: center; }
+#pago-eyebrow { font-size: 10px; letter-spacing: 5px; text-transform: uppercase; color: #8c8c8c; margin: 0 0 10px; }
+#pago-eyebrow:empty { display: none; }
+#pago-modal h2 { font-size: 15px; letter-spacing: 6px; text-transform: uppercase; color: #c8922a; font-weight: normal; margin: 0 0 8px; }
+#pago-precio { font-size: 26px; color: #e8c87a; letter-spacing: 2px; margin: 0 0 18px; padding-bottom: 16px; border-bottom: 1px solid rgba(200,146,42,0.18); }
+#pago-precio:empty { display: none; padding: 0; border: 0; }
+#pago-marcas[hidden] { display: none; }
+#pago-marcas { display: flex; justify-content: center; align-items: center; gap: 22px; margin: -4px 0 18px; }
+.pago-marca { display: inline-block; width: 40px; height: 26px; background: #c8922a; opacity: 0.55; -webkit-mask: var(--logo) center / contain no-repeat; mask: var(--logo) center / contain no-repeat; transition: opacity 0.3s; }
+#pago-marcas:hover .pago-marca, #pago-marcas:hover .pago-marca-texto { opacity: 0.85; }
+.pago-marca-texto { font-family: 'Times New Roman', serif; font-size: 17px; font-weight: bold; letter-spacing: 0.5px; color: #c8922a; opacity: 0.55; line-height: 26px; transition: opacity 0.3s; }
+#pago-cargando { font-size: 13px; color: #888; letter-spacing: 1px; margin: 26px 0; }
+#pago-correo-nota { font-size: 11.5px; color: #8c8c8c; line-height: 1.6; margin: 0 0 8px; text-align: left; }
+/* Cinco puertas. Apple Pay, Google Pay y PayPal los pinta Stripe (negros,
+   dentro de su iframe): van sobre un lecho apenas más claro para que el
+   negro se lea sobre el negro del cofre. Tarjeta y Bizum son nuestros. */
+#pago-express { margin: 0; }
+#pago-express.hay { position: relative; z-index: 0; margin: 0 0 10px; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(200,146,42,0.14); border-radius: 3px; }
+/* Rótulo DETRÁS del iframe, a la altura del primer botón: mientras Apple y
+   Google pintan (varios segundos en Chrome) el lecho no parece vacío, y en
+   cuanto el primer botón existe lo tapa. */
+#pago-express.hay::before { content: 'Apple Pay · Google Pay · PayPal'; position: absolute; z-index: -1; top: 10px; left: 10px; right: 10px; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 11px; letter-spacing: 2px; color: #6b6b6b; }
+#pago-metodos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pago-metodo { display: flex; align-items: center; justify-content: center; gap: 10px; height: 44px; background: transparent; border: 1px solid rgba(200,146,42,0.55); border-radius: 3px; color: #e8c87a; cursor: pointer; font-family: 'Times New Roman', serif; font-size: 12px; letter-spacing: 3px; text-transform: uppercase; transition: color 0.3s, border-color 0.3s, background 0.3s; }
+.pago-metodo:hover, .pago-metodo:focus-visible { border-color: #e8c87a; color: #fff; background: rgba(200,146,42,0.12); outline: none; }
+.pago-metodo.elegido { border-color: #e8c87a; color: #fff; background: rgba(200,146,42,0.16); }
+.pago-metodo .pago-marca { width: 30px; height: 20px; }
+.pago-metodo .pago-marca-texto { font-size: 19px; letter-spacing: 0; text-transform: none; }
+.pago-metodo.elegido .pago-marca, .pago-metodo:hover .pago-marca { background-color: #e8c87a; }
+.pago-paso[hidden] { display: none; }
+#pago-paso2-cargando { font-size: 12px; color: #888; letter-spacing: 1px; margin: 0 0 10px; }
+/* Plegado e invisible mientras Stripe pinta (necesita anchura real). */
+#pago-cuerpo.pintando { opacity: 0; max-height: 0; overflow: hidden; }
+.pago-paso { text-align: left; margin: 0 0 6px; padding: 16px 0 12px; border-top: 1px solid rgba(200,146,42,0.18); }
+.pago-paso-titulo { display: flex; align-items: center; gap: 12px; font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: #c8922a; font-weight: normal; margin: 0 0 12px; }
+.pago-num { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; flex: 0 0 24px; border: 1px solid rgba(200,146,42,0.6); border-radius: 50%; font-size: 12px; letter-spacing: 0; color: #e8c87a; }
+#pago-contacto { margin: 0 0 4px; text-align: left; }
+#pago-elemento { margin: 0; text-align: left; }
+#pago-errores { color: #e0704f; font-size: 12.5px; line-height: 1.6; min-height: 0; margin: 0 0 10px; }
+#pago-errores:empty { display: none; }
+#pago-confirmar { width: 100%; background: transparent; border: 1px solid rgba(200,146,42,0.55); color: #e8c87a; padding: 13px 24px; font-size: 12px; letter-spacing: 4px; text-transform: uppercase; cursor: pointer; transition: color 0.3s, border-color 0.3s, background 0.3s; font-family: 'Times New Roman', serif; }
+#pago-confirmar:hover, #pago-confirmar:focus-visible { border-color: #e8c87a; color: #fff; background: rgba(200,146,42,0.12); outline: none; }
+#pago-confirmar:disabled { opacity: 0.4; cursor: default; background: transparent; color: #e8c87a; border-color: rgba(200,146,42,0.55); }
+#pago-nota { font-size: 11px; color: #6b6b6b; line-height: 1.7; margin: 10px 0 0; }
+#pago-estado h3 { font-size: 13px; letter-spacing: 5px; text-transform: uppercase; color: #e8c87a; font-weight: normal; margin: 22px 0 14px; }
+#pago-estado p { font-size: 13px; color: #999; line-height: 1.9; margin: 0 0 8px; }
+#pago-cerrar { position: absolute; top: 10px; right: 14px; background: transparent; border: none; color: #555; font-size: 24px; line-height: 1; padding: 5px 10px; cursor: pointer; transition: color 0.3s; }
+#pago-cerrar:hover, #pago-cerrar:focus-visible { color: #c8922a; outline: none; }
+@media (max-width: 520px) { #pago-inner { padding: 26px 18px 22px; } #pago-modal { padding: 12px; align-items: flex-start; } #pago-marcas { gap: 14px; } .pago-marca { width: 34px; height: 22px; } }

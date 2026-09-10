@@ -760,6 +760,17 @@
    encima se enciende a medias — se puede tocar, pero aún no vende. */
 button.retailer-logo { appearance: none; background: none; border: 0; padding: 0; margin: 0; color: inherit; font: inherit; }
 .retailer-logo--pronto:hover, .retailer-logo--pronto:focus-visible { opacity: 0.8; }
+/* Con botón de compra, las llaves son adorno: ni cursor ni encendido. */
+.retailer-logo--adorno, .retailer-logo--adorno:hover { cursor: default; pointer-events: none; opacity: 0.38; }
+/* El botón de compra ocupa el sitio de la invitación, centrado en el cofre. */
+.obra-compra {
+  display: inline-block; justify-self: center; align-self: center;
+  margin: 0 auto 12px; position: relative; z-index: 3;
+  font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+  color: #e8c87a; border-color: rgba(200,146,42,0.55); text-decoration: none;
+}
+.obra-compra:hover, .obra-compra:focus-visible { color: #fff; border-color: #e8c87a; background: rgba(200,146,42,0.12); }
+.obra-editions--shop .obra-compra { display: block; width: max-content; }
 /* El grupo de anunciadas cierra la fila tras el filete, con su nota debajo —
    el mismo lenguaje que .cofre-ebook, pero para varias marcas a la vez. */
 .cofre-pronto {
