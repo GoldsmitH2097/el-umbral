@@ -1229,6 +1229,13 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   Eliminado. La orilla interior (misma ola, 4 px bajo la superficie, dentro
   del goo) se queda: es la que funde el cuello con el agua sin dibujar nada.
 
+### 11-sep, madrugada (23) — horizonte planeta; botón en llamada
+- Ruben: «¿puedes curvar más el horizonte? como un planeta». Curvatura 6 →
+  14vh y nivel base 30 → 22vh: el centro sigue a 36vh (Tizno igual de
+  hundido), los bordes caen 14vh. `?curvatura=` y `?horizonte=concavo`
+  siguen valiendo.
+- «Dejarle en paz» (`.live`): 30 px y mismo amarillo, sin rojo.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.

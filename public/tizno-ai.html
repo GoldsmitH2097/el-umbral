@@ -207,7 +207,7 @@
            lienzo con la simulación de muelles 1-D del agua de los videojuegos
            (cada columna es un muelle que contagia a sus vecinas), pintada a
            30 fps como el resto de la tinta. Sin filtros: geometría y color.
-           El nivel medio de la superficie (30vh) vive en el JS (MAR.nivel). */
+           El nivel de la superficie (22vh en los bordes, +14vh de curva en el centro) vive en el JS (MAR.nivel, MAR_CURVA). */
         #mar { display: none; }
         #luz-ojos {
             position: fixed; left: 0; top: 0; width: 260px; height: 260px; z-index: 6;
@@ -2536,7 +2536,7 @@
         const marEl = document.getElementById('mar');
         const lienzoM = document.getElementById('mar-frente');
         const ctxM = lienzoM ? lienzoM.getContext('2d') : null;
-        const MAR = { nivel: 0.30, paso: 10, k: 0.028, amort: 0.05, contagio: 0.22, n: 0, h: null, v: null, w: 0, hh: 0, base: 0, activo: false, col: '#000' };
+        const MAR = { nivel: 0.22, paso: 10, k: 0.028, amort: 0.05, contagio: 0.22, n: 0, h: null, v: null, w: 0, hh: 0, base: 0, activo: false, col: '#000' };
         let marX = -1, marY = -1, marPopPrev = 0;
         function marAjustar() {
             MAR.activo = !!ctxM && document.documentElement.classList.contains('estancia')
@@ -2571,13 +2571,15 @@
         }
         /* HORIZONTE CURVO (Ruben, 11-sep): convexo, más alto en el centro que
            en los bordes. Lo comparten las tres capas y la orilla. */
-        /* Curvatura: 6vh (Ruben, 11-sep: «un 20 % más curvo, más timburtoniano»).
+        /* Curvatura: 14vh (Ruben, 11-sep: «más curvo, como un planeta»). El nivel
+           base (MAR.nivel, 22vh en los bordes) está elegido para que el centro
+           quede a 36vh, donde estaba: Tizno no se hunde más; los bordes caen.
            ?horizonte=concavo invierte el sentido (valle en vez de montículo);
            ?curvatura=8 cambia los vh, para probar sin desplegar. */
         const MAR_CURVA = (() => {
             const q = location.search;
             const vh = parseFloat((q.match(/[?&]curvatura=([0-9.]+)/) || [])[1]);
-            return { vh: isFinite(vh) ? vh / 100 : 0.06, signo: /[?&]horizonte=concavo/.test(q) ? 1 : -1 };
+            return { vh: isFinite(vh) ? vh / 100 : 0.14, signo: /[?&]horizonte=concavo/.test(q) ? 1 : -1 };
         })();
         function marCurva(i) {
             const u = (i * MAR.paso - MAR.w / 2) / (MAR.w / 2);
