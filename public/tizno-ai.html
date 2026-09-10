@@ -332,7 +332,6 @@
             position: absolute; left: -10px; top: -10px; width: 60px; height: 60px; background: #fff;
             clip-path: path('M 10,30 C 10,3.3 50,3.3 50,30 C 50,56.7 10,56.7 10,30 Z');
         }
-        .eye-wrapper.blinking { --eye-sy: 0.01 !important; }
         /* CEJAS de hollín: negras como el cuerpo, se leen en negativo contra el
            halo y solo existen cuando actúan (opacidad). Van FUERA del wrapper
            del ojo, que lleva el filtro del resplandor: dentro, brillarían. */
@@ -831,7 +830,8 @@
                 const P = OJOS_POSES[ojosPoseDe(el)] || OJOS_POSES.neutro;
                 const obj = { ...OJOS_BASE, ...(P.p || {}), ...(P[lado] || {}) };
                 const o = ojosEstado[lado];
-                for (const k in OJOS_BASE) { const a = (obj[k] - o.c[k]) * P.k; o.v[k] = (o.v[k] + a) * 0.62; o.c[k] += o.v[k]; }
+                // Rigidez rebajada y más amortiguación: siempre un morph continuo (Ruben, 10-sep).
+                for (const k in OJOS_BASE) { const a = (obj[k] - o.c[k]) * P.k * 0.55; o.v[k] = (o.v[k] + a) * 0.7; o.c[k] += o.v[k]; }
                 const p = o.c;
                 el.style.clipPath = ojosRecorte(lado, p);
                 const ceja = lado === 'L' ? cejaLeft : cejaRight;
@@ -873,6 +873,7 @@
            rápida del audio real: ataque de un fotograma, sin retardo. */
         const W_MANDIBULA      = 1.0;  // 1 = 16px de caída a pleno volumen
         let mandibula = 0;             // envolvente filtrada de la mandíbula
+        let pulsoOjo = 0;              // pulso de sílaba en los ojos, filtrado
         const W_VOZ_USUARIO    = 1.0;  // tu voz empujándole mientras escucha
         const W_RATON_ESCUCHANDO = 1.0;  // seguimiento del cursor mientras te escucha
         let sBass = 0, sMid = 0, sTreble = 0, sInVol = 0, sVad = 0;
@@ -1650,8 +1651,8 @@
                 t_RigRot = Math.sin(time * 0.005) * 2;
                 t_EarL = 30; t_EarR = -30;
                 t_BodyScaleX = 1.05; t_BodyScaleY = 0.95;
-                t_EyeL = 1 + Math.sin(time * 0.02) * 0.2 + (Math.random() - 0.5) * 0.1;
-                t_EyeR = 1 + Math.cos(time * 0.02) * 0.2 + (Math.random() - 0.5) * 0.1;
+                t_EyeL = 1 + Math.sin(time * 0.02) * 0.2 + Math.sin(time * 0.0137) * 0.05;   // sin ruido por fotograma
+                t_EyeR = 1 + Math.cos(time * 0.02) * 0.2 + Math.cos(time * 0.0113) * 0.05;
 
             } else if (aiState === 'speaking') {
                 // "Lip-sync" procedural y SNAPPY: los golpes de sílaba (transient)
@@ -1700,7 +1701,8 @@
                 add_EarR = -sTreble * 34 * ticDirR - transient * 10;
                 // LOS OJOS PULSAN CON CADA SÍLABA: es lo que ata la voz al cuerpo.
                 // Va por canal aditivo (sin easing) para que el golpe sea seco.
-                add_EyeL = transient * 0.55 + aiVolFast * 0.12;
+                pulsoOjo += ((transient * 0.35 + aiVolFast * 0.12) - pulsoOjo) * 0.35;   // suave (Ruben)
+                add_EyeL = pulsoOjo;
                 add_EyeR = transient * 0.55 + aiVolFast * 0.12;
                 // Las letras saltan con los golpes de voz, no con un vaivén fijo.
                 t_LetY = -(transient * 16);
@@ -2077,12 +2079,14 @@
             eyeLeftWrapper.style.setProperty('--eye-x', `${pupilMoveX}px`);
             eyeLeftWrapper.style.setProperty('--eye-y', `${pupilMoveY}px`);
             eyeLeftWrapper.style.setProperty('--eye-sx', c_EyeL + add_EyeL);
-            eyeLeftWrapper.style.setProperty('--eye-sy', c_EyeL + add_EyeL);
+            for (const l of ['L', 'R']) parpadeoNivel[l] += (parpadeoObj[l] - parpadeoNivel[l]) * (parpadeoObj[l] ? 0.5 : 0.38);
+            const parpL = 1 - parpadeoNivel.L * 0.98, parpR = 1 - parpadeoNivel.R * 0.98;
+            eyeLeftWrapper.style.setProperty('--eye-sy', (c_EyeL + add_EyeL) * parpL);
 
             eyeRightWrapper.style.setProperty('--eye-x', `${pupilMoveX}px`);
             eyeRightWrapper.style.setProperty('--eye-y', `${pupilMoveY}px`);
             eyeRightWrapper.style.setProperty('--eye-sx', c_EyeR + add_EyeR);
-            eyeRightWrapper.style.setProperty('--eye-sy', c_EyeR + add_EyeR);
+            eyeRightWrapper.style.setProperty('--eye-sy', (c_EyeR + add_EyeR) * parpR);
             ojosPaso(pupilMoveX, pupilMoveY);   // párpados y cejas hacia su pose
 
             // Durante el pop los ojos van cerrados; al abrirse se pasan un pelín
@@ -2137,12 +2141,18 @@
         }
         // el bucle arranca al final del script, cuando el motor de tinta ya existe
 
+        /* Parpadeo SUAVE (Ruben, 10-sep: «un morph suave, no un salto»): ya no
+           es una clase que cierra el ojo de golpe, sino un objetivo que el
+           fotograma persigue (parpadeoNivel) — cierra en ~4 fotogramas y
+           abre en otros ~5. */
+        const parpadeoObj = { L: 0, R: 0 }, parpadeoNivel = { L: 0, R: 0 };
         function blinkEye(wrapperElement) {
-            wrapperElement.classList.add('blinking');
+            const lado = wrapperElement === eyeLeftWrapper ? 'L' : 'R';
+            parpadeoObj[lado] = 1;
             setTimeout(() => {
-                wrapperElement.classList.remove('blinking');
+                parpadeoObj[lado] = 0;
                 setTimeout(() => blinkEye(wrapperElement), Math.random() * 4000 + 1000);
-            }, 100);
+            }, 110);
         }
         setTimeout(() => blinkEye(eyeLeftWrapper), 800);
         setTimeout(() => blinkEye(eyeRightWrapper), 1500);
