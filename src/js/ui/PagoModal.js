@@ -172,7 +172,7 @@ export async function abrirPago(obraId) {
        formulario para quien lo use. */
     const express = checkout.createExpressCheckoutElement({
       buttonHeight: 44,
-      buttonTheme: { applePay: 'white-outline', googlePay: 'white', paypal: 'black', amazonPay: 'dark' },
+      buttonTheme: { applePay: 'white-outline', googlePay: 'white', paypal: 'black' },
       paymentMethods: { link: 'never' },
       paymentMethodOrder: ['applePay', 'googlePay', 'paypal'],
       layout: { maxColumns: 1, maxRows: 3, overflow: 'never' },
