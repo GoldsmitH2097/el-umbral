@@ -158,6 +158,49 @@ lugar», dos capítulos modelo (5–7 y 11–12) sobre un mundo provisional, sie
 tablas de oráculo, cuarenta baldosas del capítulo 1 y los textos del adulto.
 Página compartible: https://claude.ai/code/artifact/1518f8b6-4abe-4c9e-8d4c-367065a8633c
 
+## Decisiones abiertas tras el Documento Maestro de Javier (10-sep-2026)
+
+Leído «con sal» por encargo de Ruben (jefe de proyecto: Ruben, no Javier).
+Copia del documento: `BABY-TIZNO-MAESTRO-JAVIER.md`. Lo que se adopta sin
+decisión (van a la biblia v0.3): palabras de parada «para / no quiero / me da
+miedo / otra cosa / stop» con prioridad absoluta; ayuda en tres niveles (dos
+puertas → cambiarlas o combinarlas → pregunta abierta); una sola pregunta por
+turno; no clasificar al niño (creativo, tímido…) por un turno; ejemplos de
+reparación («que explote todo» → volcán de confeti; «quiero ser la bruja»;
+«coche volador»); la apertura de la tetera con un dragoncito atascado; al
+cierre, actividad voluntaria fuera de la app («dibuja la casa»); lista
+cerrada de campos que puede guardar la memoria (alias, nombres ficticios,
+capítulo, objetos, lugar, aliados, decisiones, promesas, preferencia de
+ayuda) y lista de lo que nunca guarda (emociones inferidas, diagnósticos,
+secretos, salud, religión, huellas de voz); protocolo ante «alguien me hace
+daño» (escuchar, no es tu culpa, adulto de confianza, sin prometer secreto ni
+rescate); nada de rachas, vidas, cofres ni notificaciones a menores; la
+negativa del niño detiene la sesión; botón infantil «esto no me ha gustado»;
+nombres largos → apodo corto acordado; textos de parada («Paramos aquí. Tu
+aventura puede esperar»); la familia es dueña de lo que inventa el niño.
+
+| # | Choque o hueco | Javier propone | Ya decidido / mi recomendación | Decide Ruben |
+|---|---|---|---|---|
+| D1 | Claim | «Dale voz a su imaginación» (el nuestro «presupone una pérdida») | Ruben: «devuélvele la creatividad a tu hijo». Recomiendo probar los dos con adultos antes de lo público; para la prueba da igual | Claim principal |
+| D2 | Puerta del adulto | Una multiplicación o PIN «no acredita consentimiento parental verificable» | Ruben: multiplicación tipo YouTube Kids. Recomiendo las dos cosas: multiplicación como puerta diaria + consentimiento verificado una sola vez (correo confirmado + aceptación) antes de lo público. En la prueba interna, solo la puerta | Método de consentimiento para lo público |
+| D3 | Memoria por defecto | Opt-in, «nada opcional marcado por defecto» | Ruben: que recuerde entre sesiones. Recomiendo opt-in preguntado en el primer ajuste, con explicación de una frase: misma experiencia, legalmente limpio | Activada por defecto o preguntada |
+| D4 | Transcripciones | Solo durante la operación; nunca historial | Hoy: 30 días con autoborrado, para depurar la prueba. Recomiendo 30 días durante la prueba interna y Zero Retention antes del piloto con familias | Cuándo pasar a retención cero |
+| D5 | Arquitectura | Backend propio (orquestador, validación, tokens), app nativa, «no envolver una web» | Ruben: web primero, agente de ElevenLabs sin backend. Para la prueba, lo nuestro. La arquitectura de Javier es el producto público y son meses y presupuesto | Cuándo y si se construye el backend |
+| D6 | Aviso de IA al niño | «Soy Tizno, un personaje que inventa cuentos contigo usando inteligencia artificial. Puedo equivocarme. No me digas tu dirección, tu cole ni contraseñas. Puedes decir "para"…» | Mío, en personaje: «un cuento que aprendió a hablar dentro de una máquina». Recomiendo la frase de Javier en el primer saludo (más explícita) y las mías cuando el niño pregunte | Texto del primer saludo |
+| D7 | Marca | Firma «Una creación de Soulware, el sello editorial de Core Soulware» en tienda, web y créditos; presentación «Baby Tizno — Aventuras que inventas tú» | Ruben: producto aparte; solo «viene de Soulware». Compatible si la firma vive en la zona del adulto y nunca en la del niño. «Core Soulware» como razón social: confirmar | Firma y subtítulo |
+| D8 | Perfiles | Varios perfiles infantiles por familia (hermanos), sin mezclar memorias | Prueba: un perfil. Recomiendo varios perfiles en la versión pública | Alcance de perfiles |
+| D9 | Accesibilidad | Alternativa de texto, subtítulos, VoiceOver, WCAG 2.2 AA desde la primera versión | Prueba: solo voz. Recomiendo subtítulos opcionales (barato, ya tenemos el texto) y el resto para lo público | Qué entra en la prueba |
+| D10 | Libro | Lantia, impresión bajo demanda, 30–50 € | Ruben: libro después. Anoto proveedor y rango como propuesta | Después |
+| D11 | Roles | «Dirección de Core Soulware aprueba…; Rubén coordina implementación, sujeto a confirmar su responsabilidad formal» | Ruben es el jefe de proyecto de Baby Tizno (dicho hoy). Conviene que quede escrito en el documento de Javier | Comunicar roles a Javier |
+| D12 | Piloto | 24–36 familias antes de publicar; investigación inicial en 8–9 años; primera experiencia acompañada por el adulto | Mío: prueba interna con vuestros niños, luego un piloto pequeño. Recomiendo: interna → 3 familias → el piloto grande de Javier solo antes de lo público | Tamaño y edades del piloto; si el adulto está presente en 5–7 |
+| D13 | Límites de tiempo | Duración ajustable por la familia; cierre sin negociar con el niño | Hoy: 10 min por capítulo, 30 min al día. Recomiendo que el adulto lo ajuste en Ajustes con esos valores por defecto | Valores por defecto |
+| D14 | Memoria inactiva | Revisión a 180 días sin uso y borrado a 210, con aviso | Sin decidir. Recomiendo adoptarlo para lo público; en la prueba, los Recuerdos viven en el aparato y los borra el adulto | Plazos |
+
+Comprobaciones que me llevo yo (no son decisiones): que ElevenLabs no use las
+conversaciones del agente para entrenar en nuestro plan; que la licencia de
+la voz «Gork» cubra uso comercial infantil; búsqueda de marca «Baby Tizno»
+antes de invertir en lo público (Javier/Ruben).
+
 ## Pendientes
 
 - Javier: biblia de mundo (encargo arriba).
