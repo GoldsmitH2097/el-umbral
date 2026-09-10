@@ -196,6 +196,18 @@ aventura puede esperar»); la familia es dueña de lo que inventa el niño.
 | D13 | Límites de tiempo | Duración ajustable por la familia; cierre sin negociar con el niño | Hoy: 10 min por capítulo, 30 min al día. Recomiendo que el adulto lo ajuste en Ajustes con esos valores por defecto | Valores por defecto |
 | D14 | Memoria inactiva | Revisión a 180 días sin uso y borrado a 210, con aviso | Sin decidir. Recomiendo adoptarlo para lo público; en la prueba, los Recuerdos viven en el aparato y los borra el adulto | Plazos |
 
+**Decisiones de Ruben (10-sep, tarde):** D1 claim = **«Dale voz a su
+imaginación»** («devuélvele la creatividad» asume que el niño la perdió) ·
+D2 = login serio (cuenta de Google o similar) + multiplicación/PIN para acceso
+rápido, PARA MÁS ADELANTE · D3 = memoria preguntada en el primer ajuste (ok) ·
+D4 = **SÍ queremos historial**: borrable, transparente y con control total del
+usuario · D5 = web primero, luego wrapper de app (Claude propone el flujo) ·
+D6 = **no decirle al niño que es una IA**; el aviso va en los ajustes del
+padre; añadir un filtro que borre información sensible (dirección, etc.) de
+lo que se guarda · D7 = es una creación de **Core Soulware** · D8 = Ruben es
+el jefe de proyecto de todo lo relacionado con Tizno, parte de Soulware, y
+tiene la última palabra: Tizno es su creación.
+
 Comprobaciones que me llevo yo (no son decisiones): que ElevenLabs no use las
 conversaciones del agente para entrenar en nuestro plan; que la licencia de
 la voz «Gork» cubra uso comercial infantil; búsqueda de marca «Baby Tizno»
