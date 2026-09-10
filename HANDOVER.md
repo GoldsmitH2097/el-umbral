@@ -814,6 +814,29 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   fotograma). Sin verificar en conversación real: pedir a Ruben que hable
   con él y ajustar la amplitud (26) si se pasa o se queda corto.
 
+### 10-sep, noche (5) — Filamentos sin ebook; página de Tizno limpia; cejas
+- **Filamentos de Oscuridad NO tendrá ebook** (Ruben: «the author prefers
+  to publish as a printed book only»). Corregido en el prompt (PIEZA 4 ES y
+  EN: «en papel, ya en Amazon España y muy pronto en librerías; no hay ni
+  habrá ebook») y en el doc de la KB «Las Obras del Umbral». En la web el
+  cofre de Filamentos ya solo enlaza Amazon.es (papel) — sin cambios.
+- **Página de Tizno** (Estancia, /tizno y /en/tizno): el párrafo de
+  cookies/privacidad/olvido ya no está bajo el botón: cuelga de un botón
+  redondo «i» abajo a la derecha (Ruben: «en una esquina, no es
+  importante»). El botón «Hablar con Tizno» es más pequeño (12px, tracking
+  4), está 18px más abajo y respira como una ascua (animación de sombra y
+  borde; apagada con reduced-motion) con tinta ámbar al pasar por encima.
+- **Hoja de ojos**: los ojos se dibujan en una caja de 60px para que los
+  párpados no se corten en recto (los platos y las cejas furiosas se
+  truncaban); modo «quieto» sin parpadeo (`__ojos.quieto(true)`) para
+  revisar; y CEJAS de hollín que solo existen cuando actúan (se leen en
+  negativo contra el halo, como el pendiente): gestos «doble ceja» (orgullo
+  absurdo, Ace Ventura) y «escucha» (una arriba, otra abajo), a petición de
+  Ruben. Las ocho caras revisadas en producción con capturas.
+- Referencias visuales dadas a Ruben: Susuwatari / Makkuro-kurosuke (Ghibli),
+  Kodama (Mononoke), WALL-E y EVE (Pixar), el niño de LIMBO (Playdead),
+  hojas de expresión de Preston Blair y Richard Williams.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
