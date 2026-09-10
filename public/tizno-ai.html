@@ -14,6 +14,7 @@
          solo Tizno, la niebla y el botón. ?demo=1 conserva el patio entero. */
       if (esEstancia) document.documentElement.classList.add('estancia');
       if (/[?&]mar=0/.test(location.search)) document.documentElement.classList.add('sinmar');
+      if (/[?&]fondo=0/.test(location.search)) document.documentElement.classList.add('sinfondo');
       const esIngles = /[?&]lang=en/.test(location.search) || /^\/en\//.test(location.pathname);
       /* En la Estancia inglesa, los rótulos estáticos hablan inglés (el resto
          del rig ya se traduce solo). */
@@ -299,11 +300,12 @@
            la capa va en píxeles de dispositivo: 140vh a retina son ~30 MB por
            capa; por eso solo en nivel alto. */
         /* Ruben (11-sep, 3.ª vuelta): «poco transparentes y demasiado grandes,
-           casi un escenario; eso pero más sutil en todos los sentidos». Capa
-           120vh, elipses de un cuarto de la capa y alfas a la mitad: se
-           intuye, no se ve. */
+           casi un escenario; eso pero más sutil en todos los sentidos». Y
+           después: «el rendimiento está jodido» → capas de 80vh (a retina,
+           ~8 MB de textura por capa en vez de ~19), en nivel medio solo queda
+           la A, y ?fondo=0 las apaga para comparar. */
         .luz-giro {
-            position: absolute; left: 50%; top: 66%; width: 120vh; height: 120vh; margin: -60vh 0 0 -60vh;
+            position: absolute; left: 50%; top: 66%; width: 80vh; height: 80vh; margin: -40vh 0 0 -40vh;
             will-change: transform; pointer-events: none;
             background:
                 radial-gradient(ellipse 24% 18% at 40% 42%, rgba(243, 156, 18, 0.10), transparent 70%),
@@ -336,7 +338,8 @@
                 radial-gradient(circle 24% at 42% 52%, transparent 66%, rgba(243, 156, 18, 0.07) 69%, rgba(243, 156, 18, 0.07) 72%, transparent 76%);
         }
         @keyframes luz-girar { to { transform: rotate(360deg); } }
-        html[data-nivel="bajo"] .luz-giro, html[data-nivel="medio"] .luz-giro, html.embed .luz-giro { display: none; }
+        html[data-nivel="bajo"] .luz-giro, html.embed .luz-giro, html.sinfondo .luz-giro { display: none; }
+        html[data-nivel="medio"] #luz-giro-b, html[data-nivel="medio"] #luz-giro-c { display: none; }
         @media (prefers-reduced-motion: reduce) { .luz-giro { animation: none; } }
 
         /* --- UI BOXES (A & B) --- */
@@ -932,9 +935,9 @@
                         if (fps < umbralBajo) { bajarNivel(); bajarNivel(); buenas = 0; bajadas++; }
                         else if (fps < umbralMedio) { bajarNivel(); buenas = 0; bajadas++; }
                         else if (fps >= 56 && NIVEL !== NIVEL_INICIAL) {
-                            // Recuperación: 3 ventanas buenas seguidas (7,5 s); tras
+                            // Recuperación: 6 ventanas buenas seguidas (15 s); tras
                             // cada bajada, más paciencia (freno anti-oscilación).
-                            if (++buenas >= 3 + bajadas * 4) { subirNivel(); buenas = 0; }
+                            if (++buenas >= 6 + bajadas * 4) { subirNivel(); buenas = 0; }
                         }
                         ventanas++;
                     } else { buenas = 0; }

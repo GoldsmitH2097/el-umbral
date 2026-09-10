@@ -1345,6 +1345,16 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   visitante (latencia de respuesta, longitud de turno, interrupciones) cada
   45–60 s como contexto, sin contadores visibles.
 
+### 11-sep, madrugada (32) — «el fondo da error y desaparece; el rendimiento está jodido»
+- Diagnóstico (sin errores de consola): tres capas de 120vh a retina (~19 MB
+  de textura cada una) girando + translate → caen los FPS → el vigilante
+  baja a medio → `.luz-giro` se oculta («desaparece») → los FPS vuelven →
+  sube → bucle.
+- Arreglo: capas de 80vh (~8 MB); en medio solo queda la nube A; en bajo
+  ninguna; `?fondo=0` las apaga para comparar rendimiento; la recuperación
+  del nivel exige 6 ventanas buenas (15 s) la primera vez. Si sigue
+  pesando, el siguiente corte es quitar la capa C o dejar solo una nube.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
