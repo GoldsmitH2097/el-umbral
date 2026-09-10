@@ -1355,6 +1355,21 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   del nivel exige 6 ventanas buenas (15 s) la primera vez. Si sigue
   pesando, el siguiente corte es quitar la capa C o dejar solo una nube.
 
+### 11-sep, madrugada (33) — optimización y brief de auditoría
+- Ruben: «el rendimiento ha caído; hay que optimizar». Tres cortes:
+  · Señales: el titileo animaba `text-shadow` en ~40 letras (repintado de
+    desenfoques por fotograma). Ahora la sombra es fija y respira la
+    OPACIDAD de cada letra (compositor).
+  · Mar: búfer a media resolución (`MAR_RESOL` 0,5; el navegador lo
+    estira; las olas son formas grandes) y 60 Hz como máximo (en 120 Hz se
+    salta un fotograma de cada dos; la física va por tiempo).
+  · Nubes: 80vh y ligadas al nivel inicial (ya en (32)).
+  Sospechosos que quedan si sigue pesando: el lienzo de la corona a cada
+  fotograma (orilla + átomos) → volver a 30 fps; la capa C; el hervor.
+- `TIZNO-AUDIT-BRIEF.md`: brief listo para pegar en Claude/GPT/Gemini
+  (qué es, qué pedimos, restricciones, interruptores para probar, formato).
+  El repo es privado: hay que adjuntar `public/tizno-ai.html`.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
