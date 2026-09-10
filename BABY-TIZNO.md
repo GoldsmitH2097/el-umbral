@@ -208,6 +208,11 @@ lo que se guarda · D7 = es una creación de **Core Soulware** · D8 = Ruben es
 el jefe de proyecto de todo lo relacionado con Tizno, parte de Soulware, y
 tiene la última palabra: Tizno es su creación.
 
+| D15 | **ElevenLabs y menores (BLOQUEO, 10-sep)** | — | Prohibited Use Policy §9(r) prohíbe «bundled solutions that target anyone under the age of 13» y la Privacy Policy §11 prohíbe transmitirles voz de menores de 18. Un producto para 5–12 sobre ElevenLabs necesita autorización escrita (acuerdo/Enterprise). Detalle: `BABY-TIZNO-ELEVENLABS-POLITICAS.md`. Recomiendo: pedirla ya por el contacto de Grants; probar solo con adultos mientras tanto; plan B otra pila de voz | Pedir permiso a ElevenLabs o cambiar de pila; si los niños de casa prueban antes del permiso |
+| D16 | Aviso de IA (revisión de D6) | Javier: decirlo | ElevenAgents Terms §3.B obliga por contrato a informar al usuario final de que habla con una IA y de que la conversación se graba y se comparte con ElevenLabs y el LLM. Recomiendo una frase en el primer saludo, en la voz de Tizno, con las palabras «inteligencia artificial», además del aviso al adulto | Mantener D6 o volver a decirlo |
+| D17 | Entrenamiento con nuestros datos | — | Por defecto ElevenLabs entrena con el contenido de los planes self-serve. Hay opt-out en la cuenta («Terms and Privacy → Data use»), no retroactivo. Requiere tu OK porque es un ajuste de tu cuenta | Activar el opt-out |
+| D18 | Voz para lo público | — | «Gork» es un clon profesional de otro usuario con preaviso de 2 años: vale para la prueba. Para lo público recomiendo voz propia (PVC bajo contrato o la de Ruben) | Después |
+
 Comprobaciones que me llevo yo (no son decisiones): que ElevenLabs no use las
 conversaciones del agente para entrenar en nuestro plan; que la licencia de
 la voz «Gork» cubra uso comercial infantil; búsqueda de marca «Baby Tizno»
