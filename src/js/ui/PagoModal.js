@@ -184,7 +184,10 @@ export async function abrirPago(obraId) {
          escanea con el iPhone). */
       paymentMethods: { applePay: 'always', googlePay: 'always', link: 'never' },
       paymentMethodOrder: ['applePay', 'googlePay', 'paypal'],
-      layout: { maxColumns: 1, maxRows: 3, overflow: 'never' },
+      /* OJO: con `overflow: 'never'` junto a maxColumns/maxRows el elemento
+         nunca dispara `ready` (bisecado el 10-sep con siete sondas): sin esa
+         clave, los tres botones llegan en un segundo. */
+      layout: { maxColumns: 1, maxRows: 3 },
     });
     /* Sin cartera disponible en este navegador, ni hueco ni «o paso a paso».
        Stripe anuncia qué botones hay en el evento `ready`
