@@ -321,47 +321,28 @@
         #eye-left-wrapper { left: 140px; }
         #eye-right-wrapper { right: 140px; }
 
+        /* OJOS PARAMÉTRICOS (10-sep-2026; hoja /tizno-ojos.html aprobada por Ruben):
+           el mismo disco blanco con resplandor, SIN pupila ni brillo. La forma la
+           ponen dos párpados descritos como cúbicas, con un muelle por parámetro
+           (motor OJOS, más abajo). Las clases angry/sad/happy/squint/wince/shock
+           siguen siendo la INTENCIÓN que fijan los estados del rig; el motor las
+           traduce a poses. El ojo se dibuja en una caja de 60px con 10px de
+           margen para que los párpados no se corten en recto. */
         .eye {
-            width: 100%; height: 100%; background: #fff; border-radius: 50%;
-            transition: clip-path 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
-            clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%); 
+            position: absolute; left: -10px; top: -10px; width: 60px; height: 60px; background: #fff;
+            clip-path: path('M 10,30 C 10,3.3 50,3.3 50,30 C 50,56.7 10,56.7 10,30 Z');
         }
-
-        .eye::after {
-            content: ''; position: absolute; top: 15%; left: 20%; width: 35%; height: 35%;
-            background: rgba(255, 255, 255, 0.95); border-radius: 50%;
-        }
-
-        /* Furia: cuña afilada, la ceja cae con fuerza hacia el centro. */
-        .eye.angry.left  { clip-path: polygon(0% 6%, 100% 56%, 100% 96%, 0% 82%); }
-        .eye.angry.right { clip-path: polygon(0% 56%, 100% 6%, 100% 82%, 0% 96%); }
-        /* Felicidad: dos arcos (^ ^) — ojos cerrados de gusto. */
-        /* El ojo es un círculo; para el arco hay que soltarlo del border-radius,
-           si no la circunferencia se come las puntas del arco. */
-        /* Base: aproximación en polígono del arco, que funciona en TODOS los
-           navegadores (Safari solo admite path() desde 15.4). Si el navegador
-           soporta curvas, se sustituye por el trazo real más abajo. */
-        .eye.happy {
-            border-radius: 0;
-            clip-path: polygon(2.5% 72.5%, 26% 41.5%, 50% 31%, 74% 41.5%, 97.5% 72.5%,
-                               74% 58.5%, 50% 54%, 26% 58.5%);
-        }
-        @supports (clip-path: path('M 0,0 L 1,1 Z')) {
-            .eye.happy { clip-path: path('M 1,29 Q 20,-4 39,29 Q 20,14 1,29 Z'); }
-        }
-        .eye.happy::after { opacity: 0; }   /* sin brillo: están cerrados de gusto */
-        .eye.sad.left { clip-path: polygon(0% 10%, 100% 40%, 100% 100%, 0% 100%); }
-        .eye.sad.right { clip-path: polygon(0% 40%, 100% 10%, 100% 100%, 0% 100%); }
         .eye-wrapper.blinking { --eye-sy: 0.01 !important; }
-
-        /* --- EXPRESIONES MANGA ---
-           squint: rendija de sospecha, cuando le preguntan a ÉL.
-           wince: ojos apretados en chevron, cuando algo le hace daño (voz alta).
-           shock: ojo entero + brillo diminuto = pupila contraída de susto. */
-        .eye.squint.left  { clip-path: polygon(0% 44%, 100% 32%, 100% 64%, 0% 70%); }
-        .eye.squint.right { clip-path: polygon(0% 32%, 100% 44%, 100% 70%, 0% 64%); }
-        .eye.wince { clip-path: polygon(0% 62%, 50% 40%, 100% 62%, 100% 72%, 50% 54%, 0% 72%); }
-        .eye.shock::after { width: 16%; height: 16%; top: 20%; left: 24%; }
+        /* CEJAS de hollín: negras como el cuerpo, se leen en negativo contra el
+           halo y solo existen cuando actúan (opacidad). Van FUERA del wrapper
+           del ojo, que lleva el filtro del resplandor: dentro, brillarían. */
+        .ceja {
+            position: absolute; top: 96px; width: 48px; height: 11px; background: var(--ink);
+            border-radius: 50% 50% 35% 35% / 100% 100% 40% 40%; opacity: 0;
+            transform-origin: 50% 100%; pointer-events: none;
+        }
+        #ceja-left { left: 136px; }
+        #ceja-right { right: 136px; }
 
         /* --- KEYFRAMES --- */
         @keyframes breathe-body { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.03, 1.02); } }
@@ -598,6 +579,7 @@
                 <div id="eyes-breathing-layer">
                     <div class="eye-wrapper" id="eye-left-wrapper"><div class="eye left" id="eye-left"></div></div>
                     <div class="eye-wrapper" id="eye-right-wrapper"><div class="eye right" id="eye-right"></div></div>
+                    <div class="ceja" id="ceja-left"></div><div class="ceja" id="ceja-right"></div>
                 </div>
             </div>
         </div>
@@ -799,6 +781,65 @@
         const eyeRightWrapper = document.getElementById('eye-right-wrapper');
         const eyeLeft = document.getElementById('eye-left');
         const eyeRight = document.getElementById('eye-right');
+        /* ═══ MOTOR DE OJOS — poses paramétricas (10-sep-2026) ═══
+   top/bot: altura de cada párpado (1 = arco del círculo; <0 = arco al revés →
+   media luna). tIn/tOut: esquinas interior/exterior en px (+ = baja).
+   bY/bR/bO: ceja (altura, giro hacia el centro, visibilidad). k: rigidez del
+   muelle (miedo salta; tristeza se desliza). El tamaño del ojo (platos, furia
+   entornada) sigue mandándolo t_EyeL/t_EyeR, como siempre. */
+        const OJOS_BASE = { top: 1, bot: 1, tIn: 0, tOut: 0, bY: 0, bR: 0, bO: 0 };
+        const OJOS_POSES = {
+            neutro:   { k: 0.14, p: {} },
+            miedo:    { k: 0.35, p: { top: 1.05, bot: 1.05, bY: -9, bO: 0.9 } },
+            susurro:  { k: 0.10, p: { top: 0.32, bot: 0.78, tIn: -1, tOut: 1 } },
+            tristeza: { k: 0.07, p: { top: 0.72, bot: 0.95, tIn: -3, tOut: 7, bY: -3, bR: -14, bO: 0.85 } },
+            risa:     { k: 0.30, p: { top: 0.58, bot: -0.38 } },
+            energia:  { k: 0.30, p: { top: 1.05, bot: 1.05 } },
+            duda:     { k: 0.18, p: {}, L: { top: 1.05, bot: 1.05, bY: -9, bO: 1 }, R: { top: 0.42, bot: 0.74, tIn: 4, tOut: -2, bY: 3, bR: 8, bO: 1 } },
+            furia:    { k: 0.28, p: { top: 0.7, bot: 0.92, tIn: 13, tOut: -4, bY: 1, bR: 22, bO: 1 } },
+            squint:   { k: 0.20, p: { top: 0.38, bot: 0.62, tIn: 3, tOut: -1 } },
+            wince:    { k: 0.35, p: { top: 0.2, bot: -0.15, tIn: 2, tOut: 2, bY: 2, bR: 14, bO: 0.8 } },
+            escucha:  { k: 0.22, p: {}, L: { top: 1.05, bot: 1.02, bY: -9, bR: -6, bO: 1 }, R: { top: 0.7, bot: 0.9, tIn: 2, bY: 4, bR: 10, bO: 1 } },
+            orgullo:  { k: 0.40, p: { top: 0.78, bot: 0.9, bY: -8, bO: 1 } },
+        };
+        // La intención del rig (clases) y el humor del parlamento (MOOD_LEX) → pose.
+        const OJOS_CLASE = { angry: 'furia', sad: 'tristeza', happy: 'risa', squint: 'squint', wince: 'wince', shock: 'miedo' };
+        const OJOS_MOOD  = { miedo: 'miedo', enfado: 'furia', tristeza: 'tristeza', energia: 'energia', duda: 'duda', susurro: 'susurro' };
+        const ojosEstado = { L: { c: { ...OJOS_BASE }, v: {} }, R: { c: { ...OJOS_BASE }, v: {} } };
+        for (const k in OJOS_BASE) { ojosEstado.L.v[k] = 0; ojosEstado.R.v[k] = 0; }
+        let ojosMood = null;          // humor del tramo que suena (solo al hablar)
+        let ojosPoseForzada = null;   // __tiznoOjos.pose('furia') para pruebas; null = libre
+        const cejaLeft = document.getElementById('ceja-left'), cejaRight = document.getElementById('ceja-right');
+        function ojosRecorte(lado, p) {
+            const yIn = 30 + p.tIn, yOut = 30 + p.tOut;
+            const [x0, y0, x1, y1] = lado === 'L' ? [10, yOut, 50, yIn] : [10, yIn, 50, yOut];
+            const kt = 26.67 * p.top, kb = 26.67 * p.bot;
+            return `path('M ${x0},${y0.toFixed(2)} C ${x0},${(y0 - kt).toFixed(2)} ${x1},${(y1 - kt).toFixed(2)} ${x1},${y1.toFixed(2)} C ${x1},${(y1 + kb).toFixed(2)} ${x0},${(y0 + kb).toFixed(2)} ${x0},${y0.toFixed(2)} Z')`;
+        }
+        function ojosPoseDe(el) {
+            if (ojosPoseForzada) return ojosPoseForzada;
+            if (ojosMood && OJOS_MOOD[ojosMood]) return OJOS_MOOD[ojosMood];
+            const cls = el.className.split(' ').find(c => OJOS_CLASE[c]);
+            if (cls) return OJOS_CLASE[cls];
+            if (aiState === 'listening') return 'escucha';
+            if (aiState === 'thinking') return 'duda';
+            return 'neutro';
+        }
+        function ojosPaso(offX, offY) {
+            for (const lado of ['L', 'R']) {
+                const el = lado === 'L' ? eyeLeft : eyeRight;
+                const P = OJOS_POSES[ojosPoseDe(el)] || OJOS_POSES.neutro;
+                const obj = { ...OJOS_BASE, ...(P.p || {}), ...(P[lado] || {}) };
+                const o = ojosEstado[lado];
+                for (const k in OJOS_BASE) { const a = (obj[k] - o.c[k]) * P.k; o.v[k] = (o.v[k] + a) * 0.62; o.c[k] += o.v[k]; }
+                const p = o.c;
+                el.style.clipPath = ojosRecorte(lado, p);
+                const ceja = lado === 'L' ? cejaLeft : cejaRight;
+                ceja.style.opacity = Math.max(0, Math.min(1, p.bO)).toFixed(3);
+                ceja.style.transform = `translate(${offX.toFixed(1)}px, ${(offY + p.bY).toFixed(1)}px) rotate(${(lado === 'L' ? p.bR : -p.bR).toFixed(1)}deg)`;
+            }
+        }
+        window.__tiznoOjos = { pose: (n) => { ojosPoseForzada = (n && OJOS_POSES[n]) ? n : null; return ojosPoseForzada || 'libre'; }, poses: Object.keys(OJOS_POSES) };
 
         const boxA = document.getElementById('box-a');
         const boxB = document.getElementById('box-b');
@@ -830,7 +871,8 @@
            golpe de voz —como si abriera la boca— y vuelve al cerrarla. Sustituye
            al cabeceo muppet (que saltaba hacia arriba). Sigue la envolvente
            rápida del audio real: ataque de un fotograma, sin retardo. */
-        const W_MANDIBULA      = 1.0;  // 1 = 26px de caída a pleno volumen
+        const W_MANDIBULA      = 1.0;  // 1 = 16px de caída a pleno volumen
+        let mandibula = 0;             // envolvente filtrada de la mandíbula
         const W_VOZ_USUARIO    = 1.0;  // tu voz empujándole mientras escucha
         const W_RATON_ESCUCHANDO = 1.0;  // seguimiento del cursor mientras te escucha
         let sBass = 0, sMid = 0, sTreble = 0, sInVol = 0, sVad = 0;
@@ -1555,6 +1597,8 @@
                micro encendido no pone cara cute»). Si lo estás acariciando
                mientras escucha, cae a la rama del mimo y se derrite; hablando
                el teatro del parlamento sigue mandando (mimado ya lo excluye). */
+            ojosMood = null;                               // solo al hablar manda el humor
+            if (aiState !== 'speaking') mandibula += (0 - mandibula) * 0.3;
             if (aiState === 'listening' && !mimado) {
                 // Escuchar NO es congelarse: sigue el cursor como en reposo y
                 // solo se pone atento-vulnerable cuando de verdad te oye.
@@ -1621,6 +1665,7 @@
                     const seg = tl.segs.find(sg => frac >= sg.start && frac < sg.end);
                     if (seg) mood = seg.mood; // un tramo neutro también pisa el global
                 }
+                ojosMood = mood;
                 if (mood === 'enfado') {
                     eyeLeft.className = "eye left angry"; eyeRight.className = "eye right angry";
                 } else if (mood === 'miedo' || mood === 'tristeza') {
@@ -1641,8 +1686,11 @@
                 // Mandíbula: la cabeza cae con la sílaba (boca abierta) y sube al
                 // callar (boca cerrada). El golpe seco (transient) añade el chasquido;
                 // un ladeo mínimo hacia delante para que no sea un pistón.
-                add_HeadY = (aiVolFast * 26 + transient * 10) * W_MANDIBULA;
-                add_HeadRot = -(transient * 3) * W_MANDIBULA;
+                // Suave (Ruben: «muy shakey»): la mandíbula sigue una envolvente
+                // filtrada, sin el golpe seco, y con menos recorrido.
+                mandibula += ((aiVolFast * 0.7 + aiVolume * 0.3) * 16 - mandibula) * 0.3;
+                add_HeadY = mandibula * W_MANDIBULA;
+                add_HeadRot = -(mandibula * 0.08) * W_MANDIBULA;
                 t_NeckScaleY = 1 + (aiVolume * 0.2 + transient * 0.18) * W_VOZ_CUERPO;
                 t_NeckScaleX = 1 - aiVolume * 0.1 * W_VOZ_CUERPO;
                 // Orejas: base suave con el ratón (t_), tic de agudos inmediato (add_).
@@ -2035,6 +2083,7 @@
             eyeRightWrapper.style.setProperty('--eye-y', `${pupilMoveY}px`);
             eyeRightWrapper.style.setProperty('--eye-sx', c_EyeR + add_EyeR);
             eyeRightWrapper.style.setProperty('--eye-sy', c_EyeR + add_EyeR);
+            ojosPaso(pupilMoveX, pupilMoveY);   // párpados y cejas hacia su pose
 
             // Durante el pop los ojos van cerrados; al abrirse se pasan un pelín
             // de tamaño y vuelven — ese rebote es lo que lo hace teleñeco.
@@ -2841,8 +2890,9 @@
            evalúa PRIMERO. El enfado es su emoción más rara y exige marcas
            explícitas — nada de "¡no...!", que es su muletilla constante. */
         const MOOD_LEX = [
-            [/tiembla|tartamudea|respiraci|jadea|se encoge|susurra|miedo|asustad|terror|no te acerques|peligro|huye|cuidado|aléjate|no me toques/, 'miedo'],
-            [/scared|frightened|afraid|nervous|whisper|trembl|gasp|panick|terrified|worried|stammer/, 'miedo'],
+            [/whisper|susurra/, 'susurro'],   // párpados pesados, mirada de reojo (10-sep)
+            [/tiembla|tartamudea|respiraci|jadea|se encoge|miedo|asustad|terror|no te acerques|peligro|huye|cuidado|aléjate|no me toques/, 'miedo'],
+            [/scared|frightened|afraid|nervous|trembl|gasp|panick|terrified|worried|stammer/, 'miedo'],
             [/grita|gruñe|ruge|amenaza|golpea|furios|rabia|\bira\b|maldit|\bharto\b|déjame en paz/, 'enfado'],
             [/angr|shout|yell|growl|snarl|furious|roars?\b|annoyed|irritated/, 'enfado'],
             [/solloza|suspira|llora|lament|triste|\bsolo\b|abandonad|olvidad|\bpena\b|queja|vacío me llama/, 'tristeza'],
