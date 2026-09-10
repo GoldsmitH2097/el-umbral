@@ -483,6 +483,37 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   probado: la conversación de voz de principio a fin (la vista previa no
   tiene micrófono). Es la prueba que hace Ruben.
 
+### Stripe — 10-sep, tarde: Ruben ya es Super Administrador de la cuenta real; ajustes hechos
+- Cuentas: **real = «Core Soulware» `acct_1UDP50JO8ECUbST9`** (Javier propietario,
+  Ruben Super Administrator desde hoy) · sandbox aparte «Core Soulware sandbox»
+  `acct_1UDP5AJAS9Ql4N7H` (vacío, sin usar) · **la cuenta «Buymeacoffee» de
+  Ruben (`acct_1TQmZTBymhtr5pVt`) es personal/EE. UU. y NO se usa.** El enlace
+  de prueba «Anatomía del Vacío» (2,49 €, Managed Payments desactivado) vive
+  en el MODO DE PRUEBAS de la cuenta real, no en el sandbox aparte.
+- Estado encontrado en la cuenta real: tarjeta, Apple Pay, Google Pay, Link,
+  PayPal y **Bizum** ya activos (Javier); Klarna/SEPA apagados; Stripe Tax con
+  sede en España y categoría «servicios prestados por vía electrónica»
+  (apta para Managed Payments); descriptor «READER, CURIOUS»; marca vacía;
+  sin dominios.
+- **Cambios hechos hoy con el OK de Ruben (cuenta real)**: descriptor →
+  «SOULWARE» (y abreviado «SOULWARE») · Amazon Pay apagado (quedan 6:
+  tarjeta, Apple, Google, Link, PayPal, Bizum) · dominio `soulware.live`
+  registrado en Payment method domains (Enabled) · marca: icono
+  (apple-touch-icon 180px) + logo (soulware-logo 120px), color de marca
+  `#050505` (fondo) y acento `#C8922A` (botones), guardado.
+- Archivo de verificación de Apple Pay servido en
+  `/.well-known/apple-developer-merchantid-domain-association` (main y rama
+  `stripe-sandbox`, que se ha puesto al día con main para que el deploy
+  preview 64 también lo sirva).
+- Trucos del panel de Stripe: las páginas tardan 10–20 s en pintar (leer
+  `document.body.innerText` tras esperar); los diálogos no son role=dialog
+  (usar coordenadas o buscar botones por texto); las URLs de la cuenta real
+  llevan `acct_1UDP50JO8ECUbST9` y el modo de pruebas `/test/`.
+- Pendiente: dominio del deploy preview cuando sirva el archivo; alinear la
+  configuración de métodos del modo de pruebas; decidir Managed Payments;
+  clave de prueba en Netlify (Javier); construir el modal con
+  `ui_mode=elements` (ver STRIPE-CHECKOUT-OPCIONES.md).
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
