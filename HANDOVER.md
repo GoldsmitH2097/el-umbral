@@ -708,9 +708,9 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   cuentan historias y se venden experiencias»; sin precios ni proveedores.
   La regla «No vendes libros» pasa a «No eres un vendedor… respondes con las
   piezas». Regla de idioma sin Astra (El Último Pago en su lugar).
-  Copia local: scratchpad tizno-prompt-v2.txt (18,5k). Pendiente: quitar
-  «Totalis Libertas: antología en preparación» de la PIEZA 4 (Ruben la
-  retiró del catálogo el 8-sep).
+  Copia local: scratchpad tizno-prompt-v2.txt (18,5k). Segunda publicación
+  (+1 −1): fuera «Totalis Libertas: antología en preparación» de la PIEZA 4
+  (Ruben la retiró del catálogo el 8-sep).
 - **Trucos del editor ProseMirror del panel**: la pega con ClipboardEvent
   AÑADE (no sustituye) aunque haya selección; para vaciar hay que
   `Range.selectNodeContents` + `document.execCommand('delete')` (cmd+a de
@@ -723,8 +723,8 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   del Umbral» (sección El Último Pago; Anatomía ya no es «gratuita»; la
   sección «dónde conseguirlas» con idiomas y tiendas). El nombre del doc
   Prompt 4 sigue diciendo «Astra» (el panel no renombra; habría que crear
-  uno nuevo y desvincular el viejo). Glosario: pendiente subir la versión
-  nueva (sin Astra, con El Último Pago) — ver siguiente punto si quedó hecho.
+  uno nuevo y desvincular el viejo). Glosario de la KB sustituido por el
+  GLOSARIO.md nuevo (sin Astra, con El Último Pago); antes tenía 4 «Astra».
 - **GLOSARIO.md**: sin Astra; El Último Pago añadido a la tabla de obras.
 - **Pulso en inglés («Pulse of the Core — Eternal Core», Kindle B0G6Y3PH6R)**:
   opción PROPIA del cofre, visible igual en la web ES y EN (Ruben: cambiar
