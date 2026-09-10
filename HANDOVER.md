@@ -673,6 +673,31 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   convertir la mini-tienda en rejilla → `justify-items:center` + `text-align`
   (03e9cc2). Verificado en producción: centrada.
 
+### Concursos — 10-sep: ¿Devpost, ElevenLabs? (investigado a petición de Ruben)
+- Devpost (abiertos/próximos, 10-sep): casi todos exigen proyecto NUEVO creado
+  durante el plazo (GatewayHacks 1 M «en premios» = 8.185 $ en metálico y el
+  resto créditos, solo obra original para el evento; AI Builders 33.900 $ =
+  OSC, solo estudiantes, «creado durante el hackathon», sin ElevenLabs;
+  Agents for Humans 40 k = Amazon, obliga a Strands SDK). Nada de voz,
+  narrativa ni niños con premio real. El «ElevenLabs 33 k» de Ruben no
+  aparece: ElevenHacks (temporada 1, 11 semanas, 240 k) terminó el 25-jun-2026
+  sin temporada 2 anunciada; el Worldwide Hackathon del 11-dic ya tuvo
+  ganadores; el blog de ElevenLabs no anuncia nada abierto en septiembre.
+  Pedido el enlace a Ruben.
+- **El que encaja: Chroma Awards (organiza ElevenLabs, en Devpost)**,
+  temporada 2 «a mediados de octubre» de 2026, online, entrada gratis,
+  división Games: jugable en navegador de escritorio sin descarga,
+  completable en <30 min, hecho después del 1-feb-2025, IA usada de forma
+  significativa, se juzga como juego (narrativa, originalidad, producción,
+  sonido). Premios por subcategoría 2.000/1.000/500 $ + premios de
+  patrocinadores (temporada 1: 191.500 $ en metálico). Mayoría de edad,
+  algunos países excluidos. Candidatos: Anatomía del Vacío (la mejor
+  carta), El Umbral+Tizno como experiencia interactiva; Baby Tizno NO
+  (política de ElevenLabs sobre <13 hasta tener permiso escrito).
+- Valoración honesta dada a Ruben: contra 5.500 participantes con
+  cortometrajes y juegos, El Umbral como web no gana por «tecnología»; gana
+  o no por narrativa, sonido y originalidad, que es justo lo que juzgan.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
