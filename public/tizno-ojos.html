@@ -26,6 +26,11 @@
     transform: translate(var(--hl-x, 0px), var(--hl-y, 0px)) scale(var(--hl-s, 1)); opacity: var(--hl-o, 1); }
   /* Sin resplandor el brillo es invisible sobre blanco: lo separa una sombra sutil. */
   .eye::after { box-shadow: 0 0 0 1px rgba(0,0,0,0.06); }
+  /* LA CEJA: un trazo de hollín que solo existe cuando actúa. Es negra como el
+     cuerpo y se lee en negativo contra el halo del ojo (como el pendiente). */
+  .ceja { position: absolute; left: -4px; top: -14px; width: 48px; height: 11px; background: var(--ink);
+    border-radius: 50% 50% 35% 35% / 100% 100% 40% 40%; opacity: var(--ceja-o, 0);
+    transform: translate(var(--ceja-x, 0px), var(--ceja-y, 0px)) rotate(var(--ceja-r, 0deg)); transform-origin: 50% 100%; }
 
   #panel { position: fixed; left: 0; right: 0; bottom: 0; padding: 14px 18px 18px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center; background: linear-gradient(to top, rgba(5,4,3,0.95), rgba(5,4,3,0)); }
   #panel button { background: transparent; border: 1px solid rgba(200,146,42,0.5); color: #e8c87a; font: inherit; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; padding: 9px 14px; cursor: pointer; }
@@ -40,15 +45,15 @@
 </style>
 </head>
 <body>
-<div id="titulo">Tizno · <b>hoja de expresiones</b> · solo ojos, sin pupila</div>
+<div id="titulo">Tizno · <b>hoja de expresiones</b> · solo ojos, sin pupila · cejas de hollín solo cuando actúan</div>
 <div id="nombre">neutro</div>
 <div id="nota">Pulsa una cara. «Hablar» simula las sílabas. «Auto» las recorre todas.</div>
 <div id="zoom">ZOOM <input type="range" min="2" max="6" step="0.5" value="4" oninput="document.getElementById('rig').style.setProperty('--zoom', this.value)"></div>
 
 <div id="escena">
   <div id="rig">
-    <div class="eye-wrapper" id="eye-left-wrapper"><div class="eye left" id="eye-left"></div></div>
-    <div class="eye-wrapper" id="eye-right-wrapper"><div class="eye right" id="eye-right"></div></div>
+    <div class="eye-wrapper" id="eye-left-wrapper"><div class="ceja" id="ceja-left"></div><div class="eye left" id="eye-left"></div></div>
+    <div class="eye-wrapper" id="eye-right-wrapper"><div class="ceja" id="ceja-right"></div><div class="eye right" id="eye-right"></div></div>
   </div>
 </div>
 
@@ -74,23 +79,39 @@
    pose (miedo y energía saltan; tristeza y susurro se deslizan). */
 const CX = 30, K = 26.67, X0 = 10, X1 = 50; // caja 60×60: el círculo de 40 va de x=10 a x=50, centro y=30
 
-const BASE = { top: 1, bot: 1, tIn: 0, tOut: 0, sx: 1, sy: 1, hl: 1, hlx: 0, hly: 0, trem: 0 };
+/* Cejas: bY = altura (negativo = arriba), bR = giro en grados (positivo = el
+   extremo INTERIOR baja: ceño), bO = visibilidad 0..1. */
+const BASE = { top: 1, bot: 1, tIn: 0, tOut: 0, sx: 1, sy: 1, hl: 1, hlx: 0, hly: 0, trem: 0, bY: 0, bR: 0, bO: 0 };
 
 // Poses. `L` y `R` sobreescriben por ojo (asimetría). `k` = rigidez del muelle.
 const POSES = {
   neutro:   { k: 0.12, glow: '#f39c12', p: {} },
-  miedo:    { k: 0.35, glow: '#dbe8ff', p: { top: 1.05, bot: 1.05, sx: 1.26, sy: 1.26, hl: 0.42, trem: 1.4 } },
+  miedo:    { k: 0.35, glow: '#dbe8ff', p: { top: 1.05, bot: 1.05, sx: 1.26, sy: 1.26, hl: 0.42, trem: 1.4, bY: -9, bO: 0.9 } },
   susurro:  { k: 0.08, glow: '#c98a2f', p: { top: 0.32, bot: 0.78, tIn: -1, tOut: 1, sx: 1.06, sy: 0.82, hl: 0.9, hlx: 6, hly: 1 } },
-  tristeza: { k: 0.06, glow: '#a97d2a', p: { top: 0.72, bot: 0.95, tIn: -3, tOut: 7, sy: 0.92, hl: 0.8, hly: 4 } },
+  tristeza: { k: 0.06, glow: '#a97d2a', p: { top: 0.72, bot: 0.95, tIn: -3, tOut: 7, sy: 0.92, hl: 0.8, hly: 4, bY: -3, bR: -14, bO: 0.85 } },
   risa:     { k: 0.3,  glow: '#f5b642', p: { top: 0.58, bot: -0.38, sx: 1.06, sy: 1.0, hl: 0 } },
   energia:  { k: 0.3,  glow: '#ffd36a', p: { top: 1.05, bot: 1.05, sx: 1.18, sy: 1.18, hl: 1.5 } },
   duda:     { k: 0.18, glow: '#f39c12', p: { hlx: 4, hly: -1 },
-              L: { top: 1.05, bot: 1.05, sx: 1.16, sy: 1.16 },
-              R: { top: 0.42, bot: 0.74, tIn: 4, tOut: -2, sx: 0.98, sy: 0.96, hl: 0.85 } },
-  furia:    { k: 0.28, glow: '#ff7a2a', p: { top: 0.7, bot: 0.92, tIn: 13, tOut: -4, sy: 0.95, hl: 0.6 } },
+              L: { top: 1.05, bot: 1.05, sx: 1.16, sy: 1.16, bY: -9, bO: 1 },
+              R: { top: 0.42, bot: 0.74, tIn: 4, tOut: -2, sx: 0.98, sy: 0.96, hl: 0.85, bY: 3, bR: 8, bO: 1 } },
+  furia:    { k: 0.28, glow: '#ff7a2a', p: { top: 0.7, bot: 0.92, tIn: 13, tOut: -4, sy: 0.95, hl: 0.6, bY: 1, bR: 22, bO: 1 } },
+  // Gestos con ceja (Ruben, 10-sep): orgullo absurdo (doble ceja, Ace Ventura) y escucha (una arriba, otra abajo).
+  orgullo:  { k: 0.4,  glow: '#f5b642', p: { top: 0.78, bot: 0.9, hlx: 3, hly: 1, bY: -8, bO: 1 } },
+  escucha:  { k: 0.22, glow: '#f39c12', p: {},
+              L: { top: 1.05, bot: 1.02, sx: 1.06, sy: 1.06, bY: -9, bR: -6, bO: 1 },
+              R: { top: 0.7, bot: 0.9, tIn: 2, bY: 4, bR: 10, bO: 1 } },
 };
+// Gesto: secuencia de poses con tiempos (ms). Al acabar vuelve a la pose anterior.
+const GESTOS = {
+  orgullo: [['orgullo', 0], ['neutro', 170], ['orgullo', 340], ['neutro', 510], ['orgullo', 680], ['fin', 1400]],
+  escucha: [['escucha', 0], ['fin', 2200]],
+};
+function gesto(nombre) {
+  const prev = (pose in GESTOS) ? 'neutro' : pose;
+  for (const [p, t] of GESTOS[nombre]) setTimeout(() => setPose(p === 'fin' ? prev : p), t);
+}
 const ORDEN = ['neutro', 'miedo', 'susurro', 'tristeza', 'risa', 'energia', 'duda', 'furia'];
-const NOMBRES = { neutro: 'neutro', miedo: 'miedo · [scared]', susurro: 'susurro · [Whispers]', tristeza: 'tristeza · [Sighs]', risa: 'risa nerviosa · [Chuckles]', energia: 'emoción · [Excitedly]', duda: 'curiosidad · [Curious]', furia: 'furia · [Angrily]' };
+const NOMBRES = { neutro: 'neutro', miedo: 'miedo · [scared]', susurro: 'susurro · [Whispers]', tristeza: 'tristeza · [Sighs]', risa: 'risa nerviosa · [Chuckles]', energia: 'emoción · [Excitedly]', duda: 'curiosidad · [Curious]', furia: 'furia · [Angrily]', orgullo: 'orgullo absurdo · doble ceja', escucha: 'escucha · una ceja arriba' };
 
 // Estado vivo de cada ojo: valor actual (c) y velocidad (v) por parámetro.
 function nuevoOjo() { const c = { ...BASE }, v = {}; for (const k in BASE) v[k] = 0; return { c, v }; }
@@ -167,6 +188,10 @@ function frame(t) {
     E[lado].style.setProperty('--hl-s', Math.max(0, p.hl).toFixed(3));
     E[lado].style.setProperty('--hl-o', p.hl < 0.05 ? 0 : 1);
     E[lado].style.setProperty('--hl-x', `${p.hlx.toFixed(2)}px`); E[lado].style.setProperty('--hl-y', `${p.hly.toFixed(2)}px`);
+    // la ceja: el giro se espeja en el ojo derecho para que «interior» sea siempre hacia la nariz
+    const C = document.getElementById(lado === 'L' ? 'ceja-left' : 'ceja-right').style;
+    C.setProperty('--ceja-y', `${p.bY.toFixed(2)}px`); C.setProperty('--ceja-r', `${(lado === 'L' ? p.bR : -p.bR).toFixed(2)}deg`);
+    C.setProperty('--ceja-o', Math.max(0, Math.min(1, p.bO)).toFixed(3));
   }
   requestAnimationFrame(frame);
 }
@@ -184,6 +209,8 @@ const sep = document.createElement('span'); sep.className = 'sep'; panel.appendC
 const bh = document.createElement('button'); bh.textContent = 'hablar'; bh.onclick = () => { hablando = !hablando; bh.classList.toggle('on', hablando); }; panel.appendChild(bh);
 const ba = document.createElement('button'); ba.id = 'b-auto'; ba.textContent = 'auto'; ba.onclick = () => { auto = !auto; ba.classList.toggle('on', auto); autoT = 0; }; panel.appendChild(ba);
 const bs = document.createElement('button'); bs.textContent = 'susto'; bs.onclick = () => { const prev = pose; setPose('miedo'); setTimeout(() => setPose(prev), 700); }; panel.appendChild(bs);
+const sep2 = document.createElement('span'); sep2.className = 'sep'; panel.appendChild(sep2);
+for (const g of ['orgullo', 'escucha']) { const b = document.createElement('button'); b.textContent = g === 'orgullo' ? 'doble ceja' : 'escucha'; b.onclick = () => gesto(g); panel.appendChild(b); }
 document.addEventListener('keydown', (e) => { const i = parseInt(e.key, 10); if (i >= 1 && i <= 8) setPose(ORDEN[i - 1]); if (e.key === ' ') { e.preventDefault(); bh.click(); } });
 
 // Zoom automático: los dos ojos (320px de rig) caben siempre, hasta ×4.

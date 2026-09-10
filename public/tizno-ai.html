@@ -25,6 +25,8 @@
           if (c) c.textContent = 'Speak to Tizno';
           const st = document.getElementById('tizno-status');
           if (st) st.textContent = 'press to speak with him';
+          const ib = document.getElementById('tizno-info-btn');
+          if (ib) { ib.setAttribute('aria-label', 'Privacy and memory'); ib.title = 'Privacy and memory'; }
           /* El aviso de privacidad, en inglés — CIRUGÍA, no innerHTML: el
              enlace #tizno-olvido conserva su nodo (y sus listeners). */
           const aviso = document.getElementById('tizno-aviso');
@@ -420,28 +422,56 @@
 
         /* ═══ ELEVENLABS 1/4 — call UI ═══ */
         #tizno-call-ui {
-            position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
+            position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
             z-index: 60; display: flex; flex-direction: column; align-items: center;
             gap: 8px; font-family: 'Georgia', serif;
         }
         #tizno-call {
-            background: rgba(0,0,0,0.55); color: rgba(243, 156, 18, 0.9);
-            border: 1px solid rgba(243, 156, 18, 0.35); border-radius: 8px;
-            padding: 12px 22px; font-family: inherit; font-size: 14px;
-            letter-spacing: 3px; text-transform: uppercase; cursor: pointer;
-            transition: all 0.3s ease;
+            position: relative; overflow: hidden; isolation: isolate;
+            background: rgba(0,0,0,0.55); color: rgba(243, 156, 18, 0.92);
+            border: 1px solid rgba(243, 156, 18, 0.4); border-radius: 6px;
+            padding: 10px 20px; font-family: inherit; font-size: 12px;
+            letter-spacing: 4px; text-transform: uppercase; cursor: pointer;
+            transition: color 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
+            /* Brasa: el borde respira como una ascua, sin repintar nada más. */
+            animation: brasa 3.4s ease-in-out infinite;
         }
-        #tizno-call:hover { border-color: rgba(243, 156, 18, 0.8); box-shadow: 0 0 20px rgba(243, 156, 18, 0.15); }
+        @keyframes brasa {
+            0%, 100% { box-shadow: 0 0 12px rgba(243, 156, 18, 0.10), inset 0 0 8px rgba(243, 156, 18, 0.04); border-color: rgba(243, 156, 18, 0.32); }
+            50%      { box-shadow: 0 0 26px rgba(243, 156, 18, 0.30), inset 0 0 12px rgba(243, 156, 18, 0.10); border-color: rgba(243, 156, 18, 0.78); }
+        }
+        /* Tinta que sube desde abajo al pasar por encima. */
+        #tizno-call::before {
+            content: ''; position: absolute; inset: 0; z-index: -1; opacity: 0;
+            background: radial-gradient(ellipse 120% 90% at 50% 130%, rgba(243, 156, 18, 0.42), rgba(243, 156, 18, 0.06) 55%, transparent 75%);
+            transition: opacity 0.45s ease;
+        }
+        #tizno-call:hover, #tizno-call:focus-visible { color: #fff8e0; border-color: rgba(243, 156, 18, 0.95); transform: translateY(-1px); outline: none; }
+        #tizno-call:hover::before, #tizno-call:focus-visible::before { opacity: 1; }
+        @media (prefers-reduced-motion: reduce) { #tizno-call { animation: none; } }
         #tizno-call.live { color: #e74c3c; border-color: rgba(231, 76, 60, 0.6); }
         #tizno-call:disabled { opacity: 0.4; cursor: wait; }
         #tizno-status {
             color: rgba(255,255,255,0.35); font-style: italic; font-size: 12px;
             letter-spacing: 1px; text-align: center;
         }
-        #tizno-aviso {
-            max-width: 640px; text-align: center; margin-top: 6px;
-            color: rgba(255,255,255,0.28); font-size: 11.5px; line-height: 1.65;
+        #tizno-info { position: fixed; right: 18px; bottom: 18px; z-index: 61; font-family: 'Georgia', serif; }
+        html.embed #tizno-info { display: none !important; }
+        #tizno-info-btn {
+            width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
+            border: 1px solid rgba(243, 156, 18, 0.35); background: rgba(0,0,0,0.45);
+            color: rgba(243, 156, 18, 0.75); font: italic 15px 'Georgia', serif; line-height: 28px; padding: 0;
+            opacity: 0.55; transition: opacity 0.3s, border-color 0.3s;
         }
+        #tizno-info-btn:hover, #tizno-info-btn:focus-visible, #tizno-info-btn[aria-expanded="true"] { opacity: 1; border-color: rgba(243, 156, 18, 0.8); outline: none; }
+        #tizno-aviso {
+            position: absolute; right: 0; bottom: 40px; margin: 0;
+            width: min(380px, calc(100vw - 36px)); text-align: left;
+            background: rgba(6, 5, 4, 0.95); border: 1px solid rgba(243, 156, 18, 0.25); border-radius: 6px;
+            padding: 14px 16px; color: rgba(255,255,255,0.55); font-size: 11.5px; line-height: 1.65;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+        }
+        #tizno-aviso[hidden] { display: none; }
         #tizno-aviso a {
             color: rgba(243, 156, 18, 0.55); text-decoration: none;
             border-bottom: 1px solid rgba(243, 156, 18, 0.25);
@@ -594,7 +624,17 @@
     <div id="tizno-call-ui">
         <button id="tizno-call">Hablar con Tizno</button>
         <div id="tizno-status">pulsa para hablar con él</div>
-        <p id="tizno-aviso">
+        <!-- El grant (18-ago-2026): condición de 12+ meses con enlace. Solo
+             en la Estancia — el embed esconde el call-ui entero y la demo es
+             el patio del equipo. Reposo casi invisible; despierta al hover. -->
+        <a id="tizno-grant" href="https://elevenlabs.io/startup-grants" target="_blank" rel="noopener"><img src="/assets/elevenlabs-grants.webp" alt="ElevenLabs Grants" loading="lazy" /></a>
+    </div>
+
+    <!-- El aviso de privacidad y el olvido, en una esquina (Ruben, 10-sep:
+         «con un botón, en una esquina, no es importante»). -->
+    <div id="tizno-info">
+        <button id="tizno-info-btn" type="button" aria-expanded="false" aria-controls="tizno-aviso" aria-label="Privacidad y memoria" title="Privacidad y memoria">i</button>
+        <p id="tizno-aviso" hidden>
             En esta web no usamos cookies: no queremos entrometernos en tu vida ni sacar
             de ti nada que se pueda vender. Tizno recuerda cosas sobre ti, pero las guarda
             dentro de tu propio dispositivo — nosotros no nos quedamos con nada.
@@ -602,10 +642,6 @@
             servidores para que pueda responderte, bajo su <a href="https://elevenlabs.io/privacy-policy" target="_blank" rel="noopener">política de privacidad</a>.
             <br>Si te quedas más tranquilo, puedes <a href="#" id="tizno-olvido">borrar lo que sabe de ti</a>.
         </p>
-        <!-- El grant (18-ago-2026): condición de 12+ meses con enlace. Solo
-             en la Estancia — el embed esconde el call-ui entero y la demo es
-             el patio del equipo. Reposo casi invisible; despierta al hover. -->
-        <a id="tizno-grant" href="https://elevenlabs.io/startup-grants" target="_blank" rel="noopener"><img src="/assets/elevenlabs-grants.webp" alt="ElevenLabs Grants" loading="lazy" /></a>
     </div>
 
     <script>
@@ -3376,6 +3412,15 @@
         window.__tiznoLlamar = () => { conversation ? sleep() : wake(); };
         window.__tiznoColgar = () => { if (conversation) sleep(); };
 
+        // El botón «i» de la esquina abre y cierra el aviso; Escape lo cierra.
+        (() => {
+            const ib = document.getElementById('tizno-info-btn'), av = document.getElementById('tizno-aviso');
+            if (!ib || !av) return;
+            const poner = (abierto) => { av.hidden = !abierto; ib.setAttribute('aria-expanded', String(abierto)); };
+            ib.addEventListener('click', () => poner(av.hidden));
+            document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !av.hidden) poner(false); });
+            document.addEventListener('click', (e) => { if (!av.hidden && !e.target.closest('#tizno-info')) poner(false); });
+        })();
         // "Borrar lo que sabe de ti": la tarjeta de memoria, en manos del visitante.
         document.getElementById('tizno-olvido').addEventListener('click', (e) => {
             e.preventDefault();
