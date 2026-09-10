@@ -522,30 +522,14 @@
                 <feBlend in="SourceGraphic" in2="g" />
             </filter>
             <!-- CUERPO (Ruben, 10-sep: «más inky, irregular, peludo, smokey»;
-                 después: «un poco demasiada distorsión» y «no matar la GPU»).
+                 después «un poco demasiada distorsión», «no matar la GPU» y
+                 fuera el vaho: «no me gusta la sombra que proyecta hacia atrás»).
                  Sobre la fusión goo de siempre, UN solo ruido de tres octavas
                  (0.02/0.05 → 0.04/0.10 → 0.08/0.20): la octava grave retuerce la
                  silueta como tinta y la aguda eriza el contorno en pelusa. Un
-                 desplazamiento moderado (12) en vez de los dos de antes (12+18).
-                 VAHO (solo nivel alto): copia difusa del cuerpo, subida y
-                 retorcida por ESE MISMO ruido, fusionada debajo: humo que sube
-                 de la coronilla. Coste sobre el filtro original: un desenfoque
-                 (8) y un desplazamiento más; ni una turbulencia extra. -->
+                 desplazamiento moderado (12). Cuesta lo mismo que el filtro
+                 original del cuerpo (una octava más de ruido, nada más). -->
             <filter id="ink-goo-body">
-                <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
-                <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7.5" result="ink-goo" />
-                <feBlend in="SourceGraphic" in2="ink-goo" result="merged" />
-                <feTurbulence type="fractalNoise" baseFrequency="0.02 0.05" numOctaves="3" seed="7" result="smoke" />
-                <feDisplacementMap data-p="humo" in="merged" in2="smoke" scale="12" xChannelSelector="R" yChannelSelector="G" result="cuerpo" />
-                <feGaussianBlur in="cuerpo" stdDeviation="8" result="vaho0" />
-                <feOffset data-p="vahoSubida" in="vaho0" dx="0" dy="-24" result="vaho1" />
-                <feDisplacementMap in="vaho1" in2="smoke" scale="36" xChannelSelector="R" yChannelSelector="G" result="vaho2" />
-                <feColorMatrix data-p="vahoAlfa" in="vaho2" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.5 0" result="vaho" />
-                <feMerge><feMergeNode in="vaho" /><feMergeNode in="cuerpo" /></feMerge>
-            </filter>
-            <!-- Nivel MEDIO del cuerpo: mismo ruido y retorcimiento, sin el vaho.
-                 Cuesta lo mismo que el filtro de antes (una octava más de ruido). -->
-            <filter id="ink-goo-body-medio">
                 <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
                 <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7.5" result="ink-goo" />
                 <feBlend in="SourceGraphic" in2="ink-goo" result="merged" />
@@ -699,8 +683,6 @@
             gooContraste: 14,     // alto = pegotes duros · bajo = vapor
             gooDistorsion: 30,    // cuánto se retuerce el humo (líquido)
             humoEscala: 12,       // cuerpo: retorcimiento y pelusa de la silueta (0 = liso)
-            vahoAlfa: 0.5,        // cuerpo: opacidad del halo de humo (nivel alto)
-            vahoSubida: 24,       // cuerpo: cuánto sube el halo (px)
             gotasPorTick: 9,      // gotas de tinta por pulso
             desenfoque: 10,        // desenfoque del filtro de partículas
             popRigidez: 0.0092,   // muelle del salto: más alto = más rápido
@@ -755,8 +737,7 @@
             // En nivel BAJO el cuerpo también renuncia a la turbulencia: en un
             // móvil modesto ese filtro es la mitad del gasto de toda la página.
             const cuerpo = document.querySelectorAll('.goo-layer')[0];
-            if (cuerpo) cuerpo.style.filter = NIVEL === 'bajo' ? "url('#ink-goo-movil')"
-                                            : NIVEL === 'medio' ? "url('#ink-goo-body-medio')" : "url('#ink-goo-body')";
+            if (cuerpo) cuerpo.style.filter = NIVEL === 'bajo' ? "url('#ink-goo-movil')" : "url('#ink-goo-body')";
             // La segunda lámina de niebla es puro adorno: fuera en nivel bajo.
             const niebla2 = document.getElementById('abyss-foreground-2');
             if (niebla2) niebla2.style.display = NIVEL === 'bajo' ? 'none' : '';
@@ -2823,8 +2804,6 @@
                 ['gooContraste', 5, 30, 0.5,    'Goo: contraste (vapor←duro→)'],
                 ['gooDistorsion', 0, 70, 2,     'Goo: distorsión líquida'],
                 ['humoEscala',    0, 30, 1,     'Cuerpo: distorsión (pelusa+humo)'],
-                ['vahoAlfa',      0, 1, 0.05,   'Cuerpo: vaho (opacidad)'],
-                ['vahoSubida',    0, 50, 2,     'Cuerpo: vaho (cuánto sube)'],
                 ['gotasPorTick',  0, 12, 1,     'Gotas de tinta por pulso'],
                 ['desenfoque',    2, 16, 1,     'Desenfoque del filtro'],
                 ['popRigidez', 0.003, 0.03, 0.0005, 'Salto: rigidez (rápido→)'],
@@ -2864,8 +2843,6 @@
                         if (d) d.setAttribute('scale', TUNE.gooDistorsion);
                     }
                     if (clave === 'humoEscala') document.querySelectorAll('[data-p="humo"]').forEach(d => d.setAttribute('scale', TUNE.humoEscala));
-                    if (clave === 'vahoAlfa') document.querySelectorAll('[data-p="vahoAlfa"]').forEach(m => m.setAttribute('values', '1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 ' + TUNE.vahoAlfa + ' 0'));
-                    if (clave === 'vahoSubida') document.querySelectorAll('[data-p="vahoSubida"]').forEach(o => o.setAttribute('dy', -TUNE.vahoSubida));
                 });
                 fila.appendChild(sl);
                 caja.appendChild(fila);

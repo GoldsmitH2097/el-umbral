@@ -999,6 +999,15 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
 - Verificado en su Chrome contra el servidor local: contorno con pelusa
   fina, orejas ya no rasgadas, halo de humo discreto.
 
+### 10-sep, noche (12) — fuera el vaho
+- Ruben: «no me gusta la sombra que Tizno parece proyectar hacia atrás» =
+  el vaho (copia difusa detrás del cuerpo). Eliminado del todo: el cuerpo
+  queda con la fusión goo + un ruido de 3 octavas + un desplazamiento (12),
+  igual para alto y medio (`#ink-goo-body-medio` ya no existe); bajo sigue
+  con `#ink-goo-movil`. Panel ?tune=1: solo «Cuerpo: distorsión».
+- Lo que sí le gusta y se queda: la pelusa del contorno y el retorcimiento
+  suave. El humo de la coronilla lo siguen dando la corona y las letras.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
