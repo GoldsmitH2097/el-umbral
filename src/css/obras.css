@@ -1038,7 +1038,11 @@ button.retailer-logo { appearance: none; background: none; border: 0; padding: 0
 .obra-editions--shop { display: grid; grid-template-rows: 35px auto; row-gap: 10px; align-items: center; }
 .obra-editions--shop .obra-edition-invite { grid-row: 1; align-self: center; margin: 0; }
 .obra-editions--shop .obra-compra { grid-row: 1; align-self: center; margin: 0 auto; }
-.obra-editions--shop .cofre-strip { grid-row: 2; align-self: start; align-content: flex-start; min-height: calc(var(--slot) + 22px); }
+/* align-items al principio: el icono del ebook (con su nota debajo) y el
+   grupo de anunciadas (con la suya) son más altos que una marca suelta; si
+   se centrasen, las marcas de Pulso y Filamentos bajaban 4 y 10 px respecto
+   a las de sus vecinos. Arriba todas, y las notas cuelgan en la reserva. */
+.obra-editions--shop .cofre-strip { grid-row: 2; align-self: start; align-content: flex-start; align-items: flex-start; min-height: calc(var(--slot) + 22px); }
 /* Columnas estrechas (900–1220): sigue la reserva de dos filas de arriba. */
 @container (max-width: 240px) {
   .obra-editions--shop .cofre-strip { min-height: calc(var(--slot) * 2 + 26px); align-content: center; }
