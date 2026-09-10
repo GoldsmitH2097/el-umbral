@@ -630,6 +630,49 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   bajan a sus vecinas. Resultado: 732/732/732/732 y las marcas a 780 px.
   En main como `fix(obras)` 2a5e3b0; main fusionado en stripe-sandbox.
 
+### Stripe — 10-sep, 21:30: el cofre en tres pasos que se destapan (vista previa 64)
+- Ruben: «ahora es muy confuso»; «solo mostrar paso 1, cuando completamos
+  paso 1, paso 2 se muestra»; «mantén Apple Pay, Google Pay, PayPal, Tarjeta
+  y Bizum como opciones visibles; el email solo dentro de tarjeta y el
+  teléfono en Bizum»; «botones de Apple/Google negros»; «con los logos
+  oficiales».
+- **① Cómo pagar**: cinco puertas. Apple Pay, Google Pay y PayPal son los
+  botones oficiales que pinta Stripe (tema `black` los tres) sobre un lecho
+  apenas más claro con un rótulo detrás del iframe («Apple Pay · Google Pay ·
+  PayPal») porque los botones tardan segundos en pintarse tras `ready`.
+  Tarjeta (marcas Visa/Mastercard en oro) y Bizum (wordmark) son botones
+  nuestros. La franja de marcas se retira en el formulario.
+- **② Tus datos**: aparece al elegir Tarjeta o Bizum. **Una Checkout Session
+  por puerta** (`crear-sesion-pago` acepta `metodo`: carteras → card+paypal,
+  tarjeta → card, bizum → bizum): con un solo `payment_method_type` Stripe
+  pinta solo los campos de ese método. Bizum pide el teléfono (formulario de
+  Stripe, con la nota de Openbank). El correo va en los dos: es donde se
+  entrega la llave y Stripe lo exige para confirmar. `wallets: never` en el
+  Payment Element de tarjeta (si no, Google Pay reaparecía como fila).
+- **③ Confirmar**: el botón aparece cuando `canConfirm` es true y ya no se
+  esconde (se apaga si se rompe un campo).
+- Carteras: no pasan por ② ni ③; su hoja recoge el correo (la sesión lo
+  exige). `emailRequired` no existe en el ECE de Checkout Sessions.
+  **Pendiente de comprobar por Ruben**: pulsar Google Pay en Chrome y ver
+  que la hoja pide/lleva el correo; el pago en test no cobra.
+- Trampas encontradas (en memoria de Claude también): un iframe de Stripe
+  remontado tras `unmount()` se queda en blanco (el correo, al pasar de
+  Bizum a Tarjeta) → se destruyen y se crean piezas nuevas en cada cambio;
+  `ready` llega segundos antes del pintado; `layout.overflow:'never'` bloquea
+  `ready`.
+- Google Pay muestra las tarjetas guardadas del usuario en el propio botón:
+  es el «botón dinámico» de Google, solo lo ve quien tiene sesión de Google
+  con tarjetas, y Stripe no ofrece forma de quitarlo.
+- Logos: Visa, Mastercard, Apple Pay, Google Pay y PayPal son las marcas
+  oficiales monocromas (simpleicons); Bizum no está en simpleicons y va como
+  wordmark tipográfico — si Ruben quiere el logo oficial hay que bajarlo del
+  kit de marca de bizum.es.
+- Segunda compra de prueba por el flujo nuevo: prueba2@soulware.live, 4242 →
+  «Pago recibido».
+- Obras (main): la invitación del cofre había quedado a la izquierda al
+  convertir la mini-tienda en rejilla → `justify-items:center` + `text-align`
+  (03e9cc2). Verificado en producción: centrada.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
