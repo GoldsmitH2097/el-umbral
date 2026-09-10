@@ -746,6 +746,27 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
 - Prerender: cada tienda regional listada una vez con su dominio.
 - Bug corregido de paso: `.map(retailerLink)` pasaba el índice como nombre.
 
+### 10-sep, noche (2) — Tizno v3: las piezas con las palabras de Ruben
+- Ruben corrigió las piezas y se publicó v3 (+6 −8, «Main updated»):
+  ① «¿Quién eres?» → el Tizno de siempre, lo más novelesco posible (hollín,
+  tinta húmeda, sombras, Custodio del Umbral); fuera «voz prestada y sin
+  vergüenza». ② «¿Qué es Soulware?» → «una nueva editorial española de
+  historias de autor en formatos tradicionales y experimentales: artesanos
+  de experiencias…». ③ «¿Qué haces aquí?» → guía, educa, lleva de la mano
+  por la experiencia de Soulware (lo de «no rastrea» ya no es lo
+  importante). ④ Obras → Pulso disponible en España en librerías,
+  principales tiendas online y ebook, y en inglés en ebook; Filamentos en
+  ebook y muy pronto en librerías; Anatomía pronto aquí mismo como
+  experiencia audiovisual interactiva; El Último Pago pronto en papel y
+  ebook; fuera de España, tiendas online de cada país y ebook. ⑤ «¿Qué
+  viene?» → Anatomía, nuevos proyectos con Tizno como protagonista, El
+  Último Pago. Copia local: scratchpad tizno-prompt-v3.txt.
+- KB «Las Obras del Umbral» alineado con ④ (sección «dónde conseguirlas»,
+  estado de Anatomía y de Filamentos, idiomas de Pulso).
+- Confirmado en producción: con la web en INGLÉS y el visitante en España
+  (`/en/obras/?region=es`) salen las librerías españolas y el Kindle ES,
+  más la edición inglesa. La tienda depende del país, no del idioma.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
