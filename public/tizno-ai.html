@@ -338,8 +338,13 @@
                 radial-gradient(circle 24% at 42% 52%, transparent 66%, rgba(243, 156, 18, 0.07) 69%, rgba(243, 156, 18, 0.07) 72%, transparent 76%);
         }
         @keyframes luz-girar { to { transform: rotate(360deg); } }
-        html[data-nivel="bajo"] .luz-giro, html.embed .luz-giro, html.sinfondo .luz-giro { display: none; }
-        html[data-nivel="medio"] #luz-giro-b, html[data-nivel="medio"] #luz-giro-c { display: none; }
+        /* Las nubes miran el nivel INICIAL (estimación por hardware al cargar),
+           no el nivel en vivo del vigilante: si dependieran del vivo, cada
+           bajada/subida las apagaba y encendía (Ruben: «el glow aparece y
+           desaparece»). El vigilante recorta partículas y filtros, que es lo
+           que cuesta; las nubes son dos texturas compuestas. */
+        html[data-nivel-inicial="bajo"] .luz-giro, html.embed .luz-giro, html.sinfondo .luz-giro { display: none; }
+        html[data-nivel-inicial="medio"] #luz-giro-b, html[data-nivel-inicial="medio"] #luz-giro-c { display: none; }
         @media (prefers-reduced-motion: reduce) { .luz-giro { animation: none; } }
 
         /* --- UI BOXES (A & B) --- */
@@ -864,6 +869,7 @@
             if (NIVEL_FORZADO) NIVEL = NIVEL_FORZADO;
         }
         const NIVEL_INICIAL = NIVEL;   // el techo al que se puede volver a subir
+        document.documentElement.dataset.nivelInicial = NIVEL_INICIAL;
         const FACTOR = { alto: 1, medio: 0.55, bajo: 0.3 };
         function aplicarNivel() {
             const cap = document.getElementById('goo-particles');
