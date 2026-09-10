@@ -85,14 +85,14 @@ const BASE = { top: 1, bot: 1, tIn: 0, tOut: 0, sx: 1, sy: 1, hl: 1, hlx: 0, hly
 const POSES = {
   neutro:   { k: 0.12, glow: '#f39c12', p: {} },
   miedo:    { k: 0.35, glow: '#dbe8ff', p: { top: 1.05, bot: 1.05, sx: 1.26, sy: 1.26, hl: 0.42, trem: 1.4, bY: -9, bO: 0.9 } },
-  susurro:  { k: 0.08, glow: '#c98a2f', p: { top: 0.32, bot: 0.78, tIn: -1, tOut: 1, sx: 1.06, sy: 0.82, hl: 0.9, hlx: 6, hly: 1 } },
+  susurro:  { k: 0.08, glow: '#c98a2f', p: { top: 0, bot: 1, tIn: -5, tOut: -5, sx: 1.04, sy: 0.9, hl: 0 } },   // párpado de arriba PLANO, abajo redondo (Ruben)
   tristeza: { k: 0.06, glow: '#a97d2a', p: { top: 0.72, bot: 0.95, tIn: -3, tOut: 7, sy: 0.92, hl: 0.8, hly: 4, bY: -3, bR: -14, bO: 0.85 } },
-  risa:     { k: 0.3,  glow: '#f5b642', p: { top: 0.58, bot: -0.38, sx: 1.06, sy: 1.0, hl: 0 } },
+  risa:     { k: 0.3,  glow: '#f5b642', p: { top: 1, bot: -0.55, sx: 1.04, sy: 1.0, hl: 0 } },   // media luna de dos circunferencias (Ruben)
   energia:  { k: 0.3,  glow: '#ffd36a', p: { top: 1.05, bot: 1.05, sx: 1.18, sy: 1.18, hl: 1.5 } },
   duda:     { k: 0.18, glow: '#f39c12', p: { hlx: 4, hly: -1 },
               L: { top: 1.05, bot: 1.05, sx: 1.16, sy: 1.16, bY: -9, bO: 1 },
               R: { top: 0.42, bot: 0.74, tIn: 4, tOut: -2, sx: 0.98, sy: 0.96, hl: 0.85, bY: 3, bR: 8, bO: 1 } },
-  furia:    { k: 0.28, glow: '#ff7a2a', p: { top: 0.7, bot: 0.92, tIn: 13, tOut: -4, sy: 0.95, hl: 0.6, bY: 1, bR: 22, bO: 1 } },
+  furia:    { k: 0.28, glow: '#ff7a2a', p: { top: 0, bot: 1, tIn: 10, tOut: -7, sy: 0.98, hl: 0, bY: 1, bR: 22, bO: 1 } },   // arriba RECTO en ángulo, abajo redondo (Ruben)
   // Gestos con ceja (Ruben, 10-sep): orgullo absurdo (doble ceja, Ace Ventura) y escucha (una arriba, otra abajo).
   orgullo:  { k: 0.4,  glow: '#f5b642', p: { top: 0.78, bot: 0.9, hlx: 3, hly: 1, bY: -8, bO: 1 } },
   escucha:  { k: 0.22, glow: '#f39c12', p: {},

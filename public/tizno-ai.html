@@ -791,12 +791,12 @@
         const OJOS_POSES = {
             neutro:   { k: 0.14, p: {} },
             miedo:    { k: 0.35, p: { top: 1.05, bot: 1.05, bY: -9, bO: 0.9 } },
-            susurro:  { k: 0.10, p: { top: 0.32, bot: 0.78, tIn: -1, tOut: 1 } },
+            susurro:  { k: 0.10, p: { top: 0, bot: 1, tIn: -5, tOut: -5 } },              // párpado de arriba PLANO, abajo redondo (Ruben)
             tristeza: { k: 0.07, p: { top: 0.72, bot: 0.95, tIn: -3, tOut: 7, bY: -3, bR: -14, bO: 0.85 } },
-            risa:     { k: 0.30, p: { top: 0.58, bot: -0.38 } },
+            risa:     { k: 0.30, p: { top: 1, bot: -0.55 } },                             // media luna de dos circunferencias (Ruben)
             energia:  { k: 0.30, p: { top: 1.05, bot: 1.05 } },
             duda:     { k: 0.18, p: {}, L: { top: 1.05, bot: 1.05, bY: -9, bO: 1 }, R: { top: 0.42, bot: 0.74, tIn: 4, tOut: -2, bY: 3, bR: 8, bO: 1 } },
-            furia:    { k: 0.28, p: { top: 0.7, bot: 0.92, tIn: 13, tOut: -4, bY: 1, bR: 22, bO: 1 } },
+            furia:    { k: 0.28, p: { top: 0, bot: 1, tIn: 10, tOut: -7, bY: 1, bR: 22, bO: 1 } },   // arriba RECTO en ángulo, abajo redondo (Ruben)
             squint:   { k: 0.20, p: { top: 0.38, bot: 0.62, tIn: 3, tOut: -1 } },
             wince:    { k: 0.35, p: { top: 0.2, bot: -0.15, tIn: 2, tOut: 2, bY: 2, bR: 14, bO: 0.8 } },
             escucha:  { k: 0.22, p: {}, L: { top: 1.05, bot: 1.02, bY: -9, bR: -6, bO: 1 }, R: { top: 0.7, bot: 0.9, tIn: 2, bY: 4, bR: 10, bO: 1 } },
