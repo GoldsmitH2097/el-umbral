@@ -884,6 +884,7 @@
         let c_BodyScaleX = 1, c_BodyScaleY = 1, c_BodyY = 0;
         let c_NeckScaleX = 1, c_NeckScaleY = 1;
         let c_EarL = 0, c_EarR = 0;
+        let vEarL = 0, vEarR = 0, addEarLs = 0, addEarRs = 0;   // muelle y canal aditivo filtrado de las orejas
         let c_RigRot = 0;
         let c_EyeL = 1, c_EyeR = 1, vEyeL = 0, vEyeR = 0;
 
@@ -2053,8 +2054,13 @@
             c_BodyScaleY += (t_BodyScaleY - c_BodyScaleY) * ease;
             c_NeckScaleX += (t_NeckScaleX - c_NeckScaleX) * ease;
             c_NeckScaleY += (t_NeckScaleY - c_NeckScaleY) * ease;
-            c_EarL += (t_EarL - c_EarL) * ease;
-            c_EarR += (t_EarR - c_EarR) * ease;
+            // Orejas con tween y rebote suave (Ruben, 10-sep: «muy jerky»): muelle
+            // infraamortiguado en vez del ease exponencial…
+            vEarL = (vEarL + (t_EarL - c_EarL) * 0.14) * 0.76; c_EarL += vEarL;
+            vEarR = (vEarR + (t_EarR - c_EarR) * 0.14) * 0.76; c_EarR += vEarR;
+            // …y el canal aditivo (tics de agudos y golpes de sílaba) filtrado,
+            // que era lo que daba tirones fotograma a fotograma.
+            addEarLs += (add_EarL - addEarLs) * 0.3; addEarRs += (add_EarR - addEarRs) * 0.3;
             c_RigRot += (t_RigRot - c_RigRot) * ease;
             // Tamaño del ojo con un poco de rebote (Ruben, 10-sep): muelle
             // infraamortiguado en vez del ease exponencial.
@@ -2106,8 +2112,8 @@
             const asimetria = (c_EyeL - c_EyeR) * 0.5;
             const escOrejaL = 1 + asimetria * 0.7;
             const escOrejaR = 1 - asimetria * 0.7;
-            earLeft.style.transform  = `rotate(${c_EarL + add_EarL + flop}deg) scale(${escOrejaL})`;
-            earRight.style.transform = `rotate(${c_EarR + add_EarR - flop}deg) scale(${escOrejaR})`;
+            earLeft.style.transform  = `rotate(${c_EarL + addEarLs + flop}deg) scale(${escOrejaL})`;
+            earRight.style.transform = `rotate(${c_EarR + addEarRs - flop}deg) scale(${escOrejaR})`;
 
             c_LetY += (t_LetY - c_LetY) * 0.35;
             c_LetScale += (t_LetScale - c_LetScale) * 0.35;
