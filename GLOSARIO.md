@@ -101,6 +101,9 @@ Sin traducción oficial. Glosa permitida: "Filaments of Darkness — Resonance o
 Anatomía del Vacío
 se cita en castellano
 Sin traducción oficial. Glosa: "Anatomy of the Void"
+El Último Pago
+se cita en castellano
+Sin traducción oficial (Alicia Sarel, tragedia lírica, en preparación). Glosa: "The Last Payment"
 Totalis Libertas
 Totalis Libertas
 Latín — invariable en ambos idiomas
