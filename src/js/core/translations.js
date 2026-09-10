@@ -53,10 +53,11 @@ export const STRINGS = {
 
     // ── Pago (cofre de compra propio, 10-sep-2026) ──────────────────────────
     'pago.eyebrow':           'Acceso a la experiencia',
-    'pago.o-con':             'o paso a paso',
-    'pago.paso1':             'Tu correo',
-    'pago.paso2':             'Cómo pagar',
+    'pago.paso1':             'Cómo pagar',
+    'pago.paso2':             'Tus datos',
     'pago.paso3':             'Confirmar',
+    'pago.tarjeta':           'Tarjeta',
+    'pago.abriendo':          'Abriendo el formulario…',
     'pago.pagar':             'Pagar',
     'pago.cargando':          'Cargando pasarela de pago segura…',
     'pago.correo-nota':       'Ahí te enviaremos la llave de acceso.',
@@ -216,10 +217,11 @@ export const STRINGS = {
 
     // ── Payment (own checkout modal, 10-sep-2026) ───────────────────────────
     'pago.eyebrow':           'Access to the experience',
-    'pago.o-con':             'or step by step',
-    'pago.paso1':             'Your email',
-    'pago.paso2':             'How to pay',
+    'pago.paso1':             'How to pay',
+    'pago.paso2':             'Your details',
     'pago.paso3':             'Confirm',
+    'pago.tarjeta':           'Card',
+    'pago.abriendo':          'Opening the form…',
     'pago.pagar':             'Pay',
     'pago.cargando':          'Loading the secure payment gateway…',
     'pago.correo-nota':       'That is where we will send the access key.',

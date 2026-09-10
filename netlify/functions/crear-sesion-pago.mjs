@@ -1,6 +1,6 @@
 /* crear-sesion-pago — abre una Checkout Session de Stripe en modo Elements
    para el modal de compra propio (negro y oro) del sitio.
-   POST /.netlify/functions/crear-sesion-pago  { obra: 'anatomia', idioma: 'es'|'en' }
+   POST /.netlify/functions/crear-sesion-pago  { obra: 'anatomia', idioma: 'es'|'en', metodo?: 'carteras'|'tarjeta'|'bizum' }
    → { clientSecret, publishableKey }
 
    Reglas de la casa (Javier, 9-sep-2026): ninguna clave en el código; la
@@ -41,6 +41,12 @@ export default async (req) => {
   const producto = PRODUCTOS[body.obra];
   if (!producto) return json(400, { error: 'obra_desconocida' });
   const idioma = body.idioma === 'en' ? 'en' : 'es';
+  /* Una sesión por puerta (modal en tres pasos, 10-sep): 'carteras' alimenta
+     los botones de Apple Pay, Google Pay (van sobre tarjeta) y PayPal;
+     'tarjeta' y 'bizum' abren sesiones de un solo método para que Stripe
+     pinte únicamente sus campos. */
+  const METODOS = { carteras: ['card', 'paypal'], tarjeta: ['card'], bizum: ['bizum'] };
+  const tipos = METODOS[body.metodo] || METODOS.carteras;
 
   // Origen de vuelta: el nuestro o soulware.live. Nunca uno que venga de fuera.
   const origen = req.headers.get('origin') || '';
@@ -57,7 +63,7 @@ export default async (req) => {
          tarjeta (trae Apple Pay y Google Pay), Bizum y PayPal. Sin Link:
          su bloque «guardar mi información» con teléfono y nombre sobra en
          un pago de 2,49 € (Ruben, 10-sep). */
-      payment_method_types: ['card', 'bizum', 'paypal'],
+      payment_method_types: tipos,
       // Y Link tampoco se ofrece dentro del formulario de tarjeta.
       wallet_options: { link: { display: 'never' } },
       line_items: [{

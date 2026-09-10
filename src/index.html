@@ -492,22 +492,32 @@
     </div>
     <p id="pago-cargando" hidden></p>
     <div id="pago-cuerpo" hidden>
-      <div id="pago-express"></div>
-      <p id="pago-o"></p>
-      <section class="pago-paso" aria-labelledby="pago-paso1-t">
+      <section class="pago-paso" id="pago-paso-1" aria-labelledby="pago-paso1-t">
         <h3 class="pago-paso-titulo"><span class="pago-num" aria-hidden="true">1</span><span id="pago-paso1-t"></span></h3>
+        <div id="pago-express"></div>
+        <div id="pago-metodos">
+          <button type="button" class="pago-metodo" id="pago-metodo-tarjeta" data-metodo="tarjeta">
+            <span class="pago-marca" style="--logo:url('/assets/pago/visa.svg')" aria-hidden="true"></span>
+            <span class="pago-marca" style="--logo:url('/assets/pago/mastercard.svg')" aria-hidden="true"></span>
+            <span class="pago-metodo-txt" id="pago-metodo-tarjeta-txt"></span>
+          </button>
+          <button type="button" class="pago-metodo" id="pago-metodo-bizum" data-metodo="bizum">
+            <span class="pago-marca-texto" aria-hidden="true">Bizum</span>
+          </button>
+        </div>
+      </section>
+      <section class="pago-paso" id="pago-paso-2" aria-labelledby="pago-paso2-t" hidden>
+        <h3 class="pago-paso-titulo"><span class="pago-num" aria-hidden="true">2</span><span id="pago-paso2-t"></span></h3>
+        <p id="pago-paso2-cargando" hidden></p>
         <p id="pago-correo-nota"></p>
         <div id="pago-contacto"></div>
-      </section>
-      <section class="pago-paso" aria-labelledby="pago-paso2-t">
-        <h3 class="pago-paso-titulo"><span class="pago-num" aria-hidden="true">2</span><span id="pago-paso2-t"></span></h3>
         <div id="pago-elemento"></div>
       </section>
-      <section class="pago-paso" aria-labelledby="pago-paso3-t">
+      <section class="pago-paso" id="pago-paso-3" aria-labelledby="pago-paso3-t" hidden>
         <h3 class="pago-paso-titulo"><span class="pago-num" aria-hidden="true">3</span><span id="pago-paso3-t"></span></h3>
-        <p id="pago-errores" role="alert"></p>
         <button id="pago-confirmar" type="button" disabled></button>
       </section>
+      <p id="pago-errores" role="alert"></p>
       <p id="pago-nota"></p>
     </div>
     <div id="pago-estado" hidden>

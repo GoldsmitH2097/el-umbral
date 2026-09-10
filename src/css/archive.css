@@ -1116,11 +1116,22 @@ html { -webkit-tap-highlight-color: transparent; }
 .pago-marca-texto { font-family: 'Times New Roman', serif; font-size: 17px; font-weight: bold; letter-spacing: 0.5px; color: #c8922a; opacity: 0.55; line-height: 26px; transition: opacity 0.3s; }
 #pago-cargando { font-size: 13px; color: #888; letter-spacing: 1px; margin: 26px 0; }
 #pago-correo-nota { font-size: 11.5px; color: #8c8c8c; line-height: 1.6; margin: 0 0 8px; text-align: left; }
+/* Cinco puertas. Apple Pay, Google Pay y PayPal los pinta Stripe (negros,
+   dentro de su iframe): van sobre un lecho apenas más claro para que el
+   negro se lea sobre el negro del cofre. Tarjeta y Bizum son nuestros. */
 #pago-express { margin: 0; }
-#pago-express.hay { margin: 0 0 14px; }
-#pago-o[hidden] { display: none; }
-#pago-o { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: #6b6b6b; margin: 0 0 14px; display: flex; align-items: center; gap: 12px; }
-#pago-o::before, #pago-o::after { content: ''; flex: 1; height: 1px; background: rgba(200,146,42,0.18); }
+#pago-express.hay { margin: 0 0 10px; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(200,146,42,0.14); border-radius: 3px; }
+#pago-metodos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pago-metodo { display: flex; align-items: center; justify-content: center; gap: 10px; height: 44px; background: transparent; border: 1px solid rgba(200,146,42,0.55); border-radius: 3px; color: #e8c87a; cursor: pointer; font-family: 'Times New Roman', serif; font-size: 12px; letter-spacing: 3px; text-transform: uppercase; transition: color 0.3s, border-color 0.3s, background 0.3s; }
+.pago-metodo:hover, .pago-metodo:focus-visible { border-color: #e8c87a; color: #fff; background: rgba(200,146,42,0.12); outline: none; }
+.pago-metodo.elegido { border-color: #e8c87a; color: #fff; background: rgba(200,146,42,0.16); }
+.pago-metodo .pago-marca { width: 30px; height: 20px; }
+.pago-metodo .pago-marca-texto { font-size: 19px; letter-spacing: 0; text-transform: none; }
+.pago-metodo.elegido .pago-marca, .pago-metodo:hover .pago-marca { background-color: #e8c87a; }
+.pago-paso[hidden] { display: none; }
+#pago-paso2-cargando { font-size: 12px; color: #888; letter-spacing: 1px; margin: 0 0 10px; }
+/* Plegado e invisible mientras Stripe pinta (necesita anchura real). */
+#pago-cuerpo.pintando { opacity: 0; max-height: 0; overflow: hidden; }
 .pago-paso { text-align: left; margin: 0 0 6px; padding: 16px 0 12px; border-top: 1px solid rgba(200,146,42,0.18); }
 .pago-paso-titulo { display: flex; align-items: center; gap: 12px; font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: #c8922a; font-weight: normal; margin: 0 0 12px; }
 .pago-num { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; flex: 0 0 24px; border: 1px solid rgba(200,146,42,0.6); border-radius: 50%; font-size: 12px; letter-spacing: 0; color: #e8c87a; }
