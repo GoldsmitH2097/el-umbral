@@ -538,6 +538,33 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   en la rama `stripe-sandbox` (función que crea la sesión con la clave del
   contexto + Payment Element/Express Checkout Element con Appearance night+oro).
 
+### Stripe — 10-sep, 17:00: el cofre de pago propio existe (rama stripe-sandbox, PR #64)
+- Integración elegida: **Elements con Checkout Sessions** (`ui_mode: 'elements'`,
+  Stripe.js `https://js.stripe.com/dahlia/stripe.js`, `initCheckoutElementsSdk`).
+  Fuente: docs.stripe.com/payments/accept-a-payment (elements + checkout) y
+  /elements/express-checkout-element/accept-a-payment (embedded-components).
+- Archivos (en la rama `stripe-sandbox`, NO en main):
+  `netlify/functions/crear-sesion-pago.mjs` (POST {obra, idioma} → clientSecret
+  + publishableKey; precio fijado en servidor, 2,49 € IVA incluido
+  `tax_behavior: inclusive`; `automatic_tax` solo si `STRIPE_TAX=1`; return_url
+  a `/obras/anatomia-del-vacio/?pago=vuelta&session_id=…` sobre un origen
+  nuestro) · `netlify/functions/estado-pago.mjs` (GET ?session_id → status /
+  payment_status, correo enmascarado) · `src/js/ui/PagoModal.js` (Stripe.js
+  bajo demanda; Appearance night + oro; Express Checkout Element con Apple/
+  Google/PayPal y Link fuera de los botones grandes; Contact Details Element;
+  Payment Element en acordeón; `actions.confirm({redirect:'if_required'})`;
+  vuelta por `?pago=vuelta`) · modal `#pago-modal` en index.html + CSS en
+  archive.css · `.obra-compra` lleva `data-obra` y el enlace de Stripe queda
+  de red de seguridad · textos `pago.*` ES/EN en translations.js.
+- Probado en https://deploy-preview-64--el-umbral.netlify.app/obras/anatomia-del-vacio/ :
+  el botón «Comprar — 2,49 €» abre el modal (título, precio, estado). La
+  función responde `not_configured: STRIPE_PUBLISHABLE_KEY` hasta que Ruben
+  pegue la clave publicable de pruebas (pk_test_) en Netlify (Deploy Previews
+  + Branch deploys). En producción irá pk_live_ (Javier/Ruben).
+- Pendiente tras la clave: compra completa con 4242, Bizum (redirección de
+  prueba), PayPal sandbox, Apple/Google Pay en móvil; luego la entrega real de
+  la llave en el webhook (`cumplir`), hoy solo registra.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
