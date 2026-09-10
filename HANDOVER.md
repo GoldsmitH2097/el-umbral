@@ -1316,6 +1316,16 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   y si insiste se despide con excusa fría (y el rig cuelga, ver (26)); sin
   rencor al volver a las buenas.
 
+### 11-sep, madrugada (30) — fondo abstracto: cada nube con su seguidor
+- Ruben: «que parte del fondo siga animado como un foco con delay, lento;
+  que todas las capas reaccionen al ratón y al movimiento con distintos
+  modificadores y multiplicadores». Nubes más sutiles (120vh, alfas 4–10 %).
+- En el tick de 30 fps: nube A sigue al ratón (×0,05) y a la cabeza (×0,35)
+  con lerp 0,018; nube B al revés (×−0,035 / ×−0,20) con lerp 0,011 →
+  paralaje; ambas con deriva autónoma de senos lentos (30–40 px). Se escribe
+  la propiedad `translate` (convive con el `transform: rotate` de la
+  animación CSS). El foco perezoso de `#luz-sala` (22 %) sigue como estaba.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
