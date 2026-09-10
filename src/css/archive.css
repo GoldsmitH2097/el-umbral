@@ -1112,7 +1112,8 @@ html { -webkit-tap-highlight-color: transparent; }
 #pago-precio:empty { display: none; padding: 0; border: 0; }
 #pago-marcas { display: flex; justify-content: center; align-items: center; gap: 22px; margin: -4px 0 18px; }
 .pago-marca { display: inline-block; width: 40px; height: 26px; background: #c8922a; opacity: 0.55; -webkit-mask: var(--logo) center / contain no-repeat; mask: var(--logo) center / contain no-repeat; transition: opacity 0.3s; }
-#pago-marcas:hover .pago-marca { opacity: 0.85; }
+#pago-marcas:hover .pago-marca, #pago-marcas:hover .pago-marca-texto { opacity: 0.85; }
+.pago-marca-texto { font-family: 'Times New Roman', serif; font-size: 17px; font-weight: bold; letter-spacing: 0.5px; color: #c8922a; opacity: 0.55; line-height: 26px; transition: opacity 0.3s; }
 #pago-cargando { font-size: 13px; color: #888; letter-spacing: 1px; margin: 26px 0; }
 #pago-correo-nota { font-size: 11.5px; color: #8c8c8c; line-height: 1.6; margin: 0 0 8px; text-align: left; }
 #pago-express { margin: 0 0 14px; }
