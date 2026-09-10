@@ -583,9 +583,18 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   encima. Apple Pay solo aparece en Safari/iPhone con tarjeta en Wallet.
 - Errores cazados: `buttonTheme.amazonPay` no existe; `layout.radios`
   quiere 'always'/'never'/'auto'/'if_multiple'.
-- Compra de prueba con 4242: pendiente de que la haga Ruben a mano (Claude
-  no consigue teclear de forma fiable dentro de los iframes de Stripe con
-  la extensión de Chrome; los campos pierden pulsaciones).
+- **Primera compra completa por el modal (10-sep, 17:04 CEST, modo test)**:
+  prueba@soulware.live, tarjeta 4242 → «Pago recibido» en el propio cofre
+  sin redirección (`redirect: 'if_required'`); Stripe test → Payments: 2,49 €
+  Succeeded; webhook `anatomia-deploy-preview-64` → `checkout.session.completed`
+  entregado 200 OK (`{received:true, session:cs_test_…}`); `estado-pago`
+  devuelve `{estado:'complete', pago:'paid', obra:'anatomia', importe:249,
+  email:'p***@soulware.live'}`. El bucle sesión → pago → webhook → estado
+  funciona de punta a punta. Lo que no hace todavía: entregar la llave real
+  (el `cumplir` del webhook sigue en pausa hasta que Anatomía esté lista).
+- Truco para teclear en los iframes de Stripe con la extensión de Chrome:
+  escribir en trozos de 4 caracteres con 1 s de espera, y pasar de campo
+  en campo con Tab (los clics dentro del iframe no mueven el foco).
 
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
