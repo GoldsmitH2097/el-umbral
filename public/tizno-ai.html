@@ -494,7 +494,8 @@
         #tizno-call:hover, #tizno-call:focus-visible { color: #fff4dc; transform: translateY(-2px) scale(1.03); outline: none; }
         #tizno-call:hover::before, #tizno-call:focus-visible::before { opacity: 1; }
         @media (prefers-reduced-motion: reduce) { #tizno-call { animation: none; } }
-        #tizno-call.live { color: #ffd6c9; --g0: #ffc9b8; --g1: rgba(231, 76, 60, 0.95); --g2: rgba(231, 76, 60, 0.6); --g3: rgba(231, 76, 60, 0.3); }
+        /* En llamada («Dejarle en paz»): más pequeño y del mismo amarillo, no rojo (Ruben, 11-sep). */
+        #tizno-call.live { font-size: 30px; }
         #tizno-call:disabled { opacity: 0.4; cursor: wait; }
         #tizno-status {
             color: rgba(255, 236, 190, 0.45); font-style: italic; font-size: 12px;
