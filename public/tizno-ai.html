@@ -2714,13 +2714,6 @@
                 }
                 c.lineTo(qx, qy);
                 c.lineTo(lw + 10, lh + 10); c.lineTo(-10, lh + 10); c.closePath(); c.fill();
-                /* COLLAR (Ruben, 11-sep: «la unión entre el blob y el mar más
-                   redondeada»): una elipse de tinta en la línea de agua bajo el
-                   cuello; el goo la funde con el tronco y con la ola y el
-                   encuentro pasa de esquina a hombro redondo. */
-                const ic = Math.min(n - 1, Math.max(0, Math.round((window.innerWidth / 2) / paso)));
-                const yCol = yPag0 + marSuperficie(ic, ahora) - rectC.top - 2;
-                c.beginPath(); c.ellipse(window.innerWidth / 2 - rectC.left, yCol, 118, 34, 0, 0, 6.2832); c.fill();
                 c.setTransform(1, 0, 0, 1, 0, 0);
                 dibujarAtomos(ahora, dt);
             }

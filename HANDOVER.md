@@ -1223,6 +1223,12 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
 - Horizonte: 6vh (antes 5). `?horizonte=concavo` invierte el sentido;
   `?curvatura=8` cambia los vh. Ruben compara ambos en producción.
 
+### 11-sep, madrugada (22) — fuera el collar
+- Ruben: «los hombros raros entre Tizno y el horizonte, terrible, remove».
+  Era el COLLAR (elipse de tinta 118×34 bajo el cuello, dentro del goo).
+  Eliminado. La orilla interior (misma ola, 4 px bajo la superficie, dentro
+  del goo) se queda: es la que funde el cuello con el agua sin dibujar nada.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
