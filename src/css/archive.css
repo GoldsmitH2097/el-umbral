@@ -1121,7 +1121,11 @@ html { -webkit-tap-highlight-color: transparent; }
    dentro de su iframe): van sobre un lecho apenas más claro para que el
    negro se lea sobre el negro del cofre. Tarjeta y Bizum son nuestros. */
 #pago-express { margin: 0; }
-#pago-express.hay { margin: 0 0 10px; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(200,146,42,0.14); border-radius: 3px; }
+#pago-express.hay { position: relative; z-index: 0; margin: 0 0 10px; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(200,146,42,0.14); border-radius: 3px; }
+/* Rótulo DETRÁS del iframe, a la altura del primer botón: mientras Apple y
+   Google pintan (varios segundos en Chrome) el lecho no parece vacío, y en
+   cuanto el primer botón existe lo tapa. */
+#pago-express.hay::before { content: 'Apple Pay · Google Pay · PayPal'; position: absolute; z-index: -1; top: 10px; left: 10px; right: 10px; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 11px; letter-spacing: 2px; color: #6b6b6b; }
 #pago-metodos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .pago-metodo { display: flex; align-items: center; justify-content: center; gap: 10px; height: 44px; background: transparent; border: 1px solid rgba(200,146,42,0.55); border-radius: 3px; color: #e8c87a; cursor: pointer; font-family: 'Times New Roman', serif; font-size: 12px; letter-spacing: 3px; text-transform: uppercase; transition: color 0.3s, border-color 0.3s, background 0.3s; }
 .pago-metodo:hover, .pago-metodo:focus-visible { border-color: #e8c87a; color: #fff; background: rgba(200,146,42,0.12); outline: none; }
