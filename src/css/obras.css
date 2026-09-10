@@ -1024,8 +1024,12 @@ button.retailer-logo { appearance: none; background: none; border: 0; padding: 0
    una reserva de slot+22px para la fila de tiendas con su nota debajo. Misma
    altura en los cuatro cofres; las marcas comparten línea porque la fila se
    alinea arriba y las notas cuelgan en el aire reservado. */
-.obra-editions--shop { display: grid; grid-template-rows: 35px auto; row-gap: 10px; align-items: center; }
-.obra-editions--shop .obra-edition-invite { grid-row: 1; align-self: center; margin: 0; }
+/* justify-items al centro: .obra-editions era una columna flex centrada y la
+   rejilla estiraba la invitación a todo el ancho, con el texto a la
+   izquierda (Ruben, 10-sep: «próximamente y reclamar mi ejemplar están
+   descentrados»). */
+.obra-editions--shop { display: grid; grid-template-rows: 35px auto; row-gap: 10px; align-items: center; justify-items: center; }
+.obra-editions--shop .obra-edition-invite { grid-row: 1; align-self: center; margin: 0; text-align: center; }
 .obra-editions--shop .obra-compra { grid-row: 1; align-self: center; margin: 0 auto; }
 /* align-items al principio: el icono del ebook (con su nota debajo) y el
    grupo de anunciadas (con la suya) son más altos que una marca suelta; si
