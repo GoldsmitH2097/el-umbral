@@ -1251,6 +1251,16 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
 - Lente sobre el ojo grande más evidente (raya 320, cruz, halo 96, escala
   con el ojo, fade ~100 ms). Horizonte planeta (14vh, base 22vh).
 
+### 11-sep, madrugada (25) — horizonte circular de radio fijo; lente discreta
+- Ruben: «la curvatura depende del ancho de la ventana; hazlo siempre
+  circular, con más o menos recorte». `marCurva` pasa de parábola
+  normalizada al ancho a un CÍRCULO de radio 1,8 × altura de ventana con la
+  cima en el centro (MAR.nivel 36vh). `?curvatura=1.4` = radio en alturas
+  (menos = más curvo); `?horizonte=concavo` invierte. En ventanas muy anchas
+  la superficie cae por debajo del lienzo en los bordes: se ve el fondo
+  (espacio), no mar. Si molesta, limitar la caída.
+- Lente del ojo grande: sin rotación, raya 240, opacidad ×0,7.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.

@@ -207,7 +207,7 @@
            lienzo con la simulación de muelles 1-D del agua de los videojuegos
            (cada columna es un muelle que contagia a sus vecinas), pintada a
            30 fps como el resto de la tinta. Sin filtros: geometría y color.
-           El nivel de la superficie (18vh en los bordes, +18vh de curva en el centro) vive en el JS (MAR.nivel, MAR_CURVA). */
+           El nivel de la superficie (36vh en el centro; círculo de radio 1,8 alturas) vive en el JS (MAR.nivel, MAR_CURVA). */
         #mar { display: none; }
         #luz-ojos {
             position: fixed; left: 0; top: 0; width: 260px; height: 260px; z-index: 6;
@@ -2543,7 +2543,7 @@
         const marEl = document.getElementById('mar');
         const lienzoM = document.getElementById('mar-frente');
         const ctxM = lienzoM ? lienzoM.getContext('2d') : null;
-        const MAR = { nivel: 0.18, paso: 10, k: 0.028, amort: 0.05, contagio: 0.22, n: 0, h: null, v: null, w: 0, hh: 0, base: 0, activo: false, col: '#000' };
+        const MAR = { nivel: 0.36, paso: 10, k: 0.028, amort: 0.05, contagio: 0.22, n: 0, h: null, v: null, w: 0, hh: 0, base: 0, activo: false, col: '#000' };
         let marX = -1, marY = -1, marPopPrev = 0;
         function marAjustar() {
             MAR.activo = !!ctxM && document.documentElement.classList.contains('estancia')
@@ -2576,22 +2576,23 @@
             const i0 = Math.max(0, Math.floor(c - r)), i1 = Math.min(MAR.n - 1, Math.ceil(c + r));
             for (let i = i0; i <= i1; i++) { const d = (i - c) / r; MAR.v[i] += fuerza * Math.max(0, 1 - d * d); }
         }
-        /* HORIZONTE CURVO (Ruben, 11-sep): convexo, más alto en el centro que
-           en los bordes. Lo comparten las tres capas y la orilla. */
-        /* Curvatura: 18vh (Ruben, 11-sep: «como un planeta… un poco más»). El
-           nivel base (MAR.nivel, 18vh en los bordes) está elegido para que el
-           centro quede a 36vh, donde estaba: Tizno no se hunde más; los bordes
-           caen.
-           ?horizonte=concavo invierte el sentido (valle en vez de montículo);
-           ?curvatura=8 cambia los vh, para probar sin desplegar. */
+        /* HORIZONTE PLANETA (Ruben, 11-sep: «siempre circular, con más o menos
+           recorte»): un CÍRCULO de radio fijo, 1,8 veces la altura de la
+           ventana, con su punto más alto bajo Tizno (centro, a MAR.nivel = 36vh).
+           La curva ya no depende del ancho: una ventana estrecha enseña un
+           trozo de arco y una ancha, más planeta. ?curvatura=1.4 cambia el
+           radio (en alturas de ventana; menos = más curvo); ?horizonte=concavo
+           lo invierte (valle). */
         const MAR_CURVA = (() => {
             const q = location.search;
-            const vh = parseFloat((q.match(/[?&]curvatura=([0-9.]+)/) || [])[1]);
-            return { vh: isFinite(vh) ? vh / 100 : 0.18, signo: /[?&]horizonte=concavo/.test(q) ? 1 : -1 };
+            const r = parseFloat((q.match(/[?&]curvatura=([0-9.]+)/) || [])[1]);
+            return { radio: isFinite(r) && r > 0.3 ? r : 1.8, signo: /[?&]horizonte=concavo/.test(q) ? -1 : 1 };
         })();
-        function marCurva(i) {
-            const u = (i * MAR.paso - MAR.w / 2) / (MAR.w / 2);
-            return MAR_CURVA.signo * window.innerHeight * MAR_CURVA.vh * Math.max(0, 1 - u * u);
+        function marCurva(i) {   // caída (px, + = más abajo) de la columna i respecto al centro
+            const R = window.innerHeight * MAR_CURVA.radio;
+            const dx = Math.abs(i * MAR.paso - MAR.w / 2);
+            const caida = dx >= R ? R : R - Math.sqrt(R * R - dx * dx);
+            return MAR_CURVA.signo * caida;
         }
         function marSuperficie(i, t) {   // frente: columna i con muelles + oleaje ambiente + curva
             return MAR.base + marCurva(i) + MAR.h[i] + 12 * Math.sin(i * 0.05 + t * 0.0009) + 7 * Math.sin(i * 0.13 - t * 0.0015) + 4 * Math.sin(i * 0.31 + t * 0.002);
