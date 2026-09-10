@@ -213,6 +213,16 @@ tiene la última palabra: Tizno es su creación.
 | D17 | Entrenamiento con nuestros datos | — | Por defecto ElevenLabs entrena con el contenido de los planes self-serve. Hay opt-out en la cuenta («Terms and Privacy → Data use»), no retroactivo. Requiere tu OK porque es un ajuste de tu cuenta | Activar el opt-out |
 | D18 | Voz para lo público | — | «Gork» es un clon profesional de otro usuario con preaviso de 2 años: vale para la prueba. Para lo público recomiendo voz propia (PVC bajo contrato o la de Ruben) | Después |
 
+**Decisiones de Ruben (10-sep, noche):** D15 → Ruben escribe a ElevenLabs
+cuando le conteste el director del programa de Grants; hasta entonces, Baby
+Tizno se prueba solo con adultos · D16 → la frase de IA entra en el primer
+saludo, en la voz de Tizno (como recomendé) · D17 → **HECHO**: opt-out de
+entrenamiento activado en la cuenta (menú del avatar → Terms and privacy →
+Data use → «Improve the models for everyone» = OFF; toast «Workspace training
+opt out setting successfully updated»; no retroactivo) · Retención de
+ElevenLabs a 0 días cuando la página guarde el historial en el aparato ·
+Transferencia a EE. UU.: revisión legal antes de lo público.
+
 Comprobaciones que me llevo yo (no son decisiones): que ElevenLabs no use las
 conversaciones del agente para entrenar en nuestro plan; que la licencia de
 la voz «Gork» cubra uso comercial infantil; búsqueda de marca «Baby Tizno»

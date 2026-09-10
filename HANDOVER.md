@@ -377,6 +377,35 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   franja + «dáselo al peque»; el niño construye el héroe por capas con Tizno,
   como escribió Javier).
 
+### Baby Tizno — 10-sep, noche: términos de ElevenLabs y opt-out de entrenamiento
+- Leídos los términos oficiales (`BABY-TIZNO-ELEVENLABS-POLITICAS.md`, con
+  citas y fechas). **Bloqueo**: la Prohibited Use Policy (17-ago-2026) prohíbe
+  «bundled solutions that target anyone under the age of 13» y la Privacy
+  Policy prohíbe transmitirles voz de menores de 18 → Baby Tizno necesita
+  autorización escrita de ElevenLabs; mientras tanto se prueba SOLO con
+  adultos. Ruben escribe a ElevenLabs cuando le conteste el director de
+  Grants. Los ElevenAgents Terms §3.B obligan a avisar al usuario final de que
+  habla con una IA y de que se graba/comparte → la frase de IA vuelve al
+  primer saludo (Ruben ok).
+- **Opt-out de entrenamiento ACTIVADO** en la cuenta de Ruben (avatar → Terms
+  and privacy → Data use → «Improve the models for everyone» OFF; toast de
+  confirmación). Por defecto ElevenLabs entrena con el contenido de los planes
+  self-serve, incluidas conversaciones de agentes; el opt-out no es
+  retroactivo. Zero Retention y residencia EU: solo Enterprise.
+- Voz «Gork»: clon profesional de otro usuario en la Voice Library, licencia
+  comercial de plan de pago, preaviso de retirada de 2 años. Vale para prueba
+  y piloto; para lo público, voz propia.
+- Documento Maestro de Javier: guardado (`BABY-TIZNO-MAESTRO-JAVIER.md`);
+  decisiones D1–D18 en BABY-TIZNO.md, ya respondidas por Ruben: claim «Dale
+  voz a su imaginación», login serio + PIN más adelante, memoria preguntada al
+  configurar, SÍ historial borrable, web → web instalable → wrapper, aviso de
+  IA al adulto Y en el saludo, Core Soulware, Ruben es el jefe de proyecto de
+  todo lo de Tizno.
+- Siguiente: prompt en castellano (tres registros, palabras de parada, frase
+  de IA) y página standalone (puerta del adulto con multiplicación, ajustes,
+  Recuerdos e historial en el aparato, filtro de datos sensibles). Pruebas con
+  adultos.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
