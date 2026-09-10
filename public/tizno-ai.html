@@ -2912,6 +2912,7 @@
            días. Diez minutos siguen siendo mucho goblin diario. */
         const DAILY_MAX_S = GRANT_ACTIVO ? 1800 : 600;   // 30 min · 10 min al día
         let callStartedAt = 0, yawnWarned = false;
+        let despedidaAt = 0, habloTrasAviso = false;   // la despedida con excusa antes del tope (Ruben, 10-sep)
         const todayKey = () => new Date().toISOString().slice(0, 10);
         const dailyUsed = () => {
             try {
@@ -3249,7 +3250,7 @@
                         btn.disabled = false;
                         setState('listening');
                         setStatus('Tizno te escucha… habla');
-                        callStartedAt = Date.now(); yawnWarned = false;
+                        callStartedAt = Date.now(); yawnWarned = false; despedidaAt = 0; habloTrasAviso = false;
                         vadHighSince = null;
                         // El susurro: contexto invisible, sin turno de palabra.
                         try { conversation.sendContextualUpdate(briefing); } catch (_) {}
@@ -3270,9 +3271,21 @@
                             if (callSecs > SESSION_MAX_S) {
                                 setStatus('Tizno se ha cansado de hablar… déjale descansar');
                                 sleep();
-                            } else if (!yawnWarned && callSecs > SESSION_MAX_S - 30) {
-                                yawnWarned = true;
-                                setStatus('a Tizno se le cierran los ojos…');
+                            } else if (!yawnWarned && callSecs > SESSION_MAX_S - 35) {
+                                yawnWarned = true; despedidaAt = Date.now(); habloTrasAviso = false;
+                                setStatus(IDIOMA === 'en' ? 'Tizno is being called away…' : 'a Tizno le llaman…');
+                                /* SE DESPIDE ÉL (Ruben, 10-sep-2026): 35 s antes del tope le
+                                   llega un aviso como si lo dijera el visitante; el bloque
+                                   «CUANDO TE TIENES QUE IR» del prompt lo convierte en una
+                                   excusa inventada. En cuanto termina de decirla, colgamos;
+                                   si no llegara a hablar, el tope duro corta igual. */
+                                const aviso = IDIOMA === 'en'
+                                    ? '[Your time here is up. Say goodbye now, in one or two sentences, with a made-up excuse. No questions.]'
+                                    : '[Se te acaba el tiempo aquí. Despídete ahora, en una o dos frases, con una excusa inventada. Sin preguntas.]';
+                                try {
+                                    if (typeof conversation.sendUserMessage === 'function') conversation.sendUserMessage(aviso);
+                                    else conversation.sendContextualUpdate(aviso);
+                                } catch (_) {}
                             }
                         }, 1000);
                     },
@@ -3292,6 +3305,11 @@
                         // El SDK solo reporta speaking/listening.
                         setState(mode === 'speaking' ? 'speaking' : 'listening');
                         setStatus(mode === 'speaking' ? 'Tizno habla…' : 'Tizno te escucha…');
+                        // La despedida: cuando acaba de decir su excusa, se va.
+                        if (despedidaAt) {
+                            if (mode === 'speaking') habloTrasAviso = true;
+                            else if (habloTrasAviso) { despedidaAt = 0; setStatus(IDIOMA === 'en' ? 'he has gone' : 'se ha ido'); setTimeout(sleep, 700); }
+                        }
                         // Auto-calibración de velocidad del TTS: al terminar un
                         // parlamento sabemos su duración real.
                         if (mode === 'speaking') {
