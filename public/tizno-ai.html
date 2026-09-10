@@ -220,12 +220,14 @@
         #lente i { position: absolute; left: 0; top: 0; display: block; mix-blend-mode: screen; }
         /* Ruben (11-sep): «más evidente, muy elegante; fade in y out rápidos;
            representa cuando los ojos brillan mucho, uno más que otro». */
-        .lente-raya { width: 320px; height: 3px; margin: -1.5px 0 0 -160px; border-radius: 2px;
-            background: linear-gradient(90deg, transparent, rgba(255, 214, 150, 0.35) 18%, rgba(255, 246, 225, 1) 50%, rgba(255, 214, 150, 0.35) 82%, transparent); }
-        .lente-vertical { width: 2px; height: 120px; margin: -60px 0 0 -1px; border-radius: 1px;
-            background: linear-gradient(180deg, transparent, rgba(255, 240, 210, 0.55) 50%, transparent); }
-        .lente-halo { width: 96px; height: 96px; margin: -48px 0 0 -48px; border-radius: 50%;
-            background: radial-gradient(circle, rgba(255, 244, 220, 0.6) 0%, rgba(243, 156, 18, 0.3) 35%, rgba(243, 156, 18, 0.08) 55%, transparent 72%); }
+        /* Ruben (11-sep, 2.ª vuelta): «demasiado grande y obvio; baja la opacidad
+           y siempre horizontal y vertical, sin rotar». */
+        .lente-raya { width: 240px; height: 2px; margin: -1px 0 0 -120px; border-radius: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 214, 150, 0.22) 18%, rgba(255, 246, 225, 0.72) 50%, rgba(255, 214, 150, 0.22) 82%, transparent); }
+        .lente-vertical { width: 2px; height: 90px; margin: -45px 0 0 -1px; border-radius: 1px;
+            background: linear-gradient(180deg, transparent, rgba(255, 240, 210, 0.38) 50%, transparent); }
+        .lente-halo { width: 76px; height: 76px; margin: -38px 0 0 -38px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 244, 220, 0.4) 0%, rgba(243, 156, 18, 0.2) 35%, rgba(243, 156, 18, 0.05) 55%, transparent 72%); }
         html.embed #lente { display: none; }
         html.estancia #mar { display: block; position: fixed; left: 0; right: 0; bottom: 0; height: 46vh; z-index: 5; pointer-events: none; overflow: hidden; contain: strict; }
         html.estancia #niebla-grabada, html.estancia #abyss-foreground, html.estancia #abyss-foreground-2 { display: none; }
@@ -2311,12 +2313,12 @@
                    (duda, susto asimétrico), clavada al centro del grande y con
                    el giro del rig. Entra y sale suave. */
                 const asim = Math.abs(c_EyeL - c_EyeR);
-                const lenteObj = Math.max(0, Math.min(1, (asim - 0.18) / 0.32)) * luz * Math.max(0, Math.min(parpL, parpR));
+                const lenteObj = Math.max(0, Math.min(1, (asim - 0.18) / 0.32)) * luz * Math.max(0, Math.min(parpL, parpR)) * 0.7;
                 lenteVis += (lenteObj - lenteVis) * 0.45;   // entra y sale en ~100 ms
                 if (lenteVis > 0.01) {
                     const grande = Math.max(c_EyeL, c_EyeR);
                     const er = (c_EyeL >= c_EyeR ? eyeLeftWrapper : eyeRightWrapper).getBoundingClientRect();
-                    lente.style.transform = `translate(${(er.left + er.width / 2).toFixed(1)}px, ${(er.top + er.height / 2).toFixed(1)}px) rotate(${c_RigRot.toFixed(2)}deg) scale(${(0.7 + grande * 0.45).toFixed(3)})`;
+                    lente.style.transform = `translate(${(er.left + er.width / 2).toFixed(1)}px, ${(er.top + er.height / 2).toFixed(1)}px) scale(${(0.7 + grande * 0.4).toFixed(3)})`;   // sin giro: siempre horizontal/vertical
                 }
                 lente.style.opacity = lenteVis.toFixed(3);
 
