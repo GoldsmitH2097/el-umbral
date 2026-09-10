@@ -767,6 +767,24 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   (`/en/obras/?region=es`) salen las librerías españolas y el Kindle ES,
   más la edición inglesa. La tienda depende del país, no del idioma.
 
+### 10-sep, noche (3) — ramas archivadas, KB revisada doc a doc
+- Ruben vio «gemini-3-flash-preview» en los agentes dependientes de la KB y
+  preguntó por «Gemini 3.0». Era la rama de prueba del 8-sep (0 % de
+  tráfico, 0 conversaciones, 7 commits por detrás de Main). Producción usa
+  Main = Gemini 3.6 Flash. Archivadas las ramas `gemini-3-flash-preview` de
+  Tizno y de Baby Tizno (el panel no borra ramas: las archiva; «archived
+  branches cannot be deployed or modified»). Solo queda Main en los dos.
+- KB revisada doc a doc buscando Astra / «gratuita» / precios / tiendas:
+  Prompt 5 (Universo), Prompt 1 (Pulso) y Prompt 4 limpios; Prompt 2
+  (Filamentos y «los oficios de Tizno») tenía el oficio de Astra («el
+  Escriba del Pacto») → sustituido por **El Último Pago — el Testigo de la
+  Caída** («guarda lo que queda cuando cae lo que creías que eras; no
+  consuela: da fe»), también añadido al GLOSARIO como propuesta. Prompt 3
+  (Anatomía) y Las Cuatro Llamas: ver siguiente sesión si no consta aquí.
+- El doc «Prompt 4» se pudo RENOMBRAR (clic en el título del panel de
+  detalles → input → Enter): ahora «…Alicia Sarel y El Último Pago (Prompt 4)».
+  Ya no queda «Astra» en ningún nombre ni texto de la KB.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
