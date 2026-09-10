@@ -1108,6 +1108,32 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   gato que tira cosas de la mesa), retos, adivinanzas, apuestas absurdas,
   al menos una risita por respuesta, susto y risa se turnan.
 
+### 11-sep, madrugada (16) — núcleo con ruido, átomos, horizonte curvo, lámpara de lava
+- Ruben: «me gusta la versión actual»; «ruido de partículas en el núcleo que
+  con el blob cree la ilusión de una forma simple»; «partículas orbitando
+  como átomos, cerca del cuerpo»; «el punto de contacto emite como la cabeza
+  y las orejas, sin letras»; «blobs grandes que salen del mar de vez en
+  cuando, como una lámpara de lava, como medio Tizno»; «horizonte curvo».
+- Todo lo del cuerpo va en el lienzo de la corona (dentro del goo):
+  · `spawnHervor` (cada 130 ms, 3 grumos en alto / 1 medio): nacen dentro
+    del contorno del tronco (10 % hacia dentro del rect de bodyTracker),
+    asoman 6–24 px y vuelven → contorno que hierve. CORONA_MAX 46 → 90.
+  · `ATOMOS` (9 alto / 5 medio, se recrean al cambiar de nivel): grumos
+    persistentes en órbitas elípticas inclinadas alrededor del tronco, con
+    velocidad y radio que respiran; dibujados directos a cada fotograma
+    (`dibujarAtomos`) tras la orilla, o desde dibujarTinta si no hay mar.
+  · `spawnOrilla`: la mitad de los grumos sube por el tronco y se disuelve
+    (estilo corona, sin letras), la otra mitad salpica y cae.
+- Mar en UN solo lienzo (fuera los divs `.mar-banda`): tres rellenos por
+  fotograma (`marFondo`, `marMedio`, `marSuperficie`) sobre un **horizonte
+  convexo** (`marCurva`: 5vh más alto en el centro). Lienzo de 62vh.
+- **Lava** (`marLava`): cada 9–21 s en alto (16–28 medio; nunca en bajo),
+  con Tizno fuera, una burbuja (rx 55–85, ry ×1,3–1,6) emerge a ≥280 px del
+  centro, se mece fuera (7–12 s en total) y se hunde; falda que la une a la
+  superficie; empuja los muelles al salir. Va entre las capas de atrás y el
+  frente. La primera, a los 7 s.
+- Sin ver a ojo (pestaña oculta / headless sin emerger): lo valida Ruben.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.

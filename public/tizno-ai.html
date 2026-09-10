@@ -178,27 +178,16 @@
            30 fps como el resto de la tinta. Sin filtros: geometría y color.
            El nivel medio de la superficie (30vh) vive en el JS (MAR.nivel). */
         #mar { display: none; }
-        html.estancia #mar { display: block; position: fixed; left: 0; right: 0; bottom: 0; height: 46vh; z-index: 5; pointer-events: none; overflow: hidden; contain: strict; }
+        html.estancia #mar { display: block; position: fixed; left: 0; right: 0; bottom: 0; height: 62vh; z-index: 5; pointer-events: none; overflow: hidden; contain: strict; }
         html.estancia #niebla-grabada, html.estancia #abyss-foreground, html.estancia #abyss-foreground-2 { display: none; }
         /* ?mar=0: interruptor para comparar con la lámina de antes (A/B a ojo). */
         html.estancia.sinmar #mar { display: none; }
         html.estancia.sinmar #niebla-grabada, html.estancia.sinmar #abyss-foreground, html.estancia.sinmar #abyss-foreground-2 { display: block; }
-        /* Ruben (11-sep): «olas 100 % negras, opacas, sin contorno, y formas
-           grandes que se solapen». Todo #000: lo que se ve es la unión de las
-           siluetas y el paralaje de sus crestas. La banda del frente (lienzo)
-           es la más alta de media para que la reacción a Tizno se vea; las de
-           detrás asoman por sus senos. */
-        .mar-banda { position: absolute; left: 0; right: 0; bottom: 0; will-change: transform; }
-        #mar-fondo { height: 30vh; animation: mar-vaiven 9s ease-in-out infinite alternate; }
-        #mar-medio { height: 29vh; animation: mar-vaiven 7s ease-in-out -3s infinite alternate-reverse; }
-        .mar-olas { position: absolute; left: 0; top: 0; bottom: 0; background-repeat: repeat-x, no-repeat; background-position: 0 0; will-change: transform; }
-        #mar-fondo .mar-olas { width: calc(100% + 720px); background-size: 720px 120px, 100% 100%; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='720' height='120'%3E%3Cpath fill='%23000' d='M0 70C90 20 170 110 270 60S430 10 520 70 660 120 720 70V120H0Z'/%3E%3C/svg%3E"), linear-gradient(to bottom, transparent 120px, #000 120px); animation: mar-deriva-a 34s linear infinite; }
-        #mar-medio .mar-olas { width: calc(100% + 640px); background-size: 640px 110px, 100% 100%; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='110'%3E%3Cpath fill='%23000' d='M0 55C70 100 150 10 240 55S400 105 480 50 600 5 640 55V110H0Z'/%3E%3C/svg%3E"), linear-gradient(to bottom, transparent 110px, #000 110px); animation: mar-deriva-b 23s linear infinite reverse; }
-        #mar-frente { position: absolute; left: 0; bottom: 0; width: 100%; height: 46vh; display: block; }
-        @keyframes mar-deriva-a { to { transform: translateX(-720px); } }
-        @keyframes mar-deriva-b { to { transform: translateX(-640px); } }
-        @keyframes mar-vaiven { from { transform: translateY(0); } to { transform: translateY(10px); } }
-        @media (prefers-reduced-motion: reduce) { .mar-olas, .mar-banda { animation: none; } }
+        /* Ruben (11-sep): «olas 100 % negras, opacas, sin contorno, formas
+           grandes que se solapen» y «horizonte curvo». Las tres capas se
+           pintan en el mismo lienzo (tres rellenos por fotograma) sobre un
+           horizonte convexo: Tizno en lo alto de un montículo de tinta. */
+        #mar-frente { position: absolute; left: 0; bottom: 0; width: 100%; height: 62vh; display: block; }
         /* SIN zoom interno: mezclaba px escalados con % del viewport y las
            capas fijas (cuerpo vs ojos) se desalineaban según el ancho de la
            ventana. La madre escala el iframe entero con transform. */
@@ -646,11 +635,7 @@
       <a id="idioma-es" href="/tizno/">ES</a><a id="idioma-en" href="/en/tizno/">EN</a>
     </nav>
     <div id="niebla-grabada" aria-hidden="true"></div>
-    <div id="mar" aria-hidden="true">
-        <div class="mar-banda" id="mar-fondo"><div class="mar-olas"></div></div>
-        <div class="mar-banda" id="mar-medio"><div class="mar-olas"></div></div>
-        <canvas id="mar-frente"></canvas>
-    </div>
+    <div id="mar" aria-hidden="true"><canvas id="mar-frente"></canvas></div>
 
     <!-- ═══ ELEVENLABS 2/4 — call UI ═══ -->
     <div id="tizno-call-ui">
@@ -779,6 +764,7 @@
             const niebla2 = document.getElementById('abyss-foreground-2');
             if (niebla2) niebla2.style.display = NIVEL === 'bajo' ? 'none' : '';
             document.documentElement.dataset.nivel = NIVEL;
+            if (typeof crearAtomos === 'function') crearAtomos();
         }
         function bajarNivel() {
             if (NIVEL_FORZADO) return false;
@@ -2460,7 +2446,7 @@
             MAR.activo = !!ctxM && document.documentElement.classList.contains('estancia')
                          && !document.documentElement.classList.contains('sinmar');
             if (!MAR.activo) return;
-            MAR.w = window.innerWidth; MAR.hh = Math.round(window.innerHeight * 0.46);
+            MAR.w = window.innerWidth; MAR.hh = Math.round(window.innerHeight * 0.62);
             MAR.base = MAR.hh - window.innerHeight * MAR.nivel;   // nivel medio en coords del lienzo
             lienzoM.width = MAR.w; lienzoM.height = MAR.hh;
             MAR.n = Math.ceil(MAR.w / MAR.paso) + 2;
@@ -2487,8 +2473,68 @@
             const i0 = Math.max(0, Math.floor(c - r)), i1 = Math.min(MAR.n - 1, Math.ceil(c + r));
             for (let i = i0; i <= i1; i++) { const d = (i - c) / r; MAR.v[i] += fuerza * Math.max(0, 1 - d * d); }
         }
-        function marSuperficie(i, t) {   // altura de la columna i con el oleaje ambiente
-            return MAR.base + MAR.h[i] + 12 * Math.sin(i * 0.05 + t * 0.0009) + 7 * Math.sin(i * 0.13 - t * 0.0015) + 4 * Math.sin(i * 0.31 + t * 0.002);
+        /* HORIZONTE CURVO (Ruben, 11-sep): convexo, 5vh más alto en el centro
+           que en los bordes. Lo comparten las tres capas y la orilla. */
+        function marCurva(i) {
+            const u = (i * MAR.paso - MAR.w / 2) / (MAR.w / 2);
+            return -window.innerHeight * 0.05 * Math.max(0, 1 - u * u);
+        }
+        function marSuperficie(i, t) {   // frente: columna i con muelles + oleaje ambiente + curva
+            return MAR.base + marCurva(i) + MAR.h[i] + 12 * Math.sin(i * 0.05 + t * 0.0009) + 7 * Math.sin(i * 0.13 - t * 0.0015) + 4 * Math.sin(i * 0.31 + t * 0.002);
+        }
+        // capas de atrás: olas grandes y lentas, sin muelles, un poco más bajas de media
+        function marFondo(i, t) { return MAR.base + marCurva(i) + 46 + 38 * Math.sin(i * 0.020 + t * 0.00028) + 18 * Math.sin(i * 0.051 - t * 0.00047); }
+        function marMedio(i, t) { return MAR.base + marCurva(i) + 40 + 34 * Math.sin(i * 0.027 - t * 0.00036 + 2) + 15 * Math.sin(i * 0.063 + t * 0.00052); }
+        function marCapa(ctx, t, n, paso, w, hh, f) {
+            ctx.beginPath();
+            let px = 0, py = f(0, t);
+            ctx.moveTo(px, py);
+            for (let i = 1; i < n; i++) {
+                const x = i * paso, y = f(i, t);
+                ctx.quadraticCurveTo(px, py, (px + x) / 2, (py + y) / 2);
+                px = x; py = y;
+            }
+            ctx.lineTo(px, py);
+            ctx.lineTo(w + 10, hh + 10); ctx.lineTo(-10, hh + 10); ctx.closePath();
+            ctx.fill();
+        }
+        /* LÁMPARA DE LAVA (Ruben, 11-sep: «blobs grandes que salen del mar de
+           vez en cuando, como medio Tizno»): de tarde en tarde, una burbuja
+           de tinta emerge lejos de Tizno, se mece fuera unos segundos y se
+           vuelve a hundir. Va entre las capas de atrás y el frente, con una
+           falda que la une a la superficie. Al salir empuja los muelles. */
+        const LAVA = []; let lavaProxima = Date.now() + 7000;
+        const easeOutQ = (u) => 1 - (1 - u) * (1 - u), easeInQ = (u) => u * u;
+        function marLava(ctx, ahora) {
+            if (NIVEL !== 'bajo' && ahora > lavaProxima && popPos > 0.2) {
+                lavaProxima = ahora + (NIVEL === 'alto' ? 9000 : 16000) + Math.random() * 12000;
+                const cx = window.innerWidth / 2, lado = Math.random() < 0.5 ? -1 : 1;
+                const margen = Math.max(80, window.innerWidth / 2 - 330);
+                const x = cx + lado * (280 + Math.random() * margen);
+                const rx = 55 + Math.random() * 30, ry = rx * (1.3 + Math.random() * 0.3);
+                LAVA.push({ x, rx, ry, t0: ahora, dur: 7000 + Math.random() * 5000, fase: Math.random() * 10 });
+                marEmpujar(x, -0.9, rx * 1.6);
+            }
+            for (let k = LAVA.length - 1; k >= 0; k--) {
+                const b = LAVA[k], u = (ahora - b.t0) / b.dur;
+                if (u >= 1) { LAVA.splice(k, 1); continue; }
+                const alt = u < 0.4 ? easeOutQ(u / 0.4) : u < 0.65 ? 1 : 1 - easeInQ((u - 0.65) / 0.35);
+                const i = Math.min(MAR.n - 1, Math.max(0, Math.round(b.x / MAR.paso)));
+                const ys = marSuperficie(i, ahora);
+                const rx = b.rx * (1 + 0.07 * Math.sin(ahora * 0.0021 + b.fase));
+                const ry = b.ry * (1 + 0.09 * Math.cos(ahora * 0.0017 + b.fase));
+                const yc = ys + ry * 0.9 - alt * ry * 1.45;
+                ctx.beginPath();
+                ctx.ellipse(b.x, yc, rx, ry, Math.sin(ahora * 0.0006 + b.fase) * 0.12, 0, 6.2832);
+                ctx.fill();
+                const yf = yc + ry * 0.35;   // falda: el cuello que lo une a la superficie
+                ctx.beginPath();
+                ctx.moveTo(b.x - rx * 1.9, ys + 30);
+                ctx.quadraticCurveTo(b.x - rx * 1.0, ys - 2, b.x - rx * 0.95, yf);
+                ctx.lineTo(b.x + rx * 0.95, yf);
+                ctx.quadraticCurveTo(b.x + rx * 1.0, ys - 2, b.x + rx * 1.9, ys + 30);
+                ctx.closePath(); ctx.fill();
+            }
         }
         let marAnterior = 0;
         function marPaso(ahora, dormido) {
@@ -2523,21 +2569,15 @@
                 const cadencia = (NIVEL === 'alto' ? 420 : 800) / fuerza;
                 if (ahora - marUltimaSalpicadura > cadencia) { marUltimaSalpicadura = ahora; spawnOrilla(ahora, fuerza); }
             }
-            // ── pintar ──
+            // ── pintar: tres capas negras sobre el horizonte curvo, la lava entre medias ──
             const ctx = ctxM, w = MAR.w, hh = MAR.hh, paso = MAR.paso;
             ctx.setTransform(1, 0, 0, 1, 0, 0);
             ctx.clearRect(0, 0, w, hh);
-            ctx.beginPath();
-            let px = 0, py = marSuperficie(0, ahora);
-            ctx.moveTo(px, py);
-            for (let i = 1; i < n; i++) {
-                const x = i * paso, y = marSuperficie(i, ahora);
-                ctx.quadraticCurveTo(px, py, (px + x) / 2, (py + y) / 2);
-                px = x; py = y;
-            }
-            ctx.lineTo(px, py);
-            ctx.lineTo(w + 10, hh + 10); ctx.lineTo(-10, hh + 10); ctx.closePath();
-            ctx.fillStyle = MAR.col; ctx.fill();
+            ctx.fillStyle = MAR.col;
+            marCapa(ctx, ahora, n, paso, w, hh, marFondo);
+            marCapa(ctx, ahora, n, paso, w, hh, marMedio);
+            marLava(ctx, ahora);
+            marCapa(ctx, ahora, n, paso, w, hh, marSuperficie);
             /* ── LA ORILLA: el mismo mar, dibujado DENTRO de la capa goo del
                cuerpo (lienzo de la corona), 7 px por encima del de fuera y
                hundido hacia los bordes de la capa (para que no se vea dónde
@@ -2562,30 +2602,110 @@
                 c.lineTo(qx, qy);
                 c.lineTo(lw + 10, lh + 10); c.lineTo(-10, lh + 10); c.closePath(); c.fill();
                 c.setTransform(1, 0, 0, 1, 0, 0);
+                dibujarAtomos(ahora, dt);
             }
         }
         let marUltimaSalpicadura = 0;
+        /* ORILLA (Ruben, 11-sep: «el punto de contacto emite partículas como
+           la cabeza y las orejas, sin letras»): grumos de tinta en la línea
+           de agua. La mitad sube pegada al cuerpo y se disuelve (como la
+           corona); la otra mitad salta y vuelve a caer al agua. */
         function spawnOrilla(ahora, fuerza) {
             if (!rectC || POOL_C.length > CORONA_MAX) return;
             const cxL = window.innerWidth / 2 - rectC.left;
             const i = Math.round((window.innerWidth / 2) / MAR.paso);
             const ySup = window.innerHeight - MAR.hh + marSuperficie(i, ahora) - rectC.top - 7;
-            const k = 1 + Math.floor(fuerza * 1.5);
+            const k = 1 + Math.floor(fuerza * 2);
             for (let j = 0; j < k; j++) {
-                const x0 = cxL + (Math.random() - 0.5) * 120, y0 = ySup + 4;
-                const alto = (12 + Math.random() * 26) * fuerza;
-                POOL_C.push({ t0: ahora, dur: 650 + Math.random() * 550, off: 0.45, e: 'io', tam: 9 + Math.random() * 13,
-                    x0, y0, s0: 0.6, o0: 1, r0: 0,
-                    x1: x0 + (Math.random() - 0.5) * 18, y1: y0 - alto, s1: 1, o1: 1, r1: 0,
-                    x2: x0 + (Math.random() - 0.5) * 34, y2: y0 + 8, s2: 0.45, o2: 1, r2: 0 });
+                const lado = Math.random() < 0.5 ? -1 : 1;
+                const x0 = cxL + lado * (10 + Math.random() * 70), y0 = ySup + 4;
+                if (Math.random() < 0.5) {
+                    // sube por el tronco y se deshace
+                    const alto = (28 + Math.random() * 46) * fuerza;
+                    POOL_C.push({ t0: ahora, dur: 900 + Math.random() * 900, off: 0.35, e: 'out', tam: 8 + Math.random() * 14,
+                        x0, y0, s0: 0.4, o0: 1, r0: 0,
+                        x1: x0 + lado * (4 + Math.random() * 10), y1: y0 - alto * 0.45, s1: 1, o1: 1, r1: 0,
+                        x2: x0 + lado * (10 + Math.random() * 18), y2: y0 - alto, s2: 0.15, o2: 0, r2: 0 });
+                } else {
+                    // salpica y cae
+                    const alto = (12 + Math.random() * 26) * fuerza;
+                    POOL_C.push({ t0: ahora, dur: 650 + Math.random() * 550, off: 0.45, e: 'io', tam: 9 + Math.random() * 13,
+                        x0, y0, s0: 0.6, o0: 1, r0: 0,
+                        x1: x0 + (Math.random() - 0.5) * 18, y1: y0 - alto, s1: 1, o1: 1, r1: 0,
+                        x2: x0 + (Math.random() - 0.5) * 34, y2: y0 + 8, s2: 0.45, o2: 1, r2: 0 });
+                }
             }
+        }
+        /* HERVOR DEL NÚCLEO (Ruben, 11-sep: «ruido de partículas y elementos
+           que con el blob creen la ilusión de una forma simple»): grumos que
+           nacen justo dentro del contorno del tronco, asoman unos píxeles y
+           vuelven a fundirse. El filtro goo convierte ese ir y venir en un
+           contorno que hierve. Sin letras. */
+        function spawnHervor() {
+            if (NIVEL === 'bajo' || !rectC || POOL_C.length > CORONA_MAX) return;
+            if (popTarget === 0 && popPos < 0.4) return;
+            const b = bodyTracker.getBoundingClientRect();
+            const ahora = Date.now();
+            const n = NIVEL === 'alto' ? 3 : 1;
+            for (let i = 0; i < n; i++) {
+                const lado = Math.random() < 0.5 ? -1 : 1;
+                const yRel = 0.12 + Math.random() * 0.8;
+                const x0 = (lado < 0 ? b.left + b.width * 0.1 : b.right - b.width * 0.1) - rectC.left;
+                const y0 = b.top + b.height * yRel - rectC.top;
+                const fuera = 6 + Math.random() * 18;
+                POOL_C.push({ t0: ahora, dur: 600 + Math.random() * 800, off: 0.5, e: 'io', tam: 8 + Math.random() * 12,
+                    x0, y0, s0: 0.5, o0: 1, r0: 0,
+                    x1: x0 + lado * fuera, y1: y0 - 4 + Math.random() * 8, s1: 1, o1: 1, r1: 0,
+                    x2: x0 + lado * fuera * 0.35, y2: y0 - 12 - Math.random() * 12, s2: 0.2, o2: 1, r2: 0 });
+            }
+        }
+        /* ÁTOMOS (Ruben, 11-sep: «partículas orbitando al azar alrededor del
+           núcleo, como átomos, cerca del cuerpo»): un puñado de grumos
+           persistentes en órbitas elípticas inclinadas alrededor del tronco,
+           con velocidad y radio que respiran. Cuando pasan cerca del cuerpo el
+           goo los absorbe; al alejarse se desprenden. Se dibujan directos
+           (no en el pool), a cada fotograma, sobre el lienzo de la corona. */
+        const ATOMOS = [];
+        function crearAtomos() {
+            ATOMOS.length = 0;
+            const n = NIVEL === 'alto' ? 9 : NIVEL === 'medio' ? 5 : 0;
+            for (let i = 0; i < n; i++) ATOMOS.push({
+                ang: Math.random() * 6.2832,
+                vel: (0.5 + Math.random() * 1.1) * (Math.random() < 0.5 ? 1 : -1) / 1000,   // rad/ms
+                rx: 40 + Math.random() * 70, ry: 10 + Math.random() * 34,
+                alt: Math.random(), inc: (Math.random() - 0.5) * 1.4,
+                tam: 6 + Math.random() * 9, fase: Math.random() * 1000 });
+        }
+        crearAtomos();
+        function dibujarAtomos(ahora, dt) {
+            if (!ATOMOS.length || !rectC || popPos < 0.3) return;
+            const b = bodyTracker.getBoundingClientRect();
+            const cx = b.left + b.width / 2 - rectC.left;
+            const ctx = ctxC;
+            ctx.setTransform(RESOL, 0, 0, RESOL, 0, 0); ctx.globalAlpha = 1;
+            for (const a of ATOMOS) {
+                a.ang += a.vel * dt * (1 + 0.5 * Math.sin(ahora * 0.0013 + a.fase));   // órbita irregular
+                const rx = a.rx * (1 + 0.18 * Math.sin(ahora * 0.0009 + a.fase));
+                const ry = a.ry * (1 + 0.25 * Math.sin(ahora * 0.0011 + a.fase * 2));
+                const cy = b.top + b.height * (0.12 + a.alt * 0.62) - rectC.top + Math.sin(ahora * 0.0007 + a.fase) * 14;
+                const ox = Math.cos(a.ang) * rx, oy = Math.sin(a.ang) * ry;
+                const x = cx + ox * Math.cos(a.inc) - oy * Math.sin(a.inc);
+                const y = cy + ox * Math.sin(a.inc) + oy * Math.cos(a.inc);
+                const d = a.tam * (0.8 + 0.2 * Math.sin(ahora * 0.004 + a.fase));
+                ctx.drawImage(sprGota, x - d / 2, y - d / 2, d, d);
+            }
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
         }
 
         function dibujarTinta(ahora) {
             // Origen de la cadencia: el 50%/80% del viewport que usaba la capa.
             pintar(ctxP, lienzoP, POOL_P, ahora, true,
                    window.innerWidth / 2 - rectP.left, window.innerHeight * 0.8 - rectP.top);
-            if (!MAR.activo) pintar(ctxC, lienzoC, POOL_C, ahora, false, 0, 0);   // con mar, la pinta marPaso
+            if (!MAR.activo) {   // con mar, la pinta marPaso a cada fotograma
+                if (ATOMOS.length) lienzoC._sucio = true;
+                pintar(ctxC, lienzoC, POOL_C, ahora, false, 0, 0);
+                dibujarAtomos(ahora, 31);
+            }
             pintar(ctxS, lienzoS, POOL_S, ahora, false, 0, 0);
         }
 
@@ -2709,7 +2829,7 @@
            Tinta y letras que nacen PEGADAS al arco superior de la cabeza, en el
            lienzo que vive dentro del filtro del cuerpo: se funden con la
            silueta y el borde de arriba hierve en vez de ser una curva limpia. */
-        const CORONA_MAX = 46;
+        const CORONA_MAX = 90;   // corona + hervor del tronco + orilla
         // Arista superior de cada oreja en coordenadas de su SVG (viewBox 150×100).
         const OREJAS_ARISTA = [
             { svg: earLeft.querySelector('svg'),  x0: 150, y0: 50, cx: 70, cy: 20, x1: 0,   y1: 40 },
@@ -3099,6 +3219,7 @@
         setInterval(() => { if (!document.hidden && !quieto) spawnParticles(); }, 140);
         setInterval(() => { if (!document.hidden && !quieto) spawnMicroLetras(); }, 90);
         setInterval(() => { if (!document.hidden && !quieto) spawnCorona(); }, 110);
+        setInterval(() => { if (!document.hidden && !quieto) spawnHervor(); }, 130);
     </script>
 
     <!-- ═══ ELEVENLABS — módulo del SDK ═══
