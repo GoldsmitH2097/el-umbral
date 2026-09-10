@@ -514,6 +514,88 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   clave de prueba en Netlify (Javier); construir el modal con
   `ui_mode=elements` (ver STRIPE-CHECKOUT-OPCIONES.md).
 
+### Stripe — 10-sep, 16:30: la vista previa ya habla con Stripe (sandbox)
+- Netlify (`el-umbral`, equipo de Javier; Ruben tiene acceso): variables
+  `STRIPE_SECRET_KEY` (Production = **REAL sk_live_**, puesta por Javier el
+  9-sep; Deploy Previews = sk_test_ pegada por Ruben hoy), `STRIPE_WEBHOOK_SECRET`
+  (Production = whsec de Javier; Deploy Previews = whsec del webhook nuevo),
+  `LLAVE_SECRET` (**se vació sin querer** al cambiarla a «same value for all
+  contexts»: hay que generar una nueva con `openssl rand -hex 32` y pegarla;
+  no había llaves emitidas, así que no se rompe nada).
+- Función `netlify/functions/stripe-diag.mjs`: devuelve presencia y tipo de
+  las variables por contexto, nunca valores (`/.netlify/functions/stripe-diag`).
+  Comprobado: producción = sk_live_ + whsec + (LLAVE ausente ahora);
+  deploy-preview-64 = sk_test_ + whsec.
+- Stripe modo de pruebas: webhook **«anatomia-deploy-preview-64»**
+  (`we_1UE8cgJO8ECUbST9EnEn0XiO`) → deploy-preview-64/.netlify/functions/stripe-webhook,
+  3 eventos. Probado con `stripe trigger checkout.session.completed` desde el
+  Shell del Workbench: **200 OK** con `{received:true}` — la firma se verifica.
+  Existe también el de Javier «vibrant-spark» → soulware.live (modo de pruebas).
+- Claves: Claude no pega claves nunca. Al hacer una captura de la página de
+  API keys, Stripe MOSTRÓ la clave secreta de pruebas en claro (no la de
+  producción). Es de sandbox; renovarla («Roll key») es opcional.
+- Siguiente: construir el modal negro con Checkout Sessions `ui_mode=elements`
+  en la rama `stripe-sandbox` (función que crea la sesión con la clave del
+  contexto + Payment Element/Express Checkout Element con Appearance night+oro).
+
+### Stripe — 10-sep, 17:00: el cofre de pago propio existe (rama stripe-sandbox, PR #64)
+- Integración elegida: **Elements con Checkout Sessions** (`ui_mode: 'elements'`,
+  Stripe.js `https://js.stripe.com/dahlia/stripe.js`, `initCheckoutElementsSdk`).
+  Fuente: docs.stripe.com/payments/accept-a-payment (elements + checkout) y
+  /elements/express-checkout-element/accept-a-payment (embedded-components).
+- Archivos (en la rama `stripe-sandbox`, NO en main):
+  `netlify/functions/crear-sesion-pago.mjs` (POST {obra, idioma} → clientSecret
+  + publishableKey; precio fijado en servidor, 2,49 € IVA incluido
+  `tax_behavior: inclusive`; `automatic_tax` solo si `STRIPE_TAX=1`; return_url
+  a `/obras/anatomia-del-vacio/?pago=vuelta&session_id=…` sobre un origen
+  nuestro) · `netlify/functions/estado-pago.mjs` (GET ?session_id → status /
+  payment_status, correo enmascarado) · `src/js/ui/PagoModal.js` (Stripe.js
+  bajo demanda; Appearance night + oro; Express Checkout Element con Apple/
+  Google/PayPal y Link fuera de los botones grandes; Contact Details Element;
+  Payment Element en acordeón; `actions.confirm({redirect:'if_required'})`;
+  vuelta por `?pago=vuelta`) · modal `#pago-modal` en index.html + CSS en
+  archive.css · `.obra-compra` lleva `data-obra` y el enlace de Stripe queda
+  de red de seguridad · textos `pago.*` ES/EN en translations.js.
+- Probado en https://deploy-preview-64--el-umbral.netlify.app/obras/anatomia-del-vacio/ :
+  el botón «Comprar — 2,49 €» abre el modal (título, precio, estado). La
+  función responde `not_configured: STRIPE_PUBLISHABLE_KEY` hasta que Ruben
+  pegue la clave publicable de pruebas (pk_test_) en Netlify (Deploy Previews
+  + Branch deploys). En producción irá pk_live_ (Javier/Ruben).
+- Pendiente tras la clave: compra completa con 4242, Bizum (redirección de
+  prueba), PayPal sandbox, Apple/Google Pay en móvil; luego la entrega real de
+  la llave en el webhook (`cumplir`), hoy solo registra.
+
+### Stripe — 10-sep, 18:00: el cofre abre con Stripe dentro (vista previa 64)
+- Ruben pegó `STRIPE_PUBLISHABLE_KEY` (pk_test) en Deploy Previews/Branch
+  deploys → el modal carga Stripe.js y pinta: franja de marcas en oro (Visa,
+  Mastercard, Apple Pay, Google Pay, Bizum como texto, PayPal; SVG de
+  simpleicons.org en `public/assets/pago/`, máscara CSS), correo (Contact
+  Details Element) con nota «ahí te enviaremos la llave», acordeón con la
+  tarjeta abierta por defecto (`layout: {type:'accordion', defaultCollapsed:false,
+  radios:'always', spacedAccordionItems:true}`), Bizum, Google Pay, PayPal,
+  botón «Pagar 2,49 €». Texto de carga: «Cargando pasarela de pago segura…».
+- Ajustes tras el feedback de Ruben («genial, funciona»; «más legítimo»,
+  «falta Apple Pay», «¿qué hace el email?», «¿o paga con qué?»): sesión con
+  `payment_method_types: ['card','bizum','paypal']` y
+  `wallet_options.link.display='never'` (fuera Link y su bloque «guardar mi
+  información» con teléfono); botones exprés (Apple/Google/PayPal) solo
+  cuando el navegador tiene cartera, y el «o paga con» solo con ellos
+  encima. Apple Pay solo aparece en Safari/iPhone con tarjeta en Wallet.
+- Errores cazados: `buttonTheme.amazonPay` no existe; `layout.radios`
+  quiere 'always'/'never'/'auto'/'if_multiple'.
+- **Primera compra completa por el modal (10-sep, 17:04 CEST, modo test)**:
+  prueba@soulware.live, tarjeta 4242 → «Pago recibido» en el propio cofre
+  sin redirección (`redirect: 'if_required'`); Stripe test → Payments: 2,49 €
+  Succeeded; webhook `anatomia-deploy-preview-64` → `checkout.session.completed`
+  entregado 200 OK (`{received:true, session:cs_test_…}`); `estado-pago`
+  devuelve `{estado:'complete', pago:'paid', obra:'anatomia', importe:249,
+  email:'p***@soulware.live'}`. El bucle sesión → pago → webhook → estado
+  funciona de punta a punta. Lo que no hace todavía: entregar la llave real
+  (el `cumplir` del webhook sigue en pausa hasta que Anatomía esté lista).
+- Truco para teclear en los iframes de Stripe con la extensión de Chrome:
+  escribir en trozos de 4 caracteres con 1 s de espera, y pasar de campo
+  en campo con Tab (los clics dentro del iframe no mueven el foco).
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
