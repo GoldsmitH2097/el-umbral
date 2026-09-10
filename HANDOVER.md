@@ -565,6 +565,28 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   prueba), PayPal sandbox, Apple/Google Pay en móvil; luego la entrega real de
   la llave en el webhook (`cumplir`), hoy solo registra.
 
+### Stripe — 10-sep, 18:00: el cofre abre con Stripe dentro (vista previa 64)
+- Ruben pegó `STRIPE_PUBLISHABLE_KEY` (pk_test) en Deploy Previews/Branch
+  deploys → el modal carga Stripe.js y pinta: franja de marcas en oro (Visa,
+  Mastercard, Apple Pay, Google Pay, Bizum como texto, PayPal; SVG de
+  simpleicons.org en `public/assets/pago/`, máscara CSS), correo (Contact
+  Details Element) con nota «ahí te enviaremos la llave», acordeón con la
+  tarjeta abierta por defecto (`layout: {type:'accordion', defaultCollapsed:false,
+  radios:'always', spacedAccordionItems:true}`), Bizum, Google Pay, PayPal,
+  botón «Pagar 2,49 €». Texto de carga: «Cargando pasarela de pago segura…».
+- Ajustes tras el feedback de Ruben («genial, funciona»; «más legítimo»,
+  «falta Apple Pay», «¿qué hace el email?», «¿o paga con qué?»): sesión con
+  `payment_method_types: ['card','bizum','paypal']` y
+  `wallet_options.link.display='never'` (fuera Link y su bloque «guardar mi
+  información» con teléfono); botones exprés (Apple/Google/PayPal) solo
+  cuando el navegador tiene cartera, y el «o paga con» solo con ellos
+  encima. Apple Pay solo aparece en Safari/iPhone con tarjeta en Wallet.
+- Errores cazados: `buttonTheme.amazonPay` no existe; `layout.radios`
+  quiere 'always'/'never'/'auto'/'if_multiple'.
+- Compra de prueba con 4242: pendiente de que la haga Ruben a mano (Claude
+  no consigue teclear de forma fiable dentro de los iframes de Stripe con
+  la extensión de Chrome; los campos pierden pulsaciones).
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
