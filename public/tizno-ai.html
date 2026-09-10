@@ -321,6 +321,20 @@
                 radial-gradient(ellipse 20% 24% at 38% 40%, rgba(210, 110, 30, 0.08), transparent 70%),
                 radial-gradient(ellipse 26% 21% at 62% 62%, rgba(255, 210, 140, 0.04), transparent 70%);
         }
+        /* CAPA C — NEGATIVA (Ruben, 11-sep: «algún efecto raro, blob negativo,
+           sustracción, una textura inusual»): manchas OSCURAS que restan luz al
+           halo, y dos anillos finos. Agujeros que se mueven por el resplandor.
+           Sin blend modes (no se aplicaban en esta capa: fue el «aura»): la
+           sustracción es negro con alfa, compositor puro. */
+        #luz-giro-c {
+            opacity: 0.9; animation-duration: 260s;
+            background:
+                radial-gradient(ellipse 22% 16% at 46% 47%, rgba(4, 3, 2, 0.55), transparent 70%),
+                radial-gradient(ellipse 14% 24% at 60% 58%, rgba(4, 3, 2, 0.45), transparent 70%),
+                radial-gradient(ellipse 18% 12% at 37% 61%, rgba(4, 3, 2, 0.5), transparent 70%),
+                radial-gradient(circle 17% at 55% 40%, transparent 62%, rgba(4, 3, 2, 0.35) 66%, rgba(4, 3, 2, 0.35) 70%, transparent 75%),
+                radial-gradient(circle 24% at 42% 52%, transparent 66%, rgba(243, 156, 18, 0.07) 69%, rgba(243, 156, 18, 0.07) 72%, transparent 76%);
+        }
         @keyframes luz-girar { to { transform: rotate(360deg); } }
         html[data-nivel="bajo"] .luz-giro, html[data-nivel="medio"] .luz-giro, html.embed .luz-giro { display: none; }
         @media (prefers-reduced-motion: reduce) { .luz-giro { animation: none; } }
@@ -654,6 +668,7 @@
              la luz del glow se mueve como a través de humo. -->
         <div class="luz-giro" id="luz-giro-a"></div>
         <div class="luz-giro" id="luz-giro-b"></div>
+        <div class="luz-giro" id="luz-giro-c"></div>
         <div id="candle-flicker"></div>
     </div>
     
@@ -1205,8 +1220,8 @@
            y signo propios (la B va al revés: paralaje), más una deriva
            autónoma lenta para que nunca esté quieta. Va por la propiedad
            `translate`, que convive con el giro de `transform` sin repintar. */
-        const luzGiroA = document.getElementById('luz-giro-a'), luzGiroB = document.getElementById('luz-giro-b');
-        const giroA = { x: 0, y: 0 }, giroB = { x: 0, y: 0 };
+        const luzGiroA = document.getElementById('luz-giro-a'), luzGiroB = document.getElementById('luz-giro-b'), luzGiroC = document.getElementById('luz-giro-c');
+        const giroA = { x: 0, y: 0 }, giroB = { x: 0, y: 0 }, giroC = { x: 0, y: 0 };
         const lente = document.getElementById('lente');
         let lenteVis = 0;
         let focoX = 0, focoY = 0;   // el halo de fondo va detrás de él, con pereza
@@ -2388,10 +2403,14 @@
                     const tA_y = ratY * 0.07 + cabY * 0.45 + Math.cos(time * 0.00017) * 36;
                     const tB_x = -ratX * 0.065 - cabX * 0.35 + Math.sin(time * 0.00013 + 2) * 64;
                     const tB_y = -ratY * 0.055 - cabY * 0.28 + Math.cos(time * 0.00019 + 1) * 42;
+                    const tC_x = ratX * 0.04 - cabX * 0.12 + Math.sin(time * 0.00009 + 4) * 70;
+                    const tC_y = -ratY * 0.045 + cabY * 0.10 + Math.cos(time * 0.00011 + 3) * 50;
                     giroA.x += (tA_x - giroA.x) * 0.026; giroA.y += (tA_y - giroA.y) * 0.026;
                     giroB.x += (tB_x - giroB.x) * 0.016; giroB.y += (tB_y - giroB.y) * 0.016;
+                    giroC.x += (tC_x - giroC.x) * 0.009; giroC.y += (tC_y - giroC.y) * 0.009;
                     luzGiroA.style.translate = `${giroA.x.toFixed(1)}px ${giroA.y.toFixed(1)}px`;
                     luzGiroB.style.translate = `${giroB.x.toFixed(1)}px ${giroB.y.toFixed(1)}px`;
+                    luzGiroC.style.translate = `${giroC.x.toFixed(1)}px ${giroC.y.toFixed(1)}px`;
                 }
                 // El halo de los ojos, clavado a la cabeza, encima del mar.
                 luzOjos.style.opacity = (luz * 0.9).toFixed(3);
