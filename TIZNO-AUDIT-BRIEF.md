@@ -6,6 +6,7 @@ Actúa como un equipo senior de tres perfiles: (1) ingeniero de rendimiento web 
 
 - Producción: https://soulware.live/tizno/ (inglés: https://soulware.live/en/tizno/).
 - Código fuente, un único archivo de ~4.200 líneas (HTML + CSS + JS vanilla, sin frameworks): https://raw.githubusercontent.com/GoldsmitH2097/el-umbral/9149ed3/public/tizno-ai.html (fijado al commit 9149ed3, que es lo que hay en producción). Repo público: https://github.com/GoldsmitH2097/el-umbral. Te adjunto además el archivo por si truncas la URL. Lee el archivo entero antes de opinar: la mitad de las respuestas están en sus comentarios.
+- Para la parte de seguridad, mira también en el repo: `netlify.toml` (cabeceras y redirecciones), `netlify/functions/*.mjs` y `public/_redirects`.
 
 Tizno es la mascota interactiva de Soulware, una editorial española independiente de ficción oscura. Es una criatura de tinta y hollín que vive en la niebla de la web, emerge de un mar de tinta, respira, parpadea, reacciona al ratón, a los toques y a la voz, y con la que se puede hablar por voz (ElevenLabs Agents, LLM Gemini 3.6 Flash, SDK @elevenlabs/client 1.25 por WebSocket). Estética: Tim Burton, negro sobre negro, glow ámbar (#f39c12), sin pupilas ni brillos en los ojos, silueta negra pura. Público: visitantes de la web en escritorio y móvil; muchos entrarán desde Instagram en un móvil medio.
 
@@ -45,6 +46,10 @@ Bugs latentes, condiciones de carrera (SDK, rAF, intervalos, visibilidad), fugas
 ### E. Ideas
 Cinco ideas de bajo coste (compositor puro o pocas operaciones por fotograma) que aporten más vida de la que cuestan, con una estimación honesta de coste de implementación y de fotograma.
 
+### F. Seguridad y privacidad
+Audita como si fueras a atacarlo. Contexto: el agente de ElevenLabs es PÚBLICO (se conecta con `AGENT_ID` desde el navegador, sin backend ni clave; la protección es la allowlist de orígenes de ElevenLabs, soulware.live y el-umbral.netlify.app, con `require_origin_header`). Los créditos son un grant de un año; los topes por conversación (10 min) y por día (30 min) viven en `localStorage` y son evitables desde la consola; `?tune=1` + tecla 0 reinicia el contador y `?equipo=1` lo desactiva en ese navegador (puertas de equipo, visibles en el código). Cabeceras en `netlify.toml` (Referrer-Policy, X-Frame-Options SAMEORIGIN, Permissions-Policy con `microphone=(self)`); funciones en `netlify/functions/` (`baby-borrar.mjs` usa `ELEVENLABS_API_KEY` en servidor; `stripe-webhook.mjs`, `stripe-diag.mjs`), también en el repo público.
+Quiero: (1) vectores de abuso del agente (conexiones desde otros orígenes, scripts que agoten créditos, bypass de la allowlist, coste real de un ataque de agotamiento) y qué mitigación proporcionada propones sin meter un backend de sesiones si no hace falta; (2) inyección de prompt por voz y por los avisos entre corchetes que el rig manda como «mensaje de usuario» (¿puede un visitante hacerse pasar por el sistema?); (3) qué texto del agente o del visitante llega al DOM y cómo (busca `innerHTML`, `textContent`, transcripciones, nombre recordado en `localStorage`); (4) CSP: no hay; di qué política mínima permitiría el SDK por `esm.sh`, los WebSockets de ElevenLabs y la fuente autoalojada, y qué rompería; (5) privacidad: micrófono (¿se apaga siempre al colgar?), qué se guarda en el navegador, qué se manda al agente en el contexto (hora, batería, nº de visita, nombre) y si el aviso de privacidad de la página lo cubre; (6) las funciones de Netlify y las claves; (7) cualquier cosa que un repo público no debería enseñar. Severidad, explotabilidad real y arreglo concreto para cada punto.
+
 ## 4. Restricciones que no se negocian
 - Vanilla JS en un solo archivo, sin frameworks, sin bundles nuevos, sin dependencias salvo el SDK de ElevenLabs.
 - Nada de rastreo ni de terceros en caliente (ni Google Fonts: la fuente va autoalojada).
@@ -65,6 +70,7 @@ Cinco ideas de bajo coste (compositor puro o pocas operaciones por fotograma) qu
 4. Voz: hallazgos.
 5. Código: hallazgos con severidad (crítico / alto / medio) y línea aproximada.
 6. Ideas.
-7. Lo que no has podido verificar y por qué.
+7. Seguridad y privacidad: hallazgos con severidad, explotabilidad y arreglo.
+8. Lo que no has podido verificar y por qué.
 
 Sin relleno, sin «considera optimizar», sin consejos genéricos de web performance que no apliquen a este archivo. Si algo del código ya está bien resuelto, dilo en una línea y pasa al siguiente.
