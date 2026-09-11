@@ -1424,6 +1424,41 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   a 60 Hz no vayan al doble.
 - Banco: 0 excepciones con Tizno fuera. Verificación de suavidad: Ruben.
 
+### 11-sep, madrugada (36) — seguridad, móvil, hover orgánico; tope del agente
+- Ruben: «haz todo eso». Hecho:
+  · `stripe-diag.mjs` BORRADO (era diagnóstico público de qué claves existen;
+    no tiene que ver con Tizno; el pago de PR #64 sigue intacto en su rama).
+  · `baby-borrar.mjs`: solo desde soulware.live / el-umbral.netlify.app /
+    deploy-previews (Origin o Referer), freno 6/10 min por IP, sin eco del
+    estado remoto. Sin clave → 503.
+  · `tizno-url.mjs` NUEVA: URL firmada de ElevenLabs (GET ?agente=…, solo
+    los dos agentes de la casa, mismos orígenes, freno 8/10 min por IP).
+    El cliente la pide antes de startSession y, si falla o no hay clave,
+    entra con el agentId público como siempre. HOY devuelve 503
+    not_configured: ELEVENLABS_API_KEY no está en Netlify (Javier/Ruben).
+    Cuando esté, comprobar que abre sesión con URL firmada y ENTONCES pasar
+    el agente a privado en el panel (Security → authentication): a partir de
+    ahí un script con Origin falso ya no entra.
+  · CSP en modo informe (Content-Security-Policy-Report-Only) para /tizno,
+    /en/tizno, /tizno-ai.html y /baby-tizno (esm.sh, jsdelivr por el
+    remuestreador del SDK, blob:, api/wss de ElevenLabs). Una semana
+    mirando la consola en llamadas reales; si está limpia, pasar a CSP.
+  · Capas filtradas al ancho del viewport en móvil (min(660px,100vw) y
+    min(720px,100vw)); el lienzo de partículas mide el ancho real.
+  · Lecturas de layout agrupadas: RECTS (cabeza y cuerpo) se leen una vez
+    por puerta; emisores y átomos usan rectCabeza()/rectCuerpo() (frescura
+    45 ms).
+  · Hover orgánico en las tres señales: fuera el ::before (el «marco
+    cuadrado») y la escala; cada letra lleva una copia ::after más blanca
+    cuya opacidad (--h) pone el JS según la distancia al cursor (campana de
+    55 px) por un titileo propio, con inercia; la letra sube 3 px y crece
+    un 9 % con --h. Bucle rAF solo mientras haya luz.
+  · Panel del agente: «Max conversation duration» ya estaba en 600 s (tope
+    de servidor, el único que un script no salta).
+- No hecho, por decisión de Ruben/Javier: repo público → privado (o sacar
+  HANDOVER y documentos operativos); ruido prehorneado (feImage) sin prueba
+  en Safari.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
