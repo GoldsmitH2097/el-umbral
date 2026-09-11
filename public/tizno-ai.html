@@ -695,7 +695,7 @@
     <div id="abyss-foreground-2"></div>
 
     <!-- Cuerpo: goo con despeine SUAVE en la silueta -->
-    <div class="goo-layer" style="filter: url('#ink-goo-body'); width: 660px; left: 50%; margin-left: -330px; height: 700px; top: auto; bottom: 0;">
+    <div class="goo-layer" style="filter: url('#ink-goo-body'); width: min(660px, 100vw); left: 50%; margin-left: calc(min(660px, 100vw) / -2); height: 700px; top: auto; bottom: 0;">
         <!-- La CORONA vive DENTRO de esta capa, así que su tinta pasa por el
              mismo filtro que el cuerpo y se funde con él: el contorno superior
              deja de ser una línea limpia y se convierte en mar de tinta. -->
@@ -719,7 +719,7 @@
     </div>
 
     <!-- Partículas y letras: goo con el despeine FUERTE original -->
-    <div class="goo-layer" id="goo-particles" style="width: 720px; left: 50%; margin-left: -360px;">
+    <div class="goo-layer" id="goo-particles" style="width: min(720px, 100vw); left: 50%; margin-left: calc(min(720px, 100vw) / -2);">
         <canvas id="lienzo-particulas"></canvas>
     </div>
 
@@ -1209,6 +1209,13 @@
         const eyesBreathEl = document.getElementById('eyes-breathing-layer');
         const goolayers = document.querySelectorAll('.goo-layer');
         const luzSala = document.getElementById('luz-sala');
+        /* RECTS: los rectángulos de cabeza y cuerpo se leen UNA vez por puerta
+           (auditoría 11-sep: los emisores los leían cada uno por su cuenta,
+           forzando un layout tras cada escritura). Frescura de 45 ms; si no,
+           lectura directa. */
+        const RECTS = { head: null, body: null, t: 0 };
+        const rectCabeza = () => (RECTS.head && Date.now() - RECTS.t < 45) ? RECTS.head : headBase.getBoundingClientRect();
+        const rectCuerpo = () => (RECTS.body && Date.now() - RECTS.t < 45) ? RECTS.body : bodyTracker.getBoundingClientRect();
         /* LETREAR (Ruben, 11-sep): trocea una señal en letras con giro, altura
            y tamaño ligeramente distintos y un titileo propio. Determinista por
            posición (hash de senos): la misma palabra sale siempre igual, no
@@ -2442,6 +2449,7 @@
                    Va en el envoltorio porque la capa de luz ya anima su propio
                    transform por keyframes y ahí perdería la batalla. */
                 const hr = headBase.getBoundingClientRect();
+                RECTS.head = hr; RECTS.body = bodyTracker.getBoundingClientRect(); RECTS.t = time;
                 const objX = (hr.left + hr.width / 2 - window.innerWidth / 2) * TUNE.focoSeguimiento;
                 const objY = (hr.top + hr.height / 2 - window.innerHeight * 0.62) * TUNE.focoSeguimiento * 0.8;
                 const gFoco = 1 - Math.pow(1 - TUNE.focoPereza, kGate);
@@ -2575,7 +2583,7 @@
         }
         function ajustarLienzos() {
             const capaCuerpo = lienzoC.parentElement;
-            medirLienzo(lienzoP, ctxP, 720, Math.min(window.innerHeight || 900, 900));
+            medirLienzo(lienzoP, ctxP, lienzoP.parentElement.offsetWidth || 720, Math.min(window.innerHeight || 900, 900));   // el ancho real de la capa (en móvil, el viewport)
             medirLienzo(lienzoC, ctxC, capaCuerpo.offsetWidth || 660, capaCuerpo.offsetHeight || 700);
             medirLienzo(lienzoS, ctxS, 640, 560);
             rectP = lienzoP.getBoundingClientRect();
@@ -2956,7 +2964,7 @@
         function spawnHervor() {
             if (NIVEL === 'bajo' || !rectC || POOL_C.length > CORONA_MAX) return;
             if (popTarget === 0 && popPos < 0.4) return;
-            const b = bodyTracker.getBoundingClientRect();
+            const b = rectCuerpo();
             const ahora = Date.now();
             const n = NIVEL === 'alto' ? 3 : 1;
             for (let i = 0; i < n; i++) {
@@ -2993,7 +3001,7 @@
         function dibujarAtomos(ahora) {
             if (!ATOMOS.length || !rectC || popPos < 0.3) { atomosT = 0; return; }
             const dt = atomosT ? Math.min(80, ahora - atomosT) : 31; atomosT = ahora;
-            const b = bodyTracker.getBoundingClientRect();
+            const b = rectCuerpo();
             const cx = b.left + b.width / 2 - rectC.left;
             const ctx = ctxC;
             ctx.setTransform(RESOL, 0, 0, RESOL, 0, 0); ctx.globalAlpha = 1;
@@ -3036,7 +3044,7 @@
             if (contGotas > MAX_GOTAS) return;
             lastBurst = ahora;
             const rP = rectP;
-            const h = headBase.getBoundingClientRect();
+            const h = rectCabeza();
             const cx = h.left + h.width / 2 - rP.left;
             const cy = h.top + h.height / 2 - rP.top;
             const nBurst = Math.max(4, Math.round(BURST_GOTAS * FACTOR[NIVEL]));
@@ -3156,7 +3164,7 @@
             if (POOL_C.length > CORONA_MAX) return;
             if (popTarget === 0 && popPos < 0.2) return;   // escondido: nada que emitir
             const rC = rectC;
-            const h = headBase.getBoundingClientRect();
+            const h = rectCabeza();
             const cx = h.left + h.width / 2 - rC.left;
             const cy = h.top + h.height / 2 - rC.top;
             const r = h.width * 0.5;
@@ -3211,8 +3219,8 @@
             if (!n || contLetras > TUNE.microTope) return;
             if (popTarget === 0 && popPos < 0.2) return;   // escondido: nada que emitir
             const rP = rectP;
-            const h = headBase.getBoundingClientRect();
-            const b = bodyTracker.getBoundingClientRect();
+            const h = rectCabeza();
+            const b = rectCuerpo();
             const ahora = Date.now();
             for (let i = 0; i < n; i++) {
                 const fs = Math.round(TUNE.microTamMin + Math.random() * Math.max(0, TUNE.microTamMax - TUNE.microTamMin));
@@ -3240,7 +3248,7 @@
         /* Letras disparadas: salen escupidas con los estallidos, girando. */
         function burstLetters(n, fuerza) {
             const rP = rectP;
-            const h = headBase.getBoundingClientRect();
+            const h = rectCabeza();
             const cx = h.left + h.width / 2 - rP.left;
             const cy = h.top + h.height / 2 - rP.top;
             const ahora = Date.now();
@@ -3272,8 +3280,8 @@
         let ultimoToqueT = 0;
         let toquesSeguidos = 0;
         const toqueEn = (cx2, cy2) => {
-            const h = headBase.getBoundingClientRect();
-            const b = bodyTracker.getBoundingClientRect();
+            const h = rectCabeza();
+            const b = rectCuerpo();
             const dentroDeEl = (cx2 > Math.min(h.left, b.left) - 30 && cx2 < Math.max(h.right, b.right) + 30
                              && cy2 > h.top - 30 && cy2 < b.bottom + 30);
             if (!dentroDeEl || popPos < 0.8) return;
@@ -4028,9 +4036,18 @@
             const dossier = await buildDossier();
             const briefing = dossierToTextSesion(dossier);
             { const m = loadMem(); m.visits = dossier.visitas; m.lastVisit = Date.now(); saveMem(m); }
+            /* URL FIRMADA (auditoría 11-sep): se pide a nuestra función; si no
+               está configurada (sin clave en Netlify) o falla, se entra con el
+               agentId público como hasta ahora. Cuando el agente pase a privado
+               en el panel, solo entrará quien pase por la función. */
+            let firmada = null;
+            try {
+                const rf = await fetch('/.netlify/functions/tizno-url?agente=' + encodeURIComponent(AGENT_ID), { cache: 'no-store' });
+                if (rf.ok) firmada = (await rf.json()).signedUrl || null;
+            } catch (_) {}
             try {
                 conversation = await Conversation.startSession({
-                    agentId: AGENT_ID,
+                    ...(firmada ? { signedUrl: firmada } : { agentId: AGENT_ID }),
                     connectionType: 'websocket',
                     /* ── TIZNO BILINGÜE, LISTO PERO APAGADO ──────────────────
                        Todo el cableado del inglés está puesto: el idioma llega

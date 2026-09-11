@@ -63,3 +63,45 @@
   for = "/fonts/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
+
+# CSP EN MODO INFORME para las páginas de Tizno (auditoría 11-sep-2026). No
+# bloquea nada: solo avisa en la consola de lo que bloquearía. Una semana en
+# informe, revisar la consola en una llamada real (ES, EN y embed) y, si está
+# limpia, cambiar la cabecera a Content-Security-Policy. jsDelivr está porque
+# el SDK de ElevenLabs carga de ahí un remuestreador en navegadores sin
+# soporte de sampleRate; blob: por su AudioWorklet.
+[[headers]]
+  for = "/tizno"
+  [headers.values]
+    Content-Security-Policy-Report-Only = "default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; script-src 'self' 'unsafe-inline' https://esm.sh https://cdn.jsdelivr.net blob: 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; media-src 'self' blob: data:; connect-src 'self' https://esm.sh https://cdn.jsdelivr.net https://api.elevenlabs.io wss://api.elevenlabs.io https://api.us.elevenlabs.io wss://api.us.elevenlabs.io; worker-src 'self' blob:"
+
+[[headers]]
+  for = "/tizno/*"
+  [headers.values]
+    Content-Security-Policy-Report-Only = "default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; script-src 'self' 'unsafe-inline' https://esm.sh https://cdn.jsdelivr.net blob: 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; media-src 'self' blob: data:; connect-src 'self' https://esm.sh https://cdn.jsdelivr.net https://api.elevenlabs.io wss://api.elevenlabs.io https://api.us.elevenlabs.io wss://api.us.elevenlabs.io; worker-src 'self' blob:"
+
+[[headers]]
+  for = "/en/tizno"
+  [headers.values]
+    Content-Security-Policy-Report-Only = "default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; script-src 'self' 'unsafe-inline' https://esm.sh https://cdn.jsdelivr.net blob: 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; media-src 'self' blob: data:; connect-src 'self' https://esm.sh https://cdn.jsdelivr.net https://api.elevenlabs.io wss://api.elevenlabs.io https://api.us.elevenlabs.io wss://api.us.elevenlabs.io; worker-src 'self' blob:"
+
+[[headers]]
+  for = "/en/tizno/*"
+  [headers.values]
+    Content-Security-Policy-Report-Only = "default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; script-src 'self' 'unsafe-inline' https://esm.sh https://cdn.jsdelivr.net blob: 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; media-src 'self' blob: data:; connect-src 'self' https://esm.sh https://cdn.jsdelivr.net https://api.elevenlabs.io wss://api.elevenlabs.io https://api.us.elevenlabs.io wss://api.us.elevenlabs.io; worker-src 'self' blob:"
+
+[[headers]]
+  for = "/tizno-ai.html"
+  [headers.values]
+    Content-Security-Policy-Report-Only = "default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; script-src 'self' 'unsafe-inline' https://esm.sh https://cdn.jsdelivr.net blob: 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; media-src 'self' blob: data:; connect-src 'self' https://esm.sh https://cdn.jsdelivr.net https://api.elevenlabs.io wss://api.elevenlabs.io https://api.us.elevenlabs.io wss://api.us.elevenlabs.io; worker-src 'self' blob:"
+
+[[headers]]
+  for = "/baby-tizno"
+  [headers.values]
+    Content-Security-Policy-Report-Only = "default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; script-src 'self' 'unsafe-inline' https://esm.sh https://cdn.jsdelivr.net blob: 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; media-src 'self' blob: data:; connect-src 'self' https://esm.sh https://cdn.jsdelivr.net https://api.elevenlabs.io wss://api.elevenlabs.io https://api.us.elevenlabs.io wss://api.us.elevenlabs.io; worker-src 'self' blob:"
+
+[[headers]]
+  for = "/baby-tizno/*"
+  [headers.values]
+    Content-Security-Policy-Report-Only = "default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; script-src 'self' 'unsafe-inline' https://esm.sh https://cdn.jsdelivr.net blob: 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; media-src 'self' blob: data:; connect-src 'self' https://esm.sh https://cdn.jsdelivr.net https://api.elevenlabs.io wss://api.elevenlabs.io https://api.us.elevenlabs.io wss://api.us.elevenlabs.io; worker-src 'self' blob:"
+
