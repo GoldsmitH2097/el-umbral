@@ -79,6 +79,7 @@
     <link rel="canonical" href="https://soulware.live/tizno/" />
     <meta property="og:title" content="Tizno — El Custodio del Umbral" />
     <meta property="og:description" content="Una criatura minúscula vive en la niebla de Soulware. Habla con ella. No la encierres." />
+    <link rel="preload" href="/fonts/jolly-lodger.woff2" as="font" type="font/woff2" crossorigin />
     <meta property="og:image" content="https://soulware.live/tizno-og.jpg" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://soulware.live/tizno/" />
@@ -919,11 +920,18 @@
            nunca sube: subir y bajar en bucle se vería peor que ir en bajo. */
         function medirFps() {
             let n = 0, t0 = performance.now(), ventanas = 0;
-            let prev = t0, huecoMax = 0, buenas = 0, bajadas = 0;
+            let prev = t0, huecoMax = 0, buenas = 0, bajadas = 0, huecoMin = 1000;
+            /* Al perder o recuperar el foco o la visibilidad, la ventana en curso
+               se descarta: mezclaría fotogramas estrangulados con normales. */
+            const reiniciar = () => { n = 0; t0 = performance.now(); prev = t0; huecoMax = 0; huecoMin = 1000; };
+            document.addEventListener('visibilitychange', reiniciar);
+            window.addEventListener('focus', reiniciar);
+            window.addEventListener('blur', reiniciar);
             const tick = () => {
                 n++;
                 const ahora = performance.now();
                 huecoMax = Math.max(huecoMax, ahora - prev);
+                huecoMin = Math.min(huecoMin, ahora - prev);
                 prev = ahora;
                 const dt = ahora - t0;
                 if (dt >= 2500) {
@@ -938,19 +946,25 @@
                        tampoco se juzga. */
                     const valida = !document.hidden && document.hasFocus() && huecoMax < 400;
                     if (valida) {
+                        /* Refresco nominal de la ventana (el hueco mínimo entre fotogramas):
+                           un móvil en ahorro de batería o un iPhone en Low Power van
+                           capados a 30 Hz y no es lentitud. Los umbrales están pensados
+                           para 60 Hz; por debajo se escalan. */
+                        const nominal = Math.min(120, Math.max(24, Math.round(1000 / Math.max(4, huecoMin))));
+                        const esc = nominal < 55 ? nominal / 60 : 1;
                         // La 1ª ventana incluye el arranque: es más tolerante.
-                        const umbralBajo = ventanas === 0 ? 30 : 34;
-                        const umbralMedio = ventanas === 0 ? 46 : 50;
+                        const umbralBajo = (ventanas === 0 ? 30 : 34) * esc;
+                        const umbralMedio = (ventanas === 0 ? 46 : 50) * esc;
                         if (fps < umbralBajo) { bajarNivel(); bajarNivel(); buenas = 0; bajadas++; }
                         else if (fps < umbralMedio) { bajarNivel(); buenas = 0; bajadas++; }
-                        else if (fps >= 56 && NIVEL !== NIVEL_INICIAL) {
+                        else if (fps >= 56 * esc && NIVEL !== NIVEL_INICIAL) {
                             // Recuperación: 6 ventanas buenas seguidas (15 s); tras
                             // cada bajada, más paciencia (freno anti-oscilación).
                             if (++buenas >= 6 + bajadas * 4) { subirNivel(); buenas = 0; }
                         }
                         ventanas++;
                     } else { buenas = 0; }
-                    n = 0; t0 = performance.now(); prev = t0; huecoMax = 0;
+                    n = 0; t0 = performance.now(); prev = t0; huecoMax = 0; huecoMin = 1000;
                 }
                 requestAnimationFrame(tick);
             };
@@ -1603,6 +1617,7 @@
         window.addEventListener('touchstart', pedirSensores, { once: true });
 
         let erDrawX = 0, erDrawY = 0;   // posición del pendiente, escrita a 30 fps
+        let acumRig = 0;   // pasos físicos pendientes (1/120 s cada uno)
         function updateRig() {
             const time = Date.now();
 
@@ -1631,7 +1646,15 @@
             if (quieto) { requestAnimationFrame(updateRig); return; }
             const dtRig = Math.min((time - (window.__rigT || time)) / 1000, 0.1);
             window.__rigT = time;
-            const pasos = Math.max(1, Math.min(4, Math.round(dtRig * 60)));
+            /* PASO FÍSICO FIJO A 120 Hz (auditoría 11-sep). round(dt·60) daba un
+               paso por fotograma también a 120 Hz: Ruben afinaba el pop, las
+               orejas y los ojos al doble de velocidad, y quien lo ve a 60 Hz lo
+               veía a la mitad. Acumulador: a 120 Hz un paso por fotograma (lo
+               que Ruben ve y afinó), a 60 Hz dos, a 30 Hz cuatro. Las constantes
+               de los muelles son por paso de 1/120 s. */
+            acumRig += dtRig * 120;
+            const pasos = Math.min(8, Math.floor(acumRig));
+            acumRig -= pasos;
 
             /* SUEÑO PROFUNDO, PERO EN LA PUERTA DE ENTRADA. La puerta que ya
                existía vivía en la fase de dibujo, y para entonces este bucle
@@ -1692,7 +1715,7 @@
                posturas se imponen; señales suavizadas con ataque rápido / caída lenta. */
             // ── vuelo de la luciérnaga ──
             if (!EMBED) {
-            ffTimer -= 16;
+            ffTimer -= dtRig * 1000;   // por tiempo real, no por fotograma
             if (ffTimer <= 0) {
                 ffTimer = 2800 + Math.random() * 2500;
                 if (Math.random() < 0.22) {
@@ -1836,7 +1859,7 @@
             // Reloj del parlamento: avanza solo mientras suena su voz.
             if (aiState === 'speaking') {
                 if (!wasSpeaking) { wasSpeaking = true; speakMs = 0; }
-                if (aiVolFast > 0.03) speakMs += 16;
+                if (aiVolFast > 0.03) speakMs += dtRig * 1000;   // reloj emocional por tiempo real (a 120 Hz iba al doble)
             } else { wasSpeaking = false; }
             const sig = tiznoSignals();
             // Doble envolvente: la rápida sigue las sílabas, la lenta es la energía
@@ -2285,16 +2308,19 @@
             c_NeckScaleY += (t_NeckScaleY - c_NeckScaleY) * ease;
             // Orejas con tween y rebote suave (Ruben, 10-sep: «muy jerky»): muelle
             // infraamortiguado en vez del ease exponencial…
-            vEarL = (vEarL + (t_EarL - c_EarL) * 0.14) * 0.76; c_EarL += vEarL;
-            vEarR = (vEarR + (t_EarR - c_EarR) * 0.14) * 0.76; c_EarR += vEarR;
-            // …y el canal aditivo (tics de agudos y golpes de sílaba) filtrado,
-            // que era lo que daba tirones fotograma a fotograma.
-            addEarLs += (add_EarL - addEarLs) * 0.3; addEarRs += (add_EarR - addEarRs) * 0.3;
+            // Muelles por PASO (1/120 s), no por fotograma: misma sensación en 60 y 120 Hz.
+            for (let _p = 0; _p < pasos; _p++) {
+                vEarL = (vEarL + (t_EarL - c_EarL) * 0.14) * 0.76; c_EarL += vEarL;
+                vEarR = (vEarR + (t_EarR - c_EarR) * 0.14) * 0.76; c_EarR += vEarR;
+                // …y el canal aditivo (tics de agudos y golpes de sílaba) filtrado,
+                // que era lo que daba tirones fotograma a fotograma.
+                addEarLs += (add_EarL - addEarLs) * 0.3; addEarRs += (add_EarR - addEarRs) * 0.3;
+                // Tamaño del ojo con un poco de rebote (Ruben, 10-sep): muelle
+                // infraamortiguado en vez del ease exponencial.
+                vEyeL = (vEyeL + (t_EyeL - c_EyeL) * 0.16) * 0.74; c_EyeL += vEyeL;
+                vEyeR = (vEyeR + (t_EyeR - c_EyeR) * 0.16) * 0.74; c_EyeR += vEyeR;
+            }
             c_RigRot += (t_RigRot - c_RigRot) * ease;
-            // Tamaño del ojo con un poco de rebote (Ruben, 10-sep): muelle
-            // infraamortiguado en vez del ease exponencial.
-            vEyeL = (vEyeL + (t_EyeL - c_EyeL) * 0.16) * 0.74; c_EyeL += vEyeL;
-            vEyeR = (vEyeR + (t_EyeR - c_EyeR) * 0.16) * 0.74; c_EyeR += vEyeR;
 
             /* El mar va a CADA fotograma (Ruben, 10-sep: «súper laggy»): un
                lienzo a 30 fps junto a capas de compositor a 120 Hz se ve a
@@ -2785,8 +2811,9 @@
         let marAnterior = 0;
         function marPaso(ahora, dormido) {
             if (!MAR.activo) return;
-            // Rendimiento (11-sep): 60 Hz como máximo; en pantallas de 120 Hz se salta un fotograma de cada dos.
-            if (marAnterior && ahora - marAnterior < 14) return;
+            // Rendimiento (11-sep): 60 Hz como máximo en alto (en 120 Hz se salta un
+            // fotograma de cada dos); 30 Hz en medio, bajo y dormido.
+            if (marAnterior && ahora - marAnterior < ((NIVEL === 'alto' && !dormido) ? 14 : 30)) return;
             const h = MAR.h, v = MAR.v, n = MAR.n, cx = window.innerWidth / 2;
             // Integración por tiempo: tantos sub-pasos de 16,7 ms como hayan pasado (máx. 4).
             const dt = marAnterior ? Math.min(70, ahora - marAnterior) : 16.7; marAnterior = ahora;
@@ -2823,37 +2850,53 @@
             ctx.clearRect(0, 0, lienzoM.width, lienzoM.height);
             ctx.setTransform(MAR_RESOL, 0, 0, MAR_RESOL, 0, 0);   // se dibuja en coords de página; el búfer es la mitad
             ctx.fillStyle = MAR.col;
-            marCapa(ctx, ahora, n, paso, w, hh, marFondo);
-            marCapa(ctx, ahora, n, paso, w, hh, marMedio);
-            marCapa(ctx, ahora, n, paso, w, hh, marSuperficie);
+            // Una sola ruta (auditoría 11-sep): las tres capas son del mismo negro
+            // opaco, así que su unión es la curva más alta (mínimo de y) columna a
+            // columna. Mismo dibujo, un relleno en vez de tres.
+            marCapa(ctx, ahora, n, paso, w, hh, (i, t) => Math.min(marFondo(i, t), marMedio(i, t), marSuperficie(i, t)));
             if (!dormido) spawnLava(ahora);
             /* ── LA ORILLA: el mismo mar, dibujado DENTRO de la capa goo del
                cuerpo (lienzo de la corona), 7 px por encima del de fuera y
                hundido hacia los bordes de la capa (para que no se vea dónde
                acaba). El filtro goo funde el cuello con esta ola: donde Tizno
                entra en el líquido hay un menisco vivo, no una esquina. */
-            if (rectC && lienzoC.width) {
-                lienzoC._sucio = true;
-                pintar(ctxC, lienzoC, POOL_C, ahora, false, 0, 0);   // corona + salpicaduras, a cada fotograma
-                const c = ctxC, lw = lienzoC._w, lh = lienzoC._h, yPag0 = window.innerHeight - hh;
-                c.setTransform(RESOL, 0, 0, RESOL, 0, 0);
-                c.fillStyle = '#000';
-                c.beginPath();
-                let qx = 0, qy = 0, primero = true;
-                for (let i = 0; i < n; i++) {
-                    const xl = i * paso - rectC.left;
-                    if (xl < -paso || xl > lw + paso) continue;
-                    const d = Math.min(xl, lw - xl), wv = d >= 150 ? 1 : Math.max(0, d / 150);   // 1 centro · 0 bordes
-                    // 4 px por DEBAJO de la superficie exterior: solo asoma el collar (el doble borde marcaba una línea).
-                    const yl = yPag0 + marSuperficie(i, ahora) - rectC.top + 4 * wv + (1 - wv) * 90;
-                    if (primero) { c.moveTo(xl, yl); primero = false; } else c.quadraticCurveTo(qx, qy, (qx + xl) / 2, (qy + yl) / 2);
-                    qx = xl; qy = yl;
-                }
-                c.lineTo(qx, qy);
-                c.lineTo(lw + 10, lh + 10); c.lineTo(-10, lh + 10); c.closePath(); c.fill();
-                c.setTransform(1, 0, 0, 1, 0, 0);
-                dibujarAtomos(ahora, dt);
+            // La orilla, la corona y los átomos (dentro del goo del cuerpo) se
+            // pintan desde dibujarTinta, a 30 fps: ver pintarOrilla().
+            if (dormido && !coronaLimpia && lienzoC.width) {
+                // Sueño de verdad (auditoría 11-sep): con Tizno hundido no se toca
+                // el lienzo de la corona, así el filtro del cuerpo no se recalcula.
+                ctxC.setTransform(1, 0, 0, 1, 0, 0); ctxC.clearRect(0, 0, lienzoC.width, lienzoC.height);
+                lienzoC._sucio = false; coronaLimpia = true;
             }
+        }
+        /* LA ORILLA DENTRO DEL GOO, a 30 fps (auditoría 11-sep: pintarla a cada
+           fotograma obligaba al filtro del cuerpo a recalcularse a 60 Hz; bajo
+           un desenfoque de 10 px, 30 fps es invisible). */
+        let coronaLimpia = false;
+        function pintarOrilla(ahora) {
+            if (!MAR.activo || !rectC || !lienzoC.width) return;
+            const n = MAR.n, paso = MAR.paso, hh = MAR.hh;
+            coronaLimpia = false;
+            lienzoC._sucio = true;
+            pintar(ctxC, lienzoC, POOL_C, ahora, false, 0, 0);   // corona + salpicaduras
+            const c = ctxC, lw = lienzoC._w, lh = lienzoC._h, yPag0 = window.innerHeight - hh;
+            c.setTransform(RESOL, 0, 0, RESOL, 0, 0);
+            c.fillStyle = '#000';
+            c.beginPath();
+            let qx = 0, qy = 0, primero = true;
+            for (let i = 0; i < n; i++) {
+                const xl = i * paso - rectC.left;
+                if (xl < -paso || xl > lw + paso) continue;
+                const d = Math.min(xl, lw - xl), wv = d >= 150 ? 1 : Math.max(0, d / 150);   // 1 centro · 0 bordes
+                // 4 px por DEBAJO de la superficie exterior: solo asoma el collar (el doble borde marcaba una línea).
+                const yl = yPag0 + marSuperficie(i, ahora) - rectC.top + 4 * wv + (1 - wv) * 90;
+                if (primero) { c.moveTo(xl, yl); primero = false; } else c.quadraticCurveTo(qx, qy, (qx + xl) / 2, (qy + yl) / 2);
+                qx = xl; qy = yl;
+            }
+            c.lineTo(qx, qy);
+            c.lineTo(lw + 10, lh + 10); c.lineTo(-10, lh + 10); c.closePath(); c.fill();
+            c.setTransform(1, 0, 0, 1, 0, 0);
+            dibujarAtomos(ahora);
         }
         let marUltimaSalpicadura = 0;
         /* ORILLA (Ruben, 11-sep: «el punto de contacto emite partículas como
@@ -2927,8 +2970,10 @@
                 tam: 6 + Math.random() * 9, fase: Math.random() * 1000 });
         }
         crearAtomos();
-        function dibujarAtomos(ahora, dt) {
-            if (!ATOMOS.length || !rectC || popPos < 0.3) return;
+        let atomosT = 0;
+        function dibujarAtomos(ahora) {
+            if (!ATOMOS.length || !rectC || popPos < 0.3) { atomosT = 0; return; }
+            const dt = atomosT ? Math.min(80, ahora - atomosT) : 31; atomosT = ahora;
             const b = bodyTracker.getBoundingClientRect();
             const cx = b.left + b.width / 2 - rectC.left;
             const ctx = ctxC;
@@ -2951,10 +2996,12 @@
             // Origen de la cadencia: el 50%/80% del viewport que usaba la capa.
             pintar(ctxP, lienzoP, POOL_P, ahora, true,
                    window.innerWidth / 2 - rectP.left, window.innerHeight * 0.8 - rectP.top);
-            if (!MAR.activo) {   // con mar, la pinta marPaso a cada fotograma
+            if (MAR.activo) {
+                pintarOrilla(ahora);           // corona + salpicaduras + orilla + átomos, a 30 fps
+            } else {
                 if (ATOMOS.length) lienzoC._sucio = true;
                 pintar(ctxC, lienzoC, POOL_C, ahora, false, 0, 0);
-                dibujarAtomos(ahora, 31);
+                dibujarAtomos(ahora);
             }
             pintar(ctxS, lienzoS, POOL_S, ahora, false, 0, 0);
         }
@@ -3955,6 +4002,7 @@
             } catch (err) {
                 btn.disabled = false;
                 setStatus('el vacío no responde (sin conexión) — reintenta');
+                apagarMicro();   // el micro ya estaba concedido: no se queda abierto
                 despertando = false;
                 return;
             }
@@ -3994,6 +4042,15 @@
                                 ? pick(IDIOMA === 'en' ? SALUDOS_VUELVE_EN : SALUDOS_VUELVE)
                                 : pick(IDIOMA === 'en' ? SALUDOS_GENERAL_EN : SALUDOS_GENERAL),
                     },
+                    /* El susurro de contexto (dossier de la sala). Auditoría 11-sep:
+                       iba en onConnect con `conversation.sendContextualUpdate`, pero el
+                       SDK 1.25 llama a onConnect ANTES de devolver la instancia, así que
+                       la variable era null y el catch vacío se lo tragaba: las cartas
+                       de la sala nunca llegaron. onConversationCreated recibe la
+                       instancia ya conectada. */
+                    onConversationCreated: (c) => {
+                        try { c.sendContextualUpdate(briefing); } catch (e) { console.warn('[tizno-ai] briefing', e); }
+                    },
                     onConnect: () => {
                         window.__letrear(btn, IDIOMA === 'en' ? 'Leave him be' : 'Dejarle en paz');
                         btn.classList.add('live');
@@ -4002,8 +4059,9 @@
                         setStatus('Tizno te escucha… habla');
                         callStartedAt = Date.now(); yawnWarned = false; despedidaAt = 0; habloTrasAviso = false;
                         vadHighSince = null;
-                        // El susurro: contexto invisible, sin turno de palabra.
-                        try { conversation.sendContextualUpdate(briefing); } catch (_) {}
+                        // El susurro (briefing) va en onConversationCreated: aquí
+                        // `conversation` aún es null (el SDK llama a onConnect antes
+                        // de devolver la instancia) y el envío moría en silencio.
                         watchdog = setInterval(() => {
                             // Rumiando >10 s sin audio del agente: algo se perdió
                             // por el camino — vuelve a escuchar en vez de clavarse.
@@ -4050,6 +4108,7 @@
                         conversation = null;
                         if (watchdog) { clearInterval(watchdog); watchdog = null; }
                         if (callStartedAt) { dailyAdd((Date.now() - callStartedAt) / 1000); callStartedAt = 0; }
+                        apagarMicro();   // cuelgue desde el servidor: el micro también se apaga
                     },
                     onModeChange: ({ mode }) => {
                         // El SDK solo reporta speaking/listening.
@@ -4150,11 +4209,27 @@
                 setState('idle');
                 setStatus('no se pudo invocar: ' + (err?.message || err));
                 console.error('[tizno-ai] startSession', err);
+                apagarMicro();   // sesión fallida: el micro no se queda abierto
             } finally {
                 despertando = false;   // haya ido bien o mal, el pestillo se suelta
             }
         }
 
+        /* EL MICRÓFONO SE APAGA EN TODAS LAS SALIDAS (auditoría 11-sep): antes
+           solo lo hacía sleep(); si colgaba el servidor, fallaba la carga del
+           SDK o fallaba startSession tras conceder el micro, la pista quedaba
+           viva y el punto rojo encendido el resto de la visita. */
+        function apagarMicro() {
+            if (microPrestado) {
+                try { microPrestado.getTracks().forEach((t) => t.stop()); } catch (_) {}
+                microPrestado = null;
+            }
+            /* Los clones entregados al SDK no mueren con su original. */
+            while (clonesPrestados.length) {
+                const clon = clonesPrestados.pop();
+                try { clon.getTracks().forEach((t) => t.stop()); } catch (_) {}
+            }
+        }
         async function sleep() {
             /* La referencia muere SIEMPRE: si endSession falla por red, la
                sesión vieja quedaba viva bajo la nueva — dos voces a destiempo.
@@ -4168,15 +4243,7 @@
                visitante colgó, encerró a Tizno, y su micrófono seguía
                abierto. La madre presta un stream nuevo en cada llamada, así
                que apagar este no rompe la siguiente. */
-            if (microPrestado) {
-                try { microPrestado.getTracks().forEach((t) => t.stop()); } catch (_) {}
-                microPrestado = null;
-            }
-            /* Los clones entregados al SDK no mueren con su original. */
-            while (clonesPrestados.length) {
-                const clon = clonesPrestados.pop();
-                try { clon.getTracks().forEach((t) => t.stop()); } catch (_) {}
-            }
+            apagarMicro();
             /* Y el vigilante muere aquí, no solo en onDisconnect: si la
                desconexión falla sin red, el intervalo quedaba latiendo para
                siempre reescribiendo el susurro de la barra cada segundo. */

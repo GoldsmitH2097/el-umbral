@@ -57,3 +57,9 @@
   for = "/assets/*.css"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
+
+# La fuente de las señales de Tizno no cambia: caché de un año (si cambia, se renombra).
+[[headers]]
+  for = "/fonts/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

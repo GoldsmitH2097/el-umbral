@@ -1370,6 +1370,45 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   (qué es, qué pedimos, restricciones, interruptores para probar, formato).
   El repo es público (enlace raw en el brief); aun así, adjuntar el archivo.
 
+### 11-sep, madrugada (34) — paquete de optimización tras las tres auditorías
+- Ruben pidió auditorías a Claude, GPT y Gemini (brief en
+  TIZNO-AUDIT-BRIEF.md). Veredicto: Claude la mejor (midió y sondeó el
+  agente), GPT encontró dos bugs reales que Claude no vio, Gemini flojo.
+  Verificado por mí antes de tocar nada: (1) el SDK 1.25 llama a onConnect
+  ANTES de devolver la instancia → `conversation.sendContextualUpdate(
+  briefing)` moría en un catch vacío: las cartas de la sala NUNCA llegaron;
+  (2) `pasos = max(1, round(dt·60))` daba un paso por fotograma a 120 Hz →
+  Ruben afinaba la física al doble de velocidad.
+- Hecho (sin cambio visual en 120 Hz):
+  · Paso físico fijo a 1/120 s con acumulador (`acumRig`): a 120 Hz igual
+    que hoy, a 60 Hz dos pasos por fotograma (antes iba a la mitad). Los
+    muelles de orejas, canal aditivo y tamaño de ojo van dentro del bucle
+    de pasos. Luciérnaga (`ffTimer`) y reloj emocional (`speakMs`) por
+    tiempo real (a 120 Hz el reloj emocional corría al doble).
+  · Corona + salpicaduras + orilla + átomos → `pintarOrilla()` desde
+    dibujarTinta (puerta de 30 fps). marPaso (mar exterior) sigue a 60 Hz en
+    alto, 30 en medio/bajo/dormido. Dormido: un clearRect único del lienzo
+    de la corona (`coronaLimpia`) y no se vuelve a tocar → el filtro del
+    cuerpo no se recalcula. `dibujarAtomos` mide su propio dt.
+  · Mar en UNA ruta: min(fondo, medio, frente) por columna (misma unión).
+  · `apagarMicro()`: llamado en sleep, onDisconnect, fallo de carga del SDK
+    y fallo de startSession.
+  · Briefing en `onConversationCreated(c)` con la instancia ya conectada.
+  · Vigilante: refresco nominal por ventana (hueco mínimo) → umbrales
+    escalados si la pantalla va capada (<55 Hz); reinicio de la ventana en
+    focus/blur/visibilitychange.
+  · Fuente: `<link rel="preload">` y `Cache-Control` de un año en
+    netlify.toml para /fonts/*.
+- Banco por software: viejo 12 / nuevo 12 fps, 0 excepciones (el banco no
+  puede ver la ganancia de 60→30 Hz del filtro: en software todo va a
+  12 fps; la ganancia es en GPU real).
+- Pendiente del plan: lecturas de layout agrupadas; ruido de turbulencia
+  prehorneado (feImage) con prueba en Safari; anchura de capas filtradas
+  al viewport en móvil; recorte de #ambient-light/#candle-flicker.
+- Seguridad (a decidir con Javier): duración máxima en el panel del agente
+  (Ruben, hoy), quitar stripe-diag, autorización en baby-borrar, función de
+  URL firmada, CSP report-only, sacar HANDOVER del repo público.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
