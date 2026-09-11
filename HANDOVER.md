@@ -1459,6 +1459,27 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   HANDOVER y documentos operativos); ruido prehorneado (feImage) sin prueba
   en Safari.
 
+### 11-sep, madrugada (37) — Baby Tizno: qué hereda y qué no
+- Ruben: «¿Baby Tizno tiene el estilo visual y el mar transferido?». Baby
+  se GENERA del rig (scripts/generate-baby-tizno.js) con las clases
+  `estancia baby`, así que heredó TODO lo de esta noche sin querer: el mar
+  (y con él la lámina de volutas oculta), las señales letra a letra en su
+  botón, halo, lente, nubes. Comprobado en producción tras la puerta de
+  mayores: la orilla interior (dibujada dentro de la capa goo, que en Baby va
+  escalada ×1,3 con `--bt-escala`) salía a otra altura y formaba un
+  montículo que enterraba a Tizno hasta los hombros.
+- Arreglo (de8b8ac): en baby.css, `html.baby #mar` oculto, lámina y nieblas
+  de vuelta, letras del botón sin transform/animación/::after; en el rig,
+  `MAR.activo` es false con la clase `baby`. Baby conserva pelusa, ojos,
+  orejas, corona, hervor, átomos, halo de ojos, lente y nubes (compositor).
+- Si se quiere el mar en Baby: mapear la orilla con la escala (rectC ya
+  viene escalado, pero el dibujo dentro del canvas se escala ×1,3 después)
+  y bajar el nivel para el rig grande. Decisión de Javier (mundo de Baby).
+- Lo que va a la web del Umbral (embed): mismo rig (pelusa, ojos, orejas,
+  corona, hervor, átomos, física, suavidad) y mismo agente; sin mar, lava,
+  halo, lente, nubes, luciérnaga ni señales nuevas (reglas html.embed).
+  Barato de llevar: halo de ojos y lente.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.
