@@ -2760,7 +2760,8 @@
         let marX = -1, marY = -1, marPopPrev = 0;
         function marAjustar() {
             MAR.activo = !!ctxM && document.documentElement.classList.contains('estancia')
-                         && !document.documentElement.classList.contains('sinmar');
+                         && !document.documentElement.classList.contains('sinmar')
+                         && !document.documentElement.classList.contains('baby');   // Baby conserva su suelo de volutas (ver baby.css)
             if (!MAR.activo) return;
             MAR.w = window.innerWidth; MAR.hh = Math.round(window.innerHeight * 0.46);
             MAR.base = MAR.hh - window.innerHeight * MAR.nivel;   // nivel medio en coords del lienzo

@@ -9,6 +9,17 @@ html.baby #candle-flicker { opacity: .85; }
 html.baby #box-a, html.baby #box-b, html.baby #idiomas, html.baby #tizno-volver,
 html.baby #tizno-aviso, html.baby #tizno-grant { display: none !important; }
 
+/* 11-sep: el MAR DE TINTA de /tizno es de la Estancia, no de Baby. Aquí la
+   capa goo va escalada ×1,3 y la orilla interior (que se dibuja dentro de
+   esa capa) salía a otra altura: un montículo que enterraba a Tizno hasta
+   los hombros. Baby conserva su suelo de volutas y sus nieblas. Cuando se
+   quiera el mar aquí, hay que mapear la orilla con la escala. */
+html.baby #mar { display: none !important; }
+html.baby #niebla-grabada, html.baby #abyss-foreground, html.baby #abyss-foreground-2 { display: block !important; }
+/* Las señales letra a letra son de la Estancia: el botón del niño es una píldora lisa. */
+html.baby .senal .letra { transform: none !important; animation: none !important; text-shadow: none !important; }
+html.baby .senal .letra::after { display: none !important; }
+
 /* ══════ TIZNO GRANDE Y PLANTADO EN EL SUELO (Ruben, 10-sep) ══════
    En la Estancia el rig vive a 21vh del borde y las volutas grabadas
    (#niebla-grabada, 44vh) le tapan la base: parece plantado. Aquí se
