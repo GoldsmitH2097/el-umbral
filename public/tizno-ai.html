@@ -129,6 +129,21 @@
             animation: titila var(--dur, 4s) ease-in-out var(--ret, 0s) infinite;
         }
         .senal .letra-flecha { transform: none; }
+        /* LETRAS VIVAS BAJO EL CURSOR (Ruben, 11-sep: «hover más orgánico, que
+           dependa de dónde está el cursor, barrido de luz, titileo»). Cada
+           letra lleva una copia (::after) más blanca y con más glow cuya
+           opacidad es --h: el JS pone --h según la distancia de la letra al
+           cursor (campana de 55 px) por un titileo propio, con inercia. La
+           letra además se levanta y crece un pelín con --h. Solo opacidad y
+           transform: compositor. */
+        .senal .letra { position: relative; }
+        .senal .letra::after {
+            content: attr(data-ch); position: absolute; left: 0; top: 0; pointer-events: none;
+            color: #fff8e8; opacity: var(--h, 0);
+            text-shadow: 0 0 3px #fff3d6, 0 0 12px var(--g1), 0 0 28px var(--g2), 0 0 50px var(--g3);
+        }
+        .senal .letra { transform: rotate(var(--rot, 0deg)) translateY(calc(var(--dy, 0px) - var(--h, 0) * 3px)) scale(calc(var(--esc, 1) + var(--h, 0) * 0.09)); }
+        .senal .letra-flecha { transform: translateY(calc(var(--h, 0) * -2px)); }
         @keyframes titila {
             0%, 100% { opacity: 0.86; }
             26%      { opacity: 1; }
@@ -140,7 +155,6 @@
             display: block; position: fixed; top: 16px; left: 22px; z-index: 40;
             font-size: 27px; padding: 4px 6px; transition: color 0.3s;
         }
-        html.estancia #tizno-volver:hover { color: #fff4dc; }
         html.estancia #idiomas {
             display: flex; position: fixed; top: 16px; right: 24px; z-index: 40; gap: 14px;
         }
@@ -148,6 +162,7 @@
         #idiomas a:not(.activo) { color: #4d4436; }
         #idiomas a:not(.activo) .letra { animation: none; text-shadow: none; }
         #idiomas a:hover:not(.activo) { color: #b9a468; }
+        #idiomas a:not(.activo) .letra::after { display: none; }
         /* La niebla grabada (Ruben, 14-ago): la banda de volutas de la lámina
            oficial, delante del tallo — Tizno asoma por detrás de los grabados
            como en el arte. Una textura compuesta una vez: casi gratis. */
@@ -552,14 +567,10 @@
             0%, 100% { box-shadow: 0 0 12px rgba(243, 156, 18, 0.10), inset 0 0 8px rgba(243, 156, 18, 0.04); border-color: rgba(243, 156, 18, 0.32); }
             50%      { box-shadow: 0 0 26px rgba(243, 156, 18, 0.30), inset 0 0 12px rgba(243, 156, 18, 0.10); border-color: rgba(243, 156, 18, 0.78); }
         }
-        /* Tinta que sube desde abajo al pasar por encima. */
-        #tizno-call::before {
-            content: ''; position: absolute; inset: 0; z-index: -1; opacity: 0;
-            background: radial-gradient(ellipse 120% 90% at 50% 130%, rgba(243, 156, 18, 0.42), rgba(243, 156, 18, 0.06) 55%, transparent 75%);
-            transition: opacity 0.45s ease;
-        }
-        #tizno-call:hover, #tizno-call:focus-visible { color: #fff4dc; transform: translateY(-2px) scale(1.03); outline: none; }
-        #tizno-call:hover::before, #tizno-call:focus-visible::before { opacity: 1; }
+        /* Hover: sin caja ni escala (Ruben, 11-sep: «se ve el marco cuadrado»).
+           La reacción va letra a letra según dónde esté el cursor: ver .letra::after. */
+        #tizno-call:hover, #tizno-call:focus-visible { outline: none; }
+        #tizno-call:focus-visible .letra::after { opacity: 0.6; }
         @media (prefers-reduced-motion: reduce) { #tizno-call { animation: none; } }
         /* En llamada («Dejarle en paz»): más pequeño y del mismo amarillo, no rojo (Ruben, 11-sep). */
         #tizno-call.live { font-size: 30px; }
@@ -1230,7 +1241,7 @@
             for (const ch of texto) {
                 if (ch === ' ') { el.appendChild(document.createTextNode(' ')); continue; }
                 const sp = document.createElement('span');
-                sp.textContent = ch;
+                sp.textContent = ch; sp.dataset.ch = ch;
                 if (ch === '←') { sp.className = 'letra letra-flecha'; }
                 else {
                     sp.className = 'letra';
@@ -1245,6 +1256,35 @@
         }
         window.__letrear = letrear;
         document.querySelectorAll('.senal').forEach((el) => letrear(el));
+        /* El barrido: por señal, un bucle de rAF que solo vive mientras alguna
+           letra tenga luz. Los rects de las letras se miden al entrar (no por
+           fotograma). */
+        document.querySelectorAll('.senal').forEach((el) => {
+            let letras = [], centros = [], raf = 0, dentro = false, mx = 0, my = 0;
+            const medir = () => {
+                letras = [...el.querySelectorAll('.letra')];
+                centros = letras.map((l) => { const r = l.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, h: 0 }; });
+            };
+            const paso = (t) => {
+                raf = 0;
+                let vivo = false;
+                for (let i = 0; i < letras.length; i++) {
+                    const c = centros[i];
+                    const d = Math.hypot(c.x - mx, c.y - my);
+                    const titileo = 0.7 + 0.3 * Math.sin(t * 0.007 + i * 1.9) * Math.sin(t * 0.0041 + i * 0.7);
+                    const objetivo = dentro ? Math.exp(-(d * d) / (2 * 55 * 55)) * titileo : 0;
+                    c.h += (objetivo - c.h) * 0.22;
+                    if (c.h < 0.003 && objetivo === 0) { if (c.h !== 0) { c.h = 0; letras[i].style.setProperty('--h', '0'); } continue; }
+                    letras[i].style.setProperty('--h', c.h.toFixed(3));
+                    vivo = true;
+                }
+                if (vivo) raf = requestAnimationFrame(paso);
+            };
+            const arrancar = () => { if (!raf) raf = requestAnimationFrame(paso); };
+            el.addEventListener('mouseenter', (e) => { dentro = true; medir(); mx = e.clientX; my = e.clientY; arrancar(); });
+            el.addEventListener('mousemove', (e) => { mx = e.clientX; my = e.clientY; arrancar(); });
+            el.addEventListener('mouseleave', () => { dentro = false; arrancar(); });
+        });
         const luzOjos = document.getElementById('luz-ojos');
         /* FONDO ABSTRACTO (Ruben, 11-sep: «que parte del fondo siga animado,
            como un foco con delay, lento; que todas las capas reaccionen al
