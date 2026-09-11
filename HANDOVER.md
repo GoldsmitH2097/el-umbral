@@ -1409,6 +1409,21 @@ vamos conectando a nuestro nuevo personaje en ElevenLabs».
   (Ruben, hoy), quitar stripe-diag, autorización en baby-borrar, función de
   URL firmada, CSP report-only, sacar HANDOVER del repo público.
 
+### 11-sep, madrugada (35) — segunda pasada: «maximum smoothness»
+- Puerta de escritura (`puertaMs()`): 14 ms (60 Hz) en nivel alto, 31 en
+  medio/bajo y dormido; `?cadencia=30` fuerza 30 para comparar. Todo lo que
+  se escribe en la puerta (rig, ojos, humo, orilla, nubes, luz) va ahora a
+  60 Hz en escritorio. Coste: los dos filtros goo a 60 Hz en alto (Claude
+  midió 0,2–0,4 ms por pasada en la máquina de Ruben).
+- Temblores (pensar, hablar, candado, miedo) sorteados a 30 Hz (`JIT`), no
+  por fotograma: a 60/120 Hz el ruido blanco por fotograma zumba. Mismo
+  aspecto que antes, cuando las escrituras iban a 30.
+- Luciérnaga integrada por pasos de 1/120 s (a 60 Hz volaba a la mitad).
+  Mandíbula y pulso de ojo con ganancia por pasos (`gPaso`). Lerps dentro
+  de la puerta (letras, foco, nubes, lente) escalados por `kGate` para que
+  a 60 Hz no vayan al doble.
+- Banco: 0 excepciones con Tizno fuera. Verificación de suavidad: Ruben.
+
 ### Pendientes vivos
 - Ruben (5 min): probar la rama `gemini-3-flash-preview` del agente de
   ElevenLabs y promoverla (Branches → traffic split), antes del 20-oct.

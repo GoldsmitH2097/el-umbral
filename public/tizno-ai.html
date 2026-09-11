@@ -1618,8 +1618,21 @@
 
         let erDrawX = 0, erDrawY = 0;   // posición del pendiente, escrita a 30 fps
         let acumRig = 0;   // pasos físicos pendientes (1/120 s cada uno)
+        /* CADENCIA DE ESCRITURA (Ruben, 11-sep: «maximum smoothness»). Las
+           escrituras al DOM y a los lienzos iban tras una puerta de 30 fps para
+           ahorrar filtro; en nivel alto (escritorio con GPU) la puerta pasa a
+           60 Hz: pop, orejas, ojos, humo y nubes se ven el doble de fluidos.
+           Medio y bajo siguen a 30. ?cadencia=30 fuerza 30 para comparar. */
+        const CADENCIA_30 = /[?&]cadencia=30/.test(location.search);
+        const puertaMs = () => (NIVEL === 'alto' && !CADENCIA_30) ? 14 : 31;
+        /* RUIDO A 30 Hz: los temblores (pensar, miedo, hablar, candado) se
+           sortean 30 veces por segundo, no una por fotograma: a 60/120 Hz el
+           ruido blanco por fotograma zumba en vez de temblar. Mismo aspecto
+           que antes (las escrituras iban a 30). */
+        const JIT = new Float32Array(8); let jitT = 0;
         function updateRig() {
             const time = Date.now();
+            if (time - jitT >= 31) { jitT = time; for (let j = 0; j < 8; j++) JIT[j] = Math.random() - 0.5; }
 
             /* ── PASOS DE TIEMPO FIJOS ────────────────────────────────────
                Todos los muelles de este rig —el del pop, el de las orejas,
@@ -1669,7 +1682,7 @@
                Despierta solo: popIn() mueve el objetivo y la condición cae. */
             if (popTarget === 0 && popPos < 0.02
                 && !POOL_P.length && !POOL_C.length && !POOL_S.length) {
-                if (time - ultimoDibujo >= 31) {
+                if (time - ultimoDibujo >= 31) {   // dormido: 30 Hz basta
                     ultimoDibujo = time;
                     fireflyEl.style.transform = `translate(${ffX}px, ${ffY}px)`;
                     fireflyEl.style.opacity = (0.55 + Math.sin(time * 0.006) * 0.35).toFixed(2);
@@ -1727,10 +1740,12 @@
                     ffTY = window.innerHeight * (0.08 + Math.random() * 0.6);
                 }
             }
-            ffVX += (ffTX - ffX) * 0.0005 + (Math.random() - 0.5) * 0.3;
-            ffVY += (ffTY - ffY) * 0.0005 + (Math.random() - 0.5) * 0.3;
-            ffVX *= 0.94; ffVY *= 0.94;
-            ffX += ffVX; ffY += ffVY;
+            for (let _p = 0; _p < pasos; _p++) {   // por paso de 1/120 s, no por fotograma
+                ffVX += (ffTX - ffX) * 0.0005 + (Math.random() - 0.5) * 0.3;
+                ffVY += (ffTY - ffY) * 0.0005 + (Math.random() - 0.5) * 0.3;
+                ffVX *= 0.94; ffVY *= 0.94;
+                ffX += ffVX; ffY += ffVY;
+            }
             }
             // Ratón quieto >3 s: la luciérnaga sustituye sus coordenadas — Tizno
             // la sigue con ojos y cabeza, y si se le acerca, se asusta. El primer
@@ -1888,7 +1903,8 @@
                mientras escucha, cae a la rama del mimo y se derrite; hablando
                el teatro del parlamento sigue mandando (mimado ya lo excluye). */
             ojosMood = null;                               // solo al hablar manda el humor
-            if (aiState !== 'speaking') mandibula += (0 - mandibula) * 0.3;
+            const gPaso = (g) => 1 - Math.pow(1 - g, pasos);   // ganancia por fotograma → por pasos de 1/120 s
+            if (aiState !== 'speaking') mandibula += (0 - mandibula) * gPaso(0.3);
             if (aiState === 'listening' && !mimado) {
                 // Escuchar NO es congelarse: sigue el cursor como en reposo y
                 // solo se pone atento-vulnerable cuando de verdad te oye.
@@ -1935,8 +1951,8 @@
                     eyeLeft.className = "eye left squint"; eyeRight.className = "eye right squint";
                 }
                 t_HeadY = 60;
-                add_HeadX = (Math.random() - 0.5) * 15;
-                add_HeadY = (Math.random() - 0.5) * 10;
+                add_HeadX = JIT[0] * 15;
+                add_HeadY = JIT[1] * 10;
                 t_RigRot = Math.sin(time * 0.005) * 2;
                 t_EarL = 30; t_EarR = -30;
                 t_BodyScaleX = 1.05; t_BodyScaleY = 0.95;
@@ -1978,7 +1994,7 @@
                 // un ladeo mínimo hacia delante para que no sea un pistón.
                 // Suave (Ruben: «muy shakey»): la mandíbula sigue una envolvente
                 // filtrada, sin el golpe seco, y con menos recorrido.
-                mandibula += ((aiVolFast * 0.7 + aiVolume * 0.3) * 16 - mandibula) * 0.3;
+                mandibula += ((aiVolFast * 0.7 + aiVolume * 0.3) * 16 - mandibula) * gPaso(0.3);
                 add_HeadY = mandibula * W_MANDIBULA;
                 add_HeadRot = -(mandibula * 0.08) * W_MANDIBULA;
                 t_NeckScaleY = 1 + (aiVolume * 0.2 + transient * 0.18) * W_VOZ_CUERPO;
@@ -1990,7 +2006,7 @@
                 add_EarR = -sTreble * 34 * ticDirR - transient * 10;
                 // LOS OJOS PULSAN CON CADA SÍLABA: es lo que ata la voz al cuerpo.
                 // Va por canal aditivo (sin easing) para que el golpe sea seco.
-                pulsoOjo += ((transient * 0.35 + aiVolFast * 0.12) - pulsoOjo) * 0.35;   // suave (Ruben)
+                pulsoOjo += ((transient * 0.35 + aiVolFast * 0.12) - pulsoOjo) * gPaso(0.35);   // suave (Ruben)
                 add_EyeL = pulsoOjo;
                 add_EyeR = transient * 0.55 + aiVolFast * 0.12;
                 // Las letras saltan con los golpes de voz, no con un vaivén fijo.
@@ -2003,7 +2019,7 @@
                 prevMoodHablando = mood;
 
                 if (mood === 'miedo') {
-                    add_HeadX += (Math.random() - 0.5) * 5;   // tiembla al hablar
+                    add_HeadX += JIT[2] * 5;   // tiembla al hablar
                     t_EarL -= 25; t_EarR += 25;               // orejas gachas
                     t_HeadY += 10;
                     t_EyeL = 1.18; t_EyeR = 1.18;             // ojos como platos
@@ -2097,8 +2113,8 @@
 
                 if (!prevBoxB) { shockUntil = time + 380; burstInk(0.8); }  // sobresalto al acercarse
                 const shake = Math.sin(time * 0.02) * 20 * intensity;
-                add_HeadX = shake + (Math.random() - 0.5) * 8 * intensity;
-                add_HeadY = (Math.random() - 0.5) * 8 * intensity;
+                add_HeadX = shake + JIT[3] * 8 * intensity;
+                add_HeadY = JIT[4] * 8 * intensity;
                 // Ojos entornados que tiemblan: alarma contenida.
                 t_EyeL = 0.85; t_EyeR = 0.85;
                 add_EyeL = Math.abs(Math.sin(time * 0.03)) * 0.12 * intensity;
@@ -2173,8 +2189,8 @@
                     t_EarL = 50; t_EarR = -50;
                     t_RigRot = -mouseNormX * 15;
                     
-                    add_HeadX = (Math.random() - 0.5) * 4 * fear;
-                    add_HeadY = (Math.random() - 0.5) * 4 * fear;
+                    add_HeadX = JIT[5] * 4 * fear;
+                    add_HeadY = JIT[6] * 4 * fear;
 
                 } else if (mouseDistance < 350) {
                     eyeLeft.className = "eye left sad"; eyeRight.className = "eye right sad";
@@ -2326,7 +2342,8 @@
                lienzo a 30 fps junto a capas de compositor a 120 Hz se ve a
                tirones aunque cueste poco. La física se integra por tiempo. */
             marPaso(time, false);
-            if (time - ultimoDibujo >= 31) {
+            if (time - ultimoDibujo >= puertaMs()) {
+            const kGate = Math.min(2, Math.max(0.3, (time - ultimoDibujo) / 31));   // 1 = una puerta de 30 fps; 0,5 = a 60 Hz
             ultimoDibujo = time;
             // La luciérnaga vive siempre, esté Tizno o no.
             fireflyEl.style.transform = `translate(${ffX}px, ${ffY}px)`;
@@ -2375,8 +2392,8 @@
             earLeft.style.transform  = `rotate(${c_EarL + addEarLs + flop}deg) scale(${escOrejaL})`;
             earRight.style.transform = `rotate(${c_EarR + addEarRs - flop}deg) scale(${escOrejaR})`;
 
-            c_LetY += (t_LetY - c_LetY) * 0.35;
-            c_LetScale += (t_LetScale - c_LetScale) * 0.35;
+            c_LetY += (t_LetY - c_LetY) * (1 - Math.pow(0.65, kGate));
+            c_LetScale += (t_LetScale - c_LetScale) * (1 - Math.pow(0.65, kGate));
 
             const pupilMoveX = mouseNormX * 14;
             const pupilMoveY = mouseNormY * 14;
@@ -2427,8 +2444,9 @@
                 const hr = headBase.getBoundingClientRect();
                 const objX = (hr.left + hr.width / 2 - window.innerWidth / 2) * TUNE.focoSeguimiento;
                 const objY = (hr.top + hr.height / 2 - window.innerHeight * 0.62) * TUNE.focoSeguimiento * 0.8;
-                focoX += (objX - focoX) * TUNE.focoPereza;
-                focoY += (objY - focoY) * TUNE.focoPereza;
+                const gFoco = 1 - Math.pow(1 - TUNE.focoPereza, kGate);
+                focoX += (objX - focoX) * gFoco;
+                focoY += (objY - focoY) * gFoco;
                 luzSala.style.opacity = luz.toFixed(3);
                 luzSala.style.transform = `translate(${focoX.toFixed(1)}px, ${focoY.toFixed(1)}px)`;
                 // Las nubes del fondo: cada una con su ganancia, retardo y signo.
@@ -2444,9 +2462,10 @@
                     const tB_y = -ratY * 0.12 - cabY * 0.28 + Math.cos(time * 0.00019 + 1) * 42;
                     const tC_x = ratX * 0.10 - cabX * 0.12 + Math.sin(time * 0.00009 + 4) * 70;
                     const tC_y = -ratY * 0.10 + cabY * 0.10 + Math.cos(time * 0.00011 + 3) * 50;
-                    giroA.x += (tA_x - giroA.x) * 0.026; giroA.y += (tA_y - giroA.y) * 0.026;
-                    giroB.x += (tB_x - giroB.x) * 0.016; giroB.y += (tB_y - giroB.y) * 0.016;
-                    giroC.x += (tC_x - giroC.x) * 0.009; giroC.y += (tC_y - giroC.y) * 0.009;
+                    const gA = 1 - Math.pow(1 - 0.026, kGate), gB = 1 - Math.pow(1 - 0.016, kGate), gC = 1 - Math.pow(1 - 0.009, kGate);
+                    giroA.x += (tA_x - giroA.x) * gA; giroA.y += (tA_y - giroA.y) * gA;
+                    giroB.x += (tB_x - giroB.x) * gB; giroB.y += (tB_y - giroB.y) * gB;
+                    giroC.x += (tC_x - giroC.x) * gC; giroC.y += (tC_y - giroC.y) * gC;
                     luzGiroA.style.translate = `${giroA.x.toFixed(1)}px ${giroA.y.toFixed(1)}px`;
                     luzGiroB.style.translate = `${giroB.x.toFixed(1)}px ${giroB.y.toFixed(1)}px`;
                     luzGiroC.style.translate = `${giroC.x.toFixed(1)}px ${giroC.y.toFixed(1)}px`;
@@ -2459,7 +2478,7 @@
                    el giro del rig. Entra y sale suave. */
                 const asim = Math.abs(c_EyeL - c_EyeR);
                 const lenteObj = Math.max(0, Math.min(1, (asim - 0.18) / 0.32)) * luz * Math.max(0, Math.min(parpL, parpR)) * 0.7;
-                lenteVis += (lenteObj - lenteVis) * 0.45;   // entra y sale en ~100 ms
+                lenteVis += (lenteObj - lenteVis) * (1 - Math.pow(0.55, kGate));   // entra y sale en ~100 ms
                 if (lenteVis > 0.01) {
                     const grande = Math.max(c_EyeL, c_EyeR);
                     const er = (c_EyeL >= c_EyeR ? eyeLeftWrapper : eyeRightWrapper).getBoundingClientRect();
