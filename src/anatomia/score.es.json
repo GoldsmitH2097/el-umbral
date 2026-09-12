@@ -450,7 +450,7 @@
         { "t": "Sofía se ahoga." },
         { "t": "Y yo no puedo llegar.", "stack": true },
         { "t": "No porque la distancia sea mucha." },
-        { "t": "Porque la distancia ha dejado de obedecer.", "stack": true },
+        { "t": "Porque la distancia ha dejado de obedecer.", "stack": true, "interact": "proximidad" },
         { "t": "Ese es el punto exacto en que el amor muere:" },
         { "t": "cuando la proximidad ya no sirve.", "stack": true, "delay": 1500, "scene": "blackout" }
       ]
@@ -558,7 +558,7 @@
         { "t": "Nada deja pasar.", "stack": true },
         { "t": "Cuento los pisos." },
         { "t": "Siete. Ocho.", "fx": "cadence", "stack": true },
-        { "t": "El siguiente debería ser el noveno." },
+        { "t": "El siguiente debería ser el noveno.", "fx": "asintota" },
         { "t": "Mi casa está en un noveno." },
         { "t": "Lo sé con la seguridad estúpida con que se saben las desgracias.", "stack": true },
         { "t": "Subo." },
@@ -688,8 +688,8 @@
         { "t": "Solo la certeza final:", "stack": true },
         { "t": "si alguna vez llegas al noveno,", "delay": 1200 },
         { "t": "no abras.", "stack": true, "fx": "slam", "delay": 1500 },
-        { "t": "Porque habrá alguien esperándote al otro lado.", "scene": "reflejo" },
-        { "t": "Y serás tú.", "stack": true, "delay": 1500 },
+        { "t": "Porque habrá alguien esperándote al otro lado.", "scene": "reflejo", "fx": "gemelo" },
+        { "t": "Y serás tú.", "stack": true, "delay": 1500, "fx": "gemelo-forma" },
         { "t": "Sin aire.", "delay": 900 },
         { "t": "Sin salida.", "stack": true, "delay": 1100 },
         { "t": "Sin final.", "stack": true, "delay": 2500, "scene": "final" }

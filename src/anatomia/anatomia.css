@@ -770,6 +770,86 @@ body.carta-paper::after {
 }
 body.carta-paper #stage.carta .beat { letter-spacing: 0.3px; }
 
+/* ── Behavioural slice ───────────────────────────────────────────────────── */
+
+/* Proximity that disobeys (Sexto Piso, "la distancia ha dejado de obedecer").
+   Colours ride var(--ink), so this reads on every floor palette. Staged over
+   the whole viewport but the line above stays legible — the goal sits at 42% h,
+   the node starts at 74%, both clear of the text. */
+.proximidad-layer {
+  position: fixed; inset: 0; z-index: 9;
+  opacity: 0; transition: opacity 0.7s ease;
+  touch-action: none; cursor: grab;
+}
+.proximidad-layer.on { opacity: 1; }
+.proximidad-layer.resolving { opacity: 0; transition: opacity 1s ease; }
+.proximidad-layer:active { cursor: grabbing; }
+.prox-goal, .prox-node {
+  position: absolute; transform: translate(-50%, -50%);
+  border-radius: 50%; pointer-events: none;
+}
+/* the unreachable point — a hollow ring around a fixed pinpoint */
+.prox-goal {
+  width: 34px; height: 34px;
+  border: 1px solid color-mix(in srgb, var(--ink) 40%, transparent);
+  box-shadow: 0 0 20px 4px color-mix(in srgb, var(--ink) 9%, transparent);
+  transition: border-color 0.3s ease, transform 0.3s ease;
+}
+.prox-goal::after {
+  content: ''; position: absolute; inset: 0; margin: auto;
+  width: 3px; height: 3px; border-radius: 50%; background: var(--ink); opacity: 0.5;
+}
+.prox-goal.near { /* it recoils faintly as you near — never welcoming */
+  border-color: color-mix(in srgb, var(--ink) 62%, transparent);
+  transform: translate(-50%, -50%) scale(1.12);
+}
+/* the reader — a filled point that chases the hand */
+.prox-node {
+  width: 12px; height: 12px; background: var(--ink); opacity: 0.85;
+  box-shadow: 0 0 14px 3px color-mix(in srgb, var(--ink) 24%, transparent);
+}
+
+/* Asíntota — the ninth that never arrives (Octavo Piso). Monospace system
+   register: a machine still counting toward a limit it cannot reach. */
+.asintota-num {
+  display: block; margin-top: 0.7em;
+  font-family: 'Courier New', monospace;
+  font-size: clamp(38px, 8vw, 92px); font-weight: 300;
+  letter-spacing: 2px; color: var(--dim); opacity: 0.72;
+  text-align: center; font-variant-numeric: tabular-nums;
+  transition: opacity 0.6s ease;
+}
+.asintota-num.tick { animation: asintotaTick 0.22s ease; }
+@keyframes asintotaTick {
+  0%   { opacity: 0.32; letter-spacing: 7px; }
+  100% { opacity: 0.72; letter-spacing: 2px; }
+}
+.asintota-num.reset { opacity: 0.4; color: color-mix(in srgb, var(--dim) 70%, var(--ink)); }
+
+/* The Other — the reader, played back at the ninth door. A point (dark on the
+   epilogue's bone-white paper), never a cursor: it must read on touch too. */
+#the-other {
+  position: fixed; left: 50%; top: 46%;
+  width: 6px; height: 6px; margin: -3px 0 0 -3px;
+  border-radius: 50%; background: var(--ink);
+  opacity: 0; z-index: 6; pointer-events: none;
+  box-shadow: 0 0 22px 6px color-mix(in srgb, var(--ink) 20%, transparent);
+  transition: opacity 2.2s ease,
+              width 1s cubic-bezier(0.6,0,0.3,1),
+              height 1s cubic-bezier(0.6,0,0.3,1),
+              border-radius 0.8s ease, margin 1s ease;
+}
+#the-other.on   { opacity: 0.7; }
+#the-other.beat { animation: otherBeat 0.24s ease; }
+@keyframes otherBeat {
+  0%, 100% { box-shadow: 0 0 22px 6px color-mix(in srgb, var(--ink) 20%, transparent); transform: scale(1); }
+  50%      { box-shadow: 0 0 32px 11px color-mix(in srgb, var(--ink) 42%, transparent); transform: scale(1.7); }
+}
+#the-other.forma { /* it rises into a standing shape — your shape */
+  width: 3px; height: 40vh; border-radius: 2px; margin: -20vh 0 0 -1.5px;
+  opacity: 0.42;
+}
+
 /* ── Reading mode (prefers-reduced-motion) ───────────────────────────────── */
 #reading-mode {
   position: fixed; inset: 0; z-index: 15; background: #020202;

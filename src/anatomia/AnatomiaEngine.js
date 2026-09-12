@@ -5,9 +5,11 @@
 
 import './anatomia.css';
 import score from './score.es.json';
-import { applyFx, startWipe, sentenceSegments } from './effects.js';
+import { applyFx, startWipe, startProximidad, sentenceSegments } from './effects.js';
 import { SceneFX } from './SceneFX.js';
 import { AnatomiaAudio } from './AnatomiaAudio.js';
+import { ReaderMemory } from './ReaderMemory.js';
+import { TheOther } from './TheOther.js';
 
 const STORAGE_KEY = 'sw_anatomia';
 const HINT_KEY = 'sw_anatomia_hinted';
@@ -41,6 +43,10 @@ class AnatomiaEngine {
 
     this.sceneFX = new SceneFX();
     this.audio = new AnatomiaAudio();
+    // The building learns the reader's hand (local & ephemeral — see
+    // ReaderMemory.js) and, at the ninth door, gives it back as TheOther.
+    this.memory = new ReaderMemory();
+    this.other = new TheOther(this.memory);
 
     this._stage = document.getElementById('stage');
     this._stageWrap = document.getElementById('stage-wrap');
@@ -213,6 +219,7 @@ class AnatomiaEngine {
     // Phase 2 completes the full "final" sequence (input-dead hold, Pacto).
     this._saveProgress(true);
     this.sceneFX.blackout(() => {
+      this.other.dismiss(); // it goes into the black wearing your shape
       this._clearStage(true);
       this._floorIndicator.textContent = '';
       this._titlecard.innerHTML =
@@ -233,6 +240,7 @@ class AnatomiaEngine {
   advance(force = false) {
     if (this.state !== 'playing') return;
     if (!force && (performance.now() < this.lockUntil || this.pendingInteract)) return;
+    this.memory.recordAdvance(force); // the building learns the hand
     const beats = this.floor.beats;
     const next = this.beatIndex + 1;
 
@@ -304,6 +312,13 @@ class AnatomiaEngine {
       // browser sees 11:11 has followed them out of the page.
       if (b.fx === 'clock') document.title = '11:11';
 
+      // The ninth-door twin. It is born echoing the reader's cadence
+      // ("habrá alguien esperándote al otro lado"), then on "Y serás tú" it
+      // stops echoing and leads — moving a beat before they do, taking their
+      // shape. Engine-driven because it needs ReaderMemory.
+      if (b.fx === 'gemelo') this.other.birth();
+      if (b.fx === 'gemelo-forma') this.other.take();
+
       this._compressStack();
 
       if (b.scene === 'silence') this.audio.duckAll();
@@ -323,6 +338,14 @@ class AnatomiaEngine {
         });
       }
 
+      // "Porque la distancia ha dejado de obedecer." — the reader tries to
+      // close a gap that widens as they approach. It resolves itself; failure
+      // is the point. (Auto-advance is held off by pendingInteract meanwhile.)
+      if (b.interact === 'proximidad' && !this.reduced) {
+        this.pendingInteract = true;
+        startProximidad(this._stage, () => { this.pendingInteract = false; });
+      }
+
       // "Subo corriendo." — the ONE sanctioned theft of the reader's pace.
       if (b.fx === 'carrera') {
         const gaps = [550, 450, 350, 300];
@@ -338,6 +361,7 @@ class AnatomiaEngine {
         this._autoMs = this._computeAutoMs(b);
       }
       this._autoEligibleAt = performance.now(); // dwell begins when the line lands
+      this.memory.markReveal(); // start the hesitation clock for this line
     };
 
     if (b.pre) {

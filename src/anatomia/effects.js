@@ -81,6 +81,10 @@ export function applyFx(el, beat, ctx = {}) {
     case 'ausencia':   _ausencia(el); break;
     case 'arrastre':   _arrastre(el); break;
     case 'foco':       _foco(el); break;
+    case 'asintota':   _asintota(el); break;
+    // Twin fx are engine-driven (they need ReaderMemory); the line itself just
+    // fades in while TheOther performs. Fall through to fx-fade.
+    case 'gemelo': case 'gemelo-forma': el.classList.add('fx-fade'); break;
     case 'acelera': case 'carrera':
       el.classList.add('fx-fade'); // pacing handled by the engine
       break;
@@ -576,6 +580,40 @@ function _foco(el) {
   });
 }
 
+// "El siguiente debería ser el noveno." — the floor number reaches for 9 and
+// never closes the gap: 8 → 8.9 → 8.99 → 8.999…, each step slower than the
+// last (an asymptote, not a loop), then time drags it back to 8. Replaces the
+// old wrong-floor flash: the ninth isn't hidden, it's mathematically out of
+// reach. The number renders in the monospace system register (a machine still
+// counting).
+function _asintota(el) {
+  el.classList.add('fx-fade');
+  const num = document.createElement('span');
+  num.className = 'asintota-num';
+  num.setAttribute('aria-hidden', 'true');
+  num.textContent = '8';
+  el.appendChild(num);
+  const steps = ['8', '8·9', '8·99', '8·999', '8·9999', '8·99999'];
+  let i = 0;
+  const climb = () => {
+    if (!document.contains(el)) return;
+    if (i >= steps.length) {
+      setTimeout(() => {
+        if (!document.contains(num)) return;
+        num.classList.add('reset'); // it never arrived
+        num.textContent = '8';
+      }, 1000);
+      return;
+    }
+    num.textContent = steps[i];
+    num.classList.remove('tick'); void num.offsetWidth; num.classList.add('tick');
+    const delay = 240 + i * i * 150; // decelerate toward the impossible limit
+    i++;
+    setTimeout(climb, delay);
+  };
+  setTimeout(climb, 550);
+}
+
 // ── Breath — the viewport itself inhales. Halts on "No entra." ─────────────
 
 function _breath(stage, scale) {
@@ -670,6 +708,89 @@ export function startWipe(vahoEl, onComplete) {
     const hint = document.getElementById('hint');
     if (hint) hint.textContent = 'borra el vaho';
   }, 6000);
+
+  return finish; // engine can force-complete (reduced-motion path)
+}
+
+// ── Proximity that disobeys ──────────────────────────────────────────────────
+// "Porque la distancia ha dejado de obedecer." The reader drags a point toward
+// a goal it can never reach: the closer the pointer gets, the harder the goal
+// shoves it away, and the gap widens. You perform the correct action and still
+// produce the wrong result — the whole story compressed into one gesture. Works
+// on pointer and touch. It resolves on its own after a few seconds of trying:
+// the building lets you fail, then moves you along. The line above stays legible
+// the entire time (readability during exposition is sacred — the interaction is
+// staged BELOW it).
+
+export function startProximidad(stage, onComplete) {
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const layer = document.createElement('div');
+  layer.className = 'proximidad-layer';
+  const goal = document.createElement('div'); goal.className = 'prox-goal';
+  const node = document.createElement('div'); node.className = 'prox-node';
+  layer.append(goal, node);
+  document.body.appendChild(layer);
+
+  const W = () => layer.clientWidth || innerWidth;
+  const H = () => layer.clientHeight || innerHeight;
+
+  // Normalized coords. Goal sits above-centre; the reader's node starts below.
+  const gx = 0.5, gy = 0.42;
+  let nx = 0.5, ny = 0.74;
+  let px = nx, py = ny; // where the pointer wants the node to go
+  let dragging = false;
+
+  const place = () => {
+    goal.style.left = `${gx * 100}%`; goal.style.top = `${gy * 100}%`;
+    node.style.left = `${nx * 100}%`; node.style.top = `${ny * 100}%`;
+  };
+  place();
+  requestAnimationFrame(() => layer.classList.add('on'));
+
+  const at = (e) => { px = (e.clientX) / W(); py = (e.clientY) / H(); };
+  layer.addEventListener('pointerdown', (e) => {
+    dragging = true; at(e);
+    try { layer.setPointerCapture(e.pointerId); } catch (_) {}
+  });
+  layer.addEventListener('pointermove', (e) => { if (dragging) at(e); });
+  addEventListener('pointerup', () => { dragging = false; });
+
+  const REPEL = 0.16; // radius of disobedience around the goal
+  let raf;
+  const step = () => {
+    raf = requestAnimationFrame(step);
+    // The node eases toward the reader's intent…
+    nx += (px - nx) * 0.16;
+    ny += (py - ny) * 0.16;
+    // …but proximity to the goal repels it, harder the nearer it gets.
+    const dx = nx - gx, dy = ny - gy;
+    const d = Math.hypot(dx, dy) || 1e-4;
+    if (d < REPEL) {
+      const push = (REPEL - d) / REPEL;        // 0..1, grows as it nears
+      const f = push * push * 0.10;
+      nx += (dx / d) * f; ny += (dy / d) * f;  // shoved out along the goal axis
+    }
+    goal.classList.toggle('near', d < REPEL * 1.5);
+    // The gap itself: a faint tether that stretches, never closing.
+    layer.style.setProperty('--gap', d.toFixed(3));
+    place();
+  };
+  step();
+
+  let done = false;
+  const finish = () => {
+    if (done) return;
+    done = true;
+    cancelAnimationFrame(raf);
+    layer.classList.add('resolving'); // the node drifts to rest, alone
+    setTimeout(() => layer.remove(), 1000);
+    clearTimeout(auto); clearTimeout(impatience);
+    onComplete();
+  };
+  // It resolves itself — the correct action performed, the wrong result given.
+  const auto = setTimeout(finish, reduced ? 200 : 5500);
+  // Impatience valve: after 3 s a tap ends it.
+  let impatience = setTimeout(() => layer.addEventListener('click', finish), 3000);
 
   return finish; // engine can force-complete (reduced-motion path)
 }
